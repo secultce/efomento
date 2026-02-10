@@ -48,6 +48,7 @@ Fluxo sequencial com etapas dedicadas por setor:
 - Layout definido pelo time de UX/UI
 - Comunicação exclusiva via API RESTful
 
+<div style="display:none">
 ## Modelo de Dados
 
 ```
@@ -98,7 +99,7 @@ Project (entidade raiz — projeto cultural)
 | certidao_eparcerias     | JSONB   | Dados de certidão            |
 
 > As demais models (Formalization, Parcel, Payment, Monitoring) seguirão o mesmo padrão quando as telas de UX forem definidas.
-
+</div>
 ## Regras de Negócio
 
 - **Acesso por etapa** — cada setor edita apenas sua model/etapa
