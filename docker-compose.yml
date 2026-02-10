@@ -1,0 +1,74 @@
+services:
+  app:
+    build:
+      context: ./docker/php
+      dockerfile: Dockerfile
+      args:
+        UID: 1001
+        GID: 1001
+    container_name: efomento-app
+    volumes:
+      - .:/var/www
+    depends_on:
+      mysql:
+        condition: service_healthy
+    networks:
+      - efomento
+
+  vite:
+    build:
+      context: ./docker/php
+      dockerfile: Dockerfile
+      args:
+        UID: 1001
+        GID: 1001
+    container_name: efomento-vite
+    ports:
+      - "5173:5173"
+    volumes:
+      - .:/var/www
+    command: ["sh", "-c", "cd /var/www && npm install && npm run dev"]
+    networks:
+      - efomento
+
+  nginx:
+    image: nginx:alpine
+    container_name: efomento-nginx
+    ports:
+      - "8080:80"
+    volumes:
+      - .:/var/www
+      - ./docker/nginx/default.conf:/etc/nginx/conf.d/default.conf
+    depends_on:
+      - app
+    networks:
+      - efomento
+
+  mysql:
+    image: mysql:8.0
+    container_name: efomento-mysql
+    environment:
+      MYSQL_DATABASE: efomento
+      MYSQL_USER: efomento
+      MYSQL_PASSWORD: secret
+      MYSQL_ROOT_PASSWORD: secret
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+    networks:
+      - efomento
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-psecret"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+
+networks:
+  efomento:
+    driver: bridge
+
+volumes:
+  mysql_data:
+    driver: local
