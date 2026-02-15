@@ -4,8 +4,8 @@ services:
       context: ./docker/php
       dockerfile: Dockerfile
       args:
-        UID: 1001
-        GID: 1001
+        UID: 1000
+        GID: 1000
     container_name: efomento-app
     volumes:
       - .:/var/www
@@ -20,8 +20,8 @@ services:
       context: ./docker/php
       dockerfile: Dockerfile
       args:
-        UID: 1001
-        GID: 1001
+        UID: 1000
+        GID: 1000
     container_name: efomento-vite
     ports:
       - "5173:5173"
