@@ -5,8 +5,11 @@ import Dropdown from '@/Components/Dropdown.vue';
 import DropdownLink from '@/Components/DropdownLink.vue';
 import NavLink from '@/Components/NavLink.vue';
 import ResponsiveNavLink from '@/Components/ResponsiveNavLink.vue';
-import { Link } from '@inertiajs/vue3';
-
+import { Link, usePage } from '@inertiajs/vue3';
+const page = usePage();
+const hasRole = (role) => page.props.auth.roles.includes(role);
+console.log(page.props.auth.roles)
+const roles = 'Fomento';
 const showingNavigationDropdown = ref(false);
 </script>
 
@@ -47,6 +50,10 @@ const showingNavigationDropdown = ref(false);
                             <div class="relative ms-3">
                                 <Dropdown align="right" width="48">
                                     <template #trigger>
+                                        <span class="inline-flex items-center rounded-md bg-red-50 px-2 py-1
+                                        text-md font-medium text-red-700 inset-ring inset-ring-red-600/10">
+                                            Perfil(s): {{ $page.props.auth.roles }}</span>
+
                                         <span class="inline-flex rounded-md">
                                             <button
                                                 type="button"
