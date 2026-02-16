@@ -1,10 +1,12 @@
 <script setup>
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
-import { Head } from '@inertiajs/vue3';
+import { Head, usePage } from '@inertiajs/vue3';
 import { ref } from 'vue';
 
 const tab = ref('um');
-
+const page = usePage();
+const hasRole = (role) => page.props.auth.roles.includes(role);
+const can = (permission) => page.props.auth.permissions.includes(permission);
 </script>
 
 <template>
@@ -19,8 +21,6 @@ const tab = ref('um');
                     class="overflow-hidden bg-white shadow-sm sm:rounded-lg"
                 >
                     <div class="p-6 text-gray-900">
-
-
                             <v-tabs v-model="tab">
                                 <v-tab value="open">ABERTURA</v-tab>
                                 <v-tab value="ana_jur">ANALISE JURIDICA</v-tab>
@@ -32,24 +32,38 @@ const tab = ref('um');
                             <v-tabs-window v-model="tab">
                                 <v-tabs-window-item value="open">
                                     <div class="p-5">
-                                        <p class="font-weight-bold text-md-body-1">
+                                        <div class="p-5" v-if="hasRole('fomento', 'coord_fomento')">
                                             Conteúdo da aba ABERTURA
-                                        </p>
+                                        </div>
+                                        <div v-else>
+                                            <p class="font-weight-bold text-md-body-1 p-5 text-red-accent-1">
+                                                Você não tem permissão para ver ABERTURA
+                                            </p>
+                                        </div>
                                     </div>
                                 </v-tabs-window-item>
                                 <v-tabs-window-item value="ana_jur">
-                                    <div class="p-5">
+                                    <div class="p-5" v-if="hasRole('juridico', 'coord_juridico')">
                                         Conteúdo da aba ANALISE JURIDICA
+                                    </div>
+                                    <div v-else>
+                                        <p class="font-weight-bold text-md-body-1 p-5 text-red-accent-1">
+                                        Você não tem permissão para ver ANÁLISE JURÍDICA
+                                        </p>
                                     </div>
                                 </v-tabs-window-item>
                                 <v-tabs-window-item value="for_pro">
                                     <div class="p-5">
-                                        Conteúdo da aba FORMALIZAÇÃO DE PROCESSOS
+                                        @can('acompanhamento', 'coord_juridico')
+                                            Conteúdo da aba FORMALIZAÇÃO DE PROCESSOS
+                                        @endcan
                                     </div>
                                 </v-tabs-window-item>
                                 <v-tabs-window-item value="or_per">
                                     <div class="p-5">
-                                        Conteúdo da aba ORÇAMENTO E PARCELA
+                                        @can('orcamentario', 'coord_orcamentario')
+                                            Conteúdo da aba ORÇAMENTO E PARCELA
+                                        @endcan
                                     </div>
                                 </v-tabs-window-item>
                                 <v-tabs-window-item value="pay">
