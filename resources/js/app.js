@@ -13,6 +13,16 @@ import 'vuetify/styles';
 const vuetify = createVuetify({
     components,
     directives,
+    theme: {
+        defaultTheme: 'efomento',
+        themes: {
+            efomento: {
+                colors: {
+                    primary: '#485465',
+                },
+            },
+        },
+    },
 });
 
 const appName = import.meta.env.VITE_APP_NAME || 'Laravel';
