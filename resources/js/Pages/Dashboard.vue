@@ -22,10 +22,10 @@ const can = (permission) => page.props.auth.permissions.includes(permission);
                 >
                     <div class="p-6 text-gray-900">
                             <v-tabs v-model="tab">
-                                <v-tab value="open">ABERTURA</v-tab>
-                                <v-tab value="ana_jur">ANALISE JURIDICA</v-tab>
-                                <v-tab value="for_pro">FORMALIZAÇÃO DE PROCESSOS</v-tab>
-                                <v-tab value="or_per">ORÇAMENTO E PARCELA</v-tab>
+                                <v-tab value="open">Abertura</v-tab>
+                                <v-tab value="ana_jur">Análise Jurídica</v-tab>
+                                <v-tab value="for_pro">Formalização de processos</v-tab>
+                                <v-tab value="or_per">Orçamento e Parcela</v-tab>
                                 <v-tab value="pay">PAGAMENTO</v-tab>
                             </v-tabs>
 

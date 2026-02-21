@@ -17,18 +17,21 @@ const showingNavigationDropdown = ref(false);
     <div>
         <div class="min-h-screen bg-gray-100">
             <nav
-                class="border-b border-gray-100 bg-white"
+                class="border-b border-gray-100 bg-[#008344FF]"
             >
                 <!-- Primary Navigation Menu -->
-                <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+                <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 ">
                     <div class="flex h-16 justify-between">
                         <div class="flex">
                             <!-- Logo -->
-                            <div class="flex shrink-0 items-center">
+                            <div class="flex shrink-0
+                                items-center
+                                text-white text-3xl
+                                font-weight-bold"
+                            >
                                 <Link :href="route('dashboard')">
-                                    <ApplicationLogo
-                                        class="block h-9 w-auto fill-current text-gray-800"
-                                    />
+                                    <h3
+                                    >e-fomento</h3>
                                 </Link>
                             </div>
 
@@ -36,12 +39,12 @@ const showingNavigationDropdown = ref(false);
                             <div
                                 class="hidden space-x-8 sm:-my-px sm:ms-10 sm:flex"
                             >
-                                <NavLink
-                                    :href="route('dashboard')"
-                                    :active="route().current('dashboard')"
-                                >
-                                    Dashboard
-                                </NavLink>
+<!--                                <NavLink-->
+<!--                                    :href="route('dashboard')"-->
+<!--                                    :active="route().current('dashboard')"-->
+<!--                                >-->
+<!--                                    Dashboard-->
+<!--                                </NavLink>-->
                             </div>
                         </div>
 
@@ -50,9 +53,13 @@ const showingNavigationDropdown = ref(false);
                             <div class="relative ms-3">
                                 <Dropdown align="right" width="48">
                                     <template #trigger>
-                                        <span class="inline-flex items-center rounded-md bg-red-50 px-2 py-1
-                                        text-md font-medium text-red-700 inset-ring inset-ring-red-600/10">
-                                            Perfil(s): {{ $page.props.auth.roles }}</span>
+                                        <span>
+                                            <Link :href="route('dashboard')">
+                                    <h3
+                                    >e-fomento</h3>
+                                </Link>
+                                        </span>
+
 
                                         <span class="inline-flex rounded-md">
                                             <button
