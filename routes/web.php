@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\GroupController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\UserController;
 use App\Models\User;
@@ -8,7 +9,7 @@ use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
 Route::get('/add-user', function () {
-    $user = User::find(16);
+    $user = User::find(11);
     $user->assignRole('juridico');
     $role = $user->role('juridico')->get();
 
@@ -38,6 +39,9 @@ Route::middleware('auth')->group(function () {
     Route::get('/projects/{project}/opening', function () {
         return Inertia::render('Projects/Opening');
     })->middleware('verified')->name('projects.opening');
+
+    Route::get('/grupos', [GroupController::class, 'index'])->name('groups.index');
+    Route::put('/grupos', [GroupController::class, 'update'])->name('groups.update');
 });
 
 require __DIR__.'/auth.php';

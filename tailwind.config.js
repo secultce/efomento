@@ -10,6 +10,10 @@ export default {
         './resources/js/**/*.vue',
     ],
 
+    corePlugins: {
+        preflight: false,
+    },
+
     theme: {
         extend: {
             fontFamily: {
@@ -18,5 +22,5 @@ export default {
         },
     },
 
-    plugins: [forms],
+    plugins: [forms({ strategy: 'class' })],
 };

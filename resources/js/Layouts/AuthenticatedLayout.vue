@@ -29,10 +29,10 @@ const showingNavigationDropdown = ref(false);
                                 text-white text-3xl
                                 font-weight-bold"
                             >
-                                <Link :href="route('dashboard')">
-                                    <h3
-                                    >e-fomento</h3>
-                                </Link>
+
+                                <v-btn variant="text" href="dashboard">
+                                    efomento
+                                </v-btn>
                             </div>
 
                             <!-- Navigation Links -->
@@ -53,12 +53,6 @@ const showingNavigationDropdown = ref(false);
                             <div class="relative ms-3">
                                 <Dropdown align="right" width="48">
                                     <template #trigger>
-                                        <span>
-                                            <Link :href="route('dashboard')">
-                                    <h3
-                                    >e-fomento</h3>
-                                </Link>
-                                        </span>
 
 
                                         <span class="inline-flex rounded-md">

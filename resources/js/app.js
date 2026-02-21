@@ -8,11 +8,16 @@ import { ZiggyVue } from '../../vendor/tightenco/ziggy';
 import { createVuetify } from 'vuetify';
 import * as components from 'vuetify/components';
 import * as directives from 'vuetify/directives';
+import '@mdi/font/css/materialdesignicons.css';
 import 'vuetify/styles';
 
 const vuetify = createVuetify({
     components,
     directives,
+    defaults: {
+        VBtn: { style: 'text-transform: none; letter-spacing: normal;' },
+        VTab: { style: 'text-transform: none; letter-spacing: normal;' },
+    },
     theme: {
         defaultTheme: 'efomento',
         themes: {
