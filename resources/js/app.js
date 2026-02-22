@@ -23,7 +23,8 @@ const vuetify = createVuetify({
         themes: {
             efomento: {
                 colors: {
-                    primary: '#485465',
+                    primary: '#008344FF',
+                    secundary: '#ffcc05FF'
                 },
             },
         },
