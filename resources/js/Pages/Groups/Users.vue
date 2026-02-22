@@ -13,9 +13,9 @@ const props = defineProps({
        >
            <v-row>
                <v-col cols="1">
-                   <v-checkbox>
+                   <v-checkbox-btn
 
-                   </v-checkbox>
+                   ></v-checkbox-btn>
                </v-col>
                <v-col cols="1">
                    <v-avatar
@@ -23,7 +23,7 @@ const props = defineProps({
                    >
                        <v-img
                            alt="Avatar"
-                           src="https://avatars0.githubusercontent.com/u/9064066?v=4&s=460"
+                           :src="`https://avatars0.githubusercontent.com/u/${user.id}?v=4&s=460`"
                        ></v-img>
 
                    </v-avatar>

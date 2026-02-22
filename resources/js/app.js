@@ -6,14 +6,27 @@ import { resolvePageComponent } from 'laravel-vite-plugin/inertia-helpers';
 import { createApp, h } from 'vue';
 import { ZiggyVue } from '../../vendor/tightenco/ziggy';
 import { createVuetify } from 'vuetify';
+import { aliases, mdi } from 'vuetify/iconsets/mdi';
 import * as components from 'vuetify/components';
 import * as directives from 'vuetify/directives';
 import '@mdi/font/css/materialdesignicons.css';
 import 'vuetify/styles';
 
+const materialSymbols = {
+    component: (props) => h('span', { class: 'material-symbols-outlined' }, props.icon),
+};
+
 const vuetify = createVuetify({
     components,
     directives,
+    icons: {
+        defaultSet: 'mdi',
+        aliases,
+        sets: {
+            mdi,
+            ms: materialSymbols,
+        },
+    },
     defaults: {
         VBtn: { style: 'text-transform: none; letter-spacing: normal;' },
         VTab: { style: 'text-transform: none; letter-spacing: normal;' },

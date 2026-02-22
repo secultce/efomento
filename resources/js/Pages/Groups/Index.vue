@@ -72,6 +72,13 @@ const save = () => {
         preserveScroll: true,
     });
 };
+
+const items = [
+    { text: 'Minhas Informações', icon: 'mdi-account' },
+    { text: 'Senha', icon: 'mdi-key' },
+    { text: 'Usuários', icon: 'ms:patient_list' },
+]
+
 </script>
 
 <template>
@@ -96,16 +103,18 @@ const save = () => {
                     class="mb-6"
                 >
                     <v-row
+
                         align="start"
                         no-gutters
                     >
-                        <v-col cols="2">
+                        <v-col cols="3"  class="pa-2">
                             <v-row
                                 align="start"
                                 no-gutters
                             >
                                 <v-col cols="3">
                                     <v-avatar
+                                        size="50"
                                     >
                                         <v-img
                                             alt="Avatar"
@@ -117,11 +126,31 @@ const save = () => {
                                 <v-col cols="9">
                                     <h3 class="text-[#008344FF] font-weight-bold mt-2"> {{ $page.props.auth.user.name }}</h3>
                                 </v-col>
+                                <v-card
+                                    class="mx-auto mt-4"
+                                    width="100%"
+                                    variant="flat"
+                                >
+                                    <v-list density="compact">
+                                        <v-list-item
+                                            v-for="(item, i) in items"
+                                            :key="i"
+                                            :value="item"
+                                            color="primary"
+                                        >
+                                            <template v-slot:prepend>
+                                                <v-icon :icon="item.icon"></v-icon>
+                                            </template>
+
+                                            <v-list-item-title v-text="item.text"></v-list-item-title>
+                                        </v-list-item>
+                                    </v-list>
+                                </v-card>
                             </v-row>
 
 
                         </v-col>
-                        <v-col cols="10">
+                        <v-col cols="9">
                             <v-row class="mb-2 p-2">
                                 <v-col>
                                     <h3>
