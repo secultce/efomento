@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\User;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Spatie\Permission\Models\Permission;
@@ -67,11 +68,14 @@ class GroupController extends Controller
             ->map(fn ($label, $key) => ['key' => $key, 'label' => $label])
             ->values();
 
+        $users = User::all();
+
         return Inertia::render('Groups/Index', [
             'modules'        => $modules,
             'actions'        => $this->actions,
             'allPermissions' => $allPermissions,
             'roles'          => $roles,
+            'users'          => $users,
         ]);
     }
 

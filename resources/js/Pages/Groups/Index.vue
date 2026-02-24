@@ -1,13 +1,17 @@
 <script setup>
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
-import { Head, router } from '@inertiajs/vue3';
+import Users from '@/Pages/Groups/Users.vue';
+import {Head, router, usePage} from '@inertiajs/vue3';
 import { reactive, ref, computed } from 'vue';
+
+const page = usePage();
 
 const props = defineProps({
     modules:        { type: Array, required: true },
     actions:        { type: Array, required: true },
     allPermissions: { type: Array, required: true },
     roles:          { type: Array, required: true },
+    users:          { type: Array, required: true}
 });
 
 const mainTab = ref('grupos');
@@ -68,6 +72,13 @@ const save = () => {
         preserveScroll: true,
     });
 };
+
+const items = [
+    { text: 'Minhas Informações', icon: 'mdi-account' },
+    { text: 'Senha', icon: 'mdi-key' },
+    { text: 'Usuários', icon: 'ms:patient_list' },
+]
+
 </script>
 
 <template>
@@ -88,116 +99,200 @@ const save = () => {
                 >
                     {{ flash }}
                 </v-alert>
+                <v-container
+                    class="mb-6"
+                >
+                    <v-row
 
-                <v-card>
-                    <!-- Tabs -->
-                    <v-tabs v-model="mainTab" color="primary" bg-color="white">
-                        <v-tab value="usuarios">Todos os usuários</v-tab>
-                        <v-tab value="grupos">Funções e grupos</v-tab>
-                    </v-tabs>
-
-                    <v-divider />
-
-                    <v-tabs-window v-model="mainTab">
-
-                        <!-- Aba: Todos os usuários -->
-                        <v-tabs-window-item value="usuarios">
-                            <div class="pa-8 text-center text-grey-darken-1">
-                                Gerenciamento de usuários — em desenvolvimento
-                            </div>
-                        </v-tabs-window-item>
-
-                        <!-- Aba: Funções e grupos -->
-                        <v-tabs-window-item value="grupos">
-                            <div class="pa-4">
-
-                                <v-table density="compact" fixed-header>
-                                    <thead>
-                                        <tr>
-                                            <th class="text-left min-w-48">Funcionalidades</th>
-                                            <th
-                                                v-for="action in actions"
-                                                :key="action.key"
-                                                class="text-center text-xs"
-                                            >
-                                                {{ action.label }}
-                                            </th>
-                                            <th class="text-center text-xs font-weight-bold">
-                                                Fazer tudo
-                                            </th>
-                                        </tr>
-                                    </thead>
-
-                                    <tbody>
-                                        <template v-for="module in modules" :key="module.key">
-
-                                            <!-- Linha de cabeçalho do módulo -->
-                                            <tr class="bg-grey-lighten-3">
-                                                <td
-                                                    :colspan="actions.length + 2"
-                                                    class="font-weight-bold text-grey-darken-3 py-2"
-                                                >
-                                                    {{ module.label }}
-                                                </td>
-                                            </tr>
-
-                                            <!-- Uma linha por role -->
-                                            <tr
-                                                v-for="role in roles"
-                                                :key="`${module.key}-${role.name}`"
-                                            >
-                                                <td class="text-grey-darken-1 ps-6">
-                                                    {{ role.label }}
-                                                </td>
-
-                                                <!-- Checkbox por ação -->
-                                                <td
-                                                    v-for="action in actions"
-                                                    :key="action.key"
-                                                    class="text-center"
-                                                >
-                                                    <v-checkbox-btn
-                                                        v-if="isValid(module.key, action.key)"
-                                                        v-model="matrix[role.name][`${module.key}.${action.key}`]"
-                                                        color="red"
-                                                        density="compact"
-                                                    />
-                                                </td>
-
-                                                <!-- Fazer tudo -->
-                                                <td class="text-center">
-                                                    <v-checkbox-btn
-                                                        :model-value="isAllChecked(role.name, module.key)"
-                                                        :indeterminate="isSomeChecked(role.name, module.key)"
-                                                        color="primary"
-                                                        density="compact"
-                                                        @update:model-value="toggleAll(role.name, module.key)"
-                                                    />
-                                                </td>
-                                            </tr>
-
-                                        </template>
-                                    </tbody>
-                                </v-table>
-
-                                <!-- Botão salvar -->
-                                <div class="d-flex justify-end mt-4">
-                                    <v-btn
-                                        color="primary"
-                                        :loading="saving"
-                                        @click="save"
+                        align="start"
+                        no-gutters
+                    >
+                        <v-col cols="3"  class="pa-2">
+                            <v-row
+                                align="start"
+                                no-gutters
+                            >
+                                <v-col cols="3">
+                                    <v-avatar
+                                        size="50"
                                     >
-                                        Salvar permissões
-                                    </v-btn>
-                                </div>
+                                        <v-img
+                                            alt="Avatar"
+                                            src="https://avatars0.githubusercontent.com/u/9064066?v=4&s=460"
+                                        ></v-img>
 
-                            </div>
-                        </v-tabs-window-item>
+                                    </v-avatar>
+                                </v-col>
+                                <v-col cols="9">
+                                    <h3 class="text-[#008344FF] font-weight-bold mt-2"> {{ $page.props.auth.user.name }}</h3>
+                                </v-col>
+                                <v-card
+                                    class="mx-auto mt-4"
+                                    width="100%"
+                                    variant="flat"
+                                >
+                                    <v-list density="compact">
+                                        <v-list-item
+                                            v-for="(item, i) in items"
+                                            :key="i"
+                                            :value="item"
+                                            color="primary"
+                                        >
+                                            <template v-slot:prepend>
+                                                <v-icon :icon="item.icon"></v-icon>
+                                            </template>
 
-                    </v-tabs-window>
-                </v-card>
+                                            <v-list-item-title v-text="item.text"></v-list-item-title>
+                                        </v-list-item>
+                                    </v-list>
+                                </v-card>
+                            </v-row>
+
+
+                        </v-col>
+                        <v-col cols="9">
+                            <v-row class="mb-2 p-2">
+                                <v-col>
+                                    <h3>
+                                        Administração de funções
+                                    </h3>
+                                </v-col>
+                                <v-col>
+                                    <v-row>
+                                        <v-col cols="6">
+                                            <v-btn
+                                                rounded="lg" variant="outlined"
+                                                color="primary"
+                                                block
+                                            >
+                                                <h6 class="text-[#008344FF]
+                                                    text-md-body-2
+                                                ">
+                                                    cadastrar novo usuário
+                                                </h6>
+                                            </v-btn>
+                                        </v-col>
+                                        <v-col cols="6">
+                                            <v-btn rounded="lg" block color="secundary">
+                                               <h4 class=""> cadastrar novo grupo</h4>
+                                            </v-btn>
+                                        </v-col>
+                                    </v-row>
+
+                                </v-col>
+                            </v-row>
+                            <v-card>
+                                <!-- Tabs -->
+                                <v-tabs v-model="mainTab" color="primary" grow bg-color="transparent">
+                                    <v-tab value="usuarios">Todos os usuários</v-tab>
+                                    <v-tab value="grupos">Funções e grupos</v-tab>
+                                </v-tabs>
+
+                                <v-divider />
+
+                                <v-tabs-window v-model="mainTab">
+
+                                    <!-- Aba: Todos os usuários -->
+                                    <v-tabs-window-item value="usuarios">
+                                        <Users :users="users"/>
+                                    </v-tabs-window-item>
+
+                                    <!-- Aba: Funções e grupos -->
+                                    <v-tabs-window-item value="grupos">
+                                        <div class="pa-4">
+
+                                            <v-table density="compact" fixed-header>
+                                                <thead>
+                                                <tr>
+                                                    <th class="text-left min-w-48">Funcionalidades</th>
+                                                    <th
+                                                        v-for="action in actions"
+                                                        :key="action.key"
+                                                        class="text-center text-xs"
+                                                    >
+                                                        {{ action.label }}
+                                                    </th>
+                                                    <th class="text-center text-xs font-weight-bold">
+                                                        Fazer tudo
+                                                    </th>
+                                                </tr>
+                                                </thead>
+
+                                                <tbody>
+                                                <template v-for="module in modules" :key="module.key">
+
+                                                    <!-- Linha de cabeçalho do módulo -->
+                                                    <tr class="bg-grey-lighten-3">
+                                                        <td
+                                                            :colspan="actions.length + 2"
+                                                            class="font-weight-bold text-grey-darken-3 py-2"
+                                                        >
+                                                            {{ module.label }}
+                                                        </td>
+                                                    </tr>
+
+                                                    <!-- Uma linha por role -->
+                                                    <tr
+                                                        v-for="role in roles"
+                                                        :key="`${module.key}-${role.name}`"
+                                                    >
+                                                        <td class="text-grey-darken-1 ps-6">
+                                                            {{ role.label }}
+                                                        </td>
+
+                                                        <!-- Checkbox por ação -->
+                                                        <td
+                                                            v-for="action in actions"
+                                                            :key="action.key"
+                                                            class="text-center"
+                                                        >
+                                                            <v-checkbox-btn
+                                                                v-if="isValid(module.key, action.key)"
+                                                                v-model="matrix[role.name][`${module.key}.${action.key}`]"
+                                                                color="red"
+                                                                density="compact"
+                                                            />
+                                                        </td>
+
+                                                        <!-- Fazer tudo -->
+                                                        <td class="text-center">
+                                                            <v-checkbox-btn
+                                                                :model-value="isAllChecked(role.name, module.key)"
+                                                                :indeterminate="isSomeChecked(role.name, module.key)"
+                                                                color="primary"
+                                                                density="compact"
+                                                                @update:model-value="toggleAll(role.name, module.key)"
+                                                            />
+                                                        </td>
+                                                    </tr>
+
+                                                </template>
+                                                </tbody>
+                                            </v-table>
+
+                                            <!-- Botão salvar -->
+                                            <div class="d-flex justify-end mt-4">
+                                                <v-btn
+                                                    color="primary"
+                                                    :loading="saving"
+                                                    @click="save"
+                                                >
+                                                    Salvar permissões
+                                                </v-btn>
+                                            </div>
+
+                                        </div>
+                                    </v-tabs-window-item>
+
+                                </v-tabs-window>
+                            </v-card>
+                        </v-col>
+                    </v-row>
+                </v-container>
+
 
             </div>
         </div>
     </AuthenticatedLayout>
 </template>
+
