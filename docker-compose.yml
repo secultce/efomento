@@ -4,13 +4,13 @@ services:
       context: ./docker/php
       dockerfile: Dockerfile
       args:
-        UID: 1000
-        GID: 1000
+        UID: 1001
+        GID: 1001
     container_name: efomento-app
     volumes:
       - .:/var/www
     depends_on:
-      mysql:
+      postgres:
         condition: service_healthy
     networks:
       - efomento
@@ -20,8 +20,8 @@ services:
       context: ./docker/php
       dockerfile: Dockerfile
       args:
-        UID: 1000
-        GID: 1000
+        UID: 1001
+        GID: 1001
     container_name: efomento-vite
     ports:
       - "5173:5173"
@@ -44,22 +44,21 @@ services:
     networks:
       - efomento
 
-  mysql:
-    image: mysql:8.0
-    container_name: efomento-mysql
+  postgres:
+    image: postgres:16
+    container_name: efomento-postgres
     environment:
-      MYSQL_DATABASE: efomento
-      MYSQL_USER: efomento
-      MYSQL_PASSWORD: secret
-      MYSQL_ROOT_PASSWORD: secret
+      POSTGRES_DB: efomento
+      POSTGRES_USER: efomento
+      POSTGRES_PASSWORD: efomento
     ports:
-      - "3306:3306"
+      - "5433:5432"
     volumes:
-      - mysql_data:/var/lib/mysql
+      - postgres_data:/var/lib/postgresql/data
     networks:
       - efomento
     healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-psecret"]
+      test: ["CMD-SHELL", "pg_isready -U efomento -d efomento"]
       interval: 5s
       timeout: 5s
       retries: 10
@@ -70,5 +69,5 @@ networks:
     driver: bridge
 
 volumes:
-  mysql_data:
+  postgres_data:
     driver: local
