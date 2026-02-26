@@ -150,6 +150,10 @@ docker compose exec app ./vendor/bin/pint
 docker compose exec app php artisan <comando>
 docker compose exec app composer <comando>
 docker compose exec app npm <comando>
+docker exec efomento-app composer require laravel/breeze --dev
+docker exec efomento-app php artisan migrate:fresh --seed
+docker exec efomento-app php artisan db:seed --class=PermissionSeeder
+
 ```
 
 ### Acessos locais
