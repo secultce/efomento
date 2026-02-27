@@ -3,26 +3,35 @@
 namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
-class UpdateProjectRequest extends FormRequest
+class ProjectUpdateRequest extends FormRequest
 {
-    /**
-     * Determine if the user is authorized to make this request.
-     */
     public function authorize(): bool
     {
-        return false;
+        return true;
     }
 
-    /**
-     * Get the validation rules that apply to the request.
-     *
-     * @return array<string, \Illuminate\Contracts\Validation\ValidationRule|array<mixed>|string>
-     */
     public function rules(): array
     {
+        $project = $this->route('project');
+
         return [
-            //
+            'nup' => [
+                'sometimes',
+                'string',
+                Rule::unique('projects', 'nup')->ignore($project->id),
+            ],
+            'name' => 'sometimes|string',
+            'project_url' => 'nullable|string',
+            'external_id' => 'nullable|string',
+            'total_project_amount' => 'nullable|numeric',
+            'total_commitment_amount' => 'nullable|numeric',
+            'installments' => 'nullable|integer',
+            'process_manager' => 'nullable|string',
+            'process_manager_email' => 'nullable|email',
+            'creditor_registration_nup' => 'nullable|string',
+            'creditor_registration_request_date' => 'nullable|date',
         ];
     }
 }

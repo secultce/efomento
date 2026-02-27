@@ -9,7 +9,7 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('projects', function (Blueprint $table) {
-            $table->id()->primary();
+            $table->id();
             $table->string('nup')->unique()->comment('Parent case number');
             $table->text('project_url')->nullable()->comment('Public Project Url'); 
             $table->string('external_id')->nullable()->comment('External Project ID');
@@ -20,7 +20,7 @@ return new class extends Migration
             $table->string('process_manager')->nullable()->comment('Process Manager Name');
             $table->string('process_manager_email')->nullable()->comment('Process Manager Email');
             $table->string('creditor_registration_nup')->nullable()->comment('Creditor Registration NUP');
-            $table->date('creditor_registration_request_date')->nullable()->comments('Date of Creditor Registration Request');
+            $table->date('creditor_registration_request_date')->nullable()->comment('Date of Creditor Registration Request');
             $table->timestamps();
         });
     }
