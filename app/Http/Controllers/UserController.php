@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
 use function dump;
 
@@ -14,11 +15,8 @@ class UserController extends Controller
      */
     public function index()
     {
-        $user = User::find(19);
-        $user->assignRole('fomento');
-        $role = $user->role('fomento')->get();
-
-        return Inertia::render('Dashboard');
+        $user = Auth::user();
+        return Inertia::render('Editais/Index', ['user' => $user]);
     }
 
     /**

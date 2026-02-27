@@ -11,6 +11,8 @@ import * as components from 'vuetify/components';
 import * as directives from 'vuetify/directives';
 import '@mdi/font/css/materialdesignicons.css';
 import 'vuetify/styles';
+import AppHeader from '@/Components/AppHeader.vue';
+import AppSubHeader from '@/Components/AppSubHeader.vue';
 
 const materialSymbols = {
     component: (props) => h('span', { class: 'material-symbols-outlined' }, props.icon),
@@ -36,8 +38,9 @@ const vuetify = createVuetify({
         themes: {
             efomento: {
                 colors: {
-                    primary: '#008344FF',
-                    secundary: '#ffcc05FF'
+                    primary: '#008344',
+                    secondary: '#ffcc05',
+                    subheader: '#485465',
                 },
             },
         },
@@ -54,11 +57,15 @@ createInertiaApp({
             import.meta.glob('./Pages/**/*.vue'),
         ),
     setup({ el, App, props, plugin }) {
-        return createApp({ render: () => h(App, props) })
+        const app = createApp({ render: () => h(App, props) })
             .use(plugin)
             .use(ZiggyVue)
-            .use(vuetify)
-            .mount(el);
+            .use(vuetify);
+
+        app.component('AppHeader', AppHeader);
+        app.component('AppSubHeader', AppSubHeader);
+
+        return app.mount(el);
     },
     progress: {
         color: '#4B5563',
