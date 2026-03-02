@@ -15,8 +15,14 @@ class ProjectResource extends JsonResource
             'name' => $this->name,
             'project_url' => $this->project_url,
             'external_id' => $this->external_id,
-            'total_project_amount' => $this->total_project_amount,
-            'total_commitment_amount' => $this->total_commitment_amount,
+            'total_project_amount' => [
+                'amount' => $this->total_project_amount,
+                'currency' => 'BRL',
+            ],
+            'total_commitment_amount' => [
+                'amount' => $this->total_commitment_amount,
+                'currency' => 'BRL',
+            ],
             'installments' => $this->installments,
             'process_manager' => $this->process_manager,
             'process_manager_email' => $this->process_manager_email,
