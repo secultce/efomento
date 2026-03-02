@@ -13,6 +13,7 @@ import '@mdi/font/css/materialdesignicons.css';
 import 'vuetify/styles';
 import AppHeader from '@/Components/AppHeader.vue';
 import AppSubHeader from '@/Components/AppSubHeader.vue';
+import '@fontsource/source-sans-3/index.css'
 
 const materialSymbols = {
     component: (props) => h('span', { class: 'material-symbols-outlined' }, props.icon),
@@ -41,6 +42,9 @@ const vuetify = createVuetify({
                     primary: '#008344',
                     secondary: '#ffcc05',
                     subheader: '#485465',
+                },
+                variables: {
+                    'font-family': 'Source Sans 3, sans-serif',
                 },
             },
         },
