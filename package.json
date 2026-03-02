@@ -21,6 +21,7 @@
         "vue": "^3.4.0"
     },
     "dependencies": {
+        "@fontsource/source-sans-3": "^5.2.9",
         "@mdi/font": "^7.4.47",
         "vuetify": "^3.11.8"
     }
