@@ -1,8 +1,6 @@
 <script setup>
 import { ref, computed, watch } from 'vue'
 
-// ─── Props & Emits ────────────────────────────────────────────────────────────
-
 const props = defineProps({
     editais: {
         type: Array,
@@ -15,15 +13,13 @@ const props = defineProps({
 })
 
 const emit = defineEmits([
-    'buscar',
-    'filtrar-status',
-    'filtrar-instrumento',
-    'acessar',
-    'paginar',
-    'alterar-por-pagina',
+    'search',
+    'filter-status',
+    'filter-instrument',
+    'access',
+    'pagete',
+    'change-per-page',
 ])
-
-// ─── Mock data ────────────────────────────────────────────────────────────────
 
 const editaisMock = [
     {
@@ -63,9 +59,7 @@ const editaisMock = [
     },
 ]
 
-// ─── Opções dos filtros ───────────────────────────────────────────────────────
-
-const opcoesStatus = [
+const statusOptions = [
     'Em abertura de processo',
     'Em análise jurídica',
     'Em formalização',
@@ -74,14 +68,14 @@ const opcoesStatus = [
     'Em monitoramento',
 ]
 
-const opcoesInstrumento = [
+const instrumentOptions = [
     'Termo de execução cultural',
     'Convênio',
     'Contrato',
     'Acordo de cooperação',
 ]
 
-const opcoesItensPorPagina = [10, 25, 50]
+const itemsPerPageOptions = [10, 25, 50]
 
 // ─── Headers da tabela ────────────────────────────────────────────────────────
 
@@ -95,11 +89,11 @@ const headers = [
 
 // ─── Estado ───────────────────────────────────────────────────────────────────
 
-const busca               = ref('')
-const statusSelecionado   = ref(null)
-const instrSelecionado    = ref(null)
-const pagina              = ref(1)
-const itensPorPagina      = ref(10)
+const search               = ref('')
+const selectedStatus   = ref(null)
+const selectedInstrument    = ref(null)
+const page              = ref(1)
+const itemsPerPage      = ref(10)
 
 // ─── Computeds ────────────────────────────────────────────────────────────────
 
@@ -108,8 +102,8 @@ const itens = computed(() => (props.editais.length ? props.editais : editaisMock
 const itensFiltrados = computed(() => {
     let lista = itens.value
 
-    if (busca.value.trim()) {
-        const termo = busca.value.toLowerCase()
+    if (search.value.trim()) {
+        const termo = search.value.toLowerCase()
         lista = lista.filter(item =>
             item.titulo?.toLowerCase().includes(termo) ||
             item.mae?.toLowerCase().includes(termo) ||
@@ -117,14 +111,14 @@ const itensFiltrados = computed(() => {
         )
     }
 
-    if (statusSelecionado.value) {
-        lista = lista.filter(item => item.status === statusSelecionado.value)
+    if (selectedStatus.value) {
+        lista = lista.filter(item => item.status === selectedStatus.value)
     }
 
-    if (instrSelecionado.value) {
+    if (selectedInstrument.value) {
         lista = lista.filter(item =>
-            item.tipoInstrumento === instrSelecionado.value ||
-            item.type_ins === instrSelecionado.value
+            item.tipoInstrumento === selectedInstrument.value ||
+            item.type_ins === selectedInstrument.value
         )
     }
 
@@ -132,17 +126,17 @@ const itensFiltrados = computed(() => {
 })
 
 // Reseta para página 1 sempre que qualquer filtro mudar
-watch([busca, statusSelecionado, instrSelecionado], () => {
-    pagina.value = 1
+watch([search, selectedStatus, selectedInstrument], () => {
+    page.value = 1
 })
 
 const total = computed(() => itensFiltrados.value.length)
 
-const totalPaginas = computed(() => Math.ceil(total.value / itensPorPagina.value) || 1)
+const totalPages = computed(() => Math.ceil(total.value / itemsPerPage.value) || 1)
 
-const paginasVisiveis = computed(() => {
-    const n = totalPaginas.value
-    const c = pagina.value
+const visiblePages = computed(() => {
+    const n = totalPages.value
+    const c = page.value
 
     if (n <= 7) return Array.from({ length: n }, (_, i) => i + 1)
 
@@ -155,32 +149,32 @@ const paginasVisiveis = computed(() => {
 
 // ─── Handlers ────────────────────────────────────────────────────────────────
 
-function onBuscar(valor) {
-    busca.value = valor
-    emit('buscar', valor)
+function onSearch(value) {
+    search.value = value
+    emit('search', value)
 }
 
-function onFiltrarStatus(valor) {
-    emit('filtrar-status', valor)
+function onFilterStatus(value) {
+    emit('filter-status', value)
 }
 
-function onFiltrarInstrumento(valor) {
-    emit('filtrar-instrumento', valor)
+function onFilterInstrument(value) {
+    emit('filter-instrument', value)
 }
 
-function onAcessar(item) {
-    emit('acessar', item)
+function onAccess(item) {
+    emit('access', item)
 }
 
-function irParaPagina(p) {
-    if (typeof p !== 'number' || p < 1 || p > totalPaginas.value) return
-    pagina.value = p
-    emit('paginar', p)
+function goToPage(p) {
+    if (typeof p !== 'number' || p < 1 || p > totalPages.value) return
+    page.value = p
+    emit('pagete', p)
 }
 
-function onAlterarPorPagina(qtd) {
-    pagina.value = 1
-    emit('alterar-por-pagina', qtd)
+function onChangePerPage(qty) {
+    page.value = 1
+    emit('change-per-page', qty)
 }
 </script>
 
@@ -201,8 +195,8 @@ function onAlterarPorPagina(qtd) {
         <v-row dense class="mb-4">
             <v-col cols="12" md="4">
                 <v-text-field
-                    :model-value="busca"
-                    @update:model-value="onBuscar"
+                    :model-value="search"
+                    @update:model-value="onSearch"
                     placeholder="Busque editais específicos"
                     append-inner-icon="mdi-magnify"
                     variant="outlined"
@@ -215,9 +209,9 @@ function onAlterarPorPagina(qtd) {
 
             <v-col cols="12" md="4">
                 <v-select
-                    v-model="statusSelecionado"
-                    @update:model-value="onFiltrarStatus"
-                    :items="opcoesStatus"
+                    v-model="selectedStatus"
+                    @update:model-value="onFilterStatus"
+                    :items="statusOptions"
                     placeholder="Filtre por status do processo"
                     variant="outlined"
                     density="compact"
@@ -229,9 +223,9 @@ function onAlterarPorPagina(qtd) {
 
             <v-col cols="12" md="4">
                 <v-select
-                    v-model="instrSelecionado"
-                    @update:model-value="onFiltrarInstrumento"
-                    :items="opcoesInstrumento"
+                    v-model="selectedInstrument"
+                    @update:model-value="onFilterInstrument"
+                    :items="instrumentOptions"
                     placeholder="Filtre pelo tipo de instrumento"
                     variant="outlined"
                     density="compact"
@@ -244,8 +238,8 @@ function onAlterarPorPagina(qtd) {
 
         <!-- ── Tabela ─────────────────────────────────────────────────────── -->
         <v-data-table
-            v-model:page="pagina"
-            v-model:items-per-page="itensPorPagina"
+            v-model:page="page"
+            v-model:items-per-page="itemsPerPage"
             :headers="headers"
             :items="itensFiltrados"
             class="editais-table"
@@ -274,7 +268,7 @@ function onAlterarPorPagina(qtd) {
                     icon
                     variant="text"
                     size="small"
-                    @click="onAcessar(item)"
+                    @click="onAccess(item)"
                 >
                     <v-icon color="#008344" size="22">mdi-eye-circle</v-icon>
                 </v-btn>
@@ -288,19 +282,19 @@ function onAlterarPorPagina(qtd) {
                         <!-- Coluna esquerda — vazia (equilíbrio visual) -->
                         <v-col cols="4" />
 
-                        <!-- Coluna central — botões de paginação -->
+                        <!-- Coluna central — botões de pageção -->
                         <v-col cols="4" class="d-flex justify-center align-center gap-1">
                             <v-btn
                                 icon
                                 variant="text"
                                 size="small"
-                                :disabled="pagina <= 1"
-                                @click="irParaPagina(pagina - 1)"
+                                :disabled="page <= 1"
+                                @click="goToPage(page - 1)"
                             >
                                 <v-icon>mdi-chevron-left</v-icon>
                             </v-btn>
 
-                            <template v-for="p in paginasVisiveis" :key="`p-${p}`">
+                            <template v-for="p in visiblePages" :key="`p-${p}`">
                             <span
                                 v-if="p === '...'"
                                 class="px-1 text-grey-darken-1 text-body-2"
@@ -312,10 +306,10 @@ function onAlterarPorPagina(qtd) {
                                     variant="flat"
                                     size="small"
                                     rounded
-                                    :style="pagina === p
+                                    :style="page === p
                                     ? 'background-color:#FFC107; color:#fff; min-width:32px'
                                     : 'min-width:32px'"
-                                    @click="irParaPagina(p)"
+                                    @click="goToPage(p)"
                                 >
                                     {{ p }}
                                 </v-btn>
@@ -325,8 +319,8 @@ function onAlterarPorPagina(qtd) {
                                 icon
                                 variant="text"
                                 size="small"
-                                :disabled="pagina >= totalPaginas"
-                                @click="irParaPagina(pagina + 1)"
+                                :disabled="page >= totalPages"
+                                @click="goToPage(page + 1)"
                             >
                                 <v-icon>mdi-chevron-right</v-icon>
                             </v-btn>
@@ -335,12 +329,12 @@ function onAlterarPorPagina(qtd) {
                         <!-- Coluna direita — itens por página -->
                         <v-col cols="4" class="d-flex justify-end align-center gap-2">
                         <span class="text-body-2 text-grey-darken-1 text-no-wrap">
-                            Alterar exibição da lista: Exibindo {{ itensPorPagina }} itens
+                            Alterar exibição da lista: Exibindo {{ itemsPerPage }} itens
                         </span>
                             <v-select
-                                v-model="itensPorPagina"
-                                @update:model-value="onAlterarPorPagina"
-                                :items="opcoesItensPorPagina"
+                                v-model="itemsPerPage"
+                                @update:model-value="onChangePerPage"
+                                :items="itemsPerPageOptions"
                                 variant="outlined"
                                 density="compact"
                                 hide-details
