@@ -11,7 +11,7 @@ class ProjectService
      * Retorna os projetos formatados para exibição no dashboard de editais.
      * Aplica filtro de busca por nome ou NUP quando informado.
      */
-    public function getProjetosParaDashboard(?string $search = null): Collection
+    public function getProjectsForDashboard(?string $search = null): Collection
     {
         return Project::query()
             ->when($search, function ($query, $search) {
@@ -33,7 +33,7 @@ class ProjectService
     /**
      * Retorna os totais para os cards de estatísticas do dashboard.
      */
-    public function getTotais(): array
+    public function getTotals(): array
     {
         $total = Project::count();
         $comCredenciamento = Project::whereNotNull('creditor_registration_request_date')->count();

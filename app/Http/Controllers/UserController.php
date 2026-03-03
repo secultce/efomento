@@ -16,8 +16,8 @@ class UserController extends Controller
     {
         return Inertia::render('Editais/Index', [
             'user'     => Auth::user(),
-            'projetos' => $this->projectService->getProjetosParaDashboard($request->query('search')),
-            'totais'   => $this->projectService->getTotais(),
+            'projetos' => $this->projectService->getProjectsForDashboard($request->query('search')),
+            'totais'   => $this->projectService->getTotals(),
         ]);
     }
 }
