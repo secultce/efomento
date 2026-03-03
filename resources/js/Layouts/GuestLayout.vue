@@ -9,14 +9,14 @@ import GuestHeader from '@/Components/GuestAppHeader.vue'
 
     <div class="flex min-h-[calc(100vh-64px)] relative">
 
-      <!-- 🔺 Triangle (hidden on small screens automatically) -->
+      <!-- Triangle (hidden on small screens automatically) -->
       <div
         class="hidden md:block absolute bottom-0 right-0
                w-full h-full bg-white
                [clip-path:polygon(100%_100%,35%_100%,100%_0)]"
       ></div>
 
-      <!-- 📦 Content -->
+      <!-- Content -->
       <main
         class="flex flex-1 items-center justify-center
                px-6 sm:px-10 md:px-16 lg:px-24

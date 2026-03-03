@@ -36,7 +36,7 @@ const submit = () => {
 
     <div class="min-h-screen flex flex-col lg:flex-row items-center justify-center px-6 py-10 md:gap-4 lg:gap-[15em]">
 
-        <!-- LADO ESQUERDO -->
+        <!-- left side -->
         <div class=" flex-col items-center lg:items-start sm:text-center lg:text-left max-w-xl lg:mt-[-20em] hidden xl:block">
 
             <img 
@@ -56,7 +56,7 @@ const submit = () => {
 
         </div>
 
-        <!-- LADO DIREITO (FORM) -->
+        <!-- right side (FORM) -->
         <div class="w-full max-w-md bg-white px-6 py-8 shadow-md rounded-lg">
 
             <h1 class="text-lg font-bold text-[#1A1A1A] leading-relaxed">
