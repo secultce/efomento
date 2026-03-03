@@ -2,6 +2,7 @@
 @tailwind components;
 @tailwind utilities;
 
+
 body {
-    font-family: 'Source Sans 3', sans-serif!important;
+  font-family: 'Source Sans 3', sans-serif !important;
 }
