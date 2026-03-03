@@ -1,5 +1,5 @@
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed, watch } from 'vue'
 
 // ─── Props & Emits ────────────────────────────────────────────────────────────
 
@@ -105,7 +105,38 @@ const itensPorPagina      = ref(10)
 
 const itens = computed(() => (props.editais.length ? props.editais : editaisMock))
 
-const total = computed(() => props.totalEditais || itens.value.length)
+const itensFiltrados = computed(() => {
+    let lista = itens.value
+
+    if (busca.value.trim()) {
+        const termo = busca.value.toLowerCase()
+        lista = lista.filter(item =>
+            item.titulo?.toLowerCase().includes(termo) ||
+            item.mae?.toLowerCase().includes(termo) ||
+            item.numeroProcessoMae?.toLowerCase().includes(termo)
+        )
+    }
+
+    if (statusSelecionado.value) {
+        lista = lista.filter(item => item.status === statusSelecionado.value)
+    }
+
+    if (instrSelecionado.value) {
+        lista = lista.filter(item =>
+            item.tipoInstrumento === instrSelecionado.value ||
+            item.type_ins === instrSelecionado.value
+        )
+    }
+
+    return lista
+})
+
+// Reseta para página 1 sempre que qualquer filtro mudar
+watch([busca, statusSelecionado, instrSelecionado], () => {
+    pagina.value = 1
+})
+
+const total = computed(() => itensFiltrados.value.length)
 
 const totalPaginas = computed(() => Math.ceil(total.value / itensPorPagina.value) || 1)
 
@@ -213,12 +244,10 @@ function onAlterarPorPagina(qtd) {
 
         <!-- ── Tabela ─────────────────────────────────────────────────────── -->
         <v-data-table
-            v-model:search="busca"
             v-model:page="pagina"
             v-model:items-per-page="itensPorPagina"
             :headers="headers"
-            :items="itens"
-            :filter-keys="['titulo', 'numeroProcessoMae']"
+            :items="itensFiltrados"
             class="editais-table"
         >
             <!-- Título truncado -->
