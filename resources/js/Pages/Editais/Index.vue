@@ -18,10 +18,9 @@ defineProps({
 })
 
 const stats = [
-    { title: 'Editais sem processos iniciados', key: 'pendentes' },
-    { title: 'Editais em andamento',            key: 'projetos'  },
-    { title: 'Editais com formalização concluída', key: 'concluidos' },
-    { title: 'Processos em monitoramento',      key: 'monitoramento' },
+    { title: 'Todos os editais disponíveis', key: 'pendentes' },
+    { title: 'Editais com processos em andamento',            key: 'projetos'  },
+    { title: 'Processos Finalizados', key: 'concluidos' }
 ]
 </script>
 
@@ -39,14 +38,14 @@ const stats = [
                         <v-col
                             v-for="stat in stats"
                             :key="stat.key"
-                            cols="12" sm="6" lg="3"
+                            cols="12" sm="6" lg="4"
                         >
-                            <v-card variant="outlined" class="pa-4 bg-white" height="100%">
+                            <v-card variant="outlined" class="pa-5 bg-white" height="100%">
                                 <v-row align="center">
-                                    <v-col cols="9">
-                                        <div class="text-body-2">{{ stat.title }}</div>
+                                    <v-col cols="6">
+                                        <div class="text-body-2 font-weight-bold">{{ stat.title }}</div>
                                     </v-col>
-                                    <v-col cols="3" class="text-right">
+                                    <v-col cols="6" class="text-right">
                                         <div class="text-h4 font-weight-bold text-green-darken-2">
                                             {{ totais[stat.key] }}
                                         </div>
