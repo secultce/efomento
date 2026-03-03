@@ -1,0 +1,427 @@
+
+[
+    {
+        "id" : 5230,
+        "nome" : "EDITAL DE CREDENCIAMENTO DE PARECERISTAS PARA A SECRETARIA DA CULTURA DO ESTADO DO CEARÁ 2024",
+        "inicio" : "2024-05-16T03:00:00.000Z",
+        "fim" : "2025-01-01T02:59:00.000Z",
+        "id_projeto" : 5622,
+        "nome_projeto" : "Editais Política Nacional Aldir Blanc - Secult Ceará 2024"
+    },
+    {
+        "id" : 5754,
+        "nome" : "4º Edital Patrimônio Vivo - Museus",
+        "inicio" : "2024-10-14T03:00:00.000Z",
+        "fim" : "2024-11-30T02:59:00.000Z",
+        "id_projeto" : 5622,
+        "nome_projeto" : "Editais Política Nacional Aldir Blanc - Secult Ceará 2024"
+    },
+    {
+        "id" : 5755,
+        "nome" : "4º Edital Patrimônio Vivo - Patrimônio Imaterial - Cultura Alimentar",
+        "inicio" : "2024-10-14T03:00:00.000Z",
+        "fim" : "2024-11-30T02:59:00.000Z",
+        "id_projeto" : 5622,
+        "nome_projeto" : "Editais Política Nacional Aldir Blanc - Secult Ceará 2024"
+    },
+    {
+        "id" : 5756,
+        "nome" : "4º Edital Patrimônio Vivo - Patrimônio Imaterial - Cultura Popular",
+        "inicio" : "2024-10-14T03:00:00.000Z",
+        "fim" : "2024-11-30T02:59:00.000Z",
+        "id_projeto" : 5622,
+        "nome_projeto" : "Editais Política Nacional Aldir Blanc - Secult Ceará 2024"
+    },
+    {
+        "id" : 5757,
+        "nome" : "4º Edital Patrimônio Vivo - Patrimônio Material",
+        "inicio" : "2024-10-14T03:00:00.000Z",
+        "fim" : "2024-11-30T02:59:00.000Z",
+        "id_projeto" : 5622,
+        "nome_projeto" : "Editais Política Nacional Aldir Blanc - Secult Ceará 2024"
+    },
+    {
+        "id" : 5758,
+        "nome" : "4° Edital Cultura Infância",
+        "inicio" : "2024-10-14T03:00:00.000Z",
+        "fim" : "2024-11-30T02:59:00.000Z",
+        "id_projeto" : 5622,
+        "nome_projeto" : "Editais Política Nacional Aldir Blanc - Secult Ceará 2024"
+    },
+    {
+        "id" : 5759,
+        "nome" : "4° Edital Cultura e Arte LGBTI+",
+        "inicio" : "2024-10-14T03:00:00.000Z",
+        "fim" : "2024-11-30T02:59:00.000Z",
+        "id_projeto" : 5622,
+        "nome_projeto" : "Editais Política Nacional Aldir Blanc - Secult Ceará 2024"
+    },
+    {
+        "id" : 5760,
+        "nome" : "3º Edital Prêmio Cidadania e Diversidade - Cultura Camponesa",
+        "inicio" : "2024-10-14T03:00:00.000Z",
+        "fim" : "2024-11-30T02:59:00.000Z",
+        "id_projeto" : 5622,
+        "nome_projeto" : "Editais Política Nacional Aldir Blanc - Secult Ceará 2024"
+    },
+    {
+        "id" : 5761,
+        "nome" : "3º Edital Prêmio Cidadania e Diversidade - Expressões Culturais Afro-Brasileiras",
+        "inicio" : "2024-10-14T03:00:00.000Z",
+        "fim" : "2024-11-30T02:59:00.000Z",
+        "id_projeto" : 5622,
+        "nome_projeto" : "Editais Política Nacional Aldir Blanc - Secult Ceará 2024"
+    },
+    {
+        "id" : 5762,
+        "nome" : "3º Edital Prêmio Cidadania e Diversidade - Cultura Indígena",
+        "inicio" : "2024-10-14T03:00:00.000Z",
+        "fim" : "2024-11-30T02:59:00.000Z",
+        "id_projeto" : 5622,
+        "nome_projeto" : "Editais Política Nacional Aldir Blanc - Secult Ceará 2024"
+    },
+    {
+        "id" : 5763,
+        "nome" : "2° Prêmio Trajetorias Culturais",
+        "inicio" : "2024-10-14T03:00:00.000Z",
+        "fim" : "2024-11-30T02:59:00.000Z",
+        "id_projeto" : 5622,
+        "nome_projeto" : "Editais Política Nacional Aldir Blanc - Secult Ceará 2024"
+    },
+    {
+        "id" : 5765,
+        "nome" : "2º Edital Bibliotecas e Museus Comunitários - Museus Comunitários",
+        "inicio" : "2024-10-14T03:00:00.000Z",
+        "fim" : "2024-11-30T02:59:00.000Z",
+        "id_projeto" : 5622,
+        "nome_projeto" : "Editais Política Nacional Aldir Blanc - Secult Ceará 2024"
+    },
+    {
+        "id" : 5766,
+        "nome" : "2º Edital Bibliotecas e Museus Comunitários - Bibliotecas Comunitárias",
+        "inicio" : "2024-10-14T03:00:00.000Z",
+        "fim" : "2024-11-30T02:59:00.000Z",
+        "id_projeto" : 5622,
+        "nome_projeto" : "Editais Política Nacional Aldir Blanc - Secult Ceará 2024"
+    },
+    {
+        "id" : 5767,
+        "nome" : "Edital Arte da Palavra - Eventos Literários",
+        "inicio" : "2024-10-14T03:00:00.000Z",
+        "fim" : "2024-11-30T02:59:00.000Z",
+        "id_projeto" : 5622,
+        "nome_projeto" : "Editais Política Nacional Aldir Blanc - Secult Ceará 2024"
+    },
+    {
+        "id" : 5768,
+        "nome" : "Edital Arte da Palavra - Apoio direto a Editoras, Livrarias e Sebos",
+        "inicio" : "2024-10-14T03:00:00.000Z",
+        "fim" : "2024-11-30T02:59:00.000Z",
+        "id_projeto" : 5622,
+        "nome_projeto" : "Editais Política Nacional Aldir Blanc - Secult Ceará 2024"
+    },
+    {
+        "id" : 5829,
+        "nome" : "Cultura Viva - 5° Edital Pontos de Cultura",
+        "inicio" : "2024-11-07T03:00:00.000Z",
+        "fim" : "2024-12-21T02:59:00.000Z",
+        "id_projeto" : 5622,
+        "nome_projeto" : "Editais Política Nacional Aldir Blanc - Secult Ceará 2024"
+    },
+    {
+        "id" : 5830,
+        "nome" : "Cultura Viva - Edital Pontão de Cultura",
+        "inicio" : "2024-11-07T03:00:00.000Z",
+        "fim" : "2024-12-21T02:59:00.000Z",
+        "id_projeto" : 5622,
+        "nome_projeto" : "Editais Política Nacional Aldir Blanc - Secult Ceará 2024"
+    },
+    {
+        "id" : 5831,
+        "nome" : "Cultura Viva - Edital Prêmio Marivalda Kariri de Pontos de Cultura",
+        "inicio" : "2024-11-07T03:00:00.000Z",
+        "fim" : "2024-12-21T02:59:00.000Z",
+        "id_projeto" : 5622,
+        "nome_projeto" : "Editais Política Nacional Aldir Blanc - Secult Ceará 2024"
+    },
+    {
+        "id" : 5957,
+        "nome" : "3° Edital Escolas Livres da Cultura",
+        "inicio" : "2024-12-20T03:00:00.000Z",
+        "fim" : "2025-02-01T02:59:00.000Z",
+        "id_projeto" : 5622,
+        "nome_projeto" : "Editais Política Nacional Aldir Blanc - Secult Ceará 2024"
+    },
+    {
+        "id" : 5958,
+        "nome" : "3ª Edital de Apoio a Festivais Culturais do Ceará",
+        "inicio" : "2024-12-03T03:00:00.000Z",
+        "fim" : "2025-01-19T02:59:00.000Z",
+        "id_projeto" : 5622,
+        "nome_projeto" : "Editais Política Nacional Aldir Blanc - Secult Ceará 2024"
+    },
+    {
+        "id" : 6007,
+        "nome" : "4º Edital de Apoio a Territórios Periféricos - CAPITAL",
+        "inicio" : "2024-12-27T03:00:00.000Z",
+        "fim" : "2025-02-11T02:59:00.000Z",
+        "id_projeto" : 5622,
+        "nome_projeto" : "Editais Política Nacional Aldir Blanc - Secult Ceará 2024"
+    },
+    {
+        "id" : 6035,
+        "nome" : "4º Edital de Apoio a Territórios Periféricos - INTERIOR",
+        "inicio" : "2024-12-27T03:00:00.000Z",
+        "fim" : "2025-02-11T02:59:00.000Z",
+        "id_projeto" : 5622,
+        "nome_projeto" : "Editais Política Nacional Aldir Blanc - Secult Ceará 2024"
+    },
+    {
+        "id" : 6038,
+        "nome" : "14° Edital Ceará das Artes - Artes Visuais",
+        "inicio" : "2024-12-27T03:00:00.000Z",
+        "fim" : "2025-02-11T02:59:00.000Z",
+        "id_projeto" : 5622,
+        "nome_projeto" : "Editais Política Nacional Aldir Blanc - Secult Ceará 2024"
+    },
+    {
+        "id" : 6056,
+        "nome" : "14° Edital Ceará das Artes - Circo",
+        "inicio" : "2024-12-27T03:00:00.000Z",
+        "fim" : "2025-02-11T02:59:00.000Z",
+        "id_projeto" : 5622,
+        "nome_projeto" : "Editais Política Nacional Aldir Blanc - Secult Ceará 2024"
+    },
+    {
+        "id" : 6058,
+        "nome" : "14° Edital Ceará das Artes - Dança",
+        "inicio" : "2024-12-27T03:00:00.000Z",
+        "fim" : "2025-02-11T02:59:00.000Z",
+        "id_projeto" : 5622,
+        "nome_projeto" : "Editais Política Nacional Aldir Blanc - Secult Ceará 2024"
+    },
+    {
+        "id" : 6059,
+        "nome" : "14° Edital Ceará das Artes - Design",
+        "inicio" : "2024-12-27T03:00:00.000Z",
+        "fim" : "2025-02-11T02:59:00.000Z",
+        "id_projeto" : 5622,
+        "nome_projeto" : "Editais Política Nacional Aldir Blanc - Secult Ceará 2024"
+    },
+    {
+        "id" : 6060,
+        "nome" : "14° Edital Ceará das Artes - Fotografia",
+        "inicio" : "2024-12-27T03:00:00.000Z",
+        "fim" : "2025-02-11T02:59:00.000Z",
+        "id_projeto" : 5622,
+        "nome_projeto" : "Editais Política Nacional Aldir Blanc - Secult Ceará 2024"
+    },
+    {
+        "id" : 6061,
+        "nome" : "14° Edital Ceará das Artes - Humor",
+        "inicio" : "2024-12-27T03:00:00.000Z",
+        "fim" : "2025-02-11T02:59:00.000Z",
+        "id_projeto" : 5622,
+        "nome_projeto" : "Editais Política Nacional Aldir Blanc - Secult Ceará 2024"
+    },
+    {
+        "id" : 6062,
+        "nome" : "14° Edital Ceará das Artes - Literatura",
+        "inicio" : "2024-12-27T03:00:00.000Z",
+        "fim" : "2025-02-11T02:59:00.000Z",
+        "id_projeto" : 5622,
+        "nome_projeto" : "Editais Política Nacional Aldir Blanc - Secult Ceará 2024"
+    },
+    {
+        "id" : 6063,
+        "nome" : "14° Edital Ceará das Artes - Moda",
+        "inicio" : "2024-12-27T03:00:00.000Z",
+        "fim" : "2025-02-11T02:59:00.000Z",
+        "id_projeto" : 5622,
+        "nome_projeto" : "Editais Política Nacional Aldir Blanc - Secult Ceará 2024"
+    },
+    {
+        "id" : 6064,
+        "nome" : "14° Edital Ceará das Artes - Música",
+        "inicio" : "2024-12-27T03:00:00.000Z",
+        "fim" : "2025-02-11T02:59:00.000Z",
+        "id_projeto" : 5622,
+        "nome_projeto" : "Editais Política Nacional Aldir Blanc - Secult Ceará 2024"
+    },
+    {
+        "id" : 6065,
+        "nome" : "14° Edital Ceará das Artes - Performance",
+        "inicio" : "2024-12-27T03:00:00.000Z",
+        "fim" : "2025-02-11T02:59:00.000Z",
+        "id_projeto" : 5622,
+        "nome_projeto" : "Editais Política Nacional Aldir Blanc - Secult Ceará 2024"
+    },
+    {
+        "id" : 6066,
+        "nome" : "14° Edital Ceará das Artes - Teatro",
+        "inicio" : "2024-12-27T03:00:00.000Z",
+        "fim" : "2025-02-11T02:59:00.000Z",
+        "id_projeto" : 5622,
+        "nome_projeto" : "Editais Política Nacional Aldir Blanc - Secult Ceará 2024"
+    },
+    {
+        "id" : 6067,
+        "nome" : "14° Edital Ceará das Artes - Teatro de Bonecos",
+        "inicio" : "2024-12-27T03:00:00.000Z",
+        "fim" : "2025-02-11T02:59:00.000Z",
+        "id_projeto" : 5622,
+        "nome_projeto" : "Editais Política Nacional Aldir Blanc - Secult Ceará 2024"
+    },
+    {
+        "id" : 6068,
+        "nome" : "14° Edital Ceará das Artes - Áreas Técnicas",
+        "inicio" : "2024-12-27T03:00:00.000Z",
+        "fim" : "2025-02-11T02:59:00.000Z",
+        "id_projeto" : 5622,
+        "nome_projeto" : "Editais Política Nacional Aldir Blanc - Secult Ceará 2024"
+    },
+    {
+        "id" : 6072,
+        "nome" : "1° Edital de Festivais Culturais Calendarizados",
+        "inicio" : "2024-12-27T03:00:00.000Z",
+        "fim" : "2025-01-28T02:59:00.000Z",
+        "id_projeto" : 5622,
+        "nome_projeto" : "Editais Política Nacional Aldir Blanc - Secult Ceará 2024"
+    },
+    {
+        "id" : 6084,
+        "nome" : "15º Edital Ceará de Cinema e Audiovisual - Roteiro",
+        "inicio" : "2025-01-06T03:00:00.000Z",
+        "fim" : "2025-02-20T02:59:00.000Z",
+        "id_projeto" : 5622,
+        "nome_projeto" : "Editais Política Nacional Aldir Blanc - Secult Ceará 2024"
+    },
+    {
+        "id" : 6086,
+        "nome" : "15º Edital Ceará de Cinema e Audiovisual - Difusão",
+        "inicio" : "2025-01-06T03:00:00.000Z",
+        "fim" : "2025-02-20T02:59:00.000Z",
+        "id_projeto" : 5622,
+        "nome_projeto" : "Editais Política Nacional Aldir Blanc - Secult Ceará 2024"
+    },
+    {
+        "id" : 6087,
+        "nome" : "15º Edital Ceará de Cinema e Audiovisual - Modalidade Cineclubes",
+        "inicio" : "2025-01-06T03:00:00.000Z",
+        "fim" : "2025-02-20T02:59:00.000Z",
+        "id_projeto" : 5622,
+        "nome_projeto" : "Editais Política Nacional Aldir Blanc - Secult Ceará 2024"
+    },
+    {
+        "id" : 6098,
+        "nome" : "EDITAL DE CHAMAMENTO PÚBLICO PARA REALIZAÇÃO DE PROGRAMA DE PUBLICAÇÕES E CONCESSÃO DE BOLSAS PARA MOBILIDADE FORMATIVA",
+        "inicio" : "2025-01-16T03:00:00.000Z",
+        "fim" : "2025-02-16T02:59:00.000Z",
+        "id_projeto" : 5622,
+        "nome_projeto" : "Editais Política Nacional Aldir Blanc - Secult Ceará 2024"
+    },
+    {
+        "id" : 6124,
+        "nome" : "15º EDITAL CEARÁ DE CINEMA E AUDIOVISUAL  - PRODUÇÃO E FINALIZAÇÃO - PRODUÇÃO E FINALIZAÇÃO DE LONGA-METRAGEM - PRODUÇÃO E DIREÇÃO ESTREANTE",
+        "inicio" : "2025-01-06T03:00:00.000Z",
+        "fim" : "2025-02-20T02:59:00.000Z",
+        "id_projeto" : 5622,
+        "nome_projeto" : "Editais Política Nacional Aldir Blanc - Secult Ceará 2024"
+    },
+    {
+        "id" : 6125,
+        "nome" : "15º EDITAL CEARÁ DE CINEMA E AUDIOVISUAL  - PRODUÇÃO E FINALIZAÇÃO - PRODUÇÃO E FINALIZAÇÃO DE CURTAS-METRAGENS (FICÇÃO, DOCUMENTÁRIO E ANIMAÇÃO)",
+        "inicio" : "2025-01-06T03:00:00.000Z",
+        "fim" : "2025-02-20T02:59:00.000Z",
+        "id_projeto" : 5622,
+        "nome_projeto" : "Editais Política Nacional Aldir Blanc - Secult Ceará 2024"
+    },
+    {
+        "id" : 6126,
+        "nome" : "15º EDITAL CEARÁ DE CINEMA E AUDIOVISUAL  - PRODUÇÃO E FINALIZAÇÃO - FINALIZAÇÃO DE LONGAS-METRAGENS E SÉRIES",
+        "inicio" : "2025-01-06T03:00:00.000Z",
+        "fim" : "2025-02-20T02:59:00.000Z",
+        "id_projeto" : 5622,
+        "nome_projeto" : "Editais Política Nacional Aldir Blanc - Secult Ceará 2024"
+    },
+    {
+        "id" : 7289,
+        "nome" : "9° Prêmio Alberto Nepomuceno de Composição Musical",
+        "inicio" : "2025-12-19T03:00:00.000Z",
+        "fim" : "2026-01-20T02:59:00.000Z",
+        "id_projeto" : 7111,
+        "nome_projeto" : "Editais Política Nacional Aldir Blanc - Secult Ceará 2025"
+    },
+    {
+        "id" : 7295,
+        "nome" : "5º EDITAL CULTURA INFÂNCIA",
+        "inicio" : "2025-12-19T03:00:00.000Z",
+        "fim" : "2026-01-20T02:59:00.000Z",
+        "id_projeto" : 7111,
+        "nome_projeto" : "Editais Política Nacional Aldir Blanc - Secult Ceará 2025"
+    },
+    {
+        "id" : 7296,
+        "nome" : "2º EDITAL DE CHAMAMENTO PÚBLICO PARA REALIZAÇÃO DE FEIRAS LITERÁRIAS NOS MUNICÍPIOS DO CEARÁ",
+        "inicio" : "2026-01-19T03:00:00.000Z",
+        "fim" : "2026-02-03T02:59:00.000Z",
+        "id_projeto" : 7111,
+        "nome_projeto" : "Editais Política Nacional Aldir Blanc - Secult Ceará 2025"
+    },
+    {
+        "id" : 7302,
+        "nome" : "4º EDITAL DE APOIO A FESTIVAIS CULTURAIS DO CEARÁ",
+        "inicio" : "2025-12-19T03:00:00.000Z",
+        "fim" : "2026-01-20T02:59:00.000Z",
+        "id_projeto" : 7111,
+        "nome_projeto" : "Editais Política Nacional Aldir Blanc - Secult Ceará 2025"
+    },
+    {
+        "id" : 7303,
+        "nome" : "PRÊMIO PEDRO BOCA RICA DE TEATRO DE BONECOS",
+        "inicio" : "2025-12-19T03:00:00.000Z",
+        "fim" : "2026-01-20T02:59:00.000Z",
+        "id_projeto" : 7111,
+        "nome_projeto" : "Editais Política Nacional Aldir Blanc - Secult Ceará 2025"
+    },
+    {
+        "id" : 7347,
+        "nome" : "2º Edital Prêmio Pontos de Cultura",
+        "inicio" : "2025-12-24T03:00:00.000Z",
+        "fim" : "2026-01-23T02:59:00.000Z",
+        "id_projeto" : 7111,
+        "nome_projeto" : "Editais Política Nacional Aldir Blanc - Secult Ceará 2025"
+    },
+    {
+        "id" : 7348,
+        "nome" : "2º Edital de Pontão de Cultura",
+        "inicio" : "2025-12-24T03:00:00.000Z",
+        "fim" : "2026-01-31T02:59:00.000Z",
+        "id_projeto" : 7111,
+        "nome_projeto" : "Editais Política Nacional Aldir Blanc - Secult Ceará 2025"
+    },
+    {
+        "id" : 7349,
+        "nome" : "6º Edital Cultura Viva Pontos de Cultura",
+        "inicio" : "2025-12-24T03:00:00.000Z",
+        "fim" : "2026-01-29T02:59:00.000Z",
+        "id_projeto" : 7111,
+        "nome_projeto" : "Editais Política Nacional Aldir Blanc - Secult Ceará 2025"
+    },
+    {
+        "id" : 7354,
+        "nome" : "5 º EDITAL APOIO A TERRITÓRIOS PERIFÉRICOS - CAPITAL",
+        "inicio" : "2026-02-11T03:00:00.000Z",
+        "fim" : "2026-03-13T02:59:00.000Z",
+        "id_projeto" : 7111,
+        "nome_projeto" : "Editais Política Nacional Aldir Blanc - Secult Ceará 2025"
+    },
+    {
+        "id" : 7372,
+        "nome" : "5° EDITAL DE APOIO A TERRITÓRIOS PERIFÉRICOS - INTERIOR",
+        "inicio" : "2026-02-11T03:00:00.000Z",
+        "fim" : "2026-03-13T02:59:00.000Z",
+        "id_projeto" : 7111,
+        "nome_projeto" : "Editais Política Nacional Aldir Blanc - Secult Ceará 2025"
+    }
+]
