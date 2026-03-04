@@ -28,6 +28,11 @@ const submit = () => {
         onFinish: () => form.reset('password'),
     });
 };
+
+const openSupport = () => {
+    window.open('https://suporte.secult.ce.gov.br/', '_blank', 'noopener,noreferrer');
+};
+
 </script>
 
 <template>
@@ -117,7 +122,7 @@ const submit = () => {
                         Entrar
                     </PrimaryButton>
                     <span class="font-bold text-[0.8em] text-[#1A1A1A]">OU</span>
-                    <SecondaryButton class="w-full !border-radius-[1em] !text-align-center" :disabled="form.processing">  
+                    <SecondaryButton class="w-full !border-radius-[1em] !text-align-center" :disabled="form.processing" @click="openSupport">
                         Quero solicitar acesso
                     </SecondaryButton>
                 </div>

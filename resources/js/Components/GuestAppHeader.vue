@@ -1,7 +1,3 @@
-<script setup>
-import ApplicationLogo from '@/Components/ApplicationLogo.vue'
-import { Link } from '@inertiajs/vue3'
-</script>
 
 <template>
     <header class="bg-primary">
@@ -11,12 +7,14 @@ import { Link } from '@inertiajs/vue3'
                     e-fomento
                 </span>
             </div>
-            <span
-                @click="$inertia.visit(route('register'))"
-                class="cursor-pointer rounded-md px-4 py-2 text-sm font-medium text-black bg-white transition hover:bg-gray-500"
+            <a
+                href="https://suporte.secult.ce.gov.br/"
+                class="cursor-pointer rounded-md no-underline px-4 py-2 text-sm font-medium text-black bg-white transition hover:bg-gray-500"
+                target="_blank"
+                rel="noopener noreferrer"
             >
                 Solicitar acesso
-            </span>
+            </a>
             
         </div>
     </header>
