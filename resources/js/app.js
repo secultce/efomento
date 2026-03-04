@@ -13,7 +13,8 @@ import '@mdi/font/css/materialdesignicons.css';
 import 'vuetify/styles';
 import AppHeader from '@/Components/AppHeader.vue';
 import AppSubHeader from '@/Components/AppSubHeader.vue';
-import '@fontsource/source-sans-3/index.css'
+import '@fontsource/source-sans-3/400.css'
+import '@fontsource/source-sans-3/700.css'
 
 const materialSymbols = {
     component: (props) => h('span', { class: 'material-symbols-outlined' }, props.icon),
