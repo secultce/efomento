@@ -1,12 +1,13 @@
 <script setup>
-import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
+import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue'
+import EditaisListPage from '@/Pages/Editais/EditaisListPage.vue'
 
 defineProps({
     totais: {
         type: Object,
-        default: () => ({ projetos: 0, pendentes: 0, concluidos: 0 }),
+        default: () => ({ projetos: 0, pendentes: 0, concluidos: 0, monitoramento: 0 }),
     },
-    editais: {
+    projetos: {
         type: Array,
         default: () => [],
     },
@@ -14,73 +15,54 @@ defineProps({
         type: Object,
         required: true,
     },
-});
+})
+
 const stats = [
-    {
-        title: 'Editais sem processos iniciados',
-        value: 32,
-        color: 'text-green-darken-2'   // ou success
-    },
-    {
-        title: 'Editais em andamento',
-        value: 12,
-        color: 'text-green-darken-2'
-    },
-    {
-        title: 'Editais com formalização concluídas',
-        value: 16,
-        color: 'text-green-darken-2'
-    },
-    {
-        title: 'Processos em monitoramento',
-        value: 3,
-        color: 'text-green-darken-2'
-    }
+    { title: 'Todos os editais disponíveis', key: 'pendentes' },
+    { title: 'Editais com processos em andamento',            key: 'projetos'  },
+    { title: 'Processos Finalizados', key: 'concluidos' }
 ]
 </script>
 
 <template>
     <AuthenticatedLayout>
         <template #subheader>
-            <div class="d-flex gap-4 mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+            <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
                 <v-container class="py-6">
                     <v-row>
-                        <p class="text-white text-h6 mb-3">Bem-vindo ao seu espaço, {{ user.name }}</p>
+                        <p class="text-white text-h6 mb-3">
+                            Bem-vindo ao seu espaço, {{ user.name }}
+                        </p>
                     </v-row>
                     <v-row>
                         <v-col
-                            v-for="item in stats"
-                            :key="item.title"
-                            cols="12"
-                            sm="6"
-                            lg="3"
+                            v-for="stat in stats"
+                            :key="stat.key"
+                            cols="12" sm="6" lg="4"
                         >
-                            <v-card
-                                variant="outlined"
-                                class="pa-4 text-center bg-white"
-                                height="100%"
-                            >
-                                <v-row>
-                                    <v-col cols="9">
-                                        <div class="text-body-2 mb-1">{{ item.title }}</div>
-
+                            <v-card variant="outlined" class="pa-5 bg-white" height="100%">
+                                <v-row align="center">
+                                    <v-col cols="6">
+                                        <div class="text-body-2 font-weight-bold">{{ stat.title }}</div>
                                     </v-col>
-                                    <v-col cols="3">
-                                        <div
-                                            class="text-h4 font-weight-bold"
-                                            :class="item.color"
-                                        >
-                                            {{ item.value }}
+                                    <v-col cols="6" class="text-right">
+                                        <div class="text-h4 font-weight-bold text-green-darken-2">
+                                            {{ totais[stat.key] }}
                                         </div>
                                     </v-col>
-
                                 </v-row>
                             </v-card>
                         </v-col>
                     </v-row>
-
                 </v-container>
             </div>
         </template>
+
+        <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-6">
+            <EditaisListPage
+                :editais="projetos"
+                :total-editais="totais.projetos"
+            />
+        </div>
     </AuthenticatedLayout>
 </template>
