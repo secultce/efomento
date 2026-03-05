@@ -3,9 +3,11 @@
     <header class="bg-primary">
         <div class="flex h-16 items-center justify-between px-8">
             <div href="/" class="flex items-center space-x-2">
-                <span class="text-white font-semibold text-lg">
-                    e-fomento
-                </span>
+                <v-app-bar-title>
+                    <a :href="route('editais.index')" class="text-white font-weight-bold text-h6 text-decoration-none">
+                        e-fomento
+                    </a>
+                </v-app-bar-title>
             </div>
             <a
                 href="https://suporte.secult.ce.gov.br/"
