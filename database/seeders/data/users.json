@@ -1,5 +1,10 @@
 [
   {
+    "name": "teste user",
+    "email": "teste@example.com",
+    "password": "password"
+  },
+  {
     "name": "Cicero Oliveira Gondim",
     "email": "cicero.gondim@secult.ce.gov.br",
     "password": "password"
