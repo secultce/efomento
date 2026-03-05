@@ -24,6 +24,8 @@ class Project extends Model
         'process_manager_email',
         'creditor_registration_nup',
         'creditor_registration_request_date',
+        'budget_allocation_nup',
+        'budget_allocation_request_date'
     ];
 
     protected $casts = [

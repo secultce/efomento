@@ -20,6 +20,8 @@ class ProjectFactory extends Factory
             'process_manager_email' => $this->faker->safeEmail(),
             'creditor_registration_nup' => $this->faker->numerify('CR-#####'),
             'creditor_registration_request_date' => $this->faker->date(),
+            'budget_allocation_nup' => $this->faker->numerify('BA-#####'),
+            'budget_allocation_request_date' => $this->faker->date(),
         ];
     }
 }

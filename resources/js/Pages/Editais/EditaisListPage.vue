@@ -1,5 +1,7 @@
 <script setup>
 import { ref, computed, watch } from 'vue'
+import NupDialog from './NupDialog.vue'
+
 
 const props = defineProps({
     editais: {
@@ -176,9 +178,24 @@ function onChangePerPage(qty) {
     page.value = 1
     emit('change-per-page', qty)
 }
+
+// ─── nup dialog ───────────────────────────────────────────────────────────────
+const dialog = ref(false)
+const selectedItem = ref(null)
+
+function openDialog(item) {
+    selectedItem.value = item
+    dialog.value = true
+}
+
 </script>
 
 <template>
+    <nup-dialog
+        v-model="dialog"
+        :item="selectedItem"
+        @save="onSaveProcessoMae"
+    />
     <v-card flat class="pa-6 bg-white">
         <!-- ── Cabeçalho ──────────────────────────────────────────────────── -->
         <div class="mb-5">
@@ -261,7 +278,21 @@ function onChangePerPage(qty) {
             <template #item.type_ins="{ item }">
                 <span class="titulo-truncado">{{ item.type_ins }}</span>
             </template>
-
+            <!-- Número do processo mãe -->
+            <template #item.mae="{ item }">
+                <span v-if="item.numeroProcessoMae || item.mae">
+                    {{ item.numeroProcessoMae || item.mae }}
+                </span>
+                <v-btn
+                    v-else
+                    variant="text"
+                    density="compact"
+                    class="!text-[#008344] !font-bold spacing tracking-tight"
+                    @click="openDialog(item)"
+                >
+                    Informe os dados de identificação
+                </v-btn>
+            </template>
             <!-- Ícone de acesso -->
             <template #item.acessar="{ item }">
                 <v-btn
