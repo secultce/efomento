@@ -25,7 +25,8 @@ class OpportunityService
                 'titulo'  => $opportunity->name,
                 'mae'     => $opportunity->nup,
                 'type_ins' => $opportunity->instrument_type,
-                'status'  => $opportunity->creditor_registration_request_date !== null,
+                //'status'  => $opportunity->creditor_registration_request_date !== null,
+                'status'  => $opportunity->nup? 'Em abertura de processo': 'Pendente abertura de processo',
                 'url'     => $opportunity->opportunity_url,
             ]);
     }

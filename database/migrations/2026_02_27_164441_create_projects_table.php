@@ -10,7 +10,7 @@ return new class extends Migration
     {
         Schema::create('opportunities', function (Blueprint $table) {
             $table->id();
-            $table->string('nup')->unique()->comment('Parent case number');
+            $table->string('nup')->nullable()->unique()->comment('Parent case number');
             $table->text('opportunity_url')->nullable()->comment('Public Opportunity Url'); 
             $table->string('external_id')->nullable()->comment('External Opportunity ID');
             $table->string('name')->comment('Opportunity Name');

@@ -14,7 +14,7 @@ class OpportunitySeeder extends Seeder
 
         foreach ($editais as $edital) {
             Opportunity::updateOrCreate(
-                ['nup' => 'NUP-' . $edital['id']],
+                //['nup' => 'NUP-' . $edital['id']],
                 [
                     // ── Dados do JSON ─────────────────────────────────────
                     'external_id'                      => $edital['id'],
