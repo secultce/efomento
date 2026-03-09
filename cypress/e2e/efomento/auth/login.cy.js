@@ -1,5 +1,3 @@
-// import users from '..'
-
 describe('Login', () => {
 
   let data;
@@ -10,7 +8,7 @@ describe('Login', () => {
     })
   })
 
-  it('Login com sucesso', () => {
+  it.only('Login com sucesso', () => {
     cy.visit('/login')
     cy.get('#email')
       .type(data.valid_email)
@@ -22,12 +20,12 @@ describe('Login', () => {
     cy.url()
       .should('be.equal', `${Cypress.config("baseUrl")}/editais`)  
     cy.get('p')
-      .contains('Bem-vindo ao seu espaço,')
+      .contains('Bem-vindo ao seu espaço, ' + data.name)
       .should('be.visible')
 
   })
 
-  it.only('Login com senha incorreta',() => {
+  it('Login com senha incorreta',() => {
     cy.visit('/login')
     cy.get('#email')
       .type(data.valid_email)
