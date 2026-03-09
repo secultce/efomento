@@ -4,16 +4,16 @@ namespace Database\Factories;
 
 use Illuminate\Database\Eloquent\Factories\Factory;
 
-class ProjectFactory extends Factory
+class OpportunityFactory extends Factory
 {
     public function definition(): array
     {
         return [
             'nup' => $this->faker->unique()->numerify('NUP-######'),
-            'project_url' => $this->faker->url(),
+            'opportunity_url' => $this->faker->url(),
             'external_id' => $this->faker->uuid(),
             'name' => $this->faker->sentence(3),
-            'total_project_amount' => $this->faker->randomFloat(2, 1000, 50000),
+            'total_opportunity_amount' => $this->faker->randomFloat(2, 1000, 50000),
             'total_commitment_amount' => $this->faker->randomFloat(2, 500, 30000),
             'installments' => $this->faker->numberBetween(1, 12),
             'process_manager' => $this->faker->name(),

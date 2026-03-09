@@ -7,14 +7,14 @@ use Illuminate\Support\Facades\Schema;
 return new class extends Migration {
     public function up(): void
     {
-        Schema::table('projects', function (Blueprint $table) {
+        Schema::table('opportunities', function (Blueprint $table) {
             $table->softDeletes(); 
         });
     }
 
     public function down(): void
     {
-        Schema::table('projects', function (Blueprint $table) {
+        Schema::table('opportunities', function (Blueprint $table) {
             $table->dropSoftDeletes();
         });
     }

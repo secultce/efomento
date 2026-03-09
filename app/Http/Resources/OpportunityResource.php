@@ -5,7 +5,7 @@ namespace App\Http\Resources;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
-class ProjectResource extends JsonResource
+class OpportunityResource extends JsonResource
 {
     public function toArray(Request $request): array
     {
@@ -13,10 +13,10 @@ class ProjectResource extends JsonResource
             'id' => $this->id,
             'nup' => $this->nup,
             'name' => $this->name,
-            'project_url' => $this->project_url,
+            'opportunity_url' => $this->opportunity_url,
             'external_id' => $this->external_id,
-            'total_project_amount' => [
-                'amount' => $this->total_project_amount,
+            'total_opportunity_amount' => [
+                'amount' => $this->total_opportunity_amount,
                 'currency' => 'BRL',
             ],
             'total_commitment_amount' => [
@@ -24,6 +24,7 @@ class ProjectResource extends JsonResource
                 'currency' => 'BRL',
             ],
             'installments' => $this->installments,
+            'instrument_type' => $this->instrument_type,
             'process_manager' => $this->process_manager,
             'process_manager_email' => $this->process_manager_email,
             'creditor_registration_nup' => $this->creditor_registration_nup,

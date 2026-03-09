@@ -3,27 +3,27 @@
 namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;
-use App\Models\Project;
+use App\Models\Opportunity;
 
-class ProjectSeeder extends Seeder
+class OpportunitySeeder extends Seeder
 {
     public function run(): void
     {
-        $json    = file_get_contents(database_path('seeders/data/editais_project_pnab.json'));
+        $json    = file_get_contents(database_path('seeders/data/editais_opportunity_pnab.json'));
         $editais = json_decode($json, associative: true);
 
         foreach ($editais as $edital) {
-            Project::updateOrCreate(
+            Opportunity::updateOrCreate(
                 ['nup' => 'NUP-' . $edital['id']],
                 [
                     // ── Dados do JSON ─────────────────────────────────────
                     'external_id'                      => $edital['id'],
                     'name'                             => $edital['nome'],
-                    'project_url'                      => (string) $edital['id_projeto'],
+                    'opportunity_url'                      => (string) $edital['id_projeto'],
                     'creditor_registration_request_date' => $this->parseDate($edital['inicio'] ?? null),
 
                     // ── Dados simulados (sem equivalente no JSON) ─────────
-                    'total_project_amount'      => fake()->randomFloat(2, 10000, 500000),
+                    'total_opportunity_amount'      => fake()->randomFloat(2, 10000, 500000),
                     'total_commitment_amount'   => fake()->randomFloat(2, 5000, 300000),
                     'installments'              => fake()->numberBetween(1, 12),
                     'process_manager'           => fake('pt_BR')->name(),

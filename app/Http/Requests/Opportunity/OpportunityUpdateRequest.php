@@ -1,11 +1,10 @@
 <?php
 
-namespace App\Http\Requests;
-
+namespace App\Http\Requests\Opportunity;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
-class ProjectUpdateRequest extends FormRequest
+class OpportunityUpdateRequest extends FormRequest
 {
     public function authorize(): bool
     {
@@ -14,18 +13,19 @@ class ProjectUpdateRequest extends FormRequest
 
     public function rules(): array
     {
-        $project = $this->route('project');
+        $Opportunity = $this->route('opportunity');
 
         return [
             'nup' => [
                 'sometimes',
                 'string',
-                Rule::unique('projects', 'nup')->ignore($project->id),
+                Rule::unique('opportunities', 'nup')->ignore($Opportunity->id),
             ],
+            'instrument_type' => 'nullable|string',
             'name' => 'sometimes|string',
-            'project_url' => 'nullable|string',
+            'opportunity_url' => 'nullable|string',
             'external_id' => 'nullable|string',
-            'total_project_amount' => 'nullable|numeric',
+            'total_opportunity_amount' => 'nullable|numeric',
             'total_commitment_amount' => 'nullable|numeric',
             'installments' => 'nullable|integer',
             'process_manager' => 'nullable|string',

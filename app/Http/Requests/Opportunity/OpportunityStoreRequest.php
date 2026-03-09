@@ -1,10 +1,9 @@
 <?php
 
-namespace App\Http\Requests;
-
+namespace App\Http\Requests\Opportunity;
 use Illuminate\Foundation\Http\FormRequest;
 
-class ProjectStoreRequest extends FormRequest
+class OpportunityStoreRequest extends FormRequest
 {
     public function authorize(): bool
     {
@@ -14,11 +13,11 @@ class ProjectStoreRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'nup' => 'required|string|unique:projects,nup',
+            'nup' => 'required|string|unique:opportunities,nup',
             'name' => 'required|string',
-            'project_url' => 'nullable|string',
+            'opportunity_url' => 'nullable|string',
             'external_id' => 'nullable|string',
-            'total_project_amount' => 'nullable|numeric',
+            'total_opportunity_amount' => 'nullable|numeric',
             'total_commitment_amount' => 'nullable|numeric',
             'installments' => 'nullable|integer',
             'process_manager' => 'nullable|string',

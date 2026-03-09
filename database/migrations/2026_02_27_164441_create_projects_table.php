@@ -8,13 +8,13 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::create('projects', function (Blueprint $table) {
+        Schema::create('opportunities', function (Blueprint $table) {
             $table->id();
             $table->string('nup')->unique()->comment('Parent case number');
-            $table->text('project_url')->nullable()->comment('Public Project Url'); 
-            $table->string('external_id')->nullable()->comment('External Project ID');
-            $table->string('name')->comment('Project Name');
-            $table->decimal('total_project_amount', 15, 2)->nullable()->comment('Total Project Amount');
+            $table->text('opportunity_url')->nullable()->comment('Public Opportunity Url'); 
+            $table->string('external_id')->nullable()->comment('External Opportunity ID');
+            $table->string('name')->comment('Opportunity Name');
+            $table->decimal('total_opportunity_amount', 15, 2)->nullable()->comment('Total Opportunity Amount');
             $table->decimal('total_commitment_amount', 15, 2)->nullable()->comment('Total Commitment Amount');
             $table->integer('installments')->nullable()->comment('Number of Installments');
             $table->string('process_manager')->nullable()->comment('Process Manager Name');
@@ -40,6 +40,6 @@ return new class extends Migration
 
     public function down(): void
     {
-        Schema::dropIfExists('projects');
+        Schema::dropIfExists('opportunities');
     }
 };

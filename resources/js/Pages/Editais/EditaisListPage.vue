@@ -194,7 +194,6 @@ function openDialog(item) {
     <nup-dialog
         v-model="dialog"
         :item="selectedItem"
-        @save="onSaveProcessoMae"
     />
     <v-card flat class="pa-6 bg-white">
         <!-- ── Cabeçalho ──────────────────────────────────────────────────── -->

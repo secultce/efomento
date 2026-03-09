@@ -1,32 +1,36 @@
 <script setup>
 import { computed, watch } from 'vue'
 import { useForm } from '@inertiajs/vue3'
+import extenso from 'extenso'
 
 const props = defineProps({
     modelValue: Boolean,
-    edital: Object
+    item: Object
 })
-
+console.log(props)
 const emit = defineEmits(['update:modelValue'])
 
 const form = useForm({
-    numero_processo_mae: '',
-    tipo_instrumento: '',
-    valor_total: '',
-    tipo_assinatura: '',
-    numero_parcelas: '',
-    gestor_acompanhamento: '',
-    email_gestor: '',
-    processo_dotacao: '',
-    data_dotacao: '',
-    processo_credor: '',
-    data_credor: ''
+    nup: '',
+    instrument_type: '',
+    name: '',
+    total_opportunity_amount: '',
+    installments: '',
+    process_manager: '',
+    process_manager_email: '',
+    budget_allocation_nup: '',
+    budget_allocation_request_date: '',
+    creditor_registration_nup: '',
+    creditor_registration_request_date: ''
+    
 })
 
-watch(() => props.edital, (edital) => {
-    if (!edital) return
+watch(() => props.item, (opportunity) => {
+    console.log(opportunity.titulo)
+    if (!opportunity) return
 
-    form.numero_processo_mae = edital.numeroProcessoMae || ''
+    form.nup = opportunity.mae || ''
+    form.name = opportunity.titulo || ''
 })
 
 function close() {
@@ -34,7 +38,7 @@ function close() {
 }
 
 function submit() {
-    form.post(route('editais.identificacao.store', props.edital.id), {
+    form.patch(route('opportunities.update', props.item.id), {
         onSuccess: () => {
             close()
         }
@@ -43,12 +47,10 @@ function submit() {
 
 /* valor por extenso (exibição simples) */
 const valorExtenso = computed(() => {
-    if (!form.valor_total) return ''
-    return new Intl.NumberFormat('pt-BR', {
-        style: 'currency',
-        currency: 'BRL'
-    }).format(form.valor_total)
+    if (!form.total_opportunity_amount) return ''
+    return extenso(form.total_opportunity_amount, { mode: 'currency' })
 })
+
 </script>
 
 <template>
@@ -71,21 +73,25 @@ const valorExtenso = computed(() => {
                 <v-row dense>
 
                     <v-col cols="12" md="6">
-                        <v-text-field v-model="form.numero_processo_mae" label="Número do processo mãe"
+                        <v-text-field v-model="form.nup" label="Número do processo mãe"
                             placeholder="Insira o número do processo aqui" variant="outlined" />
                     </v-col>
 
                     <v-col cols="12" md="6">
-                        <v-select v-model="form.tipo_instrumento" label="Tipo de instrumento" :items="[
-                            'Termo de execução cultural',
-                            'Convênio',
-                            'Contrato',
-                            'Acordo de cooperação'
+                        <v-select v-model="form.instrument_type" label="Tipo de instrumento" :items="[
+                            'TERMO DE EXECUÇÃO CULTURAL',
+                            'TERMO DE FOMENTO',
+                            'TERMO DE FOMENTO SIMPLIFICADO',
+                            'TERMO DE COLABORAÇÃO',
+                            'CONVÊNIO',
+                            'PREMIAÇÃO',
+                            'AQUISIÇÃO/CONTRATO',
+                            'PATROCÍNIO/CONTRATO'
                         ]" placeholder="Selecione um tipo" variant="outlined" />
                     </v-col>
 
                     <v-col cols="12" md="6">
-                        <v-text-field v-model="form.valor_total" label="Valor total do edital"
+                        <v-text-field v-model="form.total_opportunity_amount" label="Valor total do edital"
                             placeholder="Insira dado da entrega aqui" variant="outlined" />
                     </v-col>
 
@@ -95,25 +101,19 @@ const valorExtenso = computed(() => {
                     </v-col>
 
                     <v-col cols="12" md="6">
-                        <v-text-field v-model="form.tipo_assinatura" label="Tipo de assinatura"
-                            placeholder="Insira os dados da subfunção aqui" variant="outlined" />
-                    </v-col>
-
-                    <v-col cols="12" md="6">
-                        <v-text-field v-model="form.numero_parcelas" label="Número de parcelas" type="number"
-                            placeholder="Insira o número aqui" variant="outlined" />
-                    </v-col>
-
-                    <v-col cols="12" md="6">
-                        <v-text-field v-model="form.gestor_acompanhamento" label="Gestor do acompanhamento do edital"
+                        <v-text-field v-model="form.process_manager" label="Gestor do acompanhamento do edital"
                             placeholder="Insira o dado do elemento de despesas aqui" variant="outlined" />
                     </v-col>
 
                     <v-col cols="12" md="6">
-                        <v-text-field v-model="form.email_gestor" label="Email do gestor" type="email"
+                        <v-text-field v-model="form.process_manager_email" label="Email do gestor" type="email"
                             placeholder="Data de tramitação" variant="outlined" />
                     </v-col>
 
+                    <v-col cols="12" md="6">
+                        <v-text-field v-model="form.installments" label="Número de parcelas" type="number"
+                            placeholder="Insira o número aqui" variant="outlined" />
+                    </v-col>
                 </v-row>
 
                 <!-- ───────── DEMAIS PROCESSOS ───────── -->
@@ -125,22 +125,22 @@ const valorExtenso = computed(() => {
                 <v-row dense>
 
                     <v-col cols="12" md="6">
-                        <v-text-field v-model="form.processo_dotacao" label="Nº Processo Dotação Orçamentária"
+                        <v-text-field v-model="form.budget_allocation_nup" label="Nº Processo Dotação Orçamentária"
                             placeholder="Insira o número da dotação" variant="outlined" />
                     </v-col>
 
                     <v-col cols="12" md="6">
-                        <v-text-field v-model="form.data_dotacao" label="Data da Solicitação da Dotação" type="date"
+                        <v-text-field v-model="form.budget_allocation_request_date" label="Data da Solicitação da Dotação" type="date"
                             variant="outlined" />
                     </v-col>
 
                     <v-col cols="12" md="6">
-                        <v-text-field v-model="form.processo_credor" label="Nº Processo Cadastro do Credor"
+                        <v-text-field v-model="form.creditor_registration_nup" label="Nº Processo Cadastro do Credor"
                             placeholder="Insira o número do processo do cadastro do credor" variant="outlined" />
                     </v-col>
 
                     <v-col cols="12" md="6">
-                        <v-text-field v-model="form.data_credor" label="Data da Solicitação do Cadastro do Credor"
+                        <v-text-field v-model="form.creditor_registration_request_date" label="Data da Solicitação do Cadastro do Credor"
                             type="date" variant="outlined" />
                     </v-col>
 

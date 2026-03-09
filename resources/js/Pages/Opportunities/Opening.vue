@@ -1,9 +1,9 @@
 <script setup>
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
-import EditalContextBar from '@/Pages/Projects/Partials/EditalContextBar.vue';
-import AgentHeader from '@/Pages/Projects/Partials/AgentHeader.vue';
-import ReadOnlyDataPanel from '@/Pages/Projects/Partials/ReadOnlyDataPanel.vue';
-import OpeningForm from '@/Pages/Projects/Partials/OpeningForm.vue';
+import EditalContextBar from '@/Pages/Opportunities/Partials/EditalContextBar.vue';
+import AgentHeader from '@/Pages/Opportunities/Partials/AgentHeader.vue';
+import ReadOnlyDataPanel from '@/Pages/Opportunities/Partials/ReadOnlyDataPanel.vue';
+import OpeningForm from '@/Pages/Opportunities/Partials/OpeningForm.vue';
 import { Head, usePage } from '@inertiajs/vue3';
 import { ref, reactive } from 'vue';
 
@@ -19,7 +19,7 @@ const edital = reactive({
 });
 
 // Dados mockados do projeto/agente
-const project = reactive({
+const opportunity = reactive({
     id: 1,
     agent_name: 'Maria da Silva Santos',
     agent_cpf_cnpj: '123.456.789-00',
@@ -64,7 +64,7 @@ const handleSubmit = (formData) => {
         <div class="py-4">
             <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
                 <!-- Cabeçalho do agente -->
-                <AgentHeader :project="project" class="mb-4" />
+                <AgentHeader :opportunity="opportunity" class="mb-4" />
 
                 <!-- Tabs horizontais principais -->
                 <v-card>
