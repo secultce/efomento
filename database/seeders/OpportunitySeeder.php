@@ -9,18 +9,18 @@ class OpportunitySeeder extends Seeder
 {
     public function run(): void
     {
-        $json    = file_get_contents(database_path('seeders/data/editais_opportunity_pnab.json'));
-        $editais = json_decode($json, associative: true);
+        $json    = file_get_contents(database_path('seeders/data/opportunity_pnab.json'));
+        $opportunities = json_decode($json, associative: true);
 
-        foreach ($editais as $edital) {
+        foreach ($opportunities as $opportunity) {
             Opportunity::updateOrCreate(
-                //['nup' => 'NUP-' . $edital['id']],
+                ['external_id' => $opportunity['id']],
                 [
                     // ── Dados do JSON ─────────────────────────────────────
-                    'external_id'                      => $edital['id'],
-                    'name'                             => $edital['nome'],
-                    'opportunity_url'                      => (string) $edital['id_projeto'],
-                    'creditor_registration_request_date' => $this->parseDate($edital['inicio'] ?? null),
+                    'external_id'                      => $opportunity['id'],
+                    'name'                             => $opportunity['nome'],
+                    'opportunity_url' => env('EXTERNAL_PROVIDER_URL') . $opportunity['id'],
+                    'creditor_registration_request_date' => $this->parseDate($opportunity['inicio'] ?? null),
 
                     // ── Dados simulados (sem equivalente no JSON) ─────────
                     'total_opportunity_amount'      => fake()->randomFloat(2, 10000, 500000),

@@ -71,6 +71,8 @@ const valorExtenso = computed(() => {
 
     return extenso(value, { mode: 'currency' })
 })
+
+const today = new Date().toISOString().split('T')[0]
 </script>
 
 <template>
@@ -158,7 +160,7 @@ const valorExtenso = computed(() => {
                         <v-col cols="12" md="6">
                             <FormField label="Data da Solicitação da Dotação"
                                 :error="form.errors.budget_allocation_request_date">
-                                <TextField v-model="form.budget_allocation_request_date" type="date" />
+                                <TextField v-model="form.budget_allocation_request_date" type="date" min="2016-01-01" />
                             </FormField>
                         </v-col>
 
@@ -174,7 +176,7 @@ const valorExtenso = computed(() => {
                         <v-col cols="12" md="6">
                             <FormField label="Data da Solicitação do Cadastro do Credor"
                                 :error="form.errors.creditor_registration_request_date">
-                                <TextField v-model="form.creditor_registration_request_date" type="date" />
+                                <TextField v-model="form.creditor_registration_request_date" type="date" min="2016-01-01" />
                             </FormField>
                         </v-col>
 
