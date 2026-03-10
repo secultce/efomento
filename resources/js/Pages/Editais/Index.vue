@@ -5,9 +5,9 @@ import EditaisListPage from '@/Pages/Editais/EditaisListPage.vue'
 defineProps({
     totais: {
         type: Object,
-        default: () => ({ projetos: 0, pendentes: 0, concluidos: 0, monitoramento: 0 }),
+        default: () => ({ oportunidades: 0, pendentes: 0, concluidos: 0, monitoramento: 0 }),
     },
-    projetos: {
+    oportunidades: {
         type: Array,
         default: () => [],
     },
@@ -15,11 +15,15 @@ defineProps({
         type: Object,
         required: true,
     },
+    instrumentTypes: {
+        type: Array,
+        default: () => [],
+    }
 })
 
 const stats = [
     { title: 'Todos os editais disponíveis', key: 'pendentes' },
-    { title: 'Editais com processos em andamento',            key: 'projetos'  },
+    { title: 'Editais com processos em andamento',            key: 'oportunidades'  },
     { title: 'Processos Finalizados', key: 'concluidos' }
 ]
 </script>
@@ -60,8 +64,9 @@ const stats = [
 
         <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-6">
             <EditaisListPage
-                :editais="projetos"
-                :total-editais="totais.projetos"
+                :editais="oportunidades"
+                :total-editais="totais.oportunidades"
+                :instrument-types="instrumentTypes"
             />
         </div>
     </AuthenticatedLayout>

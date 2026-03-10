@@ -3,7 +3,7 @@
 use App\Http\Controllers\GroupController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\UserController;
-use App\Http\Controllers\ProjectController;
+use App\Http\Controllers\OpportunityController;
 use App\Models\User;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
@@ -36,7 +36,7 @@ Route::middleware('auth')->group(function () {
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
     Route::get('/grupos', [GroupController::class, 'index'])->name('groups.index');
     Route::put('/grupos', [GroupController::class, 'update'])->name('groups.update');
-    Route::resource('projects', ProjectController::class);
+    Route::resource('opportunities', OpportunityController::class);
 });
 
 require __DIR__.'/auth.php';

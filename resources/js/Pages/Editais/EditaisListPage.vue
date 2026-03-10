@@ -1,5 +1,7 @@
 <script setup>
 import { ref, computed, watch } from 'vue'
+import NupDialog from './NupDialog.vue'
+
 
 const props = defineProps({
     editais: {
@@ -10,6 +12,10 @@ const props = defineProps({
         type: Number,
         default: 0,
     },
+    instrumentTypes: {
+        type: Array,
+        default: () => [],
+    }
 })
 
 const emit = defineEmits([
@@ -59,41 +65,28 @@ const editaisMock = [
     },
 ]
 
-const statusOptions = [
-    'Em abertura de processo',
-    'Em análise jurídica',
-    'Em formalização',
-    'Em orçamento',
-    'Em pagamento',
-    'Em monitoramento',
-]
+const instrumentOptions = computed(() => props.instrumentTypes)
 
-const instrumentOptions = [
-    'Termo de execução cultural',
-    'Convênio',
-    'Contrato',
-    'Acordo de cooperação',
-]
 
 const itemsPerPageOptions = [10, 25, 50]
 
 // ─── Headers da tabela ────────────────────────────────────────────────────────
 
 const headers = [
-    { title: 'Título',              key: 'titulo',           align: 'start',  sortable: false },
-    { title: 'Status',              key: 'status',           align: 'center', sortable: false },
-    { title: 'Tipo de instrumento', key: 'type_ins',  align: 'center', sortable: false },
-    { title: 'Nº do processo mãe',  key: 'mae',align: 'center', sortable: false },
-    { title: 'Acessar',             key: 'acessar',          align: 'center', sortable: false },
+    { title: 'Título', key: 'titulo', align: 'start', sortable: false },
+    { title: 'Status', key: 'status', align: 'center', sortable: false },
+    { title: 'Tipo de instrumento', key: 'type_ins', align: 'center', sortable: false },
+    { title: 'Nº do processo mãe', key: 'mae', align: 'center', sortable: false },
+    { title: 'Acessar', key: 'acessar', align: 'center', sortable: false },
 ]
 
 // ─── Estado ───────────────────────────────────────────────────────────────────
 
-const search               = ref('')
-const selectedStatus   = ref(null)
-const selectedInstrument    = ref(null)
-const page              = ref(1)
-const itemsPerPage      = ref(10)
+const search = ref('')
+const selectedStatus = ref(null)
+const selectedInstrument = ref(null)
+const page = ref(1)
+const itemsPerPage = ref(10)
 
 // ─── Computeds ────────────────────────────────────────────────────────────────
 
@@ -147,6 +140,17 @@ const visiblePages = computed(() => {
     return [1, '...', c - 1, c, c + 1, '...', n]
 })
 
+function maskProcessNumber(value) {
+  if (!value) return ''
+
+  const digits = value.toString().replace(/\D/g, '')
+
+  return digits.replace(
+    /^(\d{5})(\d{6})(\d{4})(\d{2}).*/,
+    '$1.$2/$3-$4'
+  )
+}
+
 // ─── Handlers ────────────────────────────────────────────────────────────────
 
 function onSearch(value) {
@@ -176,9 +180,22 @@ function onChangePerPage(qty) {
     page.value = 1
     emit('change-per-page', qty)
 }
+
+
+// ─── nup dialog ───────────────────────────────────────────────────────────────
+const dialog = ref(false)
+const selectedItem = ref(null)
+
+function openDialog(item) {
+    selectedItem.value = item
+    dialog.value = true
+}
+
+
 </script>
 
 <template>
+    <nup-dialog v-model="dialog" :item="selectedItem" :instrument-types="instrumentTypes"/>
     <v-card flat class="pa-6 bg-white">
         <!-- ── Cabeçalho ──────────────────────────────────────────────────── -->
         <div class="mb-5">
@@ -194,56 +211,27 @@ function onChangePerPage(qty) {
         <!-- ── Filtros ────────────────────────────────────────────────────── -->
         <v-row dense class="mb-4">
             <v-col cols="12" md="4">
-                <v-text-field
-                    :model-value="search"
-                    @update:model-value="onSearch"
-                    placeholder="Busque editais específicos"
-                    append-inner-icon="mdi-magnify"
-                    variant="outlined"
-                    density="compact"
-                    hide-details
-                    rounded="xl"
-                    class="border border-green-700 rounded-xl"
-                />
+                <v-text-field :model-value="search" @update:model-value="onSearch"
+                    placeholder="Busque editais específicos" append-inner-icon="mdi-magnify" variant="outlined"
+                    density="compact" hide-details rounded="xl" class="border border-green-700 rounded-xl" />
             </v-col>
 
             <v-col cols="12" md="4">
-                <v-select
-                    v-model="selectedStatus"
-                    @update:model-value="onFilterStatus"
-                    :items="statusOptions"
-                    placeholder="Filtre por status do processo"
-                    variant="outlined"
-                    density="compact"
-                    rounded="lg"
-                    hide-details
-                    clearable
-                />
+                <v-select v-model="selectedStatus" @update:model-value="onFilterStatus" :items="statusOptions"
+                    placeholder="Filtre por status do processo" variant="outlined" density="compact" rounded="lg"
+                    hide-details clearable />
             </v-col>
 
             <v-col cols="12" md="4">
-                <v-select
-                    v-model="selectedInstrument"
-                    @update:model-value="onFilterInstrument"
-                    :items="instrumentOptions"
-                    placeholder="Filtre pelo tipo de instrumento"
-                    variant="outlined"
-                    density="compact"
-                    rounded="lg"
-                    hide-details
-                    clearable
-                />
+                <v-select v-model="selectedInstrument" @update:model-value="onFilterInstrument"
+                    :items="instrumentOptions" placeholder="Filtre pelo tipo de instrumento" variant="outlined"
+                    density="compact" rounded="lg" hide-details clearable />
             </v-col>
         </v-row>
 
         <!-- ── Tabela ─────────────────────────────────────────────────────── -->
-        <v-data-table
-            v-model:page="page"
-            v-model:items-per-page="itemsPerPage"
-            :headers="headers"
-            :items="itensFiltrados"
-            class="editais-table"
-        >
+        <v-data-table v-model:page="page" v-model:items-per-page="itemsPerPage" :headers="headers"
+            :items="itensFiltrados" class="editais-table">
             <!-- Título truncado -->
             <template #item.titulo="{ item }">
                 <span class="titulo-truncado">{{ item.titulo }}</span>
@@ -261,15 +249,19 @@ function onChangePerPage(qty) {
             <template #item.type_ins="{ item }">
                 <span class="titulo-truncado">{{ item.type_ins }}</span>
             </template>
-
+            <!-- Número do processo mãe -->
+            <template #item.mae="{ item }">
+                <span v-if="item.numeroProcessoMae || item.mae">
+                    {{ maskProcessNumber(item.numeroProcessoMae || item.mae) }}
+                </span>
+                <v-btn v-else variant="text" density="compact" class="!text-[#008344] !font-bold spacing tracking-tight"
+                    @click="openDialog(item)">
+                    Informe os dados de identificação
+                </v-btn>
+            </template>
             <!-- Ícone de acesso -->
             <template #item.acessar="{ item }">
-                <v-btn
-                    icon
-                    variant="text"
-                    size="small"
-                    @click="onAccess(item)"
-                >
+                <v-btn icon variant="text" size="small" @click="onAccess(item)">
                     <v-icon color="#008344" size="22">mdi-eye-circle</v-icon>
                 </v-btn>
             </template>
@@ -284,62 +276,35 @@ function onChangePerPage(qty) {
 
                         <!-- Coluna central — botões de pageção -->
                         <v-col cols="4" class="d-flex justify-center align-center gap-1">
-                            <v-btn
-                                icon
-                                variant="text"
-                                size="small"
-                                :disabled="page <= 1"
-                                @click="goToPage(page - 1)"
-                            >
+                            <v-btn icon variant="text" size="small" :disabled="page <= 1" @click="goToPage(page - 1)">
                                 <v-icon>mdi-chevron-left</v-icon>
                             </v-btn>
 
                             <template v-for="p in visiblePages" :key="`p-${p}`">
-                            <span
-                                v-if="p === '...'"
-                                class="px-1 text-grey-darken-1 text-body-2"
-                            >
-                                ...
-                            </span>
-                                <v-btn
-                                    v-else
-                                    variant="flat"
-                                    size="small"
-                                    rounded
-                                    :style="page === p
+                                <span v-if="p === '...'" class="px-1 text-grey-darken-1 text-body-2">
+                                    ...
+                                </span>
+                                <v-btn v-else variant="flat" size="small" rounded :style="page === p
                                     ? 'background-color:#FFC107; color:#fff; min-width:32px'
-                                    : 'min-width:32px'"
-                                    @click="goToPage(p)"
-                                >
+                                    : 'min-width:32px'" @click="goToPage(p)">
                                     {{ p }}
                                 </v-btn>
                             </template>
 
-                            <v-btn
-                                icon
-                                variant="text"
-                                size="small"
-                                :disabled="page >= totalPages"
-                                @click="goToPage(page + 1)"
-                            >
+                            <v-btn icon variant="text" size="small" :disabled="page >= totalPages"
+                                @click="goToPage(page + 1)">
                                 <v-icon>mdi-chevron-right</v-icon>
                             </v-btn>
                         </v-col>
 
                         <!-- Coluna direita — itens por página -->
                         <v-col cols="4" class="d-flex justify-end align-center gap-2">
-                        <span class="text-body-2 text-grey-darken-1 text-no-wrap">
-                            Alterar exibição da lista: Exibindo {{ itemsPerPage }} itens
-                        </span>
-                            <v-select
-                                v-model="itemsPerPage"
-                                @update:model-value="onChangePerPage"
-                                :items="itemsPerPageOptions"
-                                variant="outlined"
-                                density="compact"
-                                hide-details
-                                style="width: 75px"
-                            />
+                            <span class="text-body-2 text-grey-darken-1 text-no-wrap">
+                                Alterar exibição da lista: Exibindo {{ itemsPerPage }} itens
+                            </span>
+                            <v-select v-model="itemsPerPage" @update:model-value="onChangePerPage"
+                                :items="itemsPerPageOptions" variant="outlined" density="compact" hide-details
+                                style="width: 75px" />
                         </v-col>
 
                     </v-row>
@@ -365,7 +330,6 @@ function onChangePerPage(qty) {
     background-color: #f5f5f5 !important;
     font-weight: 700 !important;
     font-size: 0.8125rem !important;
-    //color: #ffffff !important;
     border-bottom: 1px solid #F0F0F0 !important;
 }
 
