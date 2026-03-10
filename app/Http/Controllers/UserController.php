@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Services\OpportunityService;
+use App\Enums\InstrumentType;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
@@ -18,6 +19,7 @@ class UserController extends Controller
             'user'     => Auth::user(),
             'oportunidades' => $this->opportunityService->getOpportunitiesForDashboard($request->query('search')),
             'totais'   => $this->opportunityService->getTotals(),
+            'instrumentTypes' => InstrumentType::values(),
         ]);
     }
 }

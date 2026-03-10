@@ -10,7 +10,8 @@ import { useSnackbar } from '@/Composables/useSnackbar'
 
 const props = defineProps({
     modelValue: Boolean,
-    item: Object
+    item: Object,
+    instrumentTypes: Array
 })
 
 const { showSnackbar } = useSnackbar()
@@ -19,17 +20,6 @@ const formRef = ref(null)
 const isValid = ref(false)
 
 const emit = defineEmits(['update:modelValue'])
-
-const instrumentTypes = [
-    'TERMO DE EXECUÇÃO CULTURAL',
-    'TERMO DE FOMENTO',
-    'TERMO DE FOMENTO SIMPLIFICADO',
-    'TERMO DE COLABORAÇÃO',
-    'CONVÊNIO',
-    'PREMIAÇÃO',
-    'AQUISIÇÃO/CONTRATO',
-    'PATROCÍNIO/CONTRATO'
-]
 
 const form = useForm({
     nup: '',
@@ -46,7 +36,6 @@ const form = useForm({
 
 watch(() => props.item, (opportunity) => {
     if (!opportunity) return
-    console.log(form)
     form.nup = opportunity.mae ?? ''
 })
 

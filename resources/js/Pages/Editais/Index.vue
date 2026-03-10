@@ -15,6 +15,10 @@ defineProps({
         type: Object,
         required: true,
     },
+    instrumentTypes: {
+        type: Array,
+        default: () => [],
+    }
 })
 
 const stats = [
@@ -62,6 +66,7 @@ const stats = [
             <EditaisListPage
                 :editais="oportunidades"
                 :total-editais="totais.oportunidades"
+                :instrument-types="instrumentTypes"
             />
         </div>
     </AuthenticatedLayout>

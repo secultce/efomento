@@ -3,6 +3,7 @@
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
+use App\Enums\InstrumentType;
 
 return new class extends Migration
 {
@@ -23,17 +24,7 @@ return new class extends Migration
             $table->date('creditor_registration_request_date')->nullable()->comment('Date of Creditor Registration Request');
             $table->string('budget_allocation_nup')->nullable()->comment('Budget Allocation NUP');
             $table->date('budget_allocation_request_date')->nullable()->comment('Date of Budget Allocation Request');
-            $table->enum('instrument_type', [
-                'TERMO DE EXECUÇÃO CULTURAL',
-                'TERMO DE FOMENTO',
-                'TERMO DE FOMENTO SIMPLIFICADO',
-                'TERMO DE COLABORAÇÃO',
-                'CONVÊNIO',
-                'PREMIAÇÃO',
-                'AQUISIÇÃO/CONTRATO',
-                'PATROCÍNIO/CONTRATO'
-            ])->nullable()->comment('Type of legal instrument');
-
+            $table->enum('instrument_type', InstrumentType::values())->nullable()->comment('Type of legal instrument');
             $table->timestamps();
         });
     }

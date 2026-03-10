@@ -3,6 +3,8 @@
 namespace App\Http\Requests\Opportunity;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\Rules\Enum;
+use App\Enums\InstrumentType;
 
 class OpportunityUpdateRequest extends FormRequest
 {
@@ -13,15 +15,15 @@ class OpportunityUpdateRequest extends FormRequest
 
     public function rules(): array
     {
-        $Opportunity = $this->route('opportunity');
+        $opportunity = $this->route('opportunity');
 
         return [
             'nup' => [
                 'sometimes',
                 'string',
-                Rule::unique('opportunities', 'nup')->ignore($Opportunity->id),
+                Rule::unique('opportunities', 'nup')->ignore($opportunity->id),
             ],
-            'instrument_type' => 'nullable|string',
+            'instrument_type' => ['nullable', new Enum(InstrumentType::class)],
             'name' => 'sometimes|string',
             'opportunity_url' => 'nullable|string',
             'external_id' => 'nullable|string',

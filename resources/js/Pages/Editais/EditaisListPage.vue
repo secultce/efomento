@@ -12,6 +12,10 @@ const props = defineProps({
         type: Number,
         default: 0,
     },
+    instrumentTypes: {
+        type: Array,
+        default: () => [],
+    }
 })
 
 const emit = defineEmits([
@@ -61,25 +65,8 @@ const editaisMock = [
     },
 ]
 
-const statusOptions = [
-    'Em abertura de processo',
-    'Em análise jurídica',
-    'Em formalização',
-    'Em orçamento',
-    'Em pagamento',
-    'Em monitoramento',
-]
+const instrumentOptions = computed(() => props.instrumentTypes)
 
-const instrumentOptions = [
-    'TERMO DE EXECUÇÃO CULTURAL',
-    'TERMO DE FOMENTO',
-    'TERMO DE FOMENTO SIMPLIFICADO',
-    'TERMO DE COLABORAÇÃO',
-    'CONVÊNIO',
-    'PREMIAÇÃO',
-    'AQUISIÇÃO/CONTRATO',
-    'PATROCÍNIO/CONTRATO'
-]
 
 const itemsPerPageOptions = [10, 25, 50]
 
@@ -208,7 +195,7 @@ function openDialog(item) {
 </script>
 
 <template>
-    <nup-dialog v-model="dialog" :item="selectedItem" />
+    <nup-dialog v-model="dialog" :item="selectedItem" :instrument-types="instrumentTypes"/>
     <v-card flat class="pa-6 bg-white">
         <!-- ── Cabeçalho ──────────────────────────────────────────────────── -->
         <div class="mb-5">

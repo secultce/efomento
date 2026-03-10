@@ -6,6 +6,7 @@ use App\Models\Opportunity;
 use Inertia\Inertia;
 use App\Http\Requests\Opportunity\OpportunityStoreRequest;
 use App\Http\Requests\Opportunity\OpportunityUpdateRequest;
+use App\Enums\InstrumentType;
 
 class OpportunityController extends Controller
 {
@@ -15,7 +16,7 @@ class OpportunityController extends Controller
     public function index()
     {
         return Inertia::render('Opportunities/Index', [
-            'opportunities' => Opportunity::latest()->get()
+            'opportunities' => Opportunity::latest()->get(),
         ]);
     }
 
