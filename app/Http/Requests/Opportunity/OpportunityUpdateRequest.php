@@ -30,6 +30,8 @@ class OpportunityUpdateRequest extends FormRequest
             'installments' => 'nullable|integer',
             'process_manager' => 'nullable|string',
             'process_manager_email' => 'nullable|email',
+            'budget_allocation_nup' => 'nullable|string',
+            'budget_allocation_request_date' => 'nullable|date',
             'creditor_registration_nup' => 'nullable|string',
             'creditor_registration_request_date' => 'nullable|date',
         ];

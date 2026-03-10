@@ -25,13 +25,18 @@ const formatter = new Intl.NumberFormat('pt-BR', {
 const displayValue = computed(() => {
   let value = props.modelValue
 
+  if (!value) return ''
+
   if (props.money) {
-    if (!value) return ''
-    value = formatter.format(value)
+    return formatter.format(value)
+  }
+
+  if (props.mask) {
+    return applyMask(String(value))
   }
 
   if (props.capitalize && typeof value === 'string') {
-    value = capitalizeWords(value)
+    return capitalizeWords(value)
   }
 
   return value
@@ -67,11 +72,14 @@ function applyMask(value) {
   return result
 }
 
+function removeMask(value) {
+  if (!props.mask) return value
+  return value.replace(/\D/g, '')
+}
+
 function handleInput(value) {
   if (props.money) {
-    // keep only numbers
     const digits = value.replace(/\D/g, '')
-
     const numeric = Number(digits) / 100
 
     emit('update:modelValue', numeric)
@@ -84,7 +92,10 @@ function handleInput(value) {
     newValue = capitalizeWords(newValue)
   }
 
-  newValue = applyMask(newValue)
+  // remove mask before emitting
+  if (props.mask) {
+    newValue = newValue.replace(/\D/g, '')
+  }
 
   emit('update:modelValue', newValue)
 }

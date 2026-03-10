@@ -71,10 +71,14 @@ const statusOptions = [
 ]
 
 const instrumentOptions = [
-    'Termo de execução cultural',
-    'Convênio',
-    'Contrato',
-    'Acordo de cooperação',
+    'TERMO DE EXECUÇÃO CULTURAL',
+    'TERMO DE FOMENTO',
+    'TERMO DE FOMENTO SIMPLIFICADO',
+    'TERMO DE COLABORAÇÃO',
+    'CONVÊNIO',
+    'PREMIAÇÃO',
+    'AQUISIÇÃO/CONTRATO',
+    'PATROCÍNIO/CONTRATO'
 ]
 
 const itemsPerPageOptions = [10, 25, 50]
@@ -149,6 +153,17 @@ const visiblePages = computed(() => {
     return [1, '...', c - 1, c, c + 1, '...', n]
 })
 
+function maskProcessNumber(value) {
+  if (!value) return ''
+
+  const digits = value.toString().replace(/\D/g, '')
+
+  return digits.replace(
+    /^(\d{5})(\d{6})(\d{4})(\d{2}).*/,
+    '$1.$2/$3-$4'
+  )
+}
+
 // ─── Handlers ────────────────────────────────────────────────────────────────
 
 function onSearch(value) {
@@ -179,6 +194,7 @@ function onChangePerPage(qty) {
     emit('change-per-page', qty)
 }
 
+
 // ─── nup dialog ───────────────────────────────────────────────────────────────
 const dialog = ref(false)
 const selectedItem = ref(null)
@@ -187,6 +203,7 @@ function openDialog(item) {
     selectedItem.value = item
     dialog.value = true
 }
+
 
 </script>
 
@@ -248,7 +265,7 @@ function openDialog(item) {
             <!-- Número do processo mãe -->
             <template #item.mae="{ item }">
                 <span v-if="item.numeroProcessoMae || item.mae">
-                    {{ item.numeroProcessoMae || item.mae }}
+                    {{ maskProcessNumber(item.numeroProcessoMae || item.mae) }}
                 </span>
                 <v-btn v-else variant="text" density="compact" class="!text-[#008344] !font-bold spacing tracking-tight"
                     @click="openDialog(item)">
