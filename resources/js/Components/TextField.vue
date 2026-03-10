@@ -72,11 +72,6 @@ function applyMask(value) {
   return result
 }
 
-function removeMask(value) {
-  if (!props.mask) return value
-  return value.replace(/\D/g, '')
-}
-
 function handleInput(value) {
   if (props.money) {
     const digits = value.replace(/\D/g, '')
@@ -89,10 +84,9 @@ function handleInput(value) {
   let newValue = value
 
   if (props.capitalize) {
-    newValue = capitalizeWords(newValue)
+    newValue = newValue.toLowerCase()
   }
 
-  // remove mask before emitting
   if (props.mask) {
     newValue = newValue.replace(/\D/g, '')
   }
@@ -105,10 +99,8 @@ function handleKeypress(e) {
 
   const key = e.key
 
-  // allow digits
   if (/[0-9]/.test(key)) return
 
-  // allow control keys
   if (['Backspace', 'Delete', 'ArrowLeft', 'ArrowRight', 'Tab'].includes(key)) return
 
   e.preventDefault()
