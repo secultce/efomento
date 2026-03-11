@@ -27,13 +27,14 @@ Substitui a planilha compartilhada "Planilão" por um fluxo digital estruturado,
 ### Workflow Multi-Etapas
 Fluxo sequencial com etapas dedicadas por setor:
 
-| Etapa                  | Setor Responsável | Escopo                                              |
-|------------------------|-------------------|------------------------------------------------------|
-| **Abertura**           | C. Finalística    | Dados do agente, endereço, documentos, dados bancários, parcelas |
-| **Análise Jurídica**   | ASJUR             | Regularidade, certidões, impedimentos                |
-| **Orçamento / Parcela**| CODIP             | Definição de parcelas, valores, cronograma           |
-| **Pagamento**          | CEGEF             | Comprovantes, liberações                             |
-| **Monitoramento**      | —                 | Prestação de contas                                  |
+| Etapa                  | Model           | Setor Responsável | Escopo                                              |
+|------------------------|-----------------|-------------------|------------------------------------------------------|
+| **Abertura**           | `Opening`       | C. Finalística    | Dados do agente, endereço, documentos, dados bancários, parcelas |
+| **Análise Jurídica**   | `LegalAnalysis` | ASJUR             | Regularidade, certidões, impedimentos, pareceres     |
+| **Formalização**       | `Formalization` | —                 | Formalização contratual, número do contrato          |
+| **Orçamento**          | `Budget`        | CODIP             | Definição de parcelas, valores, cronograma           |
+| **Pagamento**          | `Payment`       | CEGEF             | Comprovantes, liberações                             |
+| **Monitoramento**      | `Monitoring`    | —                 | Prestação de contas                                  |
 
 - Cada setor edita apenas sua etapa
 - Etapa só avança após aprovação da anterior
@@ -52,62 +53,19 @@ Fluxo sequencial com etapas dedicadas por setor:
 ## Modelo de Dados
 
 ```
-Project (entidade raiz — projeto cultural)
-├── ProjectOpening        (Abertura — C. Finalística)
-├── ProjectFormalization   (Análise Jurídica — ASJUR)
-├── ProjectParcel          (Orçamento/Parcela — CODIP)
-├── ProjectPayment         (Pagamento — CEGEF)
-└── ProjectMonitoring      (Monitoramento/Prestação de Contas)
+Opportunity (edital cultural)
+└── Registration (inscrição/projeto — entidade raiz do fluxo)
+    ├── Opening        (Abertura — C. Finalística)
+    ├── LegalAnalysis  (Análise Jurídica — ASJUR)
+    ├── Formalization  (Formalização)
+    ├── Budget         (Orçamento — CODIP)
+    ├── Payment        (Pagamento — CEGEF)
+    └── Monitoring     (Monitoramento/Prestação de Contas)
 ```
+## Diagramas
+- Para uso do PlantUml poderá ter que instalar o executável dot.exe na sua máquina o instalar no linux e configurar o 
+caminho do Ubuntu que é '/usr/bin/dot'. A instalação é com `sudo apt install graphviz`
 
-### Princípios de modelagem
-- **Models dedicadas por etapa** — espelham as abas da planilha original
-- **Campos fixos tipados** para dados críticos (CPF, valores, dados bancários)
-- **Campos JSONB** para sub-seções flexíveis (parcelas dinâmicas, certidões)
-- **Sem padrão EAV** (Entity-Attribute-Value)
-- **Soft delete obrigatório** — projetos nunca são deletados, usam status `desclassificado`
-
-### Project (entidade raiz)
-
-| Campo          | Tipo     | Descrição                               |
-|----------------|----------|-----------------------------------------|
-| edital_id      | FK       | Edital vinculado                        |
-| agent_name     | string   | Nome do agente cultural                 |
-| agent_cpf_cnpj | string   | CPF ou CNPJ do agente                   |
-| nup_mae        | string   | NUP do processo mãe                     |
-| nup_dotacao    | string   | NUP de dotação                          |
-| nup_credor     | string   | NUP do credor                           |
-| status         | enum     | Status global do projeto                |
-| last_synced_at | datetime | Última sincronização com Mapa Cultural  |
-
-### ProjectOpening (referência de padrão para as demais)
-
-| Campo                   | Tipo    | Descrição                    |
-|-------------------------|---------|------------------------------|
-| numero_processo         | string  | Número do processo           |
-| data_abertura           | date    | Data de abertura             |
-| valor_repasse           | decimal | Valor do repasse             |
-| valor_repasse_extenso   | string  | Valor por extenso            |
-| banco, tipo_conta       | string  | Dados bancários              |
-| agencia, conta          | string  | Dados bancários              |
-| fiscal_nome             | string  | Nome do fiscal               |
-| fiscal_cpf              | string  | CPF do fiscal                |
-| fiscal_matricula        | string  | Matrícula do fiscal          |
-| status                  | enum    | pendente/em_andamento/concluido |
-| responsible_user_id     | FK      | Responsável pela etapa       |
-| parcelas_adicionais     | JSONB   | Array dinâmico de parcelas   |
-| certidao_eparcerias     | JSONB   | Dados de certidão            |
-
-> As demais models (Formalization, Parcel, Payment, Monitoring) seguirão o mesmo padrão quando as telas de UX forem definidas.
-</div>
-## Regras de Negócio
-
-- **Acesso por etapa** — cada setor edita apenas sua model/etapa
-- **Fluxo sequencial** — avanço condicionado à aprovação da etapa anterior
-- **Auditoria obrigatória** — todo campo crítico alterado gera log de histórico
-- **Dados sensíveis protegidos** — CPF e dados bancários sempre em colunas tipadas, nunca em JSONB genérico
-- **Resiliência** — dados do Mapa Cultural são sincronizados localmente; sistema opera independente da API externa
-- **Soft delete** — projetos usam status `desclassificado`, nunca exclusão física
 
 ## Como Rodar
 

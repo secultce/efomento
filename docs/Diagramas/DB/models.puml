@@ -1,0 +1,95 @@
+@startuml
+!theme cerulean-outline
+
+skinparam entityAttributeIconSize 0
+skinparam linetype ortho
+skinparam defaultTextAlignment center
+skinparam nodesep 200
+skinparam ranksep 150
+
+' Definindo entidades
+entity Opportunity
+entity Registration
+entity Opening
+entity LegalAnalysis
+entity Formalization
+entity Budget
+entity Payment
+entity Monitoring
+entity User
+
+' Configurando campos
+Opportunity : +id [PK]
+Opportunity : name
+Opportunity : description
+
+Registration : +id [PK]
+Registration : opportunity_id [FK]
+Registration : status
+
+Opening : +id [PK]
+Opening : registration_id [FK, UK]
+Opening : responsible_user_id [FK]
+Opening : opening_date
+Opening : status
+
+LegalAnalysis : +id [PK]
+LegalAnalysis : registration_id [FK, UK]
+LegalAnalysis : responsible_user_id [FK]
+LegalAnalysis : parecerista_user_id [FK]
+LegalAnalysis : analysis_date
+LegalAnalysis : result
+LegalAnalysis : comments
+
+Formalization : +id [PK]
+Formalization : registration_id [FK, UK]
+Formalization : responsible_user_id [FK]
+Formalization : formalization_date
+Formalization : contract_number
+
+Budget : +id [PK]
+Budget : registration_id [FK, UK]
+Budget : responsible_user_id [FK]
+Budget : budget_date
+Budget : amount
+Budget : approved
+
+Payment : +id [PK]
+Payment : registration_id [FK, UK]
+Payment : responsible_user_id [FK]
+Payment : payment_date
+Payment : amount
+Payment : status
+
+Monitoring : +id [PK]
+Monitoring : registration_id [FK, UK]
+Monitoring : responsible_user_id [FK]
+Monitoring : monitoring_date
+Monitoring : status
+Monitoring : notes
+
+User : +id [PK]
+User : name
+User : email
+User : department
+
+' Relacionamentos
+Opportunity ||--o{ Registration : "1:N"
+
+' Registration para as etapas (1:1)
+Registration ||--|| Opening : "1:1"
+Registration ||--|| LegalAnalysis : "1:1"
+Registration ||--|| Formalization : "1:1"
+Registration ||--|| Budget : "1:1"
+Registration ||--|| Payment : "1:1"
+Registration ||--|| Monitoring : "1:1"
+
+' Etapas para User (N:1)
+Opening }o--|| User : "responsible_user"
+LegalAnalysis }o--|| User : "responsible_user"
+LegalAnalysis }o--|| User : "parecerista"
+Formalization }o--|| User : "responsible_user"
+Budget }o--|| User : "responsible_user"
+Payment }o--|| User : "responsible_user"
+Monitoring }o--|| User : "responsible_user"
+@enduml
