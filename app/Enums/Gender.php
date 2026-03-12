@@ -2,8 +2,12 @@
 
 namespace App\Enums;
 
-enum Gender: string
+use App\Enums\Concerns\HasOptions;
+use App\Enums\Contracts\HasLabel;
+
+enum Gender: string implements HasLabel
 {
+    use HasOptions;
     case MASCULINO = 'MASCULINO';
     case FEMININO = 'FEMININO';
     case OUTRO = 'OUTRO';
@@ -19,13 +23,4 @@ enum Gender: string
         };
     }
 
-    public static function options(): array
-    {
-        return collect(self::cases())
-            ->map(fn ($case) => [
-                'value' => $case->value,
-                'label' => $case->label(),
-            ])
-            ->toArray();
-    }
 }

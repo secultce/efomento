@@ -2,8 +2,12 @@
 
 namespace App\Enums;
 
-enum Education: string
+use App\Enums\Concerns\HasOptions;
+use App\Enums\Contracts\HasLabel;
+
+enum Education: string implements HasLabel
 {
+    use HasOptions;
     case FUNDAMENTAL = 'FUNDAMENTAL';
     case MEDIO = 'MEDIO';
     case SUPERIOR = 'SUPERIOR';
@@ -19,13 +23,4 @@ enum Education: string
         };
     }
 
-    public static function options(): array
-    {
-        return collect(self::cases())
-            ->map(fn ($case) => [
-                'value' => $case->value,
-                'label' => $case->label(),
-            ])
-            ->toArray();
-    }
 }

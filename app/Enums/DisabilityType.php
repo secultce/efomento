@@ -2,8 +2,12 @@
 
 namespace App\Enums;
 
-enum DisabilityType: string
+use App\Enums\Concerns\HasOptions;
+use App\Enums\Contracts\HasLabel;
+
+enum DisabilityType: string implements HasLabel
 {
+    use HasOptions;
     case NAO = 'NAO';
     case AUDITIVA = 'AUDITIVA';
     case FISICA_MOTORA = 'FISICA_MOTORA';
@@ -27,13 +31,4 @@ enum DisabilityType: string
         };
     }
 
-    public static function options(): array
-    {
-        return collect(self::cases())
-            ->map(fn ($case) => [
-                'value' => $case->value,
-                'label' => $case->label(),
-            ])
-            ->toArray();
-    }
 }

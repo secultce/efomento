@@ -2,8 +2,12 @@
 
 namespace App\Enums;
 
-enum RaceColor: string
+use App\Enums\Concerns\HasOptions;
+use App\Enums\Contracts\HasLabel;
+
+enum RaceColor: string implements HasLabel
 {
+    use HasOptions;
     case BRANCA = 'BRANCA';
     case PRETA = 'PRETA';
     case AMARELA = 'AMARELA';
@@ -21,13 +25,4 @@ enum RaceColor: string
         };
     }
 
-    public static function options(): array
-    {
-        return collect(self::cases())
-            ->map(fn ($case) => [
-                'value' => $case->value,
-                'label' => $case->label(),
-            ])
-            ->toArray();
-    }
 }
