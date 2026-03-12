@@ -5,13 +5,15 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use OwenIt\Auditing\Auditable as AuditableTrait;
+use OwenIt\Auditing\Contracts\Auditable;
 
-class Opportunity extends Model
+class Opportunity extends Model implements Auditable
 {
-    use HasFactory, SoftDeletes;
-    
+    use HasFactory, SoftDeletes, AuditableTrait;
+
     protected $table = 'opportunities';
-    
+
     protected $fillable = [
         'nup',
         'opportunity_url',
