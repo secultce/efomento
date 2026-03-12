@@ -8,6 +8,7 @@ skinparam nodesep 200
 skinparam ranksep 150
 
 ' Definindo entidades
+entity Agent
 entity Opportunity
 entity Registration
 entity Opening
@@ -19,13 +20,15 @@ entity Monitoring
 entity User
 
 ' Configurando campos
+Agent : +id [PK]
+
 Opportunity : +id [PK]
 Opportunity : name
-Opportunity : description
 
 Registration : +id [PK]
+Registration : registration_id
 Registration : opportunity_id [FK]
-Registration : status
+Registration : agent_id [FK]
 
 Opening : +id [PK]
 Opening : registration_id [FK, UK]
@@ -74,7 +77,8 @@ User : email
 User : department
 
 ' Relacionamentos
-Opportunity ||--o{ Registration : "1:N"
+Agent ||--o{ Registration : "1:N - agent_id"
+Opportunity ||--o{ Registration : "1:N - opportunity_id"
 
 ' Registration para as etapas (1:1)
 Registration ||--|| Opening : "1:1"
@@ -92,4 +96,12 @@ Formalization }o--|| User : "responsible_user"
 Budget }o--|| User : "responsible_user"
 Payment }o--|| User : "responsible_user"
 Monitoring }o--|| User : "responsible_user"
+
+note top of Agent : <b>has_disability:</b>\nNenhuma, Física,\nVisual, Intelectual
+
+note bottom of Registration : <b>data_registration:</b>\nCampo JSON do PostgreSQL\npara dados dinâmicos
+
+note right of Registration : <b>Relacionamentos:</b>\n- BelongsTo Agent (agent_id)\n- BelongsTo Opportunity (opportunity_id)
+
+note left of Agent : <b>Métodos:</b>\n+registrations(): HasMany
 @enduml
