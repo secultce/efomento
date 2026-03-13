@@ -1,9 +1,9 @@
 <?php
 
-namespace App\Http\Requests\Opportunity;
+namespace App\Http\Requests\Notice;
 use Illuminate\Foundation\Http\FormRequest;
 
-class OpportunityStoreRequest extends FormRequest
+class NoticeStoreRequest extends FormRequest
 {
     public function authorize(): bool
     {
@@ -13,11 +13,11 @@ class OpportunityStoreRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'nup' => 'required|string|unique:opportunities,nup',
+            'nup' => 'required|string|unique:notices,nup',
             'name' => 'required|string',
-            'opportunity_url' => 'nullable|string',
+            'notice_url' => 'nullable|string',
             'external_id' => 'nullable|string',
-            'total_opportunity_amount' => 'nullable|numeric',
+            'total_notice_amount' => 'nullable|numeric',
             'total_commitment_amount' => 'nullable|numeric',
             'installments' => 'nullable|integer',
             'process_manager' => 'nullable|string',

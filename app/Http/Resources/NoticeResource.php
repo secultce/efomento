@@ -5,7 +5,7 @@ namespace App\Http\Resources;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
-class OpportunityResource extends JsonResource
+class NoticeResource extends JsonResource
 {
     public function toArray(Request $request): array
     {
@@ -13,10 +13,10 @@ class OpportunityResource extends JsonResource
             'id' => $this->id,
             'nup' => $this->nup,
             'name' => $this->name,
-            'opportunity_url' => $this->opportunity_url,
+            'notice_url' => $this->notice_url,
             'external_id' => $this->external_id,
-            'total_opportunity_amount' => [
-                'amount' => $this->total_opportunity_amount,
+            'total_notice_amount' => [
+                'amount' => $this->total_notice_amount,
                 'currency' => 'BRL',
             ],
             'total_commitment_amount' => [

@@ -8,18 +8,18 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 use OwenIt\Auditing\Auditable as AuditableTrait;
 use OwenIt\Auditing\Contracts\Auditable;
 
-class Opportunity extends Model implements Auditable
+class Notice extends Model implements Auditable
 {
     use HasFactory, SoftDeletes, AuditableTrait;
 
-    protected $table = 'opportunities';
+    protected $table = 'notices';
 
     protected $fillable = [
         'nup',
-        'opportunity_url',
+        'notice_url',
         'external_id',
         'name',
-        'total_opportunity_amount',
+        'total_notice_amount',
         'total_commitment_amount',
         'installments',
         'process_manager',
@@ -32,7 +32,7 @@ class Opportunity extends Model implements Auditable
     ];
 
     protected $casts = [
-        'total_opportunity_amount' => 'decimal:2',
+        'total_notice_amount' => 'decimal:2',
         'total_commitment_amount' => 'decimal:2',
         'creditor_registration_request_date' => 'date',
         'installments' => 'integer',

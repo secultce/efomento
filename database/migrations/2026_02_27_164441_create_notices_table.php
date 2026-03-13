@@ -9,13 +9,13 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::create('opportunities', function (Blueprint $table) {
+        Schema::create('notices', function (Blueprint $table) {
             $table->id();
             $table->string('nup')->nullable()->unique()->comment('Parent case number');
-            $table->text('opportunity_url')->nullable()->comment('Public Opportunity Url'); 
-            $table->string('external_id')->nullable()->comment('External Opportunity ID');
-            $table->string('name')->comment('Opportunity Name');
-            $table->decimal('total_opportunity_amount', 15, 2)->nullable()->comment('Total Opportunity Amount');
+            $table->text('notice_url')->nullable()->comment('Public Notice Url'); 
+            $table->string('external_id')->nullable()->comment('External Notice ID');
+            $table->string('name')->comment('Notice Name');
+            $table->decimal('total_notice_amount', 15, 2)->nullable()->comment('Total Notice Amount');
             $table->decimal('total_commitment_amount', 15, 2)->nullable()->comment('Total Commitment Amount');
             $table->integer('installments')->nullable()->comment('Number of Installments');
             $table->string('process_manager')->nullable()->comment('Process Manager Name');
@@ -31,6 +31,6 @@ return new class extends Migration
 
     public function down(): void
     {
-        Schema::dropIfExists('opportunities');
+        Schema::dropIfExists('notices');
     }
 };
