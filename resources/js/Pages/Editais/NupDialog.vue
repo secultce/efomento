@@ -24,7 +24,7 @@ const emit = defineEmits(['update:modelValue'])
 const form = useForm({
     nup: '',
     instrument_type: null,
-    total_opportunity_amount: '',
+    total_notice_amount: '',
     installments: '',
     process_manager: '',
     process_manager_email: '',
@@ -34,9 +34,9 @@ const form = useForm({
     creditor_registration_request_date: ''
 })
 
-watch(() => props.item, (opportunity) => {
-    if (!opportunity) return
-    form.nup = opportunity.mae ?? ''
+watch(() => props.item, (notice) => {
+    if (!notice) return
+    form.nup = notice.mae ?? ''
 })
 
 function close() {
@@ -47,7 +47,7 @@ async function submit() {
     const { valid } = await formRef.value.validate()
     if (!valid) return
 
-    form.patch(route('opportunities.update', props.item.id), {
+    form.patch(route('notices.update', props.item.id), {
         onSuccess: () => {
             showSnackbar('Número do processo salvo com sucesso', 'success')
             close()
@@ -63,9 +63,9 @@ async function submit() {
 }
 
 const valorExtenso = computed(() => {
-    if (!form.total_opportunity_amount) return ''
+    if (!form.total_notice_amount) return ''
 
-    const value = Number(form.total_opportunity_amount)
+    const value = Number(form.total_notice_amount)
 
     if (isNaN(value)) return ''
 
@@ -107,9 +107,9 @@ const today = new Date().toISOString().split('T')[0]
                         </v-col>
 
                         <v-col cols="12" md="6">
-                            <FormField label="Valor total do edital" :error="form.errors.total_opportunity_amount"
+                            <FormField label="Valor total do edital" :error="form.errors.total_notice_amount"
                                 required>
-                                <TextField v-model="form.total_opportunity_amount"
+                                <TextField v-model="form.total_notice_amount"
                                     placeholder="Insira o valor total do edital aqui" money />
                             </FormField>
                         </v-col>

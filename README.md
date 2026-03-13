@@ -53,7 +53,7 @@ Fluxo sequencial com etapas dedicadas por setor:
 ## Modelo de Dados
 
 ```
-Opportunity (edital cultural)
+Notice (edital cultural)
 └── Registration (inscrição/projeto — entidade raiz do fluxo)
     ├── Opening        (Abertura — C. Finalística)
     ├── LegalAnalysis  (Análise Jurídica — ASJUR)

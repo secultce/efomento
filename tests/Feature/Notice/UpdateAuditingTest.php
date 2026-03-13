@@ -1,8 +1,8 @@
 <?php
 
-namespace Tests\Feature\Opportunities;
+namespace Tests\Feature\Notice;
 
-use App\Models\Opportunity;
+use App\Models\Notice;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -12,28 +12,28 @@ class UpdateAuditingTest extends TestCase
 
     public function test_audit_registers_old_and_new_values(): void
     {
-        $opportunity = Opportunity::factory()->create([
+        $notice = Notice::factory()->create([
             'name' => 'Nome Antigo',
         ]);
 
-        $opportunity->update([
+        $notice->update([
             'name' => 'Nome Novo',
         ]);
 
-        $audit = $opportunity->audits()->where('event', 'updated')->latest()->first();
+        $audit = $notice->audits()->where('event', 'updated')->latest()->first();
 
         $this->assertNotNull($audit);
         $this->assertEquals('Nome Antigo', $audit->old_values['name']);
         $this->assertEquals('Nome Novo', $audit->new_values['name']);
     }
 
-    public function test_creating_opportunity_registers_audit(): void
+    public function test_creating_notice_registers_audit(): void
     {
-        $opportunity = Opportunity::factory()->create();
+        $notice = Notice::factory()->create();
 
         $this->assertDatabaseHas('audits', [
-            'auditable_type' => Opportunity::class,
-            'auditable_id'   => $opportunity->id,
+            'auditable_type' => Notice::class,
+            'auditable_id'   => $notice->id,
             'event'          => 'created',
         ]);
     }
@@ -45,23 +45,23 @@ class UpdateAuditingTest extends TestCase
         $oldDate   = '2024-01-15';
         $newDate   = '2024-06-30';
 
-        $opportunity = Opportunity::factory()->create([
+        $notice = Notice::factory()->create([
             'budget_allocation_nup'              => 'BA-99999',
-            'total_opportunity_amount'           => $oldAmount,
+            'total_notice_amount'           => $oldAmount,
             'creditor_registration_request_date' => $oldDate,
         ]);
 
-        $opportunity->update([
-            'total_opportunity_amount'           => $newAmount,
+        $notice->update([
+            'total_notice_amount'           => $newAmount,
             'creditor_registration_request_date' => $newDate,
         ]);
 
-        $audit = $opportunity->audits()->where('event', 'updated')->latest()->first();
+        $audit = $notice->audits()->where('event', 'updated')->latest()->first();
 
         $this->assertNotNull($audit);
 
-        $this->assertEquals($oldAmount, $audit->old_values['total_opportunity_amount']);
-        $this->assertEquals($newAmount, $audit->new_values['total_opportunity_amount']);
+        $this->assertEquals($oldAmount, $audit->old_values['total_notice_amount']);
+        $this->assertEquals($newAmount, $audit->new_values['total_notice_amount']);
 
         $this->assertEquals("$oldDate 00:00:00", $audit->old_values['creditor_registration_request_date']);
         $this->assertEquals("$newDate 00:00:00", $audit->new_values['creditor_registration_request_date']);
