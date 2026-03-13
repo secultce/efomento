@@ -1,4 +1,5 @@
-@startuml
+@startuml e-Fomento — Diagrama de Relacionamento (ER)
+
 !define TABLE(x) class x << (T,#FFAAAA) >>
 !define PK(x) <u>x</u>
 !define FK(x) <i>x</i>
@@ -15,8 +16,6 @@ skinparam packageBackgroundColor #E8F5E9
 skinparam packageBorderColor #2E7D32
 skinparam packageFontColor #1B5E20
 skinparam packageFontStyle bold
-skinparam noteBackgroundColor #FFF9C4
-skinparam noteBorderColor #F9A825
 
 ' ══════════════════════════════════════════
 '  ENTIDADES
@@ -39,8 +38,27 @@ entity EditalCategoria {
   --
   FK(edital_id) : bigint
   nome : string
-  valor_por_projeto : decimal
-  total_projetos : int
+  valor_por_inscricao : decimal
+  total_inscricoes_selecionadas : int
+}
+
+entity EditalFiscal {
+  PK(id) : bigint
+  --
+  FK(edital_id) : bigint
+  nome : string
+  cpf : string
+  matricula : string
+  email : string
+}
+
+entity Agent {
+  PK(id) : bigint
+  --
+  name : string
+  cpf_cnpj : string
+  legal_type : enum
+  email : string
 }
 
 entity Project {
@@ -48,28 +66,14 @@ entity Project {
   --
   FK(edital_id) : bigint
   FK(edital_categoria_id) : bigint
+  FK(agent_id) : bigint
   mapa_cultural_id : string
-  agent_name : string
-  agent_cpf_cnpj : string
   project_title : string
   status : enum
   last_synced_at : timestamp
 }
 
-entity ProjectStage {
-  PK(id) : bigint
-  --
-  FK(project_id) : bigint
-  FK(responsible_user_id) : bigint
-  slug : enum
-  order : int
-  responsible_sector : enum
-  status : enum
-  started_at : timestamp
-  concluded_at : timestamp
-}
-
-entity ProjectOpening {
+entity Opening {
   PK(id) : bigint
   --
   FK(project_id) : bigint (unique)
@@ -83,38 +87,67 @@ entity ProjectOpening {
   fiscal_cpf : string
   parcelas_adicionais : jsonb
   status : enum
+  started_at : timestamp
+  concluded_at : timestamp
 }
 
-entity ProjectFormalization {
+entity LegalAnalysis {
   PK(id) : bigint
   --
   FK(project_id) : bigint (unique)
   FK(responsible_user_id) : bigint
+  parecer : enum
+  certidoes_data : jsonb
   status : enum
+  started_at : timestamp
+  concluded_at : timestamp
 }
 
-entity ProjectParcel {
+entity Formalization {
   PK(id) : bigint
   --
   FK(project_id) : bigint (unique)
   FK(responsible_user_id) : bigint
+  tipo_instrumento : enum
+  numero_instrumento : string
+  assinado_beneficiario : bool
+  assinado_gestor : bool
   status : enum
+  started_at : timestamp
+  concluded_at : timestamp
 }
 
-entity ProjectPayment {
+entity Budget {
   PK(id) : bigint
   --
   FK(project_id) : bigint (unique)
   FK(responsible_user_id) : bigint
+  orcamento_data : jsonb
   status : enum
+  started_at : timestamp
+  concluded_at : timestamp
 }
 
-entity ProjectMonitoring {
+entity Payment {
   PK(id) : bigint
   --
   FK(project_id) : bigint (unique)
   FK(responsible_user_id) : bigint
+  pagamento_data : jsonb
   status : enum
+  started_at : timestamp
+  concluded_at : timestamp
+}
+
+entity Monitoring {
+  PK(id) : bigint
+  --
+  FK(project_id) : bigint (unique)
+  FK(responsible_user_id) : bigint
+  monitoramento_data : jsonb
+  status : enum
+  started_at : timestamp
+  concluded_at : timestamp
 }
 
 entity User {
@@ -154,164 +187,40 @@ entity Audit {
 }
 
 ' ══════════════════════════════════════════
-'  RELACIONAMENTOS — CONTEXTO DO EDITAL
+'  RELACIONAMENTOS
 ' ══════════════════════════════════════════
 
-Edital ||--o{ EditalCategoria : "possui"
-note on link
-  1 Edital tem N categorias
-  (ex: Maracatus R$33.680,
-   Blocos R$13.000...)
-end note
+Edital ||--o{ EditalCategoria : ""
+Edital ||--o{ EditalFiscal : ""
+Edital ||--o{ Project : ""
+EditalCategoria ||--o{ Project : ""
+Agent ||--o{ Project : ""
 
-Edital ||--o{ Project : "agrupa"
-note on link
-  1 Edital tem N projetos
-  (ex: 80 projetos no 18º
-   Ciclo Carnavalesco 2025)
-end note
+Project ||--|| Opening : ""
+Project ||--|| LegalAnalysis : ""
+Project ||--|| Formalization : ""
+Project ||--|| Budget : ""
+Project ||--|| Payment : ""
+Project ||--|| Monitoring : ""
 
-EditalCategoria ||--o{ Project : "categoriza"
-note on link
-  1 Categoria tem N projetos
-  (ex: 25 maracatus selecionados)
-end note
+User ||--o{ Opening : ""
+User ||--o{ LegalAnalysis : ""
+User ||--o{ Formalization : ""
+User ||--o{ Budget : ""
+User ||--o{ Payment : ""
+User ||--o{ Monitoring : ""
 
-' ══════════════════════════════════════════
-'  RELACIONAMENTOS — PROJECT → ETAPAS
-' ══════════════════════════════════════════
+User }o--o{ Role : ""
+Role }o--o{ Permission : ""
+User }o--o{ Permission : ""
 
-Project ||--|| ProjectOpening : "tem"
-note on link
-  1:1 — Cada projeto
-  tem exatamente 1 Abertura
-end note
+User ||--o{ Audit : ""
+Project ||--o{ Audit : ""
+Opening ||--o{ Audit : ""
+LegalAnalysis ||--o{ Audit : ""
+Formalization ||--o{ Audit : ""
+Budget ||--o{ Audit : ""
+Payment ||--o{ Audit : ""
+Monitoring ||--o{ Audit : ""
 
-Project ||--|| ProjectFormalization : "tem"
-note on link
-  1:1 — Cada projeto
-  tem exatamente 1 Formalização
-end note
-
-Project ||--|| ProjectParcel : "tem"
-note on link
-  1:1 — Cada projeto
-  tem exatamente 1 Orçamento
-end note
-
-Project ||--|| ProjectPayment : "tem"
-note on link
-  1:1 — Cada projeto
-  tem exatamente 1 Pagamento
-end note
-
-Project ||--|| ProjectMonitoring : "tem"
-note on link
-  1:1 — Cada projeto
-  tem exatamente 1 Monitoramento
-end note
-
-' ══════════════════════════════════════════
-'  RELACIONAMENTOS — CONTROLE DE FLUXO
-' ══════════════════════════════════════════
-
-Project ||--o{ ProjectStage : "controla fluxo"
-note on link
-  1:N — Cada projeto tem N registros
-  de stage (um por etapa do fluxo)
-  para controlar ordem e aprovações
-end note
-
-' ══════════════════════════════════════════
-'  RELACIONAMENTOS — USUÁRIOS E RESPONSÁVEIS
-' ══════════════════════════════════════════
-
-User ||--o{ ProjectStage : "responsável"
-User ||--o{ ProjectOpening : "responsável"
-User ||--o{ ProjectFormalization : "responsável"
-User ||--o{ ProjectParcel : "responsável"
-User ||--o{ ProjectPayment : "responsável"
-User ||--o{ ProjectMonitoring : "responsável"
-
-note right of User
-  Cada etapa tem um
-  **responsible_user_id**
-  que aponta para o
-  analista responsável
-end note
-
-' ══════════════════════════════════════════
-'  RELACIONAMENTOS — SPATIE PERMISSIONS
-' ══════════════════════════════════════════
-
-User }o--o{ Role : "model_has_roles"
-note on link
-  N:N — Um usuário pode
-  ter múltiplos papéis
-  (ex: Coord. Fomento)
-end note
-
-Role }o--o{ Permission : "role_has_permissions"
-note on link
-  N:N — Um papel tem
-  múltiplas permissões
-  (ex: abertura.edit_any)
-end note
-
-User }o--o{ Permission : "model_has_permissions"
-note on link
-  N:N — Permissões diretas
-  sem passar por role
-  (casos excepcionais)
-end note
-
-' ══════════════════════════════════════════
-'  RELACIONAMENTOS — AUDITORIA
-' ══════════════════════════════════════════
-
-User ||--o{ Audit : "executa ações"
-note on link
-  1:N — Cada log de auditoria
-  registra qual usuário
-  fez a alteração
-end note
-
-Project ||--o{ Audit : "auditado"
-ProjectOpening ||--o{ Audit : "auditado"
-ProjectFormalization ||--o{ Audit : "auditado"
-ProjectParcel ||--o{ Audit : "auditado"
-ProjectPayment ||--o{ Audit : "auditado"
-ProjectStage ||--o{ Audit : "auditado"
-
-note bottom of Audit
-  **Auditoria automática**
-  Todas as entidades principais
-  usam o trait Auditable do
-  owen-it/laravel-auditing
-
-  Registra:
-  • Quem alterou (user_id)
-  • O que mudou (old/new values)
-  • Quando (created_at)
-  • De onde (ip_address)
-end note
-
-' ══════════════════════════════════════════
-'  LEGENDA
-' ══════════════════════════════════════════
-
-legend bottom
-  **Cardinalidades**
-  ||--||  : 1 para 1 (obrigatório)
-  ||--o{  : 1 para N
-  }o--o{  : N para N (pivot table)
-
-  **Campos**
-  <u>PK</u> : Primary Key
-  <i>FK</i> : Foreign Key
-
-  **Cores**
-  Verde claro: Pacotes/agrupamentos lógicos
-  Amarelo: Notas explicativas
-end legend
 @enduml
