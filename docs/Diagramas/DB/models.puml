@@ -21,25 +21,38 @@ skinparam packageFontStyle bold
 '  ENTIDADES
 ' ══════════════════════════════════════════
 
-entity Edital {
+entity Notice {
   PK(id) : bigint
   --
-  nome : string
-  link_mapa_cultural : string
-  valor_total : decimal
-  nup_mae : string
-  nup_dotacao : string
-  nup_credor : string
-  status : enum
+  nup : varchar
+  notice_url : text
+  external_id : varchar
+  name : varchar
+  total_notice_amount : decimal
+  total_commitment_amount : decimal
+  installments : int
+  process_manager : varchar
+  process_manager_email : varchar
+  creditor_registration_nup : varchar
+  creditor_registration_request_date : date
+  budget_allocation_nup : varchar
+  budget_allocation_request_date : date
+  instrument_type : varchar
+  created_at : timestamp
+  updated_at : timestamp
+  deleted_at : timestamp
 }
 
 entity EditalCategoria {
   PK(id) : bigint
   --
-  FK(edital_id) : bigint
-  nome : string
-  valor_por_inscricao : decimal
-  total_inscricoes_selecionadas : int
+  nup : string
+  notice_url : string
+  external_id : string
+  name : string
+  total_notice_amount : decimal
+  total_commitment_amount : decimal
+  installments : int
 }
 
 entity EditalFiscal {
