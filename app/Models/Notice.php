@@ -37,4 +37,12 @@ class Notice extends Model implements Auditable
         'creditor_registration_request_date' => 'date',
         'installments' => 'integer',
     ];
+
+    /**
+     * Get the projects for the notice.
+     */
+    public function projects(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(Project::class);
+    }
 }

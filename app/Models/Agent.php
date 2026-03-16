@@ -45,4 +45,12 @@ class Agent extends Model
         'race_or_color' => RaceColor::class,
         'has_disability' => DisabilityType::class,
     ];
+
+    /**
+     * Get the projects for the agent.
+     */
+    public function projects(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(Project::class);
+    }
 }

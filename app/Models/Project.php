@@ -1,0 +1,63 @@
+<?php
+
+namespace App\Models;
+
+use App\Enums\Gender;
+use App\Enums\Education;
+use App\Enums\SexualOrientation;
+use App\Enums\RaceColor;
+use App\Enums\DisabilityType;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\SoftDeletes;
+use OwenIt\Auditing\Auditable as AuditableTrait;
+use OwenIt\Auditing\Contracts\Auditable;
+
+class Project extends Model  implements Auditable
+{
+    use HasFactory, SoftDeletes, AuditableTrait;
+
+    protected $fillable = [
+        'registration_id',
+        'number',
+        'opportunity_id',
+        'category_id',
+        'agent_id',
+        'notice_id',
+        'education_level',
+        'gender',
+        'sexual_orientation',
+        'race',
+        'has_disability',
+        'create_timestamp',
+        'sent_timestamp',
+        'consolidated_result',
+        'data_registration',
+    ];
+
+    protected $casts = [
+        'education_level' => Education::class,
+        'gender' => Gender::class,
+        'sexual_orientation' => SexualOrientation::class,
+        'race' => RaceColor::class,
+        'has_disability' => DisabilityType::class,
+        'create_timestamp' => 'datetime',
+        'sent_timestamp' => 'datetime',
+        'data_registration' => 'array',
+    ];
+
+    public function notice(): BelongsTo
+    {
+        return $this->belongsTo(Notice::class);
+    }
+
+    public function agent(): BelongsTo
+    {
+        return $this->belongsTo(Agent::class);
+    }
+    public function category(): BelongsTo
+    {
+        return $this->belongsTo(Category::class);
+    }
+}
