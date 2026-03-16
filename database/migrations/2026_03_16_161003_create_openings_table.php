@@ -3,6 +3,9 @@
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
+use App\Enums\AgentStatus;
+use App\Enums\AccountType;
+use App\Enums\OpeningStatus;
 
 return new class extends Migration
 {
@@ -31,22 +34,18 @@ return new class extends Migration
             
             $table->string('opening_nup')->nullable();
             $table->date('opening_date')->nullable();
-            $table->string('agent_status')->nullable();
+            $table->enum('agent_status', array_column(AgentStatus::cases(), 'value'))->nullable();
             $table->string('opened_by')->nullable();
 
             $table->string('bank')->nullable();
-            $table->string('account_type')->nullable();
+            $table->enum('account_type', array_column(AccountType::cases(), 'value'))->nullable();
             $table->string('branch')->nullable();
             $table->string('account')->nullable();
 
             $table->boolean('is_draft')->default(true);
 
-            $table->enum('status', [
-                'pendente',
-                'em_andamento',
-                'concluido',
-                'rejeitado'
-            ])->default('pendente');
+            $table->enum('status', array_column(OpeningStatus::cases(), 'value'))
+                ->default(OpeningStatus::PENDENTE->value);
             $table->dateTime('certificate_date')->nullable();
             $table->timestamp('started_at')->nullable();
             $table->timestamp('submitted_at')->nullable();

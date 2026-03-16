@@ -5,12 +5,12 @@ namespace App\Enums;
 use App\Enums\Concerns\HasOptions;
 use App\Enums\Contracts\HasLabel;
 
-enum AgentType: string implements HasLabel
+enum AgentStatus: string implements HasLabel
 {
     use HasOptions;
 
     case ATIVO = 'ATIVO';
-    case SUPLENTE = 'ATIVO (SUPLENTE)';
+    case SUPLENTE = 'SUPLENTE';
     case EM_ANALISE = 'EM_ANAISE';
     case DESCLASSIFICADO = 'DESCLASSIFICADO';
     case DESISTENTE = 'DESISTENTE';
