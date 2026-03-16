@@ -50,12 +50,13 @@ class OpeningFactory extends Factory
             'is_draft' => $this->faker->boolean(),
 
             'status' => $this->faker->randomElement([
-                'pendente',
-                'em_andamento',
-                'concluido',
-                'rejeitado'
+                'PENDENTE',
+                'EM_ANDAMENTO',
+                'CONCLUIDO',
+                'REJEITADO'
             ]),
-
+            'certificate_date' => $this->faker->dateTime(),
+            'supervisor_id' => User::factory(),
             'started_at' => now(),
             'submitted_at' => null,
             'concluded_at' => null,

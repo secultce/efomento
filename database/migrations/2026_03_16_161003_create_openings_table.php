@@ -17,13 +17,18 @@ return new class extends Migration
             $table->foreignId('project_id')
                 ->unique()
                 ->constrained()
-                ->cascadeOnDelete();
+                ->nullOnDelete();
             
             $table->foreignId('user_id')
                 ->nullable()
                 ->constrained()
                 ->nullOnDelete();
 
+            $table->foreignId('supervisor_id')
+                ->nullable()
+                ->constrained('users')
+                ->nullOnDelete();
+            
             $table->string('opening_nup')->nullable();
             $table->date('opening_date')->nullable();
             $table->string('agent_status')->nullable();
@@ -42,7 +47,7 @@ return new class extends Migration
                 'concluido',
                 'rejeitado'
             ])->default('pendente');
-
+            $table->dateTime('certificate_date')->nullable();
             $table->timestamp('started_at')->nullable();
             $table->timestamp('submitted_at')->nullable();
             $table->timestamp('concluded_at')->nullable();
