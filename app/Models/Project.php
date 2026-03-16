@@ -21,7 +21,6 @@ class Project extends Model  implements Auditable
     protected $fillable = [
         'registration_id',
         'number',
-        'opportunity_id',
         'category_id',
         'agent_id',
         'notice_id',
@@ -56,6 +55,7 @@ class Project extends Model  implements Auditable
     {
         return $this->belongsTo(Agent::class);
     }
+
     public function category(): BelongsTo
     {
         return $this->belongsTo(Category::class);

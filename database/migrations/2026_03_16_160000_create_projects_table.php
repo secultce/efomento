@@ -21,12 +21,9 @@ return new class extends Migration
 
             $table->string('registration_id')->unique();
             $table->string('number')->nullable();
-
-            $table->unsignedBigInteger('opportunity_id')->nullable();
-            $table->unsignedBigInteger('category_id')->nullable();
-
-            $table->foreignId('agent_id')->constrained()->onDelete('cascade');
-            $table->foreignId('notice_id')->constrained()->onDelete('cascade');
+            $table->foreignId('category_id')->constrained();
+            $table->foreignId('agent_id')->constrained();
+            $table->foreignId('notice_id')->constrained();
 
             $table->enum(
                 'education_level',
