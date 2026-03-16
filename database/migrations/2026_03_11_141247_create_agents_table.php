@@ -42,7 +42,7 @@ return new class extends Migration
             )->nullable();
 
             $table->enum(
-                'race_or_color',
+                'race',
                 array_column(RaceColor::cases(), 'value')
             )->nullable();
 

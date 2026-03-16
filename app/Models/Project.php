@@ -24,7 +24,7 @@ class Project extends Model  implements Auditable
         'category_id',
         'agent_id',
         'notice_id',
-        'education_level',
+        'education',
         'gender',
         'sexual_orientation',
         'race',

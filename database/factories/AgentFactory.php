@@ -44,7 +44,7 @@ class AgentFactory extends Factory
                 SexualOrientation::cases()
             )->value,
 
-            'race_or_color' => fake()->randomElement(
+            'race' => fake()->randomElement(
                 RaceColor::cases()
             )->value,
 

@@ -34,7 +34,7 @@ class Agent extends Model
         'gender',
         'education',
         'sexual_orientation',
-        'race_or_color',
+        'race',
         'has_disability',
     ];
 
@@ -43,7 +43,7 @@ class Agent extends Model
         'gender' => Gender::class,
         'education' => Education::class,
         'sexual_orientation' => SexualOrientation::class,
-        'race_or_color' => RaceColor::class,
+        'race' => RaceColor::class,
         'has_disability' => DisabilityType::class,
     ];
 
