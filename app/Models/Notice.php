@@ -7,6 +7,8 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use OwenIt\Auditing\Auditable as AuditableTrait;
 use OwenIt\Auditing\Contracts\Auditable;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+
 
 class Notice extends Model implements Auditable
 {
@@ -37,4 +39,12 @@ class Notice extends Model implements Auditable
         'creditor_registration_request_date' => 'date',
         'installments' => 'integer',
     ];
+
+    /**
+     * Get the projects for the notice.
+     */
+    public function projects(): HasMany
+    {
+        return $this->hasMany(Project::class);
+    }
 }

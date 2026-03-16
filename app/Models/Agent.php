@@ -10,6 +10,7 @@ use App\Enums\DisabilityType;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Agent extends Model
 {
@@ -33,7 +34,7 @@ class Agent extends Model
         'gender',
         'education',
         'sexual_orientation',
-        'race_or_color',
+        'race',
         'has_disability',
     ];
 
@@ -42,7 +43,12 @@ class Agent extends Model
         'gender' => Gender::class,
         'education' => Education::class,
         'sexual_orientation' => SexualOrientation::class,
-        'race_or_color' => RaceColor::class,
+        'race' => RaceColor::class,
         'has_disability' => DisabilityType::class,
     ];
+
+    public function projects(): HasMany
+    {
+        return $this->hasMany(Project::class);
+    }
 }
