@@ -14,7 +14,7 @@ defineProps({
         <v-sheet color="#485465FF" class="pa-3">
             <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
                 <div class="d-flex align-center ga-3">
-                    <Link :href="route('editais.index')">
+                    <Link :href="route('notices.index')">
                         <v-btn variant="outlined" color="white" size="small"
                                prepend-icon="mdi-arrow-back">
                             Voltar

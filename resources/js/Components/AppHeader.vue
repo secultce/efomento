@@ -26,13 +26,13 @@ const logout = () => router.post(route('logout'))
 <template>
     <v-app-bar color="primary" elevation="0" height="64">
         <v-app-bar-title>
-            <a :href="route('editais.index')" class="text-white font-weight-bold text-h6 text-decoration-none">
+            <a :href="route('notices.index')" class="text-white font-weight-bold text-h6 text-decoration-none">
                 e-fomento
             </a>
         </v-app-bar-title>
 
         <template #append>
-            <v-btn variant="text" color="white" href="/editais">
+            <v-btn variant="text" color="white" href="/notices">
                 Editais
             </v-btn>
 

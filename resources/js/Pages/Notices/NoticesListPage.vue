@@ -4,11 +4,11 @@ import NupDialog from './NupDialog.vue'
 
 
 const props = defineProps({
-    editais: {
+    notices: {
         type: Array,
         default: () => [],
     },
-    totalEditais: {
+    totalNotices: {
         type: Number,
         default: 0,
     },
@@ -27,7 +27,7 @@ const emit = defineEmits([
     'change-per-page',
 ])
 
-const editaisMock = [
+const noticesMock = [
     {
         id: 1,
         titulo: 'EDITAL DE CHAMAMENTO PÚBLICO Nº 005/2025 - PRE...',
@@ -90,7 +90,7 @@ const itemsPerPage = ref(10)
 
 // ─── Computeds ────────────────────────────────────────────────────────────────
 
-const itens = computed(() => (props.editais.length ? props.editais : editaisMock))
+const itens = computed(() => (props.notices.length ? props.notices : noticesMock))
 
 const itensFiltrados = computed(() => {
     let lista = itens.value
@@ -200,10 +200,10 @@ function openDialog(item) {
         <!-- ── Cabeçalho ──────────────────────────────────────────────────── -->
         <div class="mb-5">
             <p class="text-subtitle-1 font-weight-bold text-grey-darken-3">
-                Editais disponíveis para acompanhamento abaixo
+                Notices disponíveis para acompanhamento abaixo
             </p>
             <p class="text-body-2 text-grey-darken-1 mt-1">
-                Total de editais encontrados:
+                Total de notices encontrados:
                 <strong class="text-grey-darken-3">{{ total }}</strong>
             </p>
         </div>
@@ -212,7 +212,7 @@ function openDialog(item) {
         <v-row dense class="mb-4">
             <v-col cols="12" md="4">
                 <v-text-field :model-value="search" @update:model-value="onSearch"
-                    placeholder="Busque editais específicos" append-inner-icon="mdi-magnify" variant="outlined"
+                    placeholder="Busque notices específicos" append-inner-icon="mdi-magnify" variant="outlined"
                     density="compact" hide-details rounded="xl" class="border border-green-700 rounded-xl" />
             </v-col>
 
@@ -231,7 +231,7 @@ function openDialog(item) {
 
         <!-- ── Tabela ─────────────────────────────────────────────────────── -->
         <v-data-table v-model:page="page" v-model:items-per-page="itemsPerPage" :headers="headers"
-            :items="itensFiltrados" class="editais-table">
+            :items="itensFiltrados" class="notices-table">
             <!-- Título truncado -->
             <template #item.titulo="{ item }">
                 <span class="titulo-truncado">{{ item.titulo }}</span>
@@ -318,7 +318,7 @@ function openDialog(item) {
 
 <style scoped>
 /* Container da tabela */
-.editais-table {
+.notices-table {
     border: 1px solid #E0E0E0;
     border-radius: 8px;
     overflow: hidden;

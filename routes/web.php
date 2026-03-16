@@ -27,8 +27,19 @@ Route::get('/', function () {
     ]);
 });
 
-//
-Route::get('/editais', [UserController::class, 'index'])->middleware(['auth', 'verified'])->name('editais.index');
+
+Route::middleware(['auth', 'verified'])->group(function () {
+
+    Route::resource('editais', NoticeController::class)->names([
+        'index' => 'notices.index',
+        'create' => 'notices.create',
+        'store' => 'notices.store',
+        'show' => 'notices.show',
+        'edit' => 'notices.edit',
+        'update' => 'notices.update',
+        'destroy' => 'notices.destroy',
+    ]);
+});
 
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
@@ -36,7 +47,6 @@ Route::middleware('auth')->group(function () {
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
     Route::get('/grupos', [GroupController::class, 'index'])->name('groups.index');
     Route::put('/grupos', [GroupController::class, 'update'])->name('groups.update');
-    Route::resource('notices', NoticeController::class);
 });
 
 require __DIR__.'/auth.php';

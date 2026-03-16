@@ -1,6 +1,6 @@
 <script setup>
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue'
-import EditaisListPage from '@/Pages/Editais/EditaisListPage.vue'
+import NoticesListPage from '@/Pages/Notices/NoticesListPage.vue'
 
 defineProps({
     totais: {
@@ -63,9 +63,9 @@ const stats = [
         </template>
 
         <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-6">
-            <EditaisListPage
-                :editais="oportunidades"
-                :total-editais="totais.oportunidades"
+            <NoticesListPage
+                :notices="oportunidades"
+                :total-notices="totais.oportunidades"
                 :instrument-types="instrumentTypes"
             />
         </div>

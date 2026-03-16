@@ -4,19 +4,28 @@ namespace App\Http\Controllers;
 
 use App\Models\Notice;
 use Inertia\Inertia;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use App\Http\Requests\Notice\NoticeStoreRequest;
 use App\Http\Requests\Notice\NoticeUpdateRequest;
+use App\Services\NoticeService;
 use App\Enums\InstrumentType;
+
 
 class NoticeController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
-    public function index()
+    
+
+    public function __construct(private readonly NoticeService $noticeService) {}
+
+    public function index(Request $request)
     {
         return Inertia::render('Notices/Index', [
-            'notices' => Notice::latest()->get(),
+            'user' => Auth::user(),
+            'oportunidades' => $this->noticeService
+                ->getNoticesForDashboard($request->query('search')),
+            'totais' => $this->noticeService->getTotals(),
+            'instrumentTypes' => InstrumentType::values(),
         ]);
     }
 
