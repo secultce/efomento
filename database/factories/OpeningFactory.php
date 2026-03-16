@@ -21,23 +21,27 @@ class OpeningFactory extends Factory
             'opening_date' => $this->faker->date(),
 
             'agent_status' => $this->faker->randomElement([
-                'ativo',
-                'pendente',
-                'inativo'
+                'Ativo',
+                'Ativo (suplente)',
+                'Em análise',
+                'Desclassificado',
+                'Desistente'
             ]),
 
             'opened_by' => $this->faker->name(),
 
             'bank' => $this->faker->randomElement([
-                'Banco do Brasil',
-                'Caixa',
-                'Bradesco',
-                'Santander'
+                '001',
+                '237',
+                '341',
+                '104',
+                '033',
+                '745',
             ]),
 
             'account_type' => $this->faker->randomElement([
-                'corrente',
-                'poupanca'
+                'CORRENTE',
+                'POUPANCA'
             ]),
 
             'branch' => $this->faker->numerify('####'),

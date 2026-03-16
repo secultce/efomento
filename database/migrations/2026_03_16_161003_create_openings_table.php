@@ -14,12 +14,11 @@ return new class extends Migration
         Schema::create('openings', function (Blueprint $table) {
             $table->id();
 
-            /*
             $table->foreignId('project_id')
                 ->unique()
                 ->constrained()
                 ->cascadeOnDelete();
-            */
+            
             $table->foreignId('user_id')
                 ->nullable()
                 ->constrained()
