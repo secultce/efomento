@@ -7,7 +7,7 @@ defineProps({
         type: Object,
         default: () => ({ oportunidades: 0, pendentes: 0, concluidos: 0, monitoramento: 0 }),
     },
-    oportunidades: {
+    notices: {
         type: Array,
         default: () => [],
     },
@@ -64,8 +64,8 @@ const stats = [
 
         <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-6">
             <NoticesListPage
-                :notices="oportunidades"
-                :total-notices="totais.oportunidades"
+                :notices="notices"
+                :total-notices="totais.notices"
                 :instrument-types="instrumentTypes"
             />
         </div>

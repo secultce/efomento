@@ -22,7 +22,7 @@ class NoticeController extends Controller
     {
         return Inertia::render('Notices/Index', [
             'user' => Auth::user(),
-            'oportunidades' => $this->noticeService
+            'notices' => $this->noticeService
                 ->getNoticesForDashboard($request->query('search')),
             'totais' => $this->noticeService->getTotals(),
             'instrumentTypes' => InstrumentType::values(),

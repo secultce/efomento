@@ -200,10 +200,10 @@ function openDialog(item) {
         <!-- ── Cabeçalho ──────────────────────────────────────────────────── -->
         <div class="mb-5">
             <p class="text-subtitle-1 font-weight-bold text-grey-darken-3">
-                Notices disponíveis para acompanhamento abaixo
+                Editais disponíveis para acompanhamento abaixo
             </p>
             <p class="text-body-2 text-grey-darken-1 mt-1">
-                Total de notices encontrados:
+                Total de editais encontrados:
                 <strong class="text-grey-darken-3">{{ total }}</strong>
             </p>
         </div>
@@ -212,7 +212,7 @@ function openDialog(item) {
         <v-row dense class="mb-4">
             <v-col cols="12" md="4">
                 <v-text-field :model-value="search" @update:model-value="onSearch"
-                    placeholder="Busque notices específicos" append-inner-icon="mdi-magnify" variant="outlined"
+                    placeholder="Busque editais específicos" append-inner-icon="mdi-magnify" variant="outlined"
                     density="compact" hide-details rounded="xl" class="border border-green-700 rounded-xl" />
             </v-col>
 

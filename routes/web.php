@@ -30,7 +30,11 @@ Route::get('/', function () {
 
 Route::middleware(['auth', 'verified'])->group(function () {
 
-    Route::resource('editais', NoticeController::class)->names([
+    Route::resource('editais', NoticeController::class)
+    ->parameters([
+        'editais' => 'notice'
+    ])
+    ->names([
         'index' => 'notices.index',
         'create' => 'notices.create',
         'store' => 'notices.store',
