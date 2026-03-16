@@ -35,7 +35,7 @@ class AgentResource extends JsonResource
             'education' => $this->education,
 
             'sexual_orientation' => $this->sexual_orientation?->value,
-            'race_or_color' => $this->race_or_color?->value,
+            'race' => $this->race?->value,
             'has_disability' => $this->has_disability?->value,
 
             'created_at' => $this->created_at?->toISOString(),
