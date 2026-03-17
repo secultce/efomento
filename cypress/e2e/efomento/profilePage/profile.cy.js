@@ -1,10 +1,12 @@
 describe('Página de Peril', () => {
     
   let data;
-  before(() => {
+  beforeEach(() => {
     cy.fixture('users').then((tData) => {
       data = tData;
     })
+
+    cy.resetCredentials(data.updated_email,data.password,data.valid_email,data.updated_name, data.name);
   })
 
 
@@ -25,9 +27,7 @@ describe('Página de Peril', () => {
       .should('be.visible')    
     cy.logout()
     cy.login(data.updated_email, data.password, data.updated_name)
-    cy.logout()
-    cy.resetCredentials(data.updated_email,data.password,data.valid_email,data.updated_name, data.name)
-    
+    cy.logout()   
 
   })
 
