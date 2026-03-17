@@ -20,7 +20,7 @@ class NoticeController extends Controller
 
     public function index(Request $request)
     {
-        return Inertia::render('Notices/Index', [
+        return Inertia::render('Notices', [
             'user' => Auth::user(),
             'notices' => $this->noticeService
                 ->getNoticesForDashboard($request->query('search')),

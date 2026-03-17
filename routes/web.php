@@ -4,6 +4,7 @@ use App\Http\Controllers\GroupController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\NoticeController;
+use App\Http\Controllers\ProjectController;
 use App\Models\User;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
@@ -31,19 +32,36 @@ Route::get('/', function () {
 Route::middleware(['auth', 'verified'])->group(function () {
 
     Route::resource('editais', NoticeController::class)
-    ->parameters([
-        'editais' => 'notice'
-    ])
-    ->names([
-        'index' => 'notices.index',
-        'create' => 'notices.create',
-        'store' => 'notices.store',
-        'show' => 'notices.show',
-        'edit' => 'notices.edit',
-        'update' => 'notices.update',
-        'destroy' => 'notices.destroy',
-    ]);
-});
+        ->parameters([
+            'editais' => 'notice'
+        ])
+        ->names([
+            'index' => 'notices.index',
+            'create' => 'notices.create',
+            'store' => 'notices.store',
+            'show' => 'notices.show',
+            'edit' => 'notices.edit',
+            'update' => 'notices.update',
+            'destroy' => 'notices.destroy',
+        ]);
+
+    Route::resource('projetos', ProjectController::class)
+        ->parameters([
+            'projetos' => 'project'
+        ])
+        ->names([
+            'index' => 'projects.index',
+            'create' => 'projects.create',
+            'store' => 'projects.store',
+            'show' => 'projects.show',
+            'edit' => 'projects.edit',
+            'update' => 'projects.update',
+            'destroy' => 'projects.destroy',
+        ]);
+
+    Route::get('editais/{notice}/projetos', [ProjectController::class, 'index'])
+        ->name('notices.projects');
+    });
 
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');

@@ -1,7 +1,7 @@
 <script setup>
 import { ref, computed, watch } from 'vue'
 import NupDialog from './NupDialog.vue'
-
+import { router } from '@inertiajs/vue3'
 
 const props = defineProps({
     notices: {
@@ -167,7 +167,7 @@ function onFilterInstrument(value) {
 }
 
 function onAccess(item) {
-    emit('access', item)
+    router.visit(route('notices.projects', item.id))
 }
 
 function goToPage(p) {
