@@ -1,0 +1,24 @@
+@startuml Category
+
+class Category {
+    -id: bigint
+    -name: string
+    -type: CategoryType
+    -created_at: timestamp
+    -updated_at: timestamp
+    -deleted_at: timestamp
+    --
+    +projects(): HasMany
+    +notice(): HasMany
+}
+
+enum CategoryType {
+    NOTICE
+    PROJECT
+}
+
+Category "1" -- "0..*" Project : has
+Category "1" -- "0..*" Notice : has
+Category ..> CategoryType : uses
+
+@enduml
