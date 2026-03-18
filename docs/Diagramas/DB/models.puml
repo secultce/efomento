@@ -1,0 +1,239 @@
+@startuml e-Fomento — Diagrama de Relacionamento (ER)
+
+!define TABLE(x) class x << (T,#FFAAAA) >>
+!define PK(x) <u>x</u>
+!define FK(x) <i>x</i>
+
+skinparam linetype ortho
+skinparam classBackgroundColor #F5F5F5
+skinparam classBorderColor #37474F
+skinparam classBorderThickness 1.5
+skinparam classAttributeFontSize 11
+skinparam classAttributeFontName Arial
+skinparam arrowColor #37474F
+skinparam arrowThickness 2
+skinparam packageBackgroundColor #E8F5E9
+skinparam packageBorderColor #2E7D32
+skinparam packageFontColor #1B5E20
+skinparam packageFontStyle bold
+
+' ══════════════════════════════════════════
+'  ENTIDADES
+' ══════════════════════════════════════════
+
+entity Notice {
+  PK(id) : bigint
+  --
+  nup : varchar
+  notice_url : text
+  external_id : varchar
+  name : varchar
+  total_notice_amount : decimal
+  total_commitment_amount : decimal
+  installments : int
+  process_manager : varchar
+  process_manager_email : varchar
+  creditor_registration_nup : varchar
+  creditor_registration_request_date : date
+  budget_allocation_nup : varchar
+  budget_allocation_request_date : date
+  instrument_type : varchar
+  created_at : timestamp
+  updated_at : timestamp
+  deleted_at : timestamp
+}
+
+entity EditalCategoria {
+  PK(id) : bigint
+  --
+  nup : string
+  notice_url : string
+  external_id : string
+  name : string
+  total_notice_amount : decimal
+  total_commitment_amount : decimal
+  installments : int
+}
+
+entity EditalFiscal {
+  PK(id) : bigint
+  --
+  FK(edital_id) : bigint
+  nome : string
+  cpf : string
+  matricula : string
+  email : string
+}
+
+entity Agent {
+  PK(id) : bigint
+  --
+  name : string
+  cpf_cnpj : string
+  legal_type : enum
+  email : string
+}
+
+entity Project {
+  PK(id) : bigint
+  --
+  FK(edital_id) : bigint
+  FK(edital_categoria_id) : bigint
+  FK(agent_id) : bigint
+  mapa_cultural_id : string
+  project_title : string
+  status : enum
+  last_synced_at : timestamp
+}
+
+entity Opening {
+  PK(id) : bigint
+  --
+  FK(project_id) : bigint (unique)
+  FK(responsible_user_id) : bigint
+  numero_processo : string
+  data_abertura : date
+  valor_repasse : decimal
+  banco : string
+  agencia : string
+  conta : string
+  fiscal_cpf : string
+  parcelas_adicionais : jsonb
+  status : enum
+  started_at : timestamp
+  concluded_at : timestamp
+}
+
+entity LegalAnalysis {
+  PK(id) : bigint
+  --
+  FK(project_id) : bigint (unique)
+  FK(responsible_user_id) : bigint
+  parecer : enum
+  certidoes_data : jsonb
+  status : enum
+  started_at : timestamp
+  concluded_at : timestamp
+}
+
+entity Formalization {
+  PK(id) : bigint
+  --
+  FK(project_id) : bigint (unique)
+  FK(responsible_user_id) : bigint
+  tipo_instrumento : enum
+  numero_instrumento : string
+  assinado_beneficiario : bool
+  assinado_gestor : bool
+  status : enum
+  started_at : timestamp
+  concluded_at : timestamp
+}
+
+entity Budget {
+  PK(id) : bigint
+  --
+  FK(project_id) : bigint (unique)
+  FK(responsible_user_id) : bigint
+  orcamento_data : jsonb
+  status : enum
+  started_at : timestamp
+  concluded_at : timestamp
+}
+
+entity Payment {
+  PK(id) : bigint
+  --
+  FK(project_id) : bigint (unique)
+  FK(responsible_user_id) : bigint
+  pagamento_data : jsonb
+  status : enum
+  started_at : timestamp
+  concluded_at : timestamp
+}
+
+entity Monitoring {
+  PK(id) : bigint
+  --
+  FK(project_id) : bigint (unique)
+  FK(responsible_user_id) : bigint
+  monitoramento_data : jsonb
+  status : enum
+  started_at : timestamp
+  concluded_at : timestamp
+}
+
+entity User {
+  PK(id) : bigint
+  --
+  name : string
+  email : string
+  setor : enum
+  active : bool
+}
+
+entity Role {
+  PK(id) : bigint
+  --
+  name : string
+  guard_name : string
+}
+
+entity Permission {
+  PK(id) : bigint
+  --
+  name : string
+  guard_name : string
+}
+
+entity Audit {
+  PK(id) : bigint
+  --
+  FK(user_id) : bigint
+  auditable_type : string
+  auditable_id : bigint
+  event : string
+  old_values : jsonb
+  new_values : jsonb
+  ip_address : inet
+  created_at : timestamp
+}
+
+' ══════════════════════════════════════════
+'  RELACIONAMENTOS
+' ══════════════════════════════════════════
+
+Edital ||--o{ EditalCategoria : ""
+Edital ||--o{ EditalFiscal : ""
+Edital ||--o{ Project : ""
+EditalCategoria ||--o{ Project : ""
+Agent ||--o{ Project : ""
+
+Project ||--|| Opening : ""
+Project ||--|| LegalAnalysis : ""
+Project ||--|| Formalization : ""
+Project ||--|| Budget : ""
+Project ||--|| Payment : ""
+Project ||--|| Monitoring : ""
+
+User ||--o{ Opening : ""
+User ||--o{ LegalAnalysis : ""
+User ||--o{ Formalization : ""
+User ||--o{ Budget : ""
+User ||--o{ Payment : ""
+User ||--o{ Monitoring : ""
+
+User }o--o{ Role : ""
+Role }o--o{ Permission : ""
+User }o--o{ Permission : ""
+
+User ||--o{ Audit : ""
+Project ||--o{ Audit : ""
+Opening ||--o{ Audit : ""
+LegalAnalysis ||--o{ Audit : ""
+Formalization ||--o{ Audit : ""
+Budget ||--o{ Audit : ""
+Payment ||--o{ Audit : ""
+Monitoring ||--o{ Audit : ""
+
+@enduml

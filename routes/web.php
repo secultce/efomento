@@ -3,7 +3,7 @@
 use App\Http\Controllers\GroupController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\UserController;
-use App\Http\Controllers\OpportunityController;
+use App\Http\Controllers\NoticeController;
 use App\Models\User;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
@@ -27,8 +27,23 @@ Route::get('/', function () {
     ]);
 });
 
-//
-Route::get('/editais', [UserController::class, 'index'])->middleware(['auth', 'verified'])->name('editais.index');
+
+Route::middleware(['auth', 'verified'])->group(function () {
+
+    Route::resource('editais', NoticeController::class)
+    ->parameters([
+        'editais' => 'notice'
+    ])
+    ->names([
+        'index' => 'notices.index',
+        'create' => 'notices.create',
+        'store' => 'notices.store',
+        'show' => 'notices.show',
+        'edit' => 'notices.edit',
+        'update' => 'notices.update',
+        'destroy' => 'notices.destroy',
+    ]);
+});
 
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
@@ -36,7 +51,6 @@ Route::middleware('auth')->group(function () {
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
     Route::get('/grupos', [GroupController::class, 'index'])->name('groups.index');
     Route::put('/grupos', [GroupController::class, 'update'])->name('groups.update');
-    Route::resource('opportunities', OpportunityController::class);
 });
 
 require __DIR__.'/auth.php';

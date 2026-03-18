@@ -1,0 +1,61 @@
+@startuml
+!theme plain
+skinparam classAttributeIconSize 0
+skinparam class {
+    BackgroundColor #E8F5E9
+    BorderColor #2E7D32
+    ArrowColor #01579B
+}
+
+class Project {
+    -id: int
+    -registration_id: string
+    -number: string
+    -category_id: int
+    -agent_id: int
+    -notice_id: int
+    -education_level: Education
+    -gender: Gender
+    -sexual_orientation: SexualOrientation
+    -race: RaceColor
+    -has_disability: DisabilityType
+    -create_timestamp: timestamp
+    -sent_timestamp: timestamp
+    -consolidated_result: string
+    -data_registration: jsonb
+    -created_at: timestamp
+    -updated_at: timestamp
+    -deleted_at: timestamp
+    --
+    +notice(): BelongsTo
+    +agent(): BelongsTo
+    +category(): BelongsTo
+}
+
+note top of Project
+  <b>Métodos de Relacionamento:</b>
+
+  public function notice() {
+      return $this->belongsTo(Notice);
+  }
+
+  public function agent() {
+      return $this->belongsTo(Agent::class);
+  }
+
+  public function category() {
+      return $this->belongsTo(Category);
+  }
+end note
+
+note bottom of Project
+  <b>Campos Principais:</b>
+  - registration_id: Número único da inscrição
+  - number: Número sequencial
+  - notice_id: FK para tabela notices
+  - category_id: FK para tabela categories
+  - agent_id: FK para tabela agents
+  - has_disability: Valores (Nenhuma, Física, Visual, Intelectual)
+  - data_registration: Campo JSON do PostgreSQL
+end note
+@enduml
