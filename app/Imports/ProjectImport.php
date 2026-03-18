@@ -12,8 +12,7 @@ use Maatwebsite\Excel\Concerns\WithStartRow;
 class ProjectImport implements ToModel, WithStartRow, SkipsEmptyRows, WithChunkReading
 {
     public function __construct(
-        private readonly SpreadsheetImportService $service,
-        private readonly int $noticeId,
+        private readonly SpreadsheetImportService $service
     ) {}
 
     public function startRow(): int
@@ -28,6 +27,6 @@ class ProjectImport implements ToModel, WithStartRow, SkipsEmptyRows, WithChunkR
 
     public function model(array $row): ?Model
     {
-        return $this->service->processRow($row, $this->noticeId);
+        return $this->service->processRow($row);
     }
 }
