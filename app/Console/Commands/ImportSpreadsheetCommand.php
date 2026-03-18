@@ -17,7 +17,6 @@ class ImportSpreadsheetCommand extends Command
     public function handle(SpreadsheetImportService $service): int
     {
         $path = $this->argument('path');
-//        $noticeId = (int) $this->option('notice-id');
 
         if (! file_exists($path)) {
             $this->error("Arquivo não encontrado: {$path}");
@@ -25,7 +24,6 @@ class ImportSpreadsheetCommand extends Command
         }
 
         $this->info("Importando planilha: {$path}");
-//        $this->info("Notice ID: {$noticeId}");
         $this->newLine();
 
         Excel::import(new ProjectImport($service), $path);
