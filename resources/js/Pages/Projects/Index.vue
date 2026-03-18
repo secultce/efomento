@@ -9,16 +9,47 @@ import { ref } from 'vue'
 const props = defineProps({
   notice: Object,
   projects: Array,
+  filters: Object,
 })
 
-const selectedStage = ref(null)
+const selectedStage = ref(props.filters?.stage ?? null)
+const search = ref(props.filters?.search ?? '')
+
+
+let timeout = null
+
+function onSearch(value) {
+  search.value = value
+  clearTimeout(timeout)
+  timeout = setTimeout(() => {
+    router.get(route('notices.projects', props.notice.id), {
+      stage: selectedStage.value,
+      search: value,
+    }, {
+      preserveState: true,
+      replace: true,
+    })
+  }, 400)
+}
 
 function selectStage(stage) {
   selectedStage.value = stage.title
+
+  router.get(route('projects.index', props.notice.id), {
+    stage: stage.title,
+  }, {
+    preserveState: true,
+    replace: true,
+  })
 }
 
 function clearStageFilter() {
   selectedStage.value = null
+
+  router.get(route('projects.index', props.notice.id), {}, {
+    preserveState: true,
+    replace: true,
+  })
 }
 
 const reference = (item) => ({
@@ -133,9 +164,17 @@ const stages = [
           <div class="col-span-3 row-span-2 col-start-1 row-start-2 flex flex-col w-full h-full">
             <h3 class="!text-[#1a1a1aFF] mb-4">Lista de agentes culturais em processo</h3>
             <div class="d-flex w-full items-center gap-4">
-              <v-text-field :model-value="search" @update:model-value="onSearch"
-                placeholder="Busque pelo agente ou nº do processo" append-inner-icon="mdi-magnify" variant="outlined"
-                density="compact" hide-details rounded="xl" class=" mb-2 border-green-700 flex-[4_4%]" />
+             <v-text-field
+                :model-value="search"
+                @update:model-value="onSearch"
+                placeholder="Busque pelo agente ou nº do processo"
+                append-inner-icon="mdi-magnify"
+                variant="outlined"
+                density="compact"
+                hide-details
+                rounded="xl"
+                class="mb-2"
+              />
               <v-btn
                 variant="outlined"
                 class="!text-[#008344] !font-bold !border-[#008344] flex-[1_1_0%] !h-[3em] mb-2 !px-2 !py-1"

@@ -10,13 +10,32 @@ use App\Models\Notice;
 
 class ProjectController extends Controller
 {
-    public function index(Notice $notice)
+    public function index(Request $request, Notice $notice)
     {
+        $query = $notice->projects()
+            ->with(['agent', 'category']);
+
+        // Stage filter
+        if ($request->filled('stage')) {
+            $query->where('phase', $request->stage);
+        }
+
+        // Search filter
+        if ($request->filled('search')) {
+            $search = $request->search;
+
+            $query->where(function ($q) use ($search) {
+                $q->where('process', 'like', "%{$search}%")
+                ->orWhereHas('agent', function ($q2) use ($search) {
+                    $q2->where('name', 'like', "%{$search}%");
+                });
+            });
+        }
+
         return Inertia::render('Projects', [
             'notice' => $notice,
-            'projects' => $notice->projects()
-                ->with(['agent', 'category'])
-                ->get(),
+            'projects' => $query->get(),
+            'filters' => $request->only(['stage', 'search']),
         ]);
     }
 
