@@ -131,7 +131,7 @@ const stages = [
             </v-row>
           </div>
           <div class="col-span-3 row-span-2 col-start-1 row-start-2 flex flex-col w-full h-full">
-            <h2 class="!text-[#1a1a1aFF] mb-4">Lista de agentes culturais em processo</h2>
+            <h3 class="!text-[#1a1a1aFF] mb-4">Lista de agentes culturais em processo</h3>
             <div class="d-flex w-full items-center gap-4">
               <v-text-field :model-value="search" @update:model-value="onSearch"
                 placeholder="Busque pelo agente ou nº do processo" append-inner-icon="mdi-magnify" variant="outlined"
