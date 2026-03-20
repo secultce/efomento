@@ -80,7 +80,7 @@ function resolvePage(name) {
 }
 
 createInertiaApp({
-    title: () => `${appName}`,
+    title: (title) => `${title} - ${appName}`,
 
     resolve: resolvePage,
 

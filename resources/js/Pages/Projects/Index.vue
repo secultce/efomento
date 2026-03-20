@@ -1,8 +1,9 @@
 <script setup>
 import AppContainer from '@/Components/AppContainer.vue'
 import AppSubHeader from '@/Components/AppSubHeader.vue'
-import ListDataTable from '@/Components/ListDataTable.vue'
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue'
+import ProjectList from '@/Pages/Projects/Partials/ProjectList.vue'
+import PhaseFilter from '@/Pages/Projects/Partials/PhaseFilter.vue'
 import { Head, router } from '@inertiajs/vue3'
 import { ref } from 'vue'
 
@@ -105,78 +106,27 @@ console.log(selectedProjects)
 
 <template>
 
-  <Head :title="`Projetos - ${notice?.titulo}`" />
+  <Head :title="`Projetos`" />
   <AuthenticatedLayout>
     <AppSubHeader />
     <app-container>
         <div class="grid grid-cols-4 grid-rows-1 gap-10">
           <div class="col-span-4 col-start-1 text-[#1a1a1aFF]">
-            <p class="text-sm">Utilize os quadros abaixo para filtrar e exibir a quantidade de agentes culturais em cada fase de
-              processo</p>
-            <v-row no-wrap class="overflow-x-auto mt-1">
-              <v-col
-                v-for="phase in phases"
-                :key="phase.title"
-                cols="auto"
-              >
-                <v-card
-                  variant="outlined"
-                  class="mx-auto !p-2 cursor-pointer transition-all"
-                  rounded="lg"
-                  :disabled="phase.total === 0"
-                  :class="selectedPhase === phase.value
-                    ? '!bg-[#008344FF] !border-[#008344]'
-                    : '!border-[#ccccccFF]'"
-                  @click="selectPhase(phase)"
-                > 
-                  <v-card-title
-                    class="font-weight-bold !text-xs"
-                    :class="selectedPhase === phase.value
-                      ? '!text-white'
-                      : '!text-[#004c27FF]'"
-                  >
-                    {{ phase.title }}
-                  </v-card-title>
-
-                  <v-card-subtitle
-                    class="!text-xs"
-                    :class="selectedPhase === phase.value
-                      ? '!text-white'
-                      : '!text-[#1a1a1aFF]'"
-                  >
-                    Total de processos nessa fase: {{ phase.total ?? 0 }}
-                  </v-card-subtitle>
-                </v-card>
-              </v-col>
-            </v-row>
+            <phase-filter
+              :phases="phases"
+              :selected-phase="selectedPhase"
+              @select="selectPhase"
+            />
           </div>
           <div class="col-span-3 row-span-2 col-start-1 row-start-2 flex flex-col w-full h-full">
-            <h3 class="!text-[#1a1a1aFF] mb-4">Lista de agentes culturais em processo</h3>
-            <div class="d-flex w-full items-center gap-4">
-             <v-text-field
-                :model-value="search"
-                @update:model-value="onSearch"
-                placeholder="Busque pelo agente ou nº do processo"
-                append-inner-icon="mdi-magnify"
-                variant="outlined"
-                density="compact"
-                hide-details
-                rounded="xl"
-                class="mb-2"
-              />
-              <v-btn
-                variant="outlined"
-                class="!text-[#008344] !font-bold !border-[#008344] flex-[1_1_0%] !h-[3em] mb-2 !px-2 !py-1"
-                density="compact"
-                rounded="lg"
-                @click="clearPhaseFilter"
-              >
-                Exibir todos os proponentes (40)
-              </v-btn>
-              <div class="flex-[2_1_0%]"></div>
-            </div>
-            <list-data-table :items="projects" v-bind="tableConfig" v-model="selectedProjects" selectable />
-
+            <project-list
+              :projects="projects"
+              :table-config="tableConfig"
+              v-model="selectedProjects"
+              :search="search"
+              @update:search="onSearch"
+              @clearPhaseFilter="clearPhaseFilter"
+            />
           </div>
           <div class="row-span-2 col-start-4 row-start-2 bg-green">3</div>
         </div>
