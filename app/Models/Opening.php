@@ -8,10 +8,12 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 use App\Enums\AgentStatus;
 use App\Enums\AccountType;
 use App\Enums\OpeningStatus;
+use OwenIt\Auditing\Auditable as AuditableTrait;
+use OwenIt\Auditing\Contracts\Auditable;
 
-class Opening extends Model
+class Opening extends Model implements Auditable
 {
-    use HasFactory, SoftDeletes;
+    use HasFactory, SoftDeletes, AuditableTrait;
 
     protected $fillable = [
         'project_id',
