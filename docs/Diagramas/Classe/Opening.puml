@@ -32,8 +32,8 @@ class Opening {
     --
     +project(): BelongsTo
     +user(): BelongsTo
-    +fiscals(): HasMany
-    +activeFiscal(): HasOne
+    +supervisors(): HasMany
+    +activeSupervisor(): HasOne
 }
 
 class Project <<referenced>> {
@@ -42,12 +42,12 @@ class Project <<referenced>> {
 class User <<referenced>> {
 }
 
-class OpeningFiscal <<referenced>> {
+class OpeningSupervisor <<referenced>> {
 }
 
 Opening "1" --> "1" Project : project
 Opening "1" --> "0..1" User : user (responsible)
-Opening "1" o-- "0..*" OpeningFiscal : fiscals
-Opening "1" o-- "0..1" OpeningFiscal : activeFiscal\n(is_active = true)
+Opening "1" o-- "0..*" OpeningSupervisor : supervisors
+Opening "1" o-- "0..1" OpeningSupervisor : activeSupervisor\n(is_active = true)
 
 @enduml

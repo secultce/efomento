@@ -1,4 +1,4 @@
-@startuml OpeningFiscal
+@startuml OpeningSupervisor
 !theme plain
 skinparam classAttributeIconSize 0
 skinparam class {
@@ -7,7 +7,7 @@ skinparam class {
     ArrowColor #01579B
 }
 
-class OpeningFiscal {
+class OpeningSupervisor {
     -id: int
     -opening_id: int
     -user_id: int
@@ -29,8 +29,8 @@ class Opening <<referenced>> {
 class User <<referenced>> {
 }
 
-OpeningFiscal "0..*" --> "1" Opening : opening
-OpeningFiscal "0..*" --> "1" User : user (fiscal)
-OpeningFiscal "0..*" --> "0..1" User : assignedBy
+OpeningSupervisor "0..*" --> "1" Opening : opening
+OpeningSupervisor "0..*" --> "1" User : user (supervisor)
+OpeningSupervisor "0..*" --> "0..1" User : assignedBy
 
 @enduml

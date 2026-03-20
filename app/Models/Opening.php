@@ -59,12 +59,12 @@ class Opening extends Model implements Auditable
         return $this->belongsTo(User::class);
     }
 
-    public function fiscals(): HasMany
+    public function supervisors(): HasMany
     {
         return $this->hasMany(OpeningSupervisor::class);
     }
 
-    public function activeFiscal(): HasOne
+    public function activeSupervisor(): HasOne
     {
         return $this->hasOne(OpeningSupervisor::class)
             ->where('is_active', true)

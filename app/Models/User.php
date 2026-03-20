@@ -51,12 +51,12 @@ class User extends Authenticatable implements Auditable
         ];
     }
 
-    public function fiscalAssignments(): HasMany
+    public function supervisorAssignments(): HasMany
     {
         return $this->hasMany(OpeningSupervisor::class, 'user_id');
     }
 
-    public function assignedFiscals(): HasMany
+    public function assignedSupervisors(): HasMany
     {
         return $this->hasMany(OpeningSupervisor::class, 'assigned_by');
     }

@@ -18,11 +18,11 @@ class User {
     -created_at: timestamp
     -updated_at: timestamp
     --
-    +fiscalAssignments(): HasMany
-    +assignedFiscals(): HasMany
+    +supervisorAssignments(): HasMany
+    +assignedSupervisors(): HasMany
 }
 
-class OpeningFiscal <<referenced>> {
+class OpeningSupervisor <<referenced>> {
     -id: int
     -opening_id: int
     -user_id: int
@@ -32,7 +32,7 @@ class OpeningFiscal <<referenced>> {
     -removed_at: timestamp [nullable]
 }
 
-User "1" o-- "0..*" OpeningFiscal : fiscalAssignments\n(user_id)
-User "1" o-- "0..*" OpeningFiscal : assignedFiscals\n(assigned_by)
+User "1" o-- "0..*" OpeningSupervisor : supervisorAssignments\n(user_id)
+User "1" o-- "0..*" OpeningSupervisor : assignedSupervisors\n(assigned_by)
 
 @enduml
