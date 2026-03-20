@@ -39,18 +39,18 @@ function onSearch(value) {
     preserveState: true,
     replace: true,
   })
- 
+
 }
 
 function clearPhaseFilter() {
   selectedPhase.value = null
-  
-  router.get(route('notices.projects', props.notice.id), 
-  {}, 
-  {
-    preserveState: true,
-    replace: true,
-  })
+
+  router.get(route('notices.projects', props.notice.id),
+    {},
+    {
+      preserveState: true,
+      replace: true,
+    })
 }
 
 const reference = (item) => ({
@@ -60,16 +60,12 @@ const reference = (item) => ({
 
 const chips = [
   {
-    label: (item) => item.phase ?? 'xd',
-    color: (item) => {
-      if (item.phase === 'aprovado') return 'green'
-      if (item.phase === 'reprovado') return 'red'
-      return 'grey'
-    },
+    label: 'xd',
+    color: 'grey'
   },
   {
     label: 'tc',
-    color: 'blue',
+    color: 'green',
   },
 ]
 
@@ -105,28 +101,18 @@ const selectedProjects = ref([])
   <AuthenticatedLayout>
     <AppSubHeader />
     <app-container>
-        <div class="grid grid-cols-4 grid-rows-1 gap-10">
-          <div class="col-span-4 col-start-1 text-[#1a1a1aFF]">
-            <phase-filter
-              :phases="phases"
-              :selected-phase="selectedPhase"
-              @select="selectPhase"
-            />
-          </div>
-          <div class="col-span-3 row-span-2 col-start-1 row-start-2 flex flex-col w-full h-full">
-            <project-list
-              :projects="projects"
-              :table-config="tableConfig"
-              v-model="selectedProjects"
-              :search="search"
-              @update:search="onSearch"
-              @clearPhaseFilter="clearPhaseFilter"
-            />
-          </div>
-          <div class="row-span-2 col-start-4 row-start-2">
-            <!--area do CI-->
-          </div>
+      <div class="grid grid-cols-4 grid-rows-1 gap-10">
+        <div class="col-span-4 col-start-1 text-[#1a1a1aFF]">
+          <phase-filter :phases="phases" :selected-phase="selectedPhase" @select="selectPhase" />
         </div>
-      </app-container>
+        <div class="col-span-3 row-span-2 col-start-1 row-start-2 flex flex-col w-full h-full">
+          <project-list :projects="projects" :table-config="tableConfig" v-model="selectedProjects" :search="search"
+            @update:search="onSearch" @clearPhaseFilter="clearPhaseFilter" />
+        </div>
+        <div class="row-span-2 col-start-4 row-start-2">
+          <!--area do CI-->
+        </div>
+      </div>
+    </app-container>
   </AuthenticatedLayout>
 </template>

@@ -90,7 +90,7 @@ function runAction(action, item) {
         <div v-if="chips.length" class="d-flex flex-col">
           <div class="text-caption opacity-0 mb-1">Label</div> <!-- fake label space -->
           <div class="d-flex gap-2">
-            <v-chip v-for="(chip, i) in chips" :key="i" size="small" rounded="full" class="h-[2em]"
+            <v-chip v-for="(chip, i) in chips" :key="i" size="small" rounded="full" class="h-[2em] ml-[-1.5em]"
               :color="typeof chip.color === 'function' ? chip.color(item) : chip.color">
               {{ typeof chip.label === 'function' ? chip.label(item) : chip.label }}
             </v-chip>
