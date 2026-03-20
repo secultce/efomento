@@ -7,35 +7,54 @@ use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
 use Inertia\Response;
 use App\Models\Notice;
+use App\Enums\ProjectPhase;
 
 class ProjectController extends Controller
 {
     public function index(Request $request, Notice $notice)
     {
         $query = $notice->projects()
-            ->with(['agent', 'category']);
+            ->with(['agent', 'category', 'opening'])
+            ->withCount('openings');
 
-        // Stage filter
-        if ($request->filled('stage')) {
-            $query->where('phase', $request->stage);
+        if ($request->filled('phase')) {
+            $phase = ProjectPhase::fromRequest($request->phase);
+
+            if ($phase) {
+                $phase->applyFilter($query);
+            }
         }
 
-        // Search filter
         if ($request->filled('search')) {
-            $search = $request->search;
+            $search = strtolower($request->search);
 
             $query->where(function ($q) use ($search) {
-                $q->where('process', 'like', "%{$search}%")
-                ->orWhereHas('agent', function ($q2) use ($search) {
-                    $q2->where('name', 'like', "%{$search}%");
+
+                $q->orWhereHas('agent', function ($q2) use ($search) {
+                    $q2->whereRaw('LOWER(name) LIKE ?', ["%{$search}%"]);
                 });
+
+                $q->orWhereHas('openings', function ($q3) use ($search) {
+                    $q3->whereRaw('LOWER(opening_nup) LIKE ?', ["%{$search}%"]);
+                });
+
             });
         }
+
+        $statistics = collect(ProjectPhase::cases())
+            ->mapWithKeys(fn ($phase) => [
+                $phase->value => $phase->count($query)
+            ]);
 
         return Inertia::render('Projects', [
             'notice' => $notice,
             'projects' => $query->get(),
-            'filters' => $request->only(['stage', 'search']),
+            'filters' => $request->only(['phase', 'search']),
+            'phases' => collect(ProjectPhase::cases())->map(fn ($phase) => [
+                'value' => $phase->value,
+                'title' => $phase->label(),
+                'total' => $phase->count($query),
+            ]),
         ]);
     }
 

@@ -10,11 +10,11 @@ const props = defineProps({
   notice: Object,
   projects: Array,
   filters: Object,
+  phases: Array,
 })
 
-const selectedStage = ref(props.filters?.stage ?? null)
+const selectedPhase = ref(props.filters?.phase ?? null)
 const search = ref(props.filters?.search ?? '')
-
 
 let timeout = null
 
@@ -23,7 +23,7 @@ function onSearch(value) {
   clearTimeout(timeout)
   timeout = setTimeout(() => {
     router.get(route('notices.projects', props.notice.id), {
-      stage: selectedStage.value,
+      phase: selectedPhase.value,
       search: value,
     }, {
       preserveState: true,
@@ -32,21 +32,24 @@ function onSearch(value) {
   }, 400)
 }
 
-function selectStage(stage) {
-  selectedStage.value = stage.title
+function selectPhase(phase) {
+  selectedPhase.value = phase.value
 
-  router.get(route('projects.index', props.notice.id), {
-    stage: stage.title,
+  router.get(route('notices.projects', props.notice.id), {
+    phase: selectedPhase.value,
+    search: search.value,
   }, {
     preserveState: true,
     replace: true,
   })
 }
 
-function clearStageFilter() {
-  selectedStage.value = null
-
-  router.get(route('projects.index', props.notice.id), {}, {
+function clearPhaseFilter() {
+  selectedPhase.value = null
+  
+  router.get(route('notices.projects', props.notice.id), 
+  {}, 
+  {
     preserveState: true,
     replace: true,
   })
@@ -75,11 +78,11 @@ const chips = [
 const data = [
   {
     label: 'Número do processo',
-    value: (item) => item.process ?? '-',
+    value: (item) => item.opening_nup ?? '-',
   },
   {
     label: 'Fase',
-    value: (item) => item.process ?? '-',
+    value: (item) => item.phase ?? '-',
   },
 ]
 
@@ -94,25 +97,10 @@ const tableConfig = {
   actions,
 }
 
-function handleAction({ action, item }) {
-  if (action === 'open') goToProject(item)
-}
-
-function goToProject(project) {
-  router.visit(route('projects.show', project.id))
-}
 
 const selectedProjects = ref([])
 console.log(selectedProjects)
 
-const stages = [
-  { title: "Abertura", total: 45 },
-  { title: "Análise jurídica", total: 12 },
-  { title: "Formalização", total: 12 },
-  { title: "Orçamento e parcela", total: 12 },
-  { title: "Pagamentos", total: 12 },
-  { title: "Monitoramento", total: 12 },
-]
 </script>
 
 <template>
@@ -127,35 +115,35 @@ const stages = [
               processo</p>
             <v-row no-wrap class="overflow-x-auto mt-1">
               <v-col
-                v-for="stage in stages"
-                :key="stage.title"
+                v-for="phase in phases"
+                :key="phase.title"
                 cols="auto"
               >
                 <v-card
                   variant="outlined"
                   class="mx-auto !p-2 cursor-pointer transition-all"
                   rounded="lg"
-                  :class="selectedStage === stage.title
+                  :class="selectedPhase === phase.value
                     ? '!bg-[#008344FF] !border-[#008344]'
                     : '!border-[#ccccccFF]'"
-                  @click="selectStage(stage)"
+                  @click="selectPhase(phase)"
                 > 
                   <v-card-title
                     class="font-weight-bold !text-xs"
-                    :class="selectedStage === stage.title
+                    :class="selectedPhase === phase.value
                       ? '!text-white'
                       : '!text-[#004c27FF]'"
                   >
-                    {{ stage.title }}
+                    {{ phase.title }}
                   </v-card-title>
 
                   <v-card-subtitle
                     class="!text-xs"
-                    :class="selectedStage === stage.title
+                    :class="selectedPhase === phase.value
                       ? '!text-white'
                       : '!text-[#1a1a1aFF]'"
                   >
-                    Total de processos nessa fase: {{ stage.total }}
+                    Total de processos nessa fase: {{ phase.total ?? 0 }}
                   </v-card-subtitle>
                 </v-card>
               </v-col>
@@ -180,7 +168,7 @@ const stages = [
                 class="!text-[#008344] !font-bold !border-[#008344] flex-[1_1_0%] !h-[3em] mb-2 !px-2 !py-1"
                 density="compact"
                 rounded="lg"
-                @click="clearStageFilter"
+                @click="clearPhaseFilter"
               >
                 Exibir todos os proponentes (40)
               </v-btn>

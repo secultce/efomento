@@ -32,11 +32,22 @@ class NoticeSeeder extends Seeder
                     'creditor_registration_nup' => fake()->numerify('CR-#####'),
                 ]
             );
-            Project::factory()
+            $projects = Project::factory()
                 ->count(rand(2, 5))
                 ->create([
                     'notice_id' => $notice->id,
                 ]);
+
+            foreach ($projects as $project) {
+              
+                if (fake()->boolean(70)) { 
+                    \App\Models\Opening::factory()
+                        ->count(1) 
+                        ->create([
+                            'project_id' => $project->id,
+                        ]);
+                }
+            }
         }
     }
 

@@ -46,6 +46,8 @@ class Project extends Model  implements Auditable
         'data_registration' => 'array',
     ];
 
+    protected $appends = ['phase', 'opening_nup'];
+
     public function notice(): BelongsTo
     {
         return $this->belongsTo(Notice::class);
@@ -59,5 +61,34 @@ class Project extends Model  implements Auditable
     public function category(): BelongsTo
     {
         return $this->belongsTo(Category::class);
+    }
+
+    public function openings()
+    {
+        return $this->hasMany(Opening::class);
+    }
+
+    public function opening()
+    {
+        return $this->hasOne(Opening::class)
+            ->latestOfMany('created_at');
+    }
+
+    public function getPhaseAttribute()
+    {
+        if (array_key_exists('openings_count', $this->attributes)) {
+            return $this->openings_count > 0
+                ? 'Abertura'
+                : 'Não Iniciado';
+        }
+
+        return $this->openings()->exists()
+            ? 'Abertura'
+            : 'Não Iniciado';
+    }
+
+    public function getOpeningNupAttribute()
+    {
+        return $this->opening?->opening_nup;
     }
 }
