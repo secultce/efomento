@@ -5,6 +5,7 @@ namespace Database\Seeders;
 use Illuminate\Database\Seeder;
 use App\Models\Notice;
 use App\Models\Project;
+use App\Models\Opening;
 
 class NoticeSeeder extends Seeder
 {
@@ -39,10 +40,10 @@ class NoticeSeeder extends Seeder
                 ]);
 
             foreach ($projects as $project) {
-              
-                if (fake()->boolean(70)) { 
-                    \App\Models\Opening::factory()
-                        ->count(1) 
+
+                if (fake()->boolean(70)) {
+                    Opening::factory()
+                        ->count(1)
                         ->create([
                             'project_id' => $project->id,
                         ]);
