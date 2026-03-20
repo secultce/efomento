@@ -1,0 +1,53 @@
+@startuml Opening
+!theme plain
+skinparam classAttributeIconSize 0
+skinparam class {
+    BackgroundColor #E8F5E9
+    BorderColor #2E7D32
+    ArrowColor #01579B
+}
+
+class Opening {
+    -id: int
+    -project_id: int
+    -user_id: int [nullable]
+    -supervisor_id: int [nullable]
+    -opening_nup: string [nullable]
+    -opening_date: date [nullable]
+    -agent_status: AgentStatus [nullable]
+    -opened_by: string [nullable]
+    -bank: string [nullable]
+    -account_type: AccountType [nullable]
+    -branch: string [nullable]
+    -account: string [nullable]
+    -is_draft: boolean
+    -status: OpeningStatus
+    -certificate_date: datetime [nullable]
+    -started_at: timestamp [nullable]
+    -submitted_at: timestamp [nullable]
+    -concluded_at: timestamp [nullable]
+    -created_at: timestamp
+    -updated_at: timestamp
+    -deleted_at: timestamp [nullable]
+    --
+    +project(): BelongsTo
+    +user(): BelongsTo
+    +fiscals(): HasMany
+    +activeFiscal(): HasOne
+}
+
+class Project <<referenced>> {
+}
+
+class User <<referenced>> {
+}
+
+class OpeningFiscal <<referenced>> {
+}
+
+Opening "1" --> "1" Project : project
+Opening "1" --> "0..1" User : user (responsible)
+Opening "1" o-- "0..*" OpeningFiscal : fiscals
+Opening "1" o-- "0..1" OpeningFiscal : activeFiscal\n(is_active = true)
+
+@enduml

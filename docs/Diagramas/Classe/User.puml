@@ -1,0 +1,38 @@
+@startuml User
+!theme plain
+skinparam classAttributeIconSize 0
+skinparam class {
+    BackgroundColor #E8F5E9
+    BorderColor #2E7D32
+    ArrowColor #01579B
+}
+
+class User {
+    -id: int
+    -name: string
+    -email: string
+    -password: string (hashed)
+    -cpf: string(14) [nullable, unique]
+    -registration_number: string(30) [nullable, unique]
+    -email_verified_at: timestamp [nullable]
+    -created_at: timestamp
+    -updated_at: timestamp
+    --
+    +fiscalAssignments(): HasMany
+    +assignedFiscals(): HasMany
+}
+
+class OpeningFiscal <<referenced>> {
+    -id: int
+    -opening_id: int
+    -user_id: int
+    -assigned_by: int [nullable]
+    -is_active: boolean
+    -assigned_at: timestamp
+    -removed_at: timestamp [nullable]
+}
+
+User "1" o-- "0..*" OpeningFiscal : fiscalAssignments\n(user_id)
+User "1" o-- "0..*" OpeningFiscal : assignedFiscals\n(assigned_by)
+
+@enduml

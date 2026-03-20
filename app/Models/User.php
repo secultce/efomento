@@ -4,6 +4,7 @@ namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use OwenIt\Auditing\Auditable as AuditableTrait;
@@ -23,6 +24,8 @@ class User extends Authenticatable implements Auditable
         'name',
         'email',
         'password',
+        'cpf',
+        'registration_number',
     ];
 
     /**
@@ -46,5 +49,15 @@ class User extends Authenticatable implements Auditable
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
         ];
+    }
+
+    public function fiscalAssignments(): HasMany
+    {
+        return $this->hasMany(OpeningSupervisor::class, 'user_id');
+    }
+
+    public function assignedFiscals(): HasMany
+    {
+        return $this->hasMany(OpeningSupervisor::class, 'assigned_by');
     }
 }

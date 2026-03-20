@@ -1,0 +1,36 @@
+@startuml OpeningFiscal
+!theme plain
+skinparam classAttributeIconSize 0
+skinparam class {
+    BackgroundColor #E8F5E9
+    BorderColor #2E7D32
+    ArrowColor #01579B
+}
+
+class OpeningFiscal {
+    -id: int
+    -opening_id: int
+    -user_id: int
+    -assigned_by: int [nullable]
+    -is_active: boolean
+    -assigned_at: timestamp
+    -removed_at: timestamp [nullable]
+    -created_at: timestamp
+    -updated_at: timestamp
+    --
+    +opening(): BelongsTo
+    +user(): BelongsTo
+    +assignedBy(): BelongsTo
+}
+
+class Opening <<referenced>> {
+}
+
+class User <<referenced>> {
+}
+
+OpeningFiscal "0..*" --> "1" Opening : opening
+OpeningFiscal "0..*" --> "1" User : user (fiscal)
+OpeningFiscal "0..*" --> "0..1" User : assignedBy
+
+@enduml
