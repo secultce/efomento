@@ -123,6 +123,7 @@ console.log(selectedProjects)
                   variant="outlined"
                   class="mx-auto !p-2 cursor-pointer transition-all"
                   rounded="lg"
+                  :disabled="phase.total === 0"
                   :class="selectedPhase === phase.value
                     ? '!bg-[#008344FF] !border-[#008344]'
                     : '!border-[#ccccccFF]'"
