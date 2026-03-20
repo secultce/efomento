@@ -15,23 +15,6 @@ const props = defineProps({
 })
 
 const selectedPhase = ref(props.filters?.phase ?? null)
-const search = ref(props.filters?.search ?? '')
-
-let timeout = null
-
-function onSearch(value) {
-  search.value = value
-  clearTimeout(timeout)
-  timeout = setTimeout(() => {
-    router.get(route('notices.projects', props.notice.id), {
-      phase: selectedPhase.value,
-      search: value,
-    }, {
-      preserveState: true,
-      replace: true,
-    })
-  }, 400)
-}
 
 function selectPhase(phase) {
   selectedPhase.value = phase.value
@@ -43,6 +26,20 @@ function selectPhase(phase) {
     preserveState: true,
     replace: true,
   })
+}
+
+const search = ref(props.filters?.search ?? '')
+
+function onSearch(value) {
+  search.value = value
+  router.get(route('notices.projects', props.notice.id), {
+    phase: selectedPhase.value,
+    search: value,
+  }, {
+    preserveState: true,
+    replace: true,
+  })
+ 
 }
 
 function clearPhaseFilter() {
@@ -98,9 +95,7 @@ const tableConfig = {
   actions,
 }
 
-
 const selectedProjects = ref([])
-console.log(selectedProjects)
 
 </script>
 
@@ -128,7 +123,9 @@ console.log(selectedProjects)
               @clearPhaseFilter="clearPhaseFilter"
             />
           </div>
-          <div class="row-span-2 col-start-4 row-start-2 bg-green">3</div>
+          <div class="row-span-2 col-start-4 row-start-2">
+            <!--area do CI-->
+          </div>
         </div>
       </app-container>
   </AuthenticatedLayout>
