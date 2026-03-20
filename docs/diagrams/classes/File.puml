@@ -1,0 +1,8 @@
+@startuml File
+
+class File {
+    --
+    +fileable(): MorphTo
+}
+
+@enduml

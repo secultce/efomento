@@ -1,0 +1,31 @@
+@startuml Project
+
+class Project {
+    -id: int
+    -registration_id: string
+    -number: string
+    -category_id: string
+    -agent_id: string
+    -notice_id: string
+    -education_level: App\Enums\Education
+    -gender: App\Enums\Gender
+    -sexual_orientation: App\Enums\SexualOrientation
+    -race: App\Enums\RaceColor
+    -has_disability: App\Enums\DisabilityType
+    -create_timestamp: datetime
+    -sent_timestamp: datetime
+    -consolidated_result: string
+    -data_registration: array
+    -created_at: string
+    -updated_at: string
+    -deleted_at: datetime
+    --
+    +notice(): BelongsTo
+    +agent(): BelongsTo
+    +category(): BelongsTo
+    +audits(): MorphMany
+    +files(): MorphMany
+    +publicFiles(): MorphMany
+}
+
+@enduml
