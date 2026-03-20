@@ -28,7 +28,7 @@ Cypress.Commands.add('login', (email, password, name) => {
     cy.visit('/login');
     cy.get('#email').type(email);
     cy.get('#password').type(password);
-    cy.get('button').contains('Entrar').click().wait(3000);
+    cy.get('button').contains('Entrar').click();
     cy.get('p')
       .contains('Bem-vindo ao seu espaço, ' + name)
       .should('be.visible')
@@ -45,7 +45,7 @@ Cypress.Commands.add('logout', () => {
       .should('be.equal', `${Cypress.config("baseUrl")}/`)
 });
 
-Cypress.Commands.add('resetCredentials', (updated_email,password, email, updated_name, name) => {
+Cypress.Commands.add('resetEmail', (updated_email,password, email, updated_name, name) => {
     cy.login(updated_email, password,updated_name)
     cy.visit('/profile')
     cy.get('#name')
@@ -58,7 +58,7 @@ Cypress.Commands.add('resetCredentials', (updated_email,password, email, updated
       .click()
     cy.get('p')
       .contains('Saved')
-      .should('be.visible')    
+      .should('be.visible')
     cy.logout()
 });
 
