@@ -35,8 +35,8 @@ RUN curl -fsSL https://deb.nodesource.com/setup_22.x | bash - \
     && apt-get install -y nodejs \
     && apt-get clean && rm -rf /var/lib/apt/lists/*
 
-ARG UID=1001
-ARG GID=1001
+ARG UID=1000
+ARG GID=1000
 
 RUN groupadd -g ${GID} devuser \
     && useradd -G www-data,root -u ${UID} -g ${GID} -d /home/devuser devuser \
