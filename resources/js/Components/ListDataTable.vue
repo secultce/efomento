@@ -98,7 +98,7 @@ function runAction(action, item) {
         </div>
 
         <!-- Data blocks -->
-        <div v-for="(m, i) in data" :key="i" class="flex flex-col text-center">
+        <div v-for="(m, i) in data" :key="i" class="flex flex-col text-center w-[10em]">
           <div class="text-caption text-[#3b3b3cFF]">
             {{ m.label }}
           </div>
