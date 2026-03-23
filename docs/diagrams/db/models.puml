@@ -56,6 +56,18 @@ entity Category {
 }
 
 entity File {
+  PK(id) : int
+  mime_type : string
+  name : string
+  object_type : string
+  FK(object_id) : string
+  grp : string
+  description : string
+  path : string
+  private : boolean
+  created_at : datetime
+  updated_at : datetime
+  deleted_at : datetime
 }
 
 entity Notice {
