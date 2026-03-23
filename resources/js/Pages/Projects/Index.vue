@@ -4,6 +4,7 @@ import AppSubHeader from '@/Components/AppSubHeader.vue'
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue'
 import ProjectList from '@/Pages/Projects/Partials/ProjectList.vue'
 import PhaseFilter from '@/Pages/Projects/Partials/PhaseFilter.vue'
+import ProjectNoticeEdit from '@/Pages/Projects/Partials/ProjectNoticeEdit.vue'
 import { Head, router } from '@inertiajs/vue3'
 import { ref } from 'vue'
 
@@ -98,7 +99,9 @@ const selectedProjects = ref([])
 
   <Head :title="`Projetos`" />
   <AuthenticatedLayout>
-    <AppSubHeader />
+    <app-sub-header>
+      <project-notice-edit :notice="notice" />
+    </app-sub-header>
     <app-container>
       <div class="grid grid-cols-4 grid-rows-1 gap-10">
         <div class="col-span-4 col-start-1 text-[#1a1a1aFF]">
