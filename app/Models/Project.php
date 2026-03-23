@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Traits\HasFiles;
 use App\Enums\Gender;
 use App\Enums\Education;
 use App\Enums\SexualOrientation;
@@ -16,7 +17,7 @@ use OwenIt\Auditing\Contracts\Auditable;
 
 class Project extends Model  implements Auditable
 {
-    use HasFactory, SoftDeletes, AuditableTrait;
+    use HasFactory, SoftDeletes, AuditableTrait, HasFiles;
 
     protected $fillable = [
         'registration_id',
