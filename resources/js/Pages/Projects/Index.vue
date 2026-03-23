@@ -14,6 +14,7 @@ const props = defineProps({
   phases: Array,
 })
 
+const search = ref(props.filters?.search ?? '')
 const selectedPhase = ref(props.filters?.phase ?? null)
 
 function selectPhase(phase) {
@@ -27,8 +28,6 @@ function selectPhase(phase) {
     replace: true,
   })
 }
-
-const search = ref(props.filters?.search ?? '')
 
 function onSearch(value) {
   search.value = value
