@@ -1,7 +1,7 @@
 <script setup>
 import { ref, computed, watch } from 'vue'
 import NupDialog from './NupDialog.vue'
-
+import { router } from '@inertiajs/vue3'
 
 const props = defineProps({
     notices: {
@@ -167,7 +167,7 @@ function onFilterInstrument(value) {
 }
 
 function onAccess(item) {
-    emit('access', item)
+    router.visit(route('notices.projects', item.id))
 }
 
 function goToPage(p) {
@@ -261,8 +261,19 @@ function openDialog(item) {
             </template>
             <!-- Ícone de acesso -->
             <template #item.acessar="{ item }">
-                <v-btn icon variant="text" size="small" @click="onAccess(item)">
-                    <v-icon color="#008344" size="22">mdi-eye-circle</v-icon>
+                <v-btn
+                    icon
+                    variant="text"
+                    size="small"
+                    :disabled="!(item.numeroProcessoMae || item.mae)"
+                    @click="onAccess(item)"
+                >
+                    <v-icon
+                        :color="!(item.numeroProcessoMae || item.mae) ? 'grey' : '#008344'"
+                        size="22"
+                    >
+                        mdi-eye-circle
+                    </v-icon>
                 </v-btn>
             </template>
 

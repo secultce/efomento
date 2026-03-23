@@ -32,7 +32,7 @@ const logout = () => router.post(route('logout'))
         </v-app-bar-title>
 
         <template #append>
-            <v-btn variant="text" color="white" href="/notices">
+            <v-btn variant="text" color="white" href="/editais">
                 Editais
             </v-btn>
 

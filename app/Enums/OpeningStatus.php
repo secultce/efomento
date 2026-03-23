@@ -11,7 +11,7 @@ enum OpeningStatus: string implements HasLabel
 
     case PENDENTE = 'PENDENTE';
     case EM_ANDAMENTO = 'EM_ANDAMENTO';
-    case EM_ANALISE = 'EM_ANAISE';
+    case EM_ANALISE = 'EM_ANALISE';
     case CONCLUIDO = 'CONCLUIDO';
     case REJEITADO = 'REJEITADO';
 
