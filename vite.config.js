@@ -24,12 +24,18 @@ export default defineConfig(({ mode }) => {
             host: '0.0.0.0',
             port: 5173,
             strictPort: true,
+
             origin: env.VITE_ORIGIN || 'http://localhost:5173',
+
             hmr: {
-                host: env.VITE_CORS || 'localhost',
+                host: env.VITE_HMR_HOST || '172.19.18.210',
+                protocol: 'ws',
+                clientPort: 5173,
             },
+
             cors: {
-                origin: env.VITE_CORS || 'http://172.19.18.210:8080/',
+                origin: true,
+                credentials: true,
             },
         },
     };

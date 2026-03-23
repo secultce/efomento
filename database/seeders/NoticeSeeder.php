@@ -15,8 +15,9 @@ class NoticeSeeder extends Seeder
         $notices = json_decode($json, associative: true);
 
         foreach ($notices as $noticeData) {
-
-            // 1. Create or update Notice
+            // 60% chance for the notice to have a nup
+            $hasNup = fake()->boolean(60); 
+            // Create or update Notice
             $notice = Notice::updateOrCreate(
                 ['external_id' => $noticeData['id']],
                 [
@@ -24,7 +25,7 @@ class NoticeSeeder extends Seeder
                     'name' => $noticeData['nome'],
                     'notice_url' => env('EXTERNAL_PROVIDER_URL') . $noticeData['id'],
                     'creditor_registration_request_date' => $this->parseDate($noticeData['inicio'] ?? null),
-
+                    'nup' => $hasNup? fake()->numerify('#####.######/####-##') : null,
                     'total_notice_amount' => fake()->randomFloat(2, 10000, 500000),
                     'total_commitment_amount' => fake()->randomFloat(2, 5000, 300000),
                     'installments' => fake()->numberBetween(1, 12),
@@ -33,6 +34,13 @@ class NoticeSeeder extends Seeder
                     'creditor_registration_nup' => fake()->numerify('CR-#####'),
                 ]
             );
+
+            // skip seed if notice doesnt have a nup
+            if (! $hasNup) {
+                continue;
+            }
+
+            // only create if notice has a nup
             $projects = Project::factory()
                 ->count(rand(2, 5))
                 ->create([

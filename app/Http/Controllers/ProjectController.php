@@ -41,11 +41,6 @@ class ProjectController extends Controller
             });
         }
 
-        $statistics = collect(ProjectPhase::cases())
-            ->mapWithKeys(fn ($phase) => [
-                $phase->value => $phase->count($query)
-            ]);
-
         return Inertia::render('Projects', [
             'notice' => $notice,
             'projects' => $query->get(),
