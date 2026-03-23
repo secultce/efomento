@@ -28,7 +28,7 @@ export default defineConfig(({ mode }) => {
             origin: env.VITE_ORIGIN || 'http://localhost:5173',
 
             hmr: {
-                host: env.VITE_HMR_HOST || '172.19.18.210',
+                host: env.VITE_HMR_HOST || 'localhost',
                 protocol: 'ws',
                 clientPort: 5173,
             },
