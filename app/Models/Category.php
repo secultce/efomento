@@ -27,4 +27,9 @@ class Category extends Model implements Auditable
     {
         return $this->hasMany(Project::class);
     }
+
+    public function notices(): HasMany
+    {
+        return $this->hasMany(Notice::class);
+    }
 }
