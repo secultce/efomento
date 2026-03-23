@@ -15,31 +15,9 @@ class ProjectController extends Controller
     {
         $query = $notice->projects()
             ->with(['agent', 'category', 'opening'])
-            ->withCount('openings');
-
-        if ($request->filled('phase')) {
-            $phase = ProjectPhase::fromRequest($request->phase);
-
-            if ($phase) {
-                $phase->applyFilter($query);
-            }
-        }
-
-        if ($request->filled('search')) {
-            $search = strtolower($request->search);
-
-            $query->where(function ($q) use ($search) {
-
-                $q->orWhereHas('agent', function ($q2) use ($search) {
-                    $q2->whereRaw('LOWER(name) LIKE ?', ["%{$search}%"]);
-                });
-
-                $q->orWhereHas('openings', function ($q3) use ($search) {
-                    $q3->whereRaw('LOWER(opening_nup) LIKE ?', ["%{$search}%"]);
-                });
-
-            });
-        }
+            ->withCount('openings')
+            ->filterPhase($request->phase)
+            ->search($request->search);
 
         return Inertia::render('Projects', [
             'notice' => $notice,
