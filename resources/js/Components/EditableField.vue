@@ -156,27 +156,30 @@ const stopEdit = () => {
 
                 <!-- DATE FORMAT -->
                 <template v-if="type === 'date'">
-                    {{ formatDate(modelValue) }}
+                    {{ modelValue? formatDate(modelValue): '-' }}
                 </template>
 
                 <!-- formatted -->
                   <template v-else-if="format">
-                    {{ format(modelValue) }}
+                    {{ modelValue? format(modelValue) : '-' }}
                 </template>
 
                 <!-- select label -->
                 <template v-else-if="type === 'select'">
                     {{
+                        modelValue?
                         items.find(i => i.value === modelValue)?.title ?? modelValue
+                        : '-'
                     }}
                 </template>
 
                 <!-- default -->
                 <template v-else>
-                    {{
+                    {{  modelValue?
                         props.mask
                             ? applyMask(String(modelValue))
                             : modelValue
+                        : '-'
                     }}
                 </template>
             </span>
