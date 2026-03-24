@@ -58,7 +58,7 @@ const normalizeDate = (value) => {
 
 function applyMask(value) {
     if (!props.mask) return value
-
+    if (!value) return ''
     const digits = value.replace(/\D/g, '')
     let result = ''
     let digitIndex = 0
