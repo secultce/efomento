@@ -13,6 +13,7 @@ const props = defineProps({
   projects: Array,
   filters: Object,
   phases: Array,
+  instrumentTypes: Array
 })
 
 const search = ref(props.filters?.search ?? '')
@@ -100,7 +101,7 @@ const selectedProjects = ref([])
   <Head :title="`Projetos`" />
   <AuthenticatedLayout>
     <app-sub-header>
-      <project-notice-edit :notice="notice" />
+      <project-notice-edit :notice="notice" :instrumentTypes="instrumentTypes"/>
     </app-sub-header>
     <app-container>
       <div class="grid grid-cols-4 grid-rows-1 gap-10">
