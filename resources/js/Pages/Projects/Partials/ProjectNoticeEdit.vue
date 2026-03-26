@@ -61,9 +61,9 @@ const saveAll = () => {
         <div class="col-start-1 row-start-2 flex flex-col justify-start">
             <p><span class="font-bold">Nº do processo mãe: </span>{{ notice.nup }}</p>
             <div v-show="showAll" class="mt-2 space-y-1 transition-all duration-200 ease-in-out">
-                <editable-field label="Tipo de Instrumento:" type="select" :items="instrumentTypes" v-model="form.instrument_type" :error="form.errors.instrument_type"/>
-                <editable-field label="Gestor do processo do sistema:" v-model="form.process_manager" />
-                <editable-field label="Data da Solicitação da Dotação Orçamentária:" v-model="form.budget_allocation_request_date" type="date" />
+                <EditableField label="Tipo de Instrumento:" type="select" :items="instrumentTypes" v-model="form.instrument_type" :error="form.errors.instrument_type"/>
+                <EditableField label="Gestor do processo do sistema:" v-model="form.process_manager" />
+                <EditableField label="Data da Solicitação da Dotação Orçamentária:" v-model="form.budget_allocation_request_date" type="date" />
             </div>
         </div>
         <div class="col-start-2 row-start-2 ">
@@ -80,16 +80,16 @@ const saveAll = () => {
           
             <div v-show="showAll" class="mt-2 space-y-1 transition-all duration-200 ease-in-out">
                 <p><span class="font-bold">Valor por extenso: </span>{{ extenso(Number(form.total_notice_amount), { mode: 'currency' }) }}</p>
-                <editable-field label="Email do gestor:" type="email" v-model="form.process_manager_email" />
-                <editable-field label="N° Processo Cadastro do Credor:" v-model="form.creditor_registration_nup" />
+                <EditableField label="Email do gestor:" type="email" v-model="form.process_manager_email" />
+                <EditableField label="N° Processo Cadastro do Credor:" v-model="form.creditor_registration_nup" />
             </div>
         </div>
         <div class="col-start-3 row-start-2">
             <p class="text-[#ffcc05FF] cursor-pointer" @click="showAll = !showAll">Mostrar todas as informações <v-icon size="18" :class="{ 'rotate-180': showAll }">mdi-chevron-down</v-icon></p>
             <div v-show="showAll" class="mt-2 space-y-1 transition-all duration-200 ease-in-out">
-                <editable-field label="N° Parcelas:" v-model="form.installments" type="number" />
-                <editable-field label="N° Processo Dotação Orçamentária:" v-model="form.budget_allocation_nup" mask="#####.######/####-##" />
-                <editable-field label="Data da Solicitação do Cadastro do Credor:" v-model="form.creditor_registration_request_date" type="date"/>
+                <EditableField label="N° Parcelas:" v-model="form.installments" type="number" />
+                <EditableField label="N° Processo Dotação Orçamentária:" v-model="form.budget_allocation_nup" mask="#####.######/####-##" />
+                <EditableField label="Data da Solicitação do Cadastro do Credor:" v-model="form.creditor_registration_request_date" type="date"/>
             </div>
         </div>
     </div>

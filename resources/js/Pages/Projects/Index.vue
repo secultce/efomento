@@ -100,22 +100,22 @@ const selectedProjects = ref([])
 
   <Head :title="`Projetos`" />
   <AuthenticatedLayout>
-    <app-sub-header>
-      <project-notice-edit :notice="notice" :instrumentTypes="instrumentTypes"/>
-    </app-sub-header>
-    <app-container>
+    <AppSubHeader>
+      <ProjectNoticeEdit :notice="notice" :instrumentTypes="instrumentTypes"/>
+    </AppSubHeader>
+    <AppContainer>
       <div class="grid grid-cols-4 grid-rows-1 gap-10">
         <div class="col-span-4 col-start-1 text-[#1a1a1aFF]">
-          <phase-filter :phases="phases" :selected-phase="selectedPhase" @select="selectPhase" />
+          <PhaseFilter :phases="phases" :selected-phase="selectedPhase" @select="selectPhase" />
         </div>
         <div class="col-span-3 row-span-2 col-start-1 row-start-2 flex flex-col w-full h-full">
-          <project-list :projects="projects" :table-config="tableConfig" v-model="selectedProjects" :search="search"
+          <ProjectList :projects="projects" :table-config="tableConfig" v-model="selectedProjects" :search="search"
             @update:search="onSearch" @clearPhaseFilter="clearPhaseFilter" />
         </div>
         <div class="row-span-2 col-start-4 row-start-2">
           <!--area do CI-->
         </div>
       </div>
-    </app-container>
+    </AppContainer>
   </AuthenticatedLayout>
 </template>
