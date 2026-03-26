@@ -20,7 +20,7 @@ defineProps({
 </script>
 
 <template>
-  <div :class="['mx-auto', maxWidth, 'px-0']">
+  <div :class="['mx-[2em] lg:mx-[10em]', maxWidth]">
     <v-container
       :fluid="fluid"
       :class="[paddingY, paddingX]"
