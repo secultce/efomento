@@ -5,6 +5,8 @@ namespace App\Models;
 use App\Traits\HasFiles;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use App\Enums\AgentStatus;
 use App\Enums\AccountType;
@@ -55,5 +57,17 @@ class Opening extends Model implements Auditable
     public function user()
     {
         return $this->belongsTo(User::class);
+    }
+
+    public function supervisors(): HasMany
+    {
+        return $this->hasMany(OpeningSupervisor::class);
+    }
+
+    public function activeSupervisor(): HasOne
+    {
+        return $this->hasOne(OpeningSupervisor::class)
+            ->where('is_active', true)
+            ->latestOfMany('assigned_at');
     }
 }
