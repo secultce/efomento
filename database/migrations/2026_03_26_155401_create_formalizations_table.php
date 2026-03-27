@@ -6,20 +6,50 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    /**
-     * Run the migrations.
-     */
     public function up(): void
     {
         Schema::create('formalizations', function (Blueprint $table) {
             $table->id();
+
+            $table->date('asjur_finalistic_processing_date')->nullable();
+            $table->date('asjur_received_at')->nullable();
+            $table->string('process_supervisor_id')->nullable();
+            $table->enum('report_status', [
+                'SEM CADASTRO', 
+                'REGULAR E ADIMPLEMTE', 
+                'REGULAR E INADIMPLENTE', 
+                'IRREGULAR E ADIMPLENTE', 
+                'IRREGULAR E INADIMPLENTE'
+            ]);
+            $table->date('eparcerias_certificate_date')->nullable();
+
+            $table->enum('term_status', ['signed', 'unsigned']);
+            $table->string('term_number');
+            $table->date('term_signature_sent_at')->nullable();
+            $table->date('sent_to_office_at')->nullable();
+            $table->date('term_signed_at')->nullable();
+
+            $table->date('asjur_processing_date')->nullable();
+            $table->enum('office_signature_status', ['signed', 'unsigned']);
+
+            $table->string('sacc_number')->nullable();
+            $table->string('cge_atende_ticket')->nullable();
+            $table->date('sacc_registered_at')->nullable();
+
+            $table->enum('deliberation', ['manual', 'batch_cge', 'fec']);
+
+            $table->date('validity_start_at')->nullable();
+            $table->date('validity_end_at')->nullable();
+
+            $table->date('sent_to_chief_of_staff_at')->nullable();
+            $table->date('official_gazette_published_at')->nullable();
+            $table->date('legal_opinion_date')->nullable();
+
             $table->timestamps();
+            $table->softDeletes();
         });
     }
 
-    /**
-     * Reverse the migrations.
-     */
     public function down(): void
     {
         Schema::dropIfExists('formalizations');
