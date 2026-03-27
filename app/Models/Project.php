@@ -12,6 +12,7 @@ use App\Enums\ProjectPhase;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Builder;
 use OwenIt\Auditing\Auditable as AuditableTrait;
@@ -94,7 +95,7 @@ class Project extends Model  implements Auditable
     {
         return $this->opening?->opening_nup;
     }
-    
+
     public function scopeFilterPhase(Builder $query, ?string $phase): Builder
     {
         if (!$phase) {
@@ -127,5 +128,10 @@ class Project extends Model  implements Auditable
                 $q3->whereRaw('LOWER(opening_nup) LIKE ?', ["%{$search}%"]);
             });
         });
+    }
+
+    public function legalAnalysis(): HasOne
+    {
+        return $this->hasOne(LegalAnalysis::class);
     }
 }
