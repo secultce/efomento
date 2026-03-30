@@ -3,6 +3,7 @@
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
+use App\Enums\ReportStatus;
 
 return new class extends Migration
 {
@@ -14,29 +15,21 @@ return new class extends Migration
             $table->date('asjur_finalistic_processing_date')->nullable();
             $table->date('asjur_received_at')->nullable();
             $table->string('process_supervisor_id')->nullable();
-            $table->enum('report_status', [
-                'SEM CADASTRO', 
-                'REGULAR E ADIMPLEMTE', 
-                'REGULAR E INADIMPLENTE', 
-                'IRREGULAR E ADIMPLENTE', 
-                'IRREGULAR E INADIMPLENTE'
-            ]);
+            $table->enum('report_status', ReportStatus::cases())->default(ReportStatus::SEM_CADASTRO->value);
             $table->date('eparcerias_certificate_date')->nullable();
 
-            $table->enum('term_status', ['signed', 'unsigned']);
             $table->string('term_number');
             $table->date('term_signature_sent_at')->nullable();
             $table->date('sent_to_office_at')->nullable();
             $table->date('term_signed_at')->nullable();
 
             $table->date('asjur_processing_date')->nullable();
-            $table->enum('office_signature_status', ['signed', 'unsigned']);
 
             $table->string('sacc_number')->nullable();
             $table->string('cge_atende_ticket')->nullable();
             $table->date('sacc_registered_at')->nullable();
 
-            $table->enum('deliberation', ['manual', 'batch_cge', 'fec']);
+            $table->enum('deliberation', DeliberationType::cases())->default(DeliberationType::MANUAL->value);
 
             $table->date('validity_start_at')->nullable();
             $table->date('validity_end_at')->nullable();

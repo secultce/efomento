@@ -5,6 +5,8 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use App\Enums\ReportStatus;
+use App\Enums\DeliberationType;
 use App\Traits\HasFiles;
 
 class Formalization extends Model
@@ -17,13 +19,11 @@ class Formalization extends Model
         'process_supervisor_id',
         'report_status',
         'eparcerias_certificate_date',
-        'term_status',
         'term_number',
         'term_signature_sent_at',
         'sent_to_office_at',
         'term_signed_at',
         'asjur_processing_date',
-        'office_signature_status',
         'sacc_number',
         'cge_atende_ticket',
         'sacc_registered_at',
@@ -35,43 +35,23 @@ class Formalization extends Model
         'legal_opinion_date',
     ];
 
-    protected $dates = [
-        'asjur_finalistic_processing_date',
-        'asjur_received_at',
-        'term_signature_sent_at',
-        'sent_to_office_at',
-        'term_signed_at',
-        'eparcerias_certificate_date',
-        'asjur_processing_date',
-        'sacc_registered_at',
-        'validity_start_at',
-        'validity_end_at',
-        'sent_to_chief_of_staff_at',
-        'official_gazette_published_at',
-        'legal_opinion_date',
-        'created_at',
-        'updated_at',
-        'deleted_at',
+    protected $casts = [
+        'asjur_finalistic_processing_date' => 'date',
+        'asjur_received_at' => 'date',
+        'term_signature_sent_at' => 'date',
+        'sent_to_office_at' => 'date',
+        'term_signed_at' => 'date',
+        'eparcerias_certificate_date' => 'date',
+        'asjur_processing_date' => 'date',
+        'sacc_registered_at' => 'date',
+        'validity_start_at' => 'date',
+        'validity_end_at' => 'date',
+        'sent_to_chief_of_staff_at' => 'date',
+        'official_gazette_published_at' => 'date',
+        'legal_opinion_date' => 'date',
+        'deleted_at' => 'datetime',
+        'report_status' => ReportStatus::class,
+        'deliberation' => DeliberationType::class,
     ];
-
-    public function commitmentTermFiles()
-    {
-        return $this->filesByGroup('commitment_term');
-    }
-
-    public function termSummaryFiles()
-    {
-        return $this->filesByGroup('term_summary');
-    }
-
-    public function officialGazetteFiles()
-    {
-        return $this->filesByGroup('official_gazette');
-    }
-
-    public function legalOpinionFiles()
-    {
-        return $this->filesByGroup('legal_opinion');
-    }
     
 }

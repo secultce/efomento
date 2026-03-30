@@ -20,14 +20,12 @@ class FormalizationResource extends JsonResource
             'report_status' => $this->report_status,
             'eparcerias_certificate_date' => $this->eparcerias_certificate_date,
 
-            'term_status' => $this->term_status,
             'term_number' => $this->term_number,
             'term_signature_sent_at' => $this->term_signature_sent_at,
             'sent_to_office_at' => $this->sent_to_office_at,
             'term_signed_at' => $this->term_signed_at,
 
             'asjur_processing_date' => $this->asjur_processing_date,
-            'office_signature_status' => $this->office_signature_status,
 
             'sacc_number' => $this->sacc_number,
             'cge_atende_ticket' => $this->cge_atende_ticket,
