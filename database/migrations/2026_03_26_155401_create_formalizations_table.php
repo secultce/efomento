@@ -4,6 +4,7 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 use App\Enums\ReportStatus;
+use App\Enums\DeliberationType;
 
 return new class extends Migration
 {
@@ -11,7 +12,10 @@ return new class extends Migration
     {
         Schema::create('formalizations', function (Blueprint $table) {
             $table->id();
-
+            $table->foreignId('project_id')
+                ->unique()
+                ->constrained()
+                ->nullOnDelete();
             $table->date('asjur_finalistic_processing_date')->nullable();
             $table->date('asjur_received_at')->nullable();
             $table->string('process_supervisor_id')->nullable();

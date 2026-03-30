@@ -4,6 +4,7 @@ namespace Database\Factories;
 
 use Illuminate\Database\Eloquent\Factories\Factory;
 use App\Models\Formalization;
+use App\Models\Project;
 use App\Enums\ReportStatus;
 use App\Enums\DeliberationType;
 class FormalizationFactory extends Factory
@@ -13,6 +14,7 @@ class FormalizationFactory extends Factory
     public function definition()
     {
         return [
+            'project_id' => Project::factory(),
             'asjur_finalistic_processing_date' => $this->faker->date(),
             'asjur_received_at' => $this->faker->date(),
             'process_supervisor_id' => $this->faker->uuid(),
@@ -39,10 +41,34 @@ class FormalizationFactory extends Factory
     {
         return $this->afterCreating(function (Formalization $formalization) {
             $formalization->files()->createMany([
-                ['name'=>'Commitment Term','grp'=>'commitment_term','path'=>'files/commitment1.pdf','private'=>false],
-                ['name'=>'Term Summary','grp'=>'term_summary','path'=>'files/summary1.pdf','private'=>false],
-                ['name'=>'Official Gazette','grp'=>'official_gazette','path'=>'files/gazette1.pdf','private'=>true],
-                ['name'=>'Legal Opinion','grp'=>'legal_opinion','path'=>'files/legal1.pdf','private'=>true],
+                [
+                    'name' => 'Commitment Term',
+                    'grp' => 'commitment_term',
+                    'path' => 'files/commitment1.pdf',
+                    'mime_type' => 'application/pdf',
+                    'private' => false
+                ],
+                [
+                    'name' => 'Term Summary',
+                    'grp' => 'term_summary',
+                    'path' => 'files/summary1.pdf',
+                    'mime_type' => 'application/pdf',
+                    'private' => false
+                ],
+                [
+                    'name' => 'Official Gazette',
+                    'grp' => 'official_gazette',
+                    'path' => 'files/gazette1.pdf',
+                    'mime_type' => 'application/pdf',
+                    'private' => true
+                ],
+                [
+                    'name' => 'Legal Opinion',
+                    'grp' => 'legal_opinion',
+                    'path' => 'files/legal1.pdf',
+                    'mime_type' => 'application/pdf',
+                    'private' => true
+                ],
             ]);
         });
     }

@@ -12,7 +12,7 @@ class FormalizationResource extends JsonResource
     {
         return [
             'id' => $this->id,
-
+            'project_id' => $this->project_id,
             'asjur_finalistic_processing_date' => $this->asjur_finalistic_processing_date,
             'asjur_received_at' => $this->asjur_received_at,
             'process_supervisor_id' => $this->process_supervisor_id,

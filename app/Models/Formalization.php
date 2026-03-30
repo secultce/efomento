@@ -14,6 +14,7 @@ class Formalization extends Model
     use HasFactory, SoftDeletes, HasFiles;
 
     protected $fillable = [
+        'project_id',
         'asjur_finalistic_processing_date',
         'asjur_received_at',
         'process_supervisor_id',

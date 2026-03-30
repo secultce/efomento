@@ -8,11 +8,11 @@ use App\Enums\Contracts\HasLabel;
 enum ReportStatus: string implements HasLabel
 {
     use HasOptions;
-    case SEM_CADASTRO = 'SEM CADASTRO';
-    case REGULAR_E_ADIMPLEMTE = 'REGULAR E ADIMPLEMTE';
-    case REGULAR_E_INADIMPLENTE = 'REGULAR E INADIMPLENTE';
-    case IRREGULAR_E_ADIMPLENTE = 'IRREGULAR E ADIMPLENTE';
-    case IRREGULAR_E_INADIMPLENTE = 'IRREGULAR E INADIMPLENTE';
+    case SEM_CADASTRO = 'SEM_CADASTRO';
+    case REGULAR_E_ADIMPLEMTE = 'REGULAR E_ADIMPLEMTE';
+    case REGULAR_E_INADIMPLENTE = 'REGULAR E_INADIMPLENTE';
+    case IRREGULAR_E_ADIMPLENTE = 'IRREGULAR E_ADIMPLENTE';
+    case IRREGULAR_E_INADIMPLENTE = 'IRREGULAR E_INADIMPLENTE';
     public function label(): string
     {
         return match ($this) {
