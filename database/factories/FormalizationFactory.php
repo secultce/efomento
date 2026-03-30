@@ -7,6 +7,7 @@ use App\Models\Formalization;
 use App\Models\Project;
 use App\Enums\ReportStatus;
 use App\Enums\DeliberationType;
+use App\Models\User;
 class FormalizationFactory extends Factory
 {
     protected $model = Formalization::class;
@@ -17,7 +18,7 @@ class FormalizationFactory extends Factory
             'project_id' => Project::factory(),
             'asjur_finalistic_processing_date' => $this->faker->date(),
             'asjur_received_at' => $this->faker->date(),
-            'process_supervisor_id' => $this->faker->uuid(),
+            'process_supervisor_id' => User::factory(),
             'report_status' => $this->faker->randomElement(ReportStatus::cases())->value,
             'eparcerias_certificate_date' => $this->faker->date(),
             'term_number' => $this->faker->unique()->numerify('TERM-###'),

@@ -11,7 +11,9 @@ use App\Traits\HasFiles;
 
 class Formalization extends Model
 {
-    use HasFactory, SoftDeletes, HasFiles;
+    use HasFactory;
+    use SoftDeletes;
+    use HasFiles;
 
     protected $fillable = [
         'project_id',
@@ -54,5 +56,15 @@ class Formalization extends Model
         'report_status' => ReportStatus::class,
         'deliberation' => DeliberationType::class,
     ];
+
     
+    public function project()
+    {
+        return $this->belongsTo(Project::class);
+    }
+
+    public function user()
+    {
+        return $this->belongsTo(User::class);
+    }
 }

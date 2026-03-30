@@ -18,7 +18,10 @@ return new class extends Migration
                 ->nullOnDelete();
             $table->date('asjur_finalistic_processing_date')->nullable();
             $table->date('asjur_received_at')->nullable();
-            $table->string('process_supervisor_id')->nullable();
+            $table->foreignId('process_supervisor_id')
+                ->nullable()
+                ->constrained('users')
+                ->nullOnDelete();
             $table->enum('report_status', ReportStatus::cases())->default(ReportStatus::SEM_CADASTRO->value);
             $table->date('eparcerias_certificate_date')->nullable();
 
