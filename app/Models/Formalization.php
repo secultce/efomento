@@ -9,11 +9,9 @@ use App\Enums\ReportStatus;
 use App\Enums\DeliberationType;
 use App\Traits\HasFiles;
 
-class Formalization extends Model
+class Formalization extends Model implements Auditable
 {
-    use HasFactory;
-    use SoftDeletes;
-    use HasFiles;
+    use HasFactory, SoftDeletes, HasFiles, AuditableTrait;
 
     protected $fillable = [
         'project_id',
