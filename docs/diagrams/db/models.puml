@@ -1,0 +1,180 @@
+@startuml e-Fomento — Diagrama de Relacionamento (ER)
+
+!define TABLE(x) class x << (T,#FFAAAA) >>
+!define PK(x) <u>x</u>
+!define FK(x) <i>x</i>
+
+skinparam linetype ortho
+skinparam classBackgroundColor #F5F5F5
+skinparam classBorderColor #37474F
+skinparam classBorderThickness 1.5
+skinparam classAttributeFontSize 11
+skinparam classAttributeFontName Arial
+skinparam arrowColor #37474F
+skinparam arrowThickness 2
+skinparam packageBackgroundColor #E8F5E9
+skinparam packageBorderColor #2E7D32
+skinparam packageFontColor #1B5E20
+skinparam packageFontStyle bold
+
+' ══════════════════════════════════════════
+'  ENTIDADES
+' ══════════════════════════════════════════
+entity Agent {
+  PK(id) : int
+  name : string
+  cpf : string
+  director_position : string
+  director_email : string
+  phone : string
+  email : string
+  birth_date : date
+  street : string
+  number : string
+  complement : string
+  postal_code : string
+  neighborhood : string
+  city : string
+  state : string
+  gender : App\Enums\Gender
+  education : App\Enums\Education
+  sexual_orientation : App\Enums\SexualOrientation
+  race : App\Enums\RaceColor
+  has_disability : App\Enums\DisabilityType
+  created_at : string
+  updated_at : string
+  deleted_at : datetime
+}
+
+entity Category {
+  PK(id) : int
+  name : string
+  type : App\Enums\CategoryType
+  created_at : string
+  updated_at : string
+  deleted_at : datetime
+}
+
+entity File {
+  PK(id) : int
+  mime_type : string
+  name : string
+  object_type : string
+  FK(object_id) : string
+  grp : string
+  description : string
+  path : string
+  private : boolean
+  created_at : datetime
+  updated_at : datetime
+  deleted_at : datetime
+}
+
+entity Notice {
+  PK(id) : int
+  nup : string
+  notice_url : string
+  FK(external_id) : string
+  name : string
+  total_notice_amount : decimal:2
+  total_commitment_amount : decimal:2
+  installments : integer
+  process_manager : string
+  process_manager_email : string
+  creditor_registration_nup : string
+  creditor_registration_request_date : date
+  budget_allocation_nup : string
+  budget_allocation_request_date : string
+  instrument_type : string
+  created_at : string
+  updated_at : string
+  deleted_at : datetime
+}
+
+entity Opening {
+  PK(id) : int
+  FK(project_id) : string
+  FK(user_id) : string
+  FK(supervisor_id) : string
+  opening_nup : string
+  opening_date : date
+  agent_status : App\Enums\AgentStatus
+  opened_by : string
+  bank : string
+  account_type : App\Enums\AccountType
+  branch : string
+  account : string
+  is_draft : boolean
+  status : App\Enums\OpeningStatus
+  certificate_date : datetime
+  started_at : datetime
+  submitted_at : datetime
+  concluded_at : datetime
+  created_at : string
+  updated_at : string
+  deleted_at : datetime
+}
+
+entity Project {
+  PK(id) : int
+  FK(registration_id) : string
+  number : string
+  FK(category_id) : string
+  FK(agent_id) : string
+  FK(notice_id) : string
+  education_level : App\Enums\Education
+  gender : App\Enums\Gender
+  sexual_orientation : App\Enums\SexualOrientation
+  race : App\Enums\RaceColor
+  has_disability : App\Enums\DisabilityType
+  create_timestamp : datetime
+  sent_timestamp : datetime
+  consolidated_result : string
+  data_registration : array
+  created_at : string
+  updated_at : string
+  deleted_at : datetime
+}
+
+entity User {
+  PK(id) : int
+  name : string
+  email : string
+  email_verified_at : datetime
+  password : hashed
+  remember_token : string
+  created_at : string
+  updated_at : string
+}
+
+
+' ══════════════════════════════════════════
+'  RELACIONAMENTOS
+' ══════════════════════════════════════════
+
+Agent ||--o{ Project : projects
+Category ||--o{ Project : projects
+Category ||--o{ Audit : audits (morph)
+File o--|| Polymorphic : fileable (morph)
+Notice ||--o{ Project : projects
+Notice ||--o{ Audit : audits (morph)
+Notice ||--o{ File : files (morph)
+Notice ||--o{ File : publicFiles (morph)
+Project ||--o{ Opening : project
+User ||--o{ Opening : user
+Opening ||--o{ Audit : audits (morph)
+Opening ||--o{ File : files (morph)
+Opening ||--o{ File : publicFiles (morph)
+Notice ||--o{ Project : notice
+Agent ||--o{ Project : agent
+Category ||--o{ Project : category
+Project ||--o{ Audit : audits (morph)
+Project ||--o{ File : files (morph)
+Project ||--o{ File : publicFiles (morph)
+User ||--o{ DatabaseNotification : notifications (morph)
+User ||--o{ DatabaseNotification : readNotifications (morph)
+User ||--o{ DatabaseNotification : unreadNotifications (morph)
+User }o--o{ Role : roles (morph)
+User }o--o{ Permission : permissions (morph)
+User ||--o{ Audit : audits (morph)
+@enduml

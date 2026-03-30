@@ -1,0 +1,15 @@
+@startuml Category
+
+class Category {
+    -id: int
+    -name: string
+    -type: App\Enums\CategoryType
+    -created_at: string
+    -updated_at: string
+    -deleted_at: datetime
+    --
+    +projects(): HasMany
+    +audits(): MorphMany
+}
+
+@enduml

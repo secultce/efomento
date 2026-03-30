@@ -1,0 +1,33 @@
+@startuml Opening
+
+class Opening {
+    -id: int
+    -project_id: string
+    -user_id: string
+    -supervisor_id: string
+    -opening_nup: string
+    -opening_date: date
+    -agent_status: App\Enums\AgentStatus
+    -opened_by: string
+    -bank: string
+    -account_type: App\Enums\AccountType
+    -branch: string
+    -account: string
+    -is_draft: boolean
+    -status: App\Enums\OpeningStatus
+    -certificate_date: datetime
+    -started_at: datetime
+    -submitted_at: datetime
+    -concluded_at: datetime
+    -created_at: string
+    -updated_at: string
+    -deleted_at: datetime
+    --
+    +project(): BelongsTo
+    +user(): BelongsTo
+    +audits(): MorphMany
+    +files(): MorphMany
+    +publicFiles(): MorphMany
+}
+
+@enduml
