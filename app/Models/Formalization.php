@@ -8,6 +8,8 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 use App\Enums\ReportStatus;
 use App\Enums\DeliberationType;
 use App\Traits\HasFiles;
+use OwenIt\Auditing\Auditable as AuditableTrait;
+use OwenIt\Auditing\Contracts\Auditable;
 
 class Formalization extends Model implements Auditable
 {
