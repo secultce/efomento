@@ -17,6 +17,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Builder;
 use OwenIt\Auditing\Auditable as AuditableTrait;
 use OwenIt\Auditing\Contracts\Auditable;
+use App\Models\Formalization;
 
 class Project extends Model  implements Auditable
 {
@@ -130,6 +131,11 @@ class Project extends Model  implements Auditable
         });
     }
 
+    public function formalization()
+    {
+        return $this->hasOne(Formalization::class);
+    }
+  
     public function legalAnalysis(): HasOne
     {
         return $this->hasOne(LegalAnalysis::class);

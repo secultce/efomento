@@ -6,6 +6,7 @@ use Illuminate\Database\Seeder;
 use App\Models\Notice;
 use App\Models\Project;
 use App\Models\Opening;
+use App\Models\Formalization;
 
 class NoticeSeeder extends Seeder
 {
@@ -51,6 +52,14 @@ class NoticeSeeder extends Seeder
 
                 if (fake()->boolean(70)) {
                     Opening::factory()
+                        ->count(1)
+                        ->create([
+                            'project_id' => $project->id,
+                        ]);
+                }
+
+                if (fake()->boolean(80)) {
+                    Formalization::factory()
                         ->count(1)
                         ->create([
                             'project_id' => $project->id,
