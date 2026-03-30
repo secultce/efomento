@@ -30,12 +30,10 @@ class DocumentController extends Controller
 
     public function store(DocumentStoreRequest $request): JsonResponse
     {
-        $user = User::find(214);
         $validated = $request->validated();
-        $validated['notice_id'] = 1;
 
         try {
-            $document = $this->documentService->create($validated, $user->id);
+            $document = $this->documentService->create($validated, User::find(214)?->id ?? auth()->id());
         } catch (InvalidArgumentException $e) {
             return response()->json(['message' => $e->getMessage()], 422);
         }
