@@ -21,6 +21,7 @@ class DatabaseSeeder extends Seeder
             NoticeSeeder::class,
             UserSeeder::class,
             AgentSeeder::class,
+            LegalAnalysisSeeder::class,
         ]);
     }
 }

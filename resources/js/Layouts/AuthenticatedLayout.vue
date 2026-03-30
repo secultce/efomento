@@ -12,8 +12,8 @@ const usuario = page.props.auth.user;
     <v-app theme="efomento">
         <AppHeader :usuario="usuario" />
         <v-main>
+            <AppSnackbar />
             <AppSubHeader v-if="$slots.subheader">
-                <app-snackbar />
                 <slot name="subheader" />
             </AppSubHeader>
             

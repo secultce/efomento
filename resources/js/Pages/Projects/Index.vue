@@ -4,6 +4,7 @@ import AppSubHeader from '@/Components/AppSubHeader.vue'
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue'
 import ProjectList from '@/Pages/Projects/Partials/ProjectList.vue'
 import PhaseFilter from '@/Pages/Projects/Partials/PhaseFilter.vue'
+import ProjectNoticeEdit from '@/Pages/Projects/Partials/ProjectNoticeEdit.vue'
 import { Head, router } from '@inertiajs/vue3'
 import { ref } from 'vue'
 
@@ -12,6 +13,7 @@ const props = defineProps({
   projects: Array,
   filters: Object,
   phases: Array,
+  instrumentTypes: Array
 })
 
 const search = ref(props.filters?.search ?? '')
@@ -98,20 +100,22 @@ const selectedProjects = ref([])
 
   <Head :title="`Projetos`" />
   <AuthenticatedLayout>
-    <AppSubHeader />
-    <app-container>
+    <AppSubHeader>
+      <ProjectNoticeEdit :notice="notice" :instrumentTypes="instrumentTypes"/>
+    </AppSubHeader>
+    <AppContainer>
       <div class="grid grid-cols-4 grid-rows-1 gap-10">
         <div class="col-span-4 col-start-1 text-[#1a1a1aFF]">
-          <phase-filter :phases="phases" :selected-phase="selectedPhase" @select="selectPhase" />
+          <PhaseFilter :phases="phases" :selected-phase="selectedPhase" @select="selectPhase" />
         </div>
         <div class="col-span-3 row-span-2 col-start-1 row-start-2 flex flex-col w-full h-full">
-          <project-list :projects="projects" :table-config="tableConfig" v-model="selectedProjects" :search="search"
+          <ProjectList :projects="projects" :table-config="tableConfig" v-model="selectedProjects" :search="search"
             @update:search="onSearch" @clearPhaseFilter="clearPhaseFilter" />
         </div>
         <div class="row-span-2 col-start-4 row-start-2">
           <!--area do CI-->
         </div>
       </div>
-    </app-container>
+    </AppContainer>
   </AuthenticatedLayout>
 </template>

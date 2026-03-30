@@ -55,12 +55,13 @@ Fluxo sequencial com etapas dedicadas por setor:
 ```
 Notice (edital cultural)
 └── Registration (inscrição/projeto — entidade raiz do fluxo)
-    ├── Opening        (Abertura — C. Finalística)
-    ├── LegalAnalysis  (Análise Jurídica — ASJUR)
-    ├── Formalization  (Formalização)
-    ├── Budget         (Orçamento — CODIP)
-    ├── Payment        (Pagamento — CEGEF)
-    └── Monitoring     (Monitoramento/Prestação de Contas)
+    ├── Opening              (Abertura — C. Finalística)
+    │   └── OpeningSupervisor  (Fiscal atribuído à abertura — pivot user ↔ opening)
+    ├── LegalAnalysis        (Análise Jurídica — ASJUR)
+    ├── Formalization        (Formalização)
+    ├── Budget               (Orçamento — CODIP)
+    ├── Payment              (Pagamento — CEGEF)
+    └── Monitoring           (Monitoramento/Prestação de Contas)
 ```
 ## Diagramas
 - Para uso do PlantUml poderá ter que instalar o executável dot.exe na sua máquina o instalar no linux e configurar o 

@@ -8,6 +8,7 @@ use Inertia\Inertia;
 use Inertia\Response;
 use App\Models\Notice;
 use App\Enums\ProjectPhase;
+use App\Enums\InstrumentType;
 
 class ProjectController extends Controller
 {
@@ -23,6 +24,7 @@ class ProjectController extends Controller
             'notice' => $notice,
             'projects' => $query->get(),
             'filters' => $request->only(['phase', 'search']),
+            'instrumentTypes' => InstrumentType::values(),
             'phases' => collect(ProjectPhase::cases())->map(fn ($phase) => [
                 'value' => $phase->value,
                 'title' => $phase->label(),

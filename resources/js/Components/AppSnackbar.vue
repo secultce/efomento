@@ -14,7 +14,7 @@ const {
     v-model="snackbar"
     :color="snackbarColor"
     :timeout="snackbarTimeout"
-    location="top right"
+    location="bottom right"
   >
     {{ snackbarText }}
   </v-snackbar>

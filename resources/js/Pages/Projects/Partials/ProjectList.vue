@@ -44,6 +44,6 @@ function clear() {
             <div class="flex-[2_1_0%]"></div>
         </div>
 
-        <list-data-table :items="projects" v-bind="tableConfig" v-model="selected" selectable />
+        <ListDataTable :items="projects" v-bind="tableConfig" v-model="selected" selectable />
     </div>
 </template>
