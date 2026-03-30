@@ -16,6 +16,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Builder;
 use OwenIt\Auditing\Auditable as AuditableTrait;
 use OwenIt\Auditing\Contracts\Auditable;
+use App\Models\Formalization;
 
 class Project extends Model  implements Auditable
 {
@@ -127,5 +128,10 @@ class Project extends Model  implements Auditable
                 $q3->whereRaw('LOWER(opening_nup) LIKE ?', ["%{$search}%"]);
             });
         });
+    }
+
+    public function formalization()
+    {
+        return $this->hasOne(Formalization::class);
     }
 }

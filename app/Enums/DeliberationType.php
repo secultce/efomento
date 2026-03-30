@@ -22,4 +22,4 @@ enum DeliberationType: string implements HasLabel
         };
     }
 
-};
+}
