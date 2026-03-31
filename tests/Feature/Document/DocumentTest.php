@@ -33,9 +33,11 @@ class DocumentTest extends TestCase
     }
 
     // -------------------------------------------------------------------------
-    // Model
+    // Model - Instruções retirada da docs.phpunit.de
     // -------------------------------------------------------------------------
 
+    // Reporta um erro identificado $messagese as duas variáveis
+    // $expected $actual não tiverem o mesmo tipo e valor.
     public function test_document_has_correct_constants(): void
     {
         $this->assertSame('term',             Document::TYPE_TERM);
@@ -57,6 +59,8 @@ class DocumentTest extends TestCase
 
         $this->assertInstanceOf(Notice::class, $document->notice);
         $this->assertInstanceOf(User::class, $document->creator);
+        // Reporta um erro identificado por $messagese o número de elementos em $haystack
+        // não for $expectedCount
         $this->assertCount(0, $document->images);
     }
 
@@ -70,6 +74,7 @@ class DocumentTest extends TestCase
         $this->assertNotNull(Document::withTrashed()->find($document->id));
     }
 
+    //O teste não pode criar documento sem os campos obrigatórios.
     public function test_cannot_create_document_without_required_fields(): void
     {
         $this->expectException(QueryException::class);
@@ -88,6 +93,12 @@ class DocumentTest extends TestCase
         $this->assertSame('Termo de Execução Cultural', $result['label']);
         $this->assertTrue($result['requires_sign']);
         $this->assertFalse($result['requires_legal']);
+
+        $result = DocumentTypeRegistry::resolve('juridical_opinion', 'juridical');
+
+        $this->assertSame('Parecer Jurídico', $result['label']);
+        $this->assertTrue($result['requires_sign']);
+        $this->assertTrue($result['requires_legal']);
     }
 
     public function test_registry_resolves_juridical_opinion(): void
@@ -118,7 +129,9 @@ class DocumentTest extends TestCase
             'project_id' => $this->project->id,
             'body'       => 'Conteúdo do termo.',
         ], $this->user->id);
-        dump($document);
+        dump($this->notice->id);
+        dump($this->project->id);
+        dump($this->user->id);
         $this->assertInstanceOf(Document::class, $document);
         $this->assertDatabaseHas('documents', [
             'type'       => 'term',
