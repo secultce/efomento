@@ -2,6 +2,11 @@
 
 namespace Tests\Feature\Document;
 
+use App\Enums\DocumentImagePosition;
+use App\Enums\DocumentImageSection;
+use App\Enums\DocumentPhase;
+use App\Enums\DocumentStatus;
+use App\Enums\DocumentType;
 use App\Models\Document;
 use App\Models\DocumentImage;
 use App\Models\Notice;
@@ -33,21 +38,19 @@ class DocumentTest extends TestCase
     }
 
     // -------------------------------------------------------------------------
-    // Model - Instruções retirada da docs.phpunit.de
+    // Model
     // -------------------------------------------------------------------------
 
-    // Reporta um erro identificado $messagese as duas variáveis
-    // $expected $actual não tiverem o mesmo tipo e valor.
-    public function test_document_has_correct_constants(): void
+    public function test_document_type_enum_has_correct_values(): void
     {
-        $this->assertSame('term',             Document::TYPE_TERM);
-        $this->assertSame('extract',          Document::TYPE_EXTRACT);
-        $this->assertSame('juridical_opinion',Document::TYPE_JURIDICAL_OPINION);
-        $this->assertSame('dispatch',         Document::TYPE_DISPATCH);
+        $this->assertSame('term',             DocumentType::TERM->value);
+        $this->assertSame('extract',          DocumentType::EXTRACT->value);
+        $this->assertSame('juridical_opinion',DocumentType::JURIDICAL_OPINION->value);
+        $this->assertSame('dispatch',         DocumentType::DISPATCH->value);
 
-        $this->assertSame('draft',            Document::STATUS_DRAFT);
-        $this->assertSame('pending_signature',Document::STATUS_PENDING_SIGNATURE);
-        $this->assertSame('signed',           Document::STATUS_SIGNED);
+        $this->assertSame('draft',             DocumentStatus::DRAFT->value);
+        $this->assertSame('pending_signature', DocumentStatus::PENDING_SIGNATURE->value);
+        $this->assertSame('signed',            DocumentStatus::SIGNED->value);
     }
 
     public function test_document_relationships(): void
@@ -59,8 +62,6 @@ class DocumentTest extends TestCase
 
         $this->assertInstanceOf(Notice::class, $document->notice);
         $this->assertInstanceOf(User::class, $document->creator);
-        // Reporta um erro identificado por $messagese o número de elementos em $haystack
-        // não for $expectedCount
         $this->assertCount(0, $document->images);
     }
 
@@ -74,7 +75,6 @@ class DocumentTest extends TestCase
         $this->assertNotNull(Document::withTrashed()->find($document->id));
     }
 
-    //O teste não pode criar documento sem os campos obrigatórios.
     public function test_cannot_create_document_without_required_fields(): void
     {
         $this->expectException(QueryException::class);
@@ -88,13 +88,15 @@ class DocumentTest extends TestCase
 
     public function test_registry_resolves_valid_combinations(): void
     {
-        $result = DocumentTypeRegistry::resolve('term', 'formalization');
+        $registry = new DocumentTypeRegistry();
+
+        $result = $registry->resolve(DocumentType::TERM, DocumentPhase::FORMALIZATION);
 
         $this->assertSame('Termo de Execução Cultural', $result['label']);
         $this->assertTrue($result['requires_sign']);
         $this->assertFalse($result['requires_legal']);
 
-        $result = DocumentTypeRegistry::resolve('juridical_opinion', 'juridical');
+        $result = $registry->resolve(DocumentType::JURIDICAL_OPINION, DocumentPhase::JURIDICAL);
 
         $this->assertSame('Parecer Jurídico', $result['label']);
         $this->assertTrue($result['requires_sign']);
@@ -103,7 +105,9 @@ class DocumentTest extends TestCase
 
     public function test_registry_resolves_juridical_opinion(): void
     {
-        $result = DocumentTypeRegistry::resolve('juridical_opinion', 'juridical');
+        $registry = new DocumentTypeRegistry();
+
+        $result = $registry->resolve(DocumentType::JURIDICAL_OPINION, DocumentPhase::JURIDICAL);
 
         $this->assertTrue($result['requires_sign']);
         $this->assertTrue($result['requires_legal']);
@@ -113,7 +117,7 @@ class DocumentTest extends TestCase
     {
         $this->expectException(\InvalidArgumentException::class);
 
-        DocumentTypeRegistry::resolve('term', 'payment');
+        (new DocumentTypeRegistry())->resolve(DocumentType::TERM, DocumentPhase::PAYMENT);
     }
 
     // -------------------------------------------------------------------------
@@ -129,9 +133,7 @@ class DocumentTest extends TestCase
             'project_id' => $this->project->id,
             'body'       => 'Conteúdo do termo.',
         ], $this->user->id);
-        dump($this->notice->id);
-        dump($this->project->id);
-        dump($this->user->id);
+
         $this->assertInstanceOf(Document::class, $document);
         $this->assertDatabaseHas('documents', [
             'type'       => 'term',
@@ -174,27 +176,29 @@ class DocumentTest extends TestCase
 
     public function test_service_updates_body_and_status(): void
     {
-        $document = Document::factory()->create(['status' => Document::STATUS_DRAFT]);
+        $document = Document::factory()->create(['status' => DocumentStatus::DRAFT]);
 
         $updated = $this->service->update($document, [
             'body'   => 'Novo conteúdo.',
-            'status' => Document::STATUS_PENDING_SIGNATURE,
+            'status' => DocumentStatus::PENDING_SIGNATURE->value,
         ]);
 
         $this->assertSame('Novo conteúdo.', $updated->body);
-        $this->assertSame(Document::STATUS_PENDING_SIGNATURE, $updated->status);
+        $this->assertSame(DocumentStatus::PENDING_SIGNATURE, $updated->status);
     }
 
     // -------------------------------------------------------------------------
-    // DocumentService::syncImages
+    // DocumentService — sync de imagens (testado via update)
     // -------------------------------------------------------------------------
 
     public function test_sync_images_creates_new_slots(): void
     {
         $document = Document::factory()->create();
 
-        $this->service->syncImages($document, [
-            ['section' => 'header', 'position' => 'left', 'path' => 'img/logo.png'],
+        $this->service->update($document, [
+            'images' => [
+                ['section' => 'header', 'position' => 'left', 'path' => 'img/logo.png'],
+            ],
         ]);
 
         $this->assertDatabaseHas('document_images', [
@@ -215,8 +219,10 @@ class DocumentTest extends TestCase
             'path'        => 'old/path.png',
         ]);
 
-        $this->service->syncImages($document, [
-            ['section' => 'header', 'position' => 'left', 'path' => 'new/path.png'],
+        $this->service->update($document, [
+            'images' => [
+                ['section' => 'header', 'position' => 'left', 'path' => 'new/path.png'],
+            ],
         ]);
 
         $this->assertDatabaseHas('document_images', [
@@ -245,8 +251,10 @@ class DocumentTest extends TestCase
         ]);
 
         // envia apenas header/left — footer/center deve ser removido
-        $this->service->syncImages($document, [
-            ['section' => 'header', 'position' => 'left', 'path' => 'a.png'],
+        $this->service->update($document, [
+            'images' => [
+                ['section' => 'header', 'position' => 'left', 'path' => 'a.png'],
+            ],
         ]);
 
         $this->assertDatabaseCount('document_images', 1);
@@ -270,12 +278,12 @@ class DocumentTest extends TestCase
     public function test_get_by_context_filters_by_type_and_phase(): void
     {
         Document::factory()->count(2)->create([
-            'type'  => Document::TYPE_TERM,
-            'phase' => Document::PHASE_FORMALIZATION,
+            'type'  => DocumentType::TERM,
+            'phase' => DocumentPhase::FORMALIZATION,
         ]);
         Document::factory()->count(1)->create([
-            'type'  => Document::TYPE_DISPATCH,
-            'phase' => Document::PHASE_JURIDICAL,
+            'type'  => DocumentType::DISPATCH,
+            'phase' => DocumentPhase::JURIDICAL,
         ]);
 
         $result = $this->service->getByContext(type: 'term', phase: 'formalization');
@@ -294,14 +302,14 @@ class DocumentTest extends TestCase
     }
 
     // -------------------------------------------------------------------------
-    // DocumentService::delete
+    // Soft delete
     // -------------------------------------------------------------------------
 
     public function test_service_soft_deletes_document(): void
     {
         $document = Document::factory()->create();
 
-        $this->service->delete($document);
+        $document->delete();
 
         $this->assertSoftDeleted('documents', ['id' => $document->id]);
     }

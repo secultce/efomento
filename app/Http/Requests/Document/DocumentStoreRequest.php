@@ -2,7 +2,12 @@
 
 namespace App\Http\Requests\Document;
 
+use App\Enums\DocumentImagePosition;
+use App\Enums\DocumentImageSection;
+use App\Enums\DocumentPhase;
+use App\Enums\DocumentType;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class DocumentStoreRequest extends FormRequest
 {
@@ -14,14 +19,14 @@ class DocumentStoreRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'type'             => ['required', 'string'],
-            'phase'            => ['required', 'string'],
+            'type'             => ['required', Rule::enum(DocumentType::class)],
+            'phase'            => ['required', Rule::enum(DocumentPhase::class)],
             'body'             => ['required', 'string'],
             'notice_id'        => ['required', 'exists:notices,id'],
             'project_id'       => ['required', 'exists:projects,id'],
             'images'           => ['nullable', 'array'],
-            'images.*.section' => ['required_with:images', 'in:header,footer'],
-            'images.*.position'=> ['required_with:images', 'in:left,center,right'],
+            'images.*.section' => ['required_with:images', Rule::enum(DocumentImageSection::class)],
+            'images.*.position'=> ['required_with:images', Rule::enum(DocumentImagePosition::class)],
             'images.*.path'    => ['required_with:images', 'string'],
         ];
     }

@@ -2,6 +2,9 @@
 
 namespace App\Models;
 
+use App\Enums\DocumentPhase;
+use App\Enums\DocumentStatus;
+use App\Enums\DocumentType;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -12,25 +15,6 @@ class Document extends Model
 {
     use HasFactory, SoftDeletes;
 
-    // Types
-    const TYPE_TERM = 'term';
-    const TYPE_EXTRACT = 'extract';
-    const TYPE_JURIDICAL_OPINION = 'juridical_opinion';
-    const TYPE_DISPATCH = 'dispatch';
-
-    // Phases
-    const PHASE_OPENING = 'opening';
-    const PHASE_JURIDICAL = 'juridical';
-    const PHASE_FORMALIZATION = 'formalization';
-    const PHASE_BUDGET = 'budget';
-    const PHASE_PAYMENT = 'payment';
-    const PHASE_MONITORING = 'monitoring';
-
-    // Statuses
-    const STATUS_DRAFT = 'draft';
-    const STATUS_PENDING_SIGNATURE = 'pending_signature';
-    const STATUS_SIGNED = 'signed';
-
     protected $fillable = [
         'notice_id',
         'project_id',
@@ -39,6 +23,12 @@ class Document extends Model
         'body',
         'status',
         'created_by',
+    ];
+
+    protected $casts = [
+        'type'   => DocumentType::class,
+        'phase'  => DocumentPhase::class,
+        'status' => DocumentStatus::class,
     ];
 
     public function notice(): BelongsTo

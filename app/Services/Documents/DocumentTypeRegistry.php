@@ -2,9 +2,12 @@
 
 namespace App\Services\Documents;
 
+use App\Enums\DocumentPhase;
+use App\Enums\DocumentType;
+
 class DocumentTypeRegistry
 {
-    private static array $map = [
+    private array $map = [
         'term+formalization' => [
             'label'          => 'Termo de Execução Cultural',
             'requires_sign'  => true,
@@ -27,16 +30,16 @@ class DocumentTypeRegistry
         ],
     ];
 
-    public static function resolve(string $type, string $phase): array
+    public function resolve(DocumentType $type, DocumentPhase $phase): array
     {
-        $key = "{$type}+{$phase}";
+        $key = "{$type->value}+{$phase->value}";
 
-        if (!isset(self::$map[$key])) {
+        if (!isset($this->map[$key])) {
             throw new \InvalidArgumentException(
-                "Combinação de tipo e fase inválida: tipo={$type}, fase={$phase}."
+                "Combinação de tipo e fase inválida: tipo={$type->value}, fase={$phase->value}."
             );
         }
 
-        return self::$map[$key];
+        return $this->map[$key];
     }
 }

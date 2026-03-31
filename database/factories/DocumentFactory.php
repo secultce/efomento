@@ -2,6 +2,9 @@
 
 namespace Database\Factories;
 
+use App\Enums\DocumentPhase;
+use App\Enums\DocumentStatus;
+use App\Enums\DocumentType;
 use App\Models\Document;
 use App\Models\Notice;
 use App\Models\Project;
@@ -15,10 +18,10 @@ class DocumentFactory extends Factory
     public function definition(): array
     {
         $combinations = [
-            [Document::TYPE_TERM,             Document::PHASE_FORMALIZATION],
-            [Document::TYPE_EXTRACT,          Document::PHASE_FORMALIZATION],
-            [Document::TYPE_JURIDICAL_OPINION, Document::PHASE_JURIDICAL],
-            [Document::TYPE_DISPATCH,          Document::PHASE_JURIDICAL],
+            [DocumentType::TERM,             DocumentPhase::FORMALIZATION],
+            [DocumentType::EXTRACT,          DocumentPhase::FORMALIZATION],
+            [DocumentType::JURIDICAL_OPINION, DocumentPhase::JURIDICAL],
+            [DocumentType::DISPATCH,          DocumentPhase::JURIDICAL],
         ];
 
         [$type, $phase] = $this->faker->randomElement($combinations);
@@ -29,7 +32,7 @@ class DocumentFactory extends Factory
             'type'       => $type,
             'phase'      => $phase,
             'body'       => $this->faker->paragraphs(2, true),
-            'status'     => Document::STATUS_DRAFT,
+            'status'     => DocumentStatus::DRAFT,
             'created_by' => User::factory(),
         ];
     }

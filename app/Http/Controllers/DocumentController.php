@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\Document\DocumentStoreRequest;
+use App\Http\Requests\Document\DocumentUpdateRequest;
 use App\Models\Document;
 use App\Models\User;
 use App\Services\Documents\DocumentService;
@@ -46,25 +47,16 @@ class DocumentController extends Controller
         return response()->json($document->load('images'));
     }
 
-    public function update(Request $request, Document $document): JsonResponse
+    public function update(DocumentUpdateRequest $request, Document $document): JsonResponse
     {
-        $validated = $request->validate([
-            'body'             => 'nullable|string',
-            'status'           => 'nullable|string',
-            'images'           => 'nullable|array',
-            'images.*.section' => 'required_with:images|in:header,footer',
-            'images.*.position'=> 'required_with:images|in:left,center,right',
-            'images.*.path'    => 'required_with:images|string',
-        ]);
-
-        $document = $this->documentService->update($document, $validated);
+        $document = $this->documentService->update($document, $request->validated());
 
         return response()->json($document->load('images'));
     }
 
     public function destroy(Document $document): JsonResponse
     {
-        $this->documentService->delete($document);
+        $document->delete();
 
         return response()->json(null, 204);
     }
