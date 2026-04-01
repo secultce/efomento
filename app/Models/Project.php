@@ -140,4 +140,9 @@ class Project extends Model  implements Auditable
     {
         return $this->hasOne(LegalAnalysis::class);
     }
+
+    public function budget(): HasOne
+    {
+        return $this->hasOne(Budget::class);
+    }
 }
