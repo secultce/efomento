@@ -4,10 +4,12 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\Document\DocumentStoreRequest;
 use App\Http\Requests\Document\DocumentUpdateRequest;
+use App\Http\Resources\DocumentResource;
 use App\Models\Document;
 use App\Services\Documents\DocumentService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 use InvalidArgumentException;
 
 class DocumentController extends Controller
@@ -16,7 +18,7 @@ class DocumentController extends Controller
         private readonly DocumentService $documentService
     ) {}
 
-    public function index(Request $request): JsonResponse
+    public function index(Request $request): AnonymousResourceCollection
     {
         $documents = $this->documentService->getByContext(
             noticeId:  $request->integer('notice_id') ?: null,
@@ -25,32 +27,32 @@ class DocumentController extends Controller
             phase:     $request->string('phase')->toString() ?: null,
         );
 
-        return response()->json($documents);
+        return DocumentResource::collection($documents);
     }
 
-    public function store(DocumentStoreRequest $request): JsonResponse
+    public function store(DocumentStoreRequest $request): DocumentResource|JsonResponse
     {
-        $validated = $request->validated();
-
         try {
-            $document = $this->documentService->create($validated, $request->user()->id);
+            $document = $this->documentService->create($request->validated(), $request->user()->id);
         } catch (InvalidArgumentException $e) {
             return response()->json(['message' => $e->getMessage()], 422);
         }
 
-        return response()->json($document->load('images'), 201);
+        return DocumentResource::make($document->load('images'))
+            ->response()
+            ->setStatusCode(201);
     }
 
-    public function show(Document $document): JsonResponse
+    public function show(Document $document): DocumentResource
     {
-        return response()->json($document->load('images'));
+        return DocumentResource::make($document->load('images'));
     }
 
-    public function update(DocumentUpdateRequest $request, Document $document): JsonResponse
+    public function update(DocumentUpdateRequest $request, Document $document): DocumentResource
     {
         $document = $this->documentService->update($document, $request->validated());
 
-        return response()->json($document->load('images'));
+        return DocumentResource::make($document->load('images'));
     }
 
     public function destroy(Document $document): JsonResponse
