@@ -5,7 +5,6 @@ namespace App\Http\Controllers;
 use App\Http\Requests\Document\DocumentStoreRequest;
 use App\Http\Requests\Document\DocumentUpdateRequest;
 use App\Models\Document;
-use App\Models\User;
 use App\Services\Documents\DocumentService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -34,7 +33,7 @@ class DocumentController extends Controller
         $validated = $request->validated();
 
         try {
-            $document = $this->documentService->create($validated, User::find(214)?->id ?? auth()->id());
+            $document = $this->documentService->create($validated, $request->user()->id);
         } catch (InvalidArgumentException $e) {
             return response()->json(['message' => $e->getMessage()], 422);
         }
