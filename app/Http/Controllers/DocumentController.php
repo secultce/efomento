@@ -10,7 +10,6 @@ use App\Services\Documents\DocumentService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
-use InvalidArgumentException;
 
 class DocumentController extends Controller
 {
@@ -30,13 +29,9 @@ class DocumentController extends Controller
         return DocumentResource::collection($documents);
     }
 
-    public function store(DocumentStoreRequest $request): DocumentResource|JsonResponse
+    public function store(DocumentStoreRequest $request): JsonResponse
     {
-        try {
-            $document = $this->documentService->create($request->validated(), $request->user()->id);
-        } catch (InvalidArgumentException $e) {
-            return response()->json(['message' => $e->getMessage()], 422);
-        }
+        $document = $this->documentService->create($request->validated(), $request->user()->id);
 
         return DocumentResource::make($document->load('images'))
             ->response()

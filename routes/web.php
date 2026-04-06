@@ -41,7 +41,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
             'store' => 'notices.store',
             'show' => 'notices.show',
             'edit' => 'notices.edit',
-        'update' => 'notices.update',
+            'update' => 'notices.update',
             'destroy' => 'notices.destroy',
         ]);
 

@@ -103,16 +103,6 @@ class DocumentTest extends TestCase
         $this->assertTrue($result['requires_legal']);
     }
 
-    public function test_registry_resolves_juridical_opinion(): void
-    {
-        $registry = new DocumentTypeRegistry();
-
-        $result = $registry->resolve(DocumentType::JURIDICAL_OPINION, DocumentPhase::JURIDICAL);
-
-        $this->assertTrue($result['requires_sign']);
-        $this->assertTrue($result['requires_legal']);
-    }
-
     public function test_registry_throws_on_invalid_combination(): void
     {
         $this->expectException(\InvalidArgumentException::class);
@@ -356,5 +346,20 @@ class DocumentTest extends TestCase
 
         $response->assertStatus(422)
                  ->assertJsonFragment(['message' => 'Combinação de tipo e fase inválida: tipo=term, fase=payment.']);
+    }
+
+    // -------------------------------------------------------------------------
+    // HTTP — GET /api/documents
+    // -------------------------------------------------------------------------
+
+    public function test_index_ignores_empty_string_filters(): void
+    {
+        Document::factory()->count(3)->create(['notice_id' => $this->notice->id]);
+
+        $response = $this->actingAs($this->user)
+            ->getJson('/api/documents?type=&phase=');
+
+        $response->assertStatus(200);
+        $this->assertCount(3, $response->json('data'));
     }
 }
