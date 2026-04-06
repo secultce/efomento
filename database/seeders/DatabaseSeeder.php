@@ -22,6 +22,7 @@ class DatabaseSeeder extends Seeder
             UserSeeder::class,
             AgentSeeder::class,
             LegalAnalysisSeeder::class,
+            BudgetSeeder::class,
         ]);
     }
 }
