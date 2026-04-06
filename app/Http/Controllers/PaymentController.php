@@ -4,46 +4,42 @@ namespace App\Http\Controllers;
 
 use App\Models\Payment;
 use Illuminate\Http\Request;
+use App\Http\Resources\PaymentResource;
+use App\Http\Requests\Payment\PaymentStoreRequest;
+use App\Http\Requests\Payment\PaymentUpdateRequest;
 
 class PaymentController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
     public function index()
     {
-        //
+
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
-    public function store(Request $request)
+    public function store(PaymentStoreRequest $request)
     {
-        //
+        $payment = Payment::create($request->validated());
+
+        return new PaymentResource($payment->load('project'));
     }
 
-    /**
-     * Display the specified resource.
-     */
     public function show(Payment $payment)
     {
-        //
+        return new PaymentResource($payment->load('project'));
     }
 
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, Payment $payment)
+    public function update(PaymentUpdateRequest $request, Payment $payment)
     {
-        //
+        $payment->update($request->validated());
+
+        return new PaymentResource($payment->load('project'));
     }
 
-    /**
-     * Remove the specified resource from storage.
-     */
     public function destroy(Payment $payment)
     {
-        //
+        $payment->delete();
+
+        return response()->json([
+            'message' => 'Pagamento removido com sucesso.',
+        ]);
     }
 }

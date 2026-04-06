@@ -2,28 +2,47 @@
 
 namespace App\Http\Requests\Payment;
 
-use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class PaymentStoreRequest extends FormRequest
 {
-    /**
-     * Determine if the user is authorized to make this request.
-     */
     public function authorize(): bool
     {
-        return false;
+        return true;
     }
 
-    /**
-     * Get the validation rules that apply to the request.
-     *
-     * @return array<string, ValidationRule|array<mixed>|string>
-     */
     public function rules(): array
     {
         return [
-            //
+            'project_id' => [
+                'required',
+                'integer',
+                'exists:projects,id',
+                Rule::unique('payments', 'project_id'),
+            ],
+
+            'creditor_requested_at' => [
+                'nullable',
+                'date',
+            ],
+
+            'creditor_registration_number' => [
+                'nullable',
+                'string',
+                'max:50',
+            ],
+
+            'communication_sent_at' => [
+                'nullable',
+                'date',
+                'after_or_equal:creditor_requested_at',
+            ],
+
+            'contact_notes' => [
+                'nullable',
+                'string',
+            ],
         ];
     }
 }

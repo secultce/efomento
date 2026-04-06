@@ -7,9 +7,6 @@ use Illuminate\Http\Resources\Json\JsonResource;
 
 class PaymentResource extends JsonResource
 {
-    /**
-     * Transform the resource into an array.
-     */
     public function toArray(Request $request): array
     {
         return [
@@ -24,6 +21,11 @@ class PaymentResource extends JsonResource
 
             'created_at' => $this->created_at?->toISOString(),
             'updated_at' => $this->updated_at?->toISOString(),
+
+            'project' => $this->whenLoaded('project', fn ($project) => [
+                'id' => $project->id,
+                'name' => $project->name,
+            ]),
         ];
     }
 }
