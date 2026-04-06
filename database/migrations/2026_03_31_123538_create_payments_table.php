@@ -12,17 +12,18 @@ return new class extends Migration
             $table->foreignId('project_id')
                 ->unique()
                 ->constrained()
-                ->nullOnDelete();
+                ->cascadeOnDelete();
             $table->date('creditor_requested_at')->nullable();
-            $table->string('creditor_status')->nullable();
             $table->string('creditor_registration_number')->nullable();
             $table->date('communication_sent_at')->nullable();
             $table->text('contact_notes')->nullable();
+            $table->timestamps();
+            $table->softDeletes();
         });
     }
 
     public function down(): void
     {
-        Schema::dropIfExists('payment_processes');
+        Schema::dropIfExists('payments');
     }
 };

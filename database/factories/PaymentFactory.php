@@ -10,7 +10,6 @@ class PaymentProcessFactory extends Factory
     {
         return [
             'creditor_requested_at' => $this->faker->date(),
-            'creditor_status' => $this->faker->randomElement(['pending', 'approved', 'rejected']),
             'creditor_registration_number' => $this->faker->numerify('########'),
             'communication_sent_at' => $this->faker->date(),
             'contact_notes' => $this->faker->sentence(),
