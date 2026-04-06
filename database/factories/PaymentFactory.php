@@ -12,7 +12,7 @@ class PaymentFactory extends Factory
     public function definition(): array
     {
         return [
-            'project_id' => Project::factory(), // 👈 FIX
+            'project_id' => Project::factory(),
 
             'creditor_requested_at' => $this->faker->date(),
             'creditor_registration_number' => $this->faker->numerify('########'),
