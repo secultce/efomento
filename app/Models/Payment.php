@@ -14,6 +14,7 @@ class Payment extends Model
     use HasFactory, SoftDeletes;
 
     protected $fillable = [
+        'project_id',
         'creditor_requested_at',
         'creditor_registration_number',
         'communication_sent_at',
