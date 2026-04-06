@@ -13,7 +13,6 @@ class PaymentFactory extends Factory
     {
         return [
             'project_id' => Project::factory(),
-
             'creditor_requested_at' => $this->faker->date(),
             'creditor_registration_number' => $this->faker->numerify('########'),
             'communication_sent_at' => $this->faker->date(),
