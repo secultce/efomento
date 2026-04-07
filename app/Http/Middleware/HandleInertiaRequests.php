@@ -36,6 +36,17 @@ class HandleInertiaRequests extends Middleware
                 'roles' => $request->user()?->getRoleNames() ?? [],
                 'permissions' => $request->user()?->getAllPermissions()->pluck('name') ?? [],
             ],
+            'notifications' => function () use ($request) {
+                if (!$request->user()) return [];
+
+                return $request->user()
+                    ->unreadNotifications
+                    ->map(fn ($notification) => [
+                        'id' => $notification->id,
+                        'data' => $notification->data,
+                        'created_at' => $notification->created_at,
+                    ]);
+            },
         ];
     }
 }
