@@ -1,13 +1,13 @@
 import { elements as el} from "./elements"
 
 class Login{
-    
+
     acessarPaginaDeLogin() {
         cy.visit('/login')
     }
 
     acessarPaginaDeEditais() {
-        cy.visit('/editais')  
+        cy.visit('/editais')
     }
 
     loginComSucesso(email, password, name) {
@@ -15,21 +15,22 @@ class Login{
           .type(email)
         cy.get(el.inputPassword)
           .type(password)
-        cy.get(el.loginButton)
+        cy.get(el.btnLogin)
           .should('be.visible')
           .click()
         cy.url()
-          .should('be.equal', `${Cypress.config("baseUrl")}/editais`)  
+          .should('be.equal', `${Cypress.config("baseUrl")}/editais`)
         cy.contains(el.welcomeMessage + name)
           .should('be.visible')
+
     }
 
     loginComSenhaIncorreta(email, password) {
         cy.get(el.inputEmail)
           .type(email)
         cy.get(el.inputPassword)
-          .type(password)            
-        cy.get(el.loginButton)
+          .type(password)
+        cy.get(el.btnLogin)
           .should('be.visible')
           .click()
         cy.get('p')
@@ -44,7 +45,7 @@ class Login{
           .and('include', { valid: false})
         cy.get(el.inputPassword)
           .type(password)
-        cy.get('button').contains('Entrar')
+        cy.get(el.btnLogin)
           .should('be.visible')
           .click()
     }
@@ -55,9 +56,19 @@ class Login{
     }
 
     validarQueLogoutRedirecionaParaLogin() {
-        cy.get('span>.v-avatar')
+        cy.get(el.btnUserAvatar)
           .click()
-        cy.contains('Sair')
+        cy.get(el.btnLogout)
+          .should('be.visible')
+          .click()
+        cy.url()
+          .should('be.equal', `${Cypress.config("baseUrl")}/`)
+    }
+
+    deslogar() {
+        cy.get(el.btnUserAvatar)
+          .click()
+        cy.get(el.btnLogout)
           .should('be.visible')
           .click()
         cy.url()
