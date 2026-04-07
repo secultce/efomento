@@ -24,7 +24,7 @@ class NotifyTest extends TestCase
     }
 
     #[Test]
-    public function notify_is_not_a_singleton()
+    public function it_is_not_a_singleton()
     {
         $instance1 = app(Notify::class);
         $instance2 = app(Notify::class);
@@ -33,7 +33,7 @@ class NotifyTest extends TestCase
     }
 
     #[Test]
-    public function notify_does_not_leak_state_between_resolutions()
+    public function it_does_not_leak_state_between_resolutions()
     {
         Notification::fake();
 
