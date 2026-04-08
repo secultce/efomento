@@ -24,6 +24,7 @@ class DatabaseSeeder extends Seeder
             LegalAnalysisSeeder::class,
             BudgetSeeder::class,
             PaymentSeeder::class,
+            MonitoringSeeder::class,
         ]);
     }
 }
