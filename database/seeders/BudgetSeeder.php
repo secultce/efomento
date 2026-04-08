@@ -3,6 +3,7 @@
 namespace Database\Seeders;
 
 use App\Models\Budget;
+use App\Models\Installment;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 
@@ -15,7 +16,19 @@ class BudgetSeeder extends Seeder
     {
         Budget::factory()
             ->count(10)
-            ->hasInstallments(rand(1, 5)) // cria parcelas automaticamente
-            ->create();
+            ->create()
+            ->each(function ($budget) {
+                $count = rand(1, 5);
+
+                $budget->installments()->createMany(
+                    Installment::factory()
+                        ->count($count)
+                        ->sequence(fn ($sequence) => [
+                            'installment_number' => $sequence->index + 1,
+                        ])
+                        ->make()
+                        ->toArray()
+                );
+            });
     }
 }

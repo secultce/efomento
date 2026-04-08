@@ -23,6 +23,7 @@ class DatabaseSeeder extends Seeder
             AgentSeeder::class,
             LegalAnalysisSeeder::class,
             BudgetSeeder::class,
+            PaymentSeeder::class,
         ]);
     }
 }
