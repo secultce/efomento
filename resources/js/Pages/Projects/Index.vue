@@ -5,6 +5,7 @@ import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue'
 import ProjectList from '@/Pages/Projects/Partials/ProjectList.vue'
 import PhaseFilter from '@/Pages/Projects/Partials/PhaseFilter.vue'
 import ProjectNoticeEdit from '@/Pages/Projects/Partials/ProjectNoticeEdit.vue'
+import ProjectActions from '@/Pages/Projects/Partials/ProjectActions.vue'
 import { Head, router } from '@inertiajs/vue3'
 import { ref } from 'vue'
 
@@ -113,7 +114,7 @@ const selectedProjects = ref([])
             @update:search="onSearch" @clearPhaseFilter="clearPhaseFilter" />
         </div>
         <div class="row-span-2 col-start-4 row-start-2">
-          <!--area do CI-->
+          <ProjectActions />
         </div>
       </div>
     </AppContainer>
