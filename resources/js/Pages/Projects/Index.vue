@@ -14,7 +14,8 @@ const props = defineProps({
   projects: Array,
   filters: Object,
   phases: Array,
-  instrumentTypes: Array
+  instrumentTypes: Array,
+  supervisors_available: Array,
 })
 
 const search = ref(props.filters?.search ?? '')
@@ -91,6 +92,7 @@ const tableConfig = {
   chips,
   data,
   actions,
+  isSelectable: (item) => item.openings_count > 0,
 }
 
 const selectedProjects = ref([])
@@ -114,7 +116,7 @@ const selectedProjects = ref([])
             @update:search="onSearch" @clearPhaseFilter="clearPhaseFilter" />
         </div>
         <div class="row-span-2 col-start-4 row-start-2">
-          <ProjectActions />
+          <ProjectActions :selected-projects="selectedProjects" :projects="projects" :supervisors_available="supervisors_available"/>
         </div>
       </div>
     </AppContainer>

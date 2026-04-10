@@ -7,6 +7,9 @@ use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
 use Inertia\Response;
 use App\Models\Notice;
+use App\Models\User;
+use App\Models\Project;
+use App\Models\OpeningSupervisor;
 use App\Enums\ProjectPhase;
 use App\Enums\InstrumentType;
 
@@ -15,7 +18,7 @@ class ProjectController extends Controller
     public function index(Request $request, Notice $notice)
     {
         $query = $notice->projects()
-            ->with(['agent', 'category', 'opening'])
+            ->with(['agent', 'category', 'opening', 'opening.supervisors'])
             ->withCount('openings')
             ->filterPhase($request->phase)
             ->search($request->search);
@@ -30,31 +33,45 @@ class ProjectController extends Controller
                 'title' => $phase->label(),
                 'total' => $phase->count($query),
             ]),
+            'supervisors_available' => User::select('id', 'name')->get(),
         ]);
     }
     
-    public function assignProjectSupervisor(Request $request, Notice $notice)
+    public function assignProjectSupervisor(Request $request)
     {
-        // Implement the logic to assign a supervisor to a project
-        //it will receive an array of project ids and an array of supervisor ids, and it will assign each supervisor to each project
-        $request->validate([
-            'project_ids' => 'required|array',
-            'supervisor_ids' => 'required|array',
+        $data = $request->validate([
+            'selected_projects' => 'required|array',
+            'selected_projects.*' => 'exists:projects,id',
+
+            'selected_supervisors' => 'required|array',
+            'selected_supervisors.*' => 'exists:users,id',
         ]);
-        $projectIds = $request->input('project_ids');
-        $supervisorIds = $request->input('supervisor_ids');
-        foreach ($projectIds as $projectId) {
-            foreach ($supervisorIds as $supervisorId) {
-              
-                ProjectSupervisor::create([
-                    'project_id' => $projectId,
-                    'supervisor_id' => $supervisorId,
+
+        $projects = Project::with('opening')->whereIn('id', $data['selected_projects'])->get();
+
+        foreach ($projects as $project) {
+            if(!$project->opening) {
+                continue; 
+            }
+            OpeningSupervisor::where('opening_id', $project->opening->id)
+                ->where('is_active', true)
+                ->update([
+                    'is_active' => false,
+                    'removed_at' => now(),
+                ]);
+
+            foreach ($data['selected_supervisors'] as $supervisorId) {
+                OpeningSupervisor::create([
+                    'opening_id' => $project->opening->id,
+                    'user_id' => $supervisorId,
                     'assigned_by' => Auth::id(),
                     'assigned_at' => now(),
+                    'is_active' => true,
                 ]);
             }
         }
-        return redirect()->back()->with('success', 'Supervisores atribuídos com sucesso!');
+
+        return back()->with('success', 'Supervisores atribuídos com sucesso!');
     }
 
 }

@@ -58,7 +58,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
             'update' => 'projects.update',
             'destroy' => 'projects.destroy',
         ]);
-
+    Route::post('/projetos/atribuir-fiscal', [ProjectController::class, 'assignProjectSupervisor'])
+    ->name('projects.assign-supervisors');
     Route::get('editais/{notice}/projetos', [ProjectController::class, 'index'])
         ->name('notices.projects');
     });

@@ -1,24 +1,53 @@
+<script setup>
+import {  computed, ref } from 'vue';
+import SupervisorDialog from './supervisorDialog.vue';
+
+const props = defineProps({
+    selectedProjects: Array,
+    supervisors_available: Array,
+    projects: Array,
+})
+
+
+// ─── supervisor dialog ───────────────────────────────────────────────────────────────
+const supervisorDialog = ref(false)
+function openSupervisorDialog() {
+    console.log('Opening supervisor dialog');
+    supervisorDialog.value = true
+}
+
+const hasProjectsWithSupervisor = computed(() => {
+  return props.projects
+    .filter(p => props.selectedProjects.includes(p.id))
+    .some(p => p.opening?.supervisor_id)
+})
+
+</script>
 <template>
-    <v-card class="w-full">
+    <supervisor-dialog v-model="supervisorDialog" :project-ids="selectedProjects" :supervisors="supervisors_available"/>
+    <v-card class="w-full pb-4 pt-4 !shadow-none border border-gray-800 rounded-lg">
         <v-card-title class="font-weight-bold !text-lg">Ações disponíveis para você </v-card-title>
-        <v-card-text>
+        <v-card-text class="flex flex-col gap-4">
             <!-- Add your Vuetify components here -->
-             <div class="w-full">
-                <v-btn color="primary">Criar CI</v-btn>
+             <div class="w-full pt-2 flex flex-col gap-1">
+                <p>Criar comunicação interna (CI)</p>
+                <v-btn class="w-full !shadow-none !font-bold !bg-[#ffcc05FF] !text-[#2d353fFF] rounded-lg px-4 py-2 text-xs ">Criar CI</v-btn>
             </div>
-            <v-btn color="secondary">Atribuir Fiscal</v-btn>
-            <v-btn color="secondary">Conferir Histórico</v-btn>
+            <div class="w-full pt-2 flex flex-col gap-1">
+                <p>Atribuir fiscal aos selecionados</p>
+                <v-btn class="w-full !shadow-none !font-bold !bg-[#ffcc05FF] !text-[#2d353fFF] rounded-lg px-4 py-2 text-xs" :disabled="selectedProjects.length === 0" @click="openSupervisorDialog">Atribuir Fiscal</v-btn>
+                <p
+                    v-if="hasProjectsWithSupervisor"
+                    class="text-xs text-orange-600 mt-1"
+                >
+                    Um ou mais projetos selecionados já possuem um fiscal.
+                </p>
+            </div>
+            <div class="w-full flex flex-col gap-1">
+                <v-divider class="my-4"></v-divider>
+                <p class="">Conferir histórico de alterações nos processos</p>
+                <v-btn variant="outlined" color="#004c27" class="rounded-lg w-full">Conferir Histórico</v-btn>
+            </div>
         </v-card-text>
     </v-card>
 </template>
-
-<script>
-export default {
-    name: 'ProjectActions',
-    // Add your component logic here
-}
-</script>
-
-<style scoped>
-/* Add your styles here */
-</style>
