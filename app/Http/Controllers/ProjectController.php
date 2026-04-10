@@ -53,6 +53,7 @@ class ProjectController extends Controller
             if(!$project->opening) {
                 continue; 
             }
+
             OpeningSupervisor::where('opening_id', $project->opening->id)
                 ->where('is_active', true)
                 ->update([
@@ -70,7 +71,7 @@ class ProjectController extends Controller
                 ]);
             }
         }
-
+        
         return back()->with('success', 'Supervisores atribuídos com sucesso!');
     }
 

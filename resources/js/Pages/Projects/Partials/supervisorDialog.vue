@@ -1,4 +1,3 @@
-
 <script setup>
 import { ref, computed } from 'vue'
 import { router } from '@inertiajs/vue3'
@@ -18,7 +17,7 @@ const isOpen = ref(false)
 const closeDialog = () => {
     form.value = { titularSupervisor: null, supleteSupervisor: null }
     isOpen.value = false
-     emit('update:modelValue', false)
+    emit('update:modelValue', false)
 }
 
 const form = ref({
@@ -45,9 +44,9 @@ const saveSupervisors = () => {
             form.value.titularSupervisor,
             form.value.supleteSupervisor,
         ].filter(Boolean),
-    },{
-         onSuccess: () => {
-            if(props.projectIds.length === 1) {
+    }, {
+        onSuccess: () => {
+            if (props.projectIds.length === 1) {
                 showSnackbar('Sucesso ao atribuir fiscal ao projeto', 'success')
             } else {
                 showSnackbar('Sucesso ao atribuir fiscais aos projetos', 'success')
@@ -68,31 +67,20 @@ const saveSupervisors = () => {
 defineExpose({ isOpen })
 </script>
 <template>
-    <v-dialog v-model="isOpen" max-width="600"  persistent>
+    <v-dialog v-model="isOpen" max-width="600" persistent>
         <v-card class="rounded-lg">
             <v-card-title>Atribua um fiscal aos selecionados</v-card-title>
             <v-card-text class="space-y-4">
                 <div>
                     <label for="titular" class="block text-sm font-medium mb-2">Fiscal titular</label>
-                    <v-autocomplete
-                        v-model="form.titularSupervisor"
-                        :items="availableTitulars"
-                        placeholder="Selecione um usuário"
-                        item-title="name"
-                        item-value="id"
-                    />
+                    <v-autocomplete v-model="form.titularSupervisor" :items="availableTitulars"
+                        placeholder="Selecione um usuário" item-title="name" item-value="id" />
                 </div>
 
                 <div>
                     <label for="suplente" class="block text-sm font-medium mb-2">Fiscal Suplente</label>
-                    <v-autocomplete
-                        v-model="form.supleteSupervisor"
-                        :items="availableSuplentes"
-                        item-title="name"
-                        item-value="id"
-                        placeholder="Selecione um usuário"
-                        class="w-full"
-                    />
+                    <v-autocomplete v-model="form.supleteSupervisor" :items="availableSuplentes" item-title="name"
+                        item-value="id" placeholder="Selecione um usuário" class="w-full" />
                 </div>
             </v-card-text>
 

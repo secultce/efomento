@@ -104,7 +104,7 @@ const selectedProjects = ref([])
   <Head :title="`Projetos`" />
   <AuthenticatedLayout>
     <AppSubHeader>
-      <ProjectNoticeEdit :notice="notice" :instrumentTypes="instrumentTypes"/>
+      <ProjectNoticeEdit :notice="notice" :instrumentTypes="instrumentTypes" />
     </AppSubHeader>
     <AppContainer>
       <div class="grid grid-cols-4 grid-rows-1 gap-10">
@@ -116,7 +116,8 @@ const selectedProjects = ref([])
             @update:search="onSearch" @clearPhaseFilter="clearPhaseFilter" />
         </div>
         <div class="row-span-2 col-start-4 row-start-2">
-          <ProjectActions :selected-projects="selectedProjects" :projects="projects" :supervisors_available="supervisors_available"/>
+          <ProjectActions :selected-projects="selectedProjects" :projects="projects"
+            :supervisors_available="supervisors_available" />
         </div>
       </div>
     </AppContainer>
