@@ -52,9 +52,11 @@ class ProjectController extends Controller
             ->whereIn('id', $data['selected_projects'])
             ->get();
 
-        foreach ($projects as $project) {
-            $project->opening->assignSupervisors($data['selected_supervisors']);
-        }
+        DB::transaction(function () use ($projects, $data) {
+            foreach ($projects as $project) {
+                $project->opening->assignSupervisors($data['selected_supervisors']);
+            }
+        });
 
         return back()->with('success', 'Fiscais atribuídos com sucesso!');
     }
