@@ -13,6 +13,7 @@ use App\Models\OpeningSupervisor;
 use App\Enums\ProjectPhase;
 use App\Enums\InstrumentType;
 use Illuminate\Support\Facades\DB;
+use App\Services\ProjectSupervisorService;
 
 class ProjectController extends Controller
 {
@@ -38,7 +39,7 @@ class ProjectController extends Controller
         ]);
     }
     
-    public function assignProjectSupervisor(Request $request)
+    public function assignProjectSupervisor(Request $request, ProjectSupervisorService $service)
     {
         $data = $request->validate([
             'selected_projects' => 'required|array',
@@ -49,23 +50,15 @@ class ProjectController extends Controller
         ]);
 
         try {
-            $projects = Project::with('opening')
-                ->whereIn('id', $data['selected_projects'])
-                ->get();
-
-            DB::transaction(function () use ($projects, $data) {
-                foreach ($projects as $project) {
-                    if (!$project->opening) {
-                        throw new \Exception("Projeto {$project->id} não possui abertura.");
-                    }
-
-                    $project->opening->assignSupervisors($data['selected_supervisors']);
-                }
-            });
+            $service->assign(
+                $data['selected_projects'],
+                $data['selected_supervisors']
+            );
 
             return back()->with('success', 'Fiscais atribuídos com sucesso!');
         } catch (\Throwable $e) {
             report($e);
+
             return back()->withErrors([
                 'message' => 'Erro ao atribuir fiscais. Tente novamente.',
             ]);
