@@ -135,7 +135,7 @@ class Project extends Model  implements Auditable
     {
         return $this->hasOne(Formalization::class);
     }
-  
+
     public function legalAnalysis(): HasOne
     {
         return $this->hasOne(LegalAnalysis::class);
@@ -145,9 +145,14 @@ class Project extends Model  implements Auditable
     {
         return $this->hasOne(Payment::class);
     }
-    
+
     public function budget(): HasOne
     {
         return $this->hasOne(Budget::class);
+    }
+
+    public function monitoring(): HasOne
+    {
+        return $this->hasOne(Monitoring::class);
     }
 }
