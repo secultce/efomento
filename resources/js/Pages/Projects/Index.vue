@@ -104,7 +104,6 @@ function handleSaved() {
 </script>
 
 <template>
-
   <Head :title="`Projetos`" />
   <AuthenticatedLayout>
     <AppSubHeader>
