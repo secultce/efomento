@@ -11,7 +11,6 @@ const props = defineProps({
 const supervisorDialog = ref(false)
 
 function openSupervisorDialog() {
-    console.log('Opening supervisor dialog');
     supervisorDialog.value = true
 }
 
@@ -24,7 +23,7 @@ const hasProjectsWithSupervisor = computed(() => {
 </script>
 <template>
     <supervisor-dialog v-model="supervisorDialog" :project-ids="selectedProjects"
-        :supervisors="supervisors_available" />
+        :supervisors="supervisors_available" @saved="$emit('saved')" />
     <v-card class="w-full pb-4 pt-4 !shadow-none border border-gray-800 rounded-lg">
         <v-card-title class="font-weight-bold !text-lg">Ações disponíveis para você </v-card-title>
         <v-card-text class="flex flex-col gap-4">
@@ -40,9 +39,7 @@ const hasProjectsWithSupervisor = computed(() => {
                 <v-btn
                     class="w-full !shadow-none !font-bold !bg-[#ffcc05FF] !text-[#2d353fFF] rounded-lg px-4 py-2 text-xs"
                     :disabled="selectedProjects.length === 0" @click="openSupervisorDialog">Atribuir Fiscal</v-btn>
-                <p v-if="hasProjectsWithSupervisor" class="text-xs text-orange-600 mt-1">
-                    Um ou mais projetos selecionados já possuem um fiscal.
-                </p>
+                <p v-if="hasProjectsWithSupervisor" class="text-orange-600 max-w-[22em] whitespace-normal text-xs">Um ou mais projetos selecionados já possuem um fiscal. Ao atribuir um novo fiscal, o anterior será desativado.</p>
             </div>
             <div class="w-full flex flex-col gap-1">
                 <v-divider class="my-4"></v-divider>

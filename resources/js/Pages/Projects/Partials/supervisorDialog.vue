@@ -51,8 +51,7 @@ const saveSupervisors = () => {
             } else {
                 showSnackbar('Sucesso ao atribuir fiscais aos projetos', 'success')
             }
-            close()
-            form.reset()
+            emit('saved')
         },
         onError: (errors) => {
             const message =
@@ -66,6 +65,7 @@ const saveSupervisors = () => {
 
 defineExpose({ isOpen })
 </script>
+
 <template>
     <v-dialog v-model="isOpen" max-width="600" persistent>
         <v-card class="rounded-lg">
@@ -74,7 +74,8 @@ defineExpose({ isOpen })
                 <div>
                     <label for="titular" class="block text-sm font-medium mb-2">Fiscal titular</label>
                     <v-autocomplete v-model="form.titularSupervisor" :items="availableTitulars"
-                        placeholder="Selecione um usuário" item-title="name" item-value="id" />
+                        placeholder="Selecione um usuário" item-title="name" item-value="id"  
+                    />
                 </div>
 
                 <div>
@@ -86,8 +87,8 @@ defineExpose({ isOpen })
 
             <v-card-actions>
                 <v-spacer></v-spacer>
-                <v-btn variant="text" @click="closeDialog">Cancelar</v-btn>
-                <v-btn color="primary" @click="saveSupervisors">Salvar</v-btn>
+                <v-btn variant="outlined"  color="#004c27" class="rounbed-lg" @click="closeDialog">Cancelar</v-btn>
+                <v-btn class="!shadow-none !font-bold !bg-[#ffcc05FF] !text-[#2d353fFF] rounded-lg" :disabled="!form.titularSupervisor" @click="saveSupervisors">Salvar</v-btn>
             </v-card-actions>
         </v-card>
     </v-dialog>

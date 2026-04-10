@@ -97,6 +97,10 @@ const tableConfig = {
 
 const selectedProjects = ref([])
 
+function handleSaved() {
+  selectedProjects.value = []
+}
+
 </script>
 
 <template>
@@ -117,7 +121,7 @@ const selectedProjects = ref([])
         </div>
         <div class="row-span-2 col-start-4 row-start-2">
           <ProjectActions :selected-projects="selectedProjects" :projects="projects"
-            :supervisors_available="supervisors_available" />
+            :supervisors_available="supervisors_available"  @saved="handleSaved"/>
         </div>
       </div>
     </AppContainer>
