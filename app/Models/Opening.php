@@ -74,11 +74,7 @@ class Opening extends Model implements Auditable
 
     public function assignSupervisors(array|Collection $supervisorIds): void
     {
-        if (!$this->opening) {
-            return;
-        }
-
-        OpeningSupervisor::where('opening_id', $this->opening->id)
+        OpeningSupervisor::where('opening_id', $this->id)
             ->where('is_active', true)
             ->update([
                 'is_active' => false,
@@ -88,7 +84,7 @@ class Opening extends Model implements Auditable
   
         foreach ($supervisorIds as $supervisorId) {
             OpeningSupervisor::create([
-                'opening_id' => $this->opening->id,
+                'opening_id' => $this->id,
                 'user_id' => $supervisorId,
                 'assigned_by' => Auth::id(),
                 'assigned_at' => now(),

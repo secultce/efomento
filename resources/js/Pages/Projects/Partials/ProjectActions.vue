@@ -17,7 +17,9 @@ function openSupervisorDialog() {
 const hasProjectsWithSupervisor = computed(() => {
     return props.projects
         .filter(p => props.selectedProjects.includes(p.id))
-        .some(p => p.opening?.supervisor_id)
+        .some(p => 
+            p.opening?.supervisors?.some(s => s.is_active)
+        )
 })
 
 </script>
