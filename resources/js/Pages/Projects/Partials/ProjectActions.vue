@@ -27,7 +27,6 @@ const hasProjectsWithSupervisor = computed(() => {
     <v-card class="w-full pb-4 pt-4 !shadow-none border border-gray-800 rounded-lg">
         <v-card-title class="font-weight-bold !text-lg">Ações disponíveis para você </v-card-title>
         <v-card-text class="flex flex-col gap-4">
-            <!-- Add your Vuetify components here -->
             <div class="w-full pt-2 flex flex-col gap-1">
                 <p>Criar comunicação interna (CI)</p>
                 <v-btn
