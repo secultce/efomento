@@ -48,17 +48,28 @@ class ProjectController extends Controller
             'selected_supervisors.*' => 'exists:users,id',
         ]);
 
-        $projects = Project::with('opening')
-            ->whereIn('id', $data['selected_projects'])
-            ->get();
+        try {
+            $projects = Project::with('opening')
+                ->whereIn('id', $data['selected_projects'])
+                ->get();
 
-        DB::transaction(function () use ($projects, $data) {
-            foreach ($projects as $project) {
-                $project->opening->assignSupervisors($data['selected_supervisors']);
-            }
-        });
+            DB::transaction(function () use ($projects, $data) {
+                foreach ($projects as $project) {
+                    if (!$project->opening) {
+                        throw new \Exception("Projeto {$project->id} não possui abertura.");
+                    }
 
-        return back()->with('success', 'Fiscais atribuídos com sucesso!');
+                    $project->opening->assignSupervisors($data['selected_supervisors']);
+                }
+            });
+
+            return back()->with('success', 'Fiscais atribuídos com sucesso!');
+        } catch (\Throwable $e) {
+            report($e);
+            return back()->withErrors([
+                'message' => 'Erro ao atribuir fiscais. Tente novamente.',
+            ]);
+        }
     }
 
 }
