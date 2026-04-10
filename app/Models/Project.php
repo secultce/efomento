@@ -18,6 +18,7 @@ use Illuminate\Database\Eloquent\Builder;
 use OwenIt\Auditing\Auditable as AuditableTrait;
 use OwenIt\Auditing\Contracts\Auditable;
 use App\Models\Formalization;
+use Illuminate\Support\Facades\Auth;
 
 class Project extends Model  implements Auditable
 {
@@ -144,5 +145,30 @@ class Project extends Model  implements Auditable
     public function budget(): HasOne
     {
         return $this->hasOne(Budget::class);
+    }
+
+    public function assignSupervisors(array|Collection $supervisorIds): void
+    {
+        if (!$this->opening) {
+            return;
+        }
+
+        OpeningSupervisor::where('opening_id', $this->opening->id)
+            ->where('is_active', true)
+            ->update([
+                'is_active' => false,
+                'removed_at' => now(),
+            ]);
+
+  
+        foreach ($supervisorIds as $supervisorId) {
+            OpeningSupervisor::create([
+                'opening_id' => $this->opening->id,
+                'user_id' => $supervisorId,
+                'assigned_by' => Auth::id(),
+                'assigned_at' => now(),
+                'is_active' => true,
+            ]);
+        }
     }
 }

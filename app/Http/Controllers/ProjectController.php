@@ -47,31 +47,14 @@ class ProjectController extends Controller
             'selected_supervisors.*' => 'exists:users,id',
         ]);
 
-        $projects = Project::with('opening')->whereIn('id', $data['selected_projects'])->get();
+        $projects = Project::with('opening')
+            ->whereIn('id', $data['selected_projects'])
+            ->get();
 
         foreach ($projects as $project) {
-            if(!$project->opening) {
-                continue; 
-            }
-
-            OpeningSupervisor::where('opening_id', $project->opening->id)
-                ->where('is_active', true)
-                ->update([
-                    'is_active' => false,
-                    'removed_at' => now(),
-                ]);
-
-            foreach ($data['selected_supervisors'] as $supervisorId) {
-                OpeningSupervisor::create([
-                    'opening_id' => $project->opening->id,
-                    'user_id' => $supervisorId,
-                    'assigned_by' => Auth::id(),
-                    'assigned_at' => now(),
-                    'is_active' => true,
-                ]);
-            }
+            $project->assignSupervisors($data['selected_supervisors']);
         }
-        
+
         return back()->with('success', 'Supervisores atribuídos com sucesso!');
     }
 
