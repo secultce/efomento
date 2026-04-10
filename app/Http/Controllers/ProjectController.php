@@ -55,7 +55,7 @@ class ProjectController extends Controller
             $project->assignSupervisors($data['selected_supervisors']);
         }
 
-        return back()->with('success', 'Supervisores atribuídos com sucesso!');
+        return back()->with('success', 'Fiscais atribuídos com sucesso!');
     }
 
 }
