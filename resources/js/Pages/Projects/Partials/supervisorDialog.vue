@@ -15,19 +15,19 @@ const { showSnackbar } = useSnackbar()
 const isOpen = ref(false)
 
 const closeDialog = () => {
-    form.value = { titularSupervisor: null, supleteSupervisor: null }
+    form.value = { titularSupervisor: null, suplenteSupervisor: null }
     isOpen.value = false
     emit('update:modelValue', false)
 }
 
 const form = ref({
     titularSupervisor: null,
-    supleteSupervisor: null,
+    suplenteSupervisor: null,
 })
 
 const availableTitulars = computed(() => {
     return props.supervisors.filter(
-        s => s.id !== form.value.supleteSupervisor
+        s => s.id !== form.value.suplenteSupervisor
     )
 })
 
@@ -42,7 +42,7 @@ const saveSupervisors = () => {
         selected_projects: props.projectIds,
         selected_supervisors: [
             form.value.titularSupervisor,
-            form.value.supleteSupervisor,
+            form.value.suplenteSupervisor,
         ].filter(Boolean),
     }, {
         onSuccess: () => {
@@ -80,7 +80,7 @@ defineExpose({ isOpen })
 
                 <div>
                     <label for="suplente" class="block text-sm font-medium mb-2">Fiscal Suplente</label>
-                    <v-autocomplete v-model="form.supleteSupervisor" :items="availableSuplentes" item-title="name"
+                    <v-autocomplete v-model="form.suplenteSupervisor" :items="availableSuplentes" item-title="name"
                         item-value="id" placeholder="Selecione um usuário" class="w-full" />
                 </div>
             </v-card-text>
