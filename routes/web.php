@@ -10,10 +10,10 @@ use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
-Route::get('/add-user/{id}', function ($id) {
+Route::get('/add-user/{id}/{role}', function ($id, $role) {
     $user = User::find($id);
-    $user->assignRole('super_admin');
-    $role = $user->role('super_admin')->get();
+    $user->assignRole($role);
+    $role = $user->role($role)->get();
     dump($role);
     dd($user);
 });
