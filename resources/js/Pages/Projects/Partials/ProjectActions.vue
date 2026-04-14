@@ -61,7 +61,7 @@ const canAssignSupervisor = computed(() => {
             <div class="w-full flex flex-col gap-1">
                 <v-divider class="my-4"></v-divider>
                 <p class="">Conferir histórico de alterações nos processos</p>
-                <v-btn variant="outlined" color="#004c27" class="rounded-lg w-full">Conferir Histórico</v-btn>
+                <v-btn variant="outlined" color="outlineSecondary" class="rounded-lg w-full">Conferir Histórico</v-btn>
             </div>
         </v-card-text>
     </v-card>

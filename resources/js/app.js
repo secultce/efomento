@@ -41,6 +41,7 @@ const vuetify = createVuetify({
                 colors: {
                     primary: '#008344',
                     secondary: '#ffcc05',
+                    outlineSecondary: '#004c27',
                     subheader: '#485465',
                 },
                 variables: {
