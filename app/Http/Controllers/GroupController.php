@@ -11,34 +11,34 @@ use Spatie\Permission\Models\Role;
 class GroupController extends Controller
 {
     private array $modules = [
-        'vinc_orc'     => 'Vinculação Orçamentária',
-        'termo_jur'    => 'Termo Jurídico',
-        'extrato_jur'  => 'Extrato do Termo Jurídico',
+        'budget_allocation'     => 'Vinculação Orçamentária',
+        'legal_term'    => 'Termo Jurídico',
+        'term_summary'  => 'Extrato do Termo Jurídico',
         'ci'           => 'CI',
-        'despacho'     => 'Despacho',
-        'parecer_jur'  => 'Parecer Jurídico',
-        'parecer_orc'  => 'Parecer Orçamentário',
-        'abertura'     => 'Abertura',
-        'analise_jur'  => 'Análise Jurídica',
-        'formalizacao' => 'Formalização',
-        'orcamento'    => 'Orçamento e Parcelas',
-        'pagamento'    => 'Pagamento Financeiro',
-        'usuarios'     => 'Gerenciamento de Usuários',
-        'grupos'       => 'Gerenciamento de Grupos',
+        'dispatch'     => 'Despacho',
+        'legal_opinion'  => 'Parecer Jurídico',
+        'budget_opinion'  => 'Parecer Orçamentário',
+        'opening'     => 'Abertura',
+        'legal'  => 'Análise Jurídica',
+        'formalization' => 'Formalização',
+        'budget'    => 'Orçamento e Parcelas',
+        'payment'    => 'Pagamento Financeiro',
+        'users'     => 'Gerenciamento de Usuários',
+        'groups'       => 'Gerenciamento de Grupos',
     ];
 
     private array $roleLabels = [
-        'fomento'             => 'Fomento',
-        'coord_fomento'       => 'Coord. Fomento',
-        'financeiro'          => 'Financeiro',
-        'coord_financeiro'    => 'Coord. Financeiro',
-        'juridico'            => 'Jurídico',
-        'coord_juridico'      => 'Coord. Jurídico',
-        'orcamentario'        => 'Orçamentário',
-        'coord_orcamentario'  => 'Coord. Orçamentário',
-        'monitoramento'       => 'Monitoramento',
-        'coord_monitoramento' => 'Coord. Monitoramento',
-        'acompanhamento'      => 'Acompanhamento',
+        'fomentation'             => 'Fomento',
+        'coord_fomentation'       => 'Coord. Fomento',
+        'financial'          => 'Financeiro',
+        'coord_financial'    => 'Coord. Financeiro',
+        'legal'            => 'Jurídico',
+        'coord_legal'      => 'Coord. Jurídico',
+        'budgetary'        => 'Orçamentário',
+        'coord_budgetary'  => 'Coord. Orçamentário',
+        'monitoring'       => 'Monitoramento',
+        'coord_monitoring' => 'Coord. Monitoramento',
+        'tracking'      => 'Acompanhamento',
         'super_admin'         => 'Super Admin',
     ];
 
@@ -50,6 +50,7 @@ class GroupController extends Controller
         ['key' => 'edit_any',   'label' => 'Editar outros'],
         ['key' => 'delete_own', 'label' => 'Excluir o próprio'],
         ['key' => 'delete_any', 'label' => 'Excluir outros'],
+        ['key'=> 'assign_supervisor', 'label' => 'Atribuir Supervisor'],
     ];
 
     public function index()

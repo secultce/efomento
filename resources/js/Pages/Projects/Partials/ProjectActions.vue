@@ -1,6 +1,9 @@
 <script setup>
 import { computed, ref } from 'vue';
 import SupervisorDialog from './supervisorDialog.vue';
+import { useAuth } from '@/Composables/useAuth';
+
+const { canPerform, hasRole } = useAuth()
 
 const props = defineProps({
     selectedProjects: Array,
@@ -22,6 +25,10 @@ const hasProjectsWithSupervisor = computed(() => {
         )
 })
 
+const canAssignSupervisor = computed(() => {
+    return hasRole('super_admin') || canPerform('opening.assign_supervisor');
+});
+
 </script>
 <template>
     <supervisor-dialog v-model="supervisorDialog" :project-ids="selectedProjects"
@@ -35,11 +42,20 @@ const hasProjectsWithSupervisor = computed(() => {
                     class="w-full !shadow-none !font-bold !bg-[#ffcc05FF] !text-[#2d353fFF] rounded-lg px-4 py-2 text-xs ">Criar
                     CI</v-btn>
             </div>
-            <div class="w-full pt-2 flex flex-col gap-1">
+            <div class="w-full pt-2 flex flex-col gap-1"  
+                v-permission="{
+                    condition: canAssignSupervisor,
+                    message: 'Você não tem permissão para atribuir fiscais ao projeto, contate o administrador do sistema.'
+                }"
+            >
                 <p>Atribuir fiscal aos selecionados</p>
                 <v-btn
                     class="w-full !shadow-none !font-bold !bg-[#ffcc05FF] !text-[#2d353fFF] rounded-lg px-4 py-2 text-xs"
-                    :disabled="selectedProjects.length === 0" @click="openSupervisorDialog">Atribuir Fiscal</v-btn>
+                    :disabled="!(props.selectedProjects?.length > 0) || !canAssignSupervisor"
+                    @click="openSupervisorDialog"    
+                >
+                    Atribuir Fiscal
+                </v-btn>
                 <p v-if="hasProjectsWithSupervisor" class="text-orange-600 max-w-[22em] whitespace-normal text-xs">Um ou mais projetos selecionados já possuem um fiscal. Ao atribuir um novo fiscal, o anterior será desativado.</p>
             </div>
             <div class="w-full flex flex-col gap-1">
