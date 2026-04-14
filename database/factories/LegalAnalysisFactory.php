@@ -20,8 +20,8 @@ class LegalAnalysisFactory extends Factory
     public function definition(): array
     {
         return [
-            'project_id' => Project::inRandomOrder()->first()?->id ?? Project::factory(),
-            'responsible_user_id' => User::inRandomOrder()->first()?->id ?? User::factory(),
+            'project_id' => Project::query()->inRandomOrder()->value('id') ?? Project::factory(),
+            'responsible_user_id' => User::query()->inRandomOrder()->value('id') ?? User::factory(),
             'processed_at' => $this->faker->optional()->dateTime(),
         ];
     }

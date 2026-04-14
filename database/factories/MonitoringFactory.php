@@ -23,8 +23,8 @@ class MonitoringFactory extends Factory
         $endDate = (clone $startDate)->modify('+1 year');
 
         return [
-            'project_id' => Project::inRandomOrder()->first()?->id ?? Project::factory(),
-            'created_by' => User::inRandomOrder()->first()?->id ?? User::factory(),
+            'project_id' => Project::query()->inRandomOrder()->value('id') ?? Project::factory(),
+            'created_by' => User::query()->inRandomOrder()->value('id') ?? User::factory(),
 
             'effective_date_of_the_instrument' => $startDate,
             'expiration_date_of_the_instrument' => $endDate,

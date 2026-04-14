@@ -46,6 +46,6 @@ class LegalAnalysis extends Model implements Auditable
     {
         $file = $this->files()->where('file_id', $fileId)->first();
 
-        return $file ? $file->status_id : null;
+        return $file ? $file->status : null;
     }
 }
