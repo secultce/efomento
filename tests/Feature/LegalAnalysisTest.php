@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Enums\FileStatus;
+use App\Models\File;
 use App\Models\LegalAnalysis;
 use App\Models\LegalAnalysisFile;
 use App\Models\Project;
@@ -50,10 +51,12 @@ class LegalAnalysisTest extends TestCase
 
     public function test_cannot_create_analysis_without_project()
     {
+        $user = User::factory()->create();
+
         $this->expectException(QueryException::class);
 
         LegalAnalysis::create([
-            'responsible_user_id' => 1
+            'responsible_user_id' => $user->id,
         ]);
     }
 
@@ -69,14 +72,15 @@ class LegalAnalysisTest extends TestCase
     public function test_get_file_status_returns_correct_status()
     {
         $analysis = LegalAnalysis::factory()->create();
+        $fileModel = File::factory()->create();
 
         $file = LegalAnalysisFile::factory()->create([
             'legal_analysis_id' => $analysis->id,
-            'file_id' => 123,
-            'status_id' => FileStatus::VALID,
+            'file_id' => $fileModel->id,
+            'status' => FileStatus::VALID,
         ]);
 
-        $status = $analysis->getFileStatus(123);
+        $status = $analysis->getFileStatus($fileModel->id);
 
         $this->assertEquals(FileStatus::VALID, $status);
     }

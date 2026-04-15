@@ -15,7 +15,7 @@ return new class extends Migration
             $table->id();
             $table->foreignId('legal_analysis_id')->constrained();
             $table->foreignId('file_id')->constrained();
-            $table->unsignedTinyInteger('status_id');
+            $table->string('status');
             $table->timestamps();
             $table->unique(['legal_analysis_id', 'file_id']); 
         });

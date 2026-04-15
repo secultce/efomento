@@ -5,6 +5,7 @@ namespace Database\Seeders;
 use App\Models\Budget;
 use App\Models\Installment;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
+use Illuminate\Database\Eloquent\Factories\Sequence;
 use Illuminate\Database\Seeder;
 
 class BudgetSeeder extends Seeder
@@ -18,17 +19,17 @@ class BudgetSeeder extends Seeder
             ->count(10)
             ->create()
             ->each(function ($budget) {
-                $count = rand(1, 5);
+                $totalInstallments = rand(1, 10);
 
-                $budget->installments()->createMany(
-                    Installment::factory()
-                        ->count($count)
-                        ->sequence(fn ($sequence) => [
+                Installment::factory()
+                    ->count($totalInstallments)
+                    ->state(new Sequence(
+                        fn($sequence) => [
+                            'budget_id' => $budget->id,
                             'installment_number' => $sequence->index + 1,
-                        ])
-                        ->make()
-                        ->toArray()
-                );
+                        ]
+                    ))
+                    ->create();
             });
     }
 }

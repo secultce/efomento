@@ -21,9 +21,9 @@ class LegalAnalysisFileFactory extends Factory
     public function definition(): array
     {
         return [
-            'legal_analysis_id' => LegalAnalysis::inRandomOrder()->first()?->id ?? LegalAnalysis::factory(),
-            'file_id' => File::inRandomOrder()->first()?->id ?? File::factory(),
-            'status_id' => $this->faker->randomElement(FileStatus::values()),
+            'legal_analysis_id' => LegalAnalysis::factory(),
+            'file_id' => File::factory(),
+            'status' => $this->faker->randomElement(FileStatus::values()),
         ];
     }
 }

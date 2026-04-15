@@ -16,16 +16,16 @@ class LegalAnalysisFile extends Model implements Auditable
     protected $fillable = [
         'legal_analysis_id',
         'file_id',
-        'status_id',
+        'status',
     ];
 
     protected $casts = [
-        'status_id' => FileStatus::class,
+        'status' => FileStatus::class,
     ];
 
     public function analysis(): BelongsTo
     {
-        return $this->belongsTo(LegalAnalysis::class);
+        return $this->belongsTo(LegalAnalysis::class, 'legal_analysis_id');
     }
 
     public function file(): BelongsTo
