@@ -2,21 +2,22 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Notice;
-use Inertia\Inertia;
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
+use App\Enums\InstrumentType;
 use App\Http\Requests\Notice\NoticeStoreRequest;
 use App\Http\Requests\Notice\NoticeUpdateRequest;
+use App\Models\Notice;
 use App\Services\NoticeService;
-use App\Enums\InstrumentType;
-
+use App\Services\ProjectStageService;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Inertia\Inertia;
 
 class NoticeController extends Controller
 {
-    
-
-    public function __construct(private readonly NoticeService $noticeService) {}
+    public function __construct(
+        private readonly NoticeService $noticeService,
+        private readonly ProjectStageService $stageService,
+    ) {}
 
     public function index(Request $request)
     {
@@ -57,6 +58,10 @@ class NoticeController extends Controller
     public function update(NoticeUpdateRequest $request, Notice $notice)
     {
         $notice->update($request->validated());
+
+        $notice->projects->each(
+            fn ($project) => $this->stageService->initializeForProject($project)
+        );
 
         return redirect()
             ->back()

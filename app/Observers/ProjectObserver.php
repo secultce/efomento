@@ -2,62 +2,20 @@
 
 namespace App\Observers;
 
-use App\Enums\ProjectStageSlug;
-use App\Enums\ProjectStageStatus;
-use App\Enums\ResponsibleSector;
 use App\Models\Project;
+use App\Services\ProjectStageService;
 
 class ProjectObserver
 {
+    public function __construct(private ProjectStageService $stageService) {}
+
     /**
      * Handle the Project "created" event.
      * Cria automaticamente as 6 etapas do fluxo para o projeto.
      */
     public function created(Project $project): void
     {
-        $stages = [
-            [
-                'slug' => ProjectStageSlug::ABERTURA->value,
-                'order' => 1,
-                'responsible_sector' => ResponsibleSector::C_FINALISTICA->value,
-                'status' => ProjectStageStatus::EM_ANDAMENTO->value,
-                'started_at' => now(),
-            ],
-            [
-                'slug' => ProjectStageSlug::ANALISE_JURIDICA->value,
-                'order' => 2,
-                'responsible_sector' => ResponsibleSector::ASJUR->value,
-                'status' => ProjectStageStatus::PENDENTE->value,
-            ],
-            [
-                'slug' => ProjectStageSlug::FORMALIZACAO->value,
-                'order' => 3,
-                'responsible_sector' => ResponsibleSector::C_FINALISTICA->value,
-                'status' => ProjectStageStatus::PENDENTE->value,
-            ],
-            [
-                'slug' => ProjectStageSlug::ORCAMENTO->value,
-                'order' => 4,
-                'responsible_sector' => ResponsibleSector::CODIP->value,
-                'status' => ProjectStageStatus::PENDENTE->value,
-            ],
-            [
-                'slug' => ProjectStageSlug::PAGAMENTO->value,
-                'order' => 5,
-                'responsible_sector' => ResponsibleSector::CEGEF->value,
-                'status' => ProjectStageStatus::PENDENTE->value,
-            ],
-            [
-                'slug' => ProjectStageSlug::MONITORAMENTO->value,
-                'order' => 6,
-                'responsible_sector' => ResponsibleSector::MONITORAMENTO->value,
-                'status' => ProjectStageStatus::PENDENTE->value,
-            ],
-        ];
-
-        foreach ($stages as $stage) {
-            $project->stages()->create($stage);
-        }
+        $this->stageService->initializeForProject($project);
     }
 
     /**
