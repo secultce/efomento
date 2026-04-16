@@ -5,4 +5,17 @@
 
 body {
   font-family: 'Source Sans 3', sans-serif !important;
+  /* Corrige TODOS os modais do TinyMCE dentro de dialogs */
+  .tox-tinymce-aux,
+  .tox-dialog,
+  .tox-menu,
+  .tox-dialog-wrap {
+      z-index: 99999 !important;
+  }
+
+  /* Garante que não fique preso em container estranho */
+  .tox-dialog-wrap {
+      position: fixed !important;
+  }
 }
+

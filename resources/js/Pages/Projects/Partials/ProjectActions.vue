@@ -1,7 +1,8 @@
 <script setup>
 import { computed, ref } from 'vue';
-import SupervisorDialog from './supervisorDialog.vue';
+import SupervisorDialog from '@/Pages/Projects/Partials/SupervisorDialog.vue';
 import { useAuth } from '@/Composables/useAuth';
+import CreateCIDialog from './CreateCIDialog.vue';
 
 const { canPerform, hasRole } = useAuth()
 
@@ -12,10 +13,15 @@ const props = defineProps({
 })
 
 const supervisorDialog = ref(false)
+const ciDialog = ref(false)
 
 function openSupervisorDialog() {
     supervisorDialog.value = true
 }
+
+function openCIDialog() {
+    ciDialog.value = true
+} 
 
 const hasProjectsWithSupervisor = computed(() => {
     return props.projects
@@ -29,18 +35,29 @@ const canAssignSupervisor = computed(() => {
     return hasRole('super_admin') || canPerform('opening.assign_supervisor');
 });
 
+const canCreateCi = computed(() => {
+    return hasRole('super_admin') || canPerform('ci.create');
+});
 </script>
 <template>
+    <create-c-i-dialog v-model="ciDialog" :project-ids="selectedProjects" @saved="$emit('saved')" />
     <supervisor-dialog v-model="supervisorDialog" :project-ids="selectedProjects"
         :supervisors="supervisors_available" @saved="$emit('saved')" />
     <v-card class="w-full pb-4 pt-4 !shadow-none border border-gray-800 rounded-lg">
         <v-card-title class="font-weight-bold !text-lg">Ações disponíveis para você </v-card-title>
         <v-card-text class="flex flex-col gap-4">
-            <div class="w-full pt-2 flex flex-col gap-1">
+            <div class="w-full pt-2 flex flex-col gap-1" v-permission="{
+                    condition: canCreateCi,
+                    message: 'Você não tem permissão para criar um documento de comunicação interna, contate o administrador do sistema.'
+                }">
                 <p>Criar comunicação interna (CI)</p>
                 <v-btn
-                    class="w-full !shadow-none !font-bold !bg-[#ffcc05FF] !text-[#2d353fFF] rounded-lg px-4 py-2 text-xs ">Criar
-                    CI</v-btn>
+                    class="w-full !shadow-none !font-bold !bg-[#ffcc05FF] !text-[#2d353fFF] rounded-lg px-4 py-2 text-xs"
+                    :disabled="!(props.selectedProjects?.length > 0) || !canCreateCi"
+                    @click="openCIDialog"
+                >
+                    Criar CI
+                </v-btn>
             </div>
             <div class="w-full pt-2 flex flex-col gap-1"  
                 v-permission="{

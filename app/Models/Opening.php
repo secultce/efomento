@@ -92,4 +92,19 @@ class Opening extends Model implements Auditable
             ]);
         }
     }
+
+    public function createCi(array $projectIds, string $content = ''): void
+    {
+        foreach ($projectIds as $projectId) {
+            $document = Document::create([
+                'notice_id' => null,
+                'project_id' => $projectId,
+                'type' => DocumentType::CI,
+                'phase' => DocumentPhase::DRAFT,
+                'body' => $content,
+                'status' => DocumentStatus::ACTIVE,
+                'created_by' => Auth::id(),
+            ]);
+        }
+    }
 }

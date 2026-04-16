@@ -66,5 +66,30 @@ class ProjectController extends Controller
             ]);
         }
     }
+    
+    public function createCI(Request $request)
+    {
+        $data = $request->validate([
+            'selected_projects' => 'required|array',
+            'selected_projects.*' => 'exists:projects,id',
+            'content' => 'required|string',
+        ]);
 
+        try {
+            DB::transaction(function () use ($data) {
+                foreach ($data['project_ids'] as $projectId) {
+                    $project = Project::findOrFail($projectId);
+                    $project->opening->createCI(Auth::id());
+                }
+            });
+
+            return back()->with('success', 'Comunicações internas criadas com sucesso!');
+        } catch (\Throwable $e) {
+            report($e);
+
+            return back()->withErrors([
+                'message' => 'Erro ao criar comunicações internas. Tente novamente.',
+            ]);
+        }
+    }
 }

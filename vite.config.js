@@ -1,6 +1,8 @@
 import { defineConfig, loadEnv } from 'vite';
 import laravel from 'laravel-vite-plugin';
 import vue from '@vitejs/plugin-vue';
+import { viteStaticCopy } from 'vite-plugin-static-copy'
+import path from 'path'
 
 export default defineConfig(({ mode }) => {
     const env = loadEnv(mode, process.cwd(), '');
@@ -19,7 +21,17 @@ export default defineConfig(({ mode }) => {
                     },
                 },
             }),
+            viteStaticCopy({
+                targets: [
+                    { src: 'node_modules/tinymce/*', dest: 'tinymce' }
+                ]
+            })
         ],
+        resolve: {
+            alias: {
+                '/tinymce': path.resolve(__dirname, 'node_modules/tinymce'),
+            }
+        },
         server: {
             host: '0.0.0.0',
             port: 5173,
@@ -34,7 +46,11 @@ export default defineConfig(({ mode }) => {
             },
 
             cors: {
-                origin: true,
+                origin: [
+                    'http://localhost:8080',
+                    'http://127.0.0.1:8080',
+                    env.APP_URL,
+                ].filter(Boolean),
                 credentials: true,
             },
         },

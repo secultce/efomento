@@ -14,6 +14,10 @@ import AppSubHeader from '@/Components/AppSubHeader.vue';
 import '@fontsource/source-sans-3/400.css';
 import '@fontsource/source-sans-3/700.css';
 import permission from '@/Directives/permission'
+import tinymce from 'tinymce'
+
+
+tinymce.overrideDefaults({ license_key: 'gpl' })
 
 const materialSymbols = {
     component: (props) => h('span', { class: 'material-symbols-outlined' }, props.icon),
