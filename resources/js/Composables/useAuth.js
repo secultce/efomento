@@ -11,8 +11,13 @@ export function useAuth() {
     const currentRoute = computed(() => page.props.auth?.currentRoute ?? null)
     
     const singularize = (word) => {
-        if (!word) return
-        return pluralize?.singular(word)
+        if (!word) return null
+
+        if (pluralize.isPlural(word)) {
+            return pluralize.singular(word)
+        }
+
+        return word
     }
     
     const can = (permission) => {
