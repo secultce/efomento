@@ -2,27 +2,27 @@
 
 namespace App\Models;
 
-use App\Traits\HasFiles;
-use App\Enums\Gender;
-use App\Enums\Education;
-use App\Enums\SexualOrientation;
-use App\Enums\RaceColor;
 use App\Enums\DisabilityType;
+use App\Enums\Education;
+use App\Enums\Gender;
 use App\Enums\ProjectPhase;
+use App\Enums\ProjectStageStatus;
+use App\Enums\RaceColor;
+use App\Enums\SexualOrientation;
+use App\Traits\HasFiles;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\SoftDeletes;
-use Illuminate\Database\Eloquent\Builder;
 use OwenIt\Auditing\Auditable as AuditableTrait;
 use OwenIt\Auditing\Contracts\Auditable;
-use App\Models\Formalization;
 
-class Project extends Model  implements Auditable
+class Project extends Model implements Auditable
 {
-    use HasFactory, SoftDeletes, AuditableTrait, HasFiles;
+    use AuditableTrait, HasFactory, HasFiles, SoftDeletes;
 
     protected $fillable = [
         'registration_id',
@@ -69,12 +69,12 @@ class Project extends Model  implements Auditable
         return $this->belongsTo(Category::class);
     }
 
-    public function openings()
+    public function openings(): HasMany
     {
         return $this->hasMany(Opening::class);
     }
 
-    public function opening()
+    public function opening(): HasOne
     {
         return $this->hasOne(Opening::class)
             ->latestOfMany('created_at');
@@ -100,7 +100,7 @@ class Project extends Model  implements Auditable
 
     public function scopeFilterPhase(Builder $query, ?string $phase): Builder
     {
-        if (!$phase) {
+        if (! $phase) {
             return $query;
         }
 
@@ -115,7 +115,7 @@ class Project extends Model  implements Auditable
 
     public function scopeSearch(Builder $query, ?string $search): Builder
     {
-        if (!$search) {
+        if (! $search) {
             return $query;
         }
 
@@ -132,7 +132,7 @@ class Project extends Model  implements Auditable
         });
     }
 
-    public function formalization()
+    public function formalization(): HasOne
     {
         return $this->hasOne(Formalization::class);
     }
@@ -160,5 +160,36 @@ class Project extends Model  implements Auditable
     public function documents(): HasMany
     {
         return $this->hasMany(Document::class);
+    }
+
+    public function stages(): HasMany
+    {
+        return $this->hasMany(ProjectStage::class)->orderBy('order');
+    }
+
+    public function currentStage(): HasOne
+    {
+        return $this->hasOne(ProjectStage::class)
+            ->where('status', ProjectStageStatus::EM_ANDAMENTO->value);
+    }
+
+    public function getCurrentStageName(): ?string
+    {
+        return $this->currentStage?->slug?->label();
+    }
+
+    public function getProgressPercentage(): int
+    {
+        $total = $this->stages()->count();
+
+        if ($total === 0) {
+            return 0;
+        }
+
+        $approved = $this->stages()
+            ->where('status', ProjectStageStatus::APROVADO->value)
+            ->count();
+
+        return (int) round(($approved / $total) * 100);
     }
 }
