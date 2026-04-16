@@ -13,6 +13,7 @@ import AppHeader from '@/Components/AppHeader.vue';
 import AppSubHeader from '@/Components/AppSubHeader.vue';
 import '@fontsource/source-sans-3/400.css';
 import '@fontsource/source-sans-3/700.css';
+import permission from '@/Directives/permission'
 
 const materialSymbols = {
     component: (props) => h('span', { class: 'material-symbols-outlined' }, props.icon),
@@ -40,6 +41,7 @@ const vuetify = createVuetify({
                 colors: {
                     primary: '#008344',
                     secondary: '#ffcc05',
+                    outlineSecondary: '#004c27',
                     subheader: '#485465',
                 },
                 variables: {
@@ -92,7 +94,8 @@ createInertiaApp({
 
         app.component('AppHeader', AppHeader);
         app.component('AppSubHeader', AppSubHeader);
-
+        app.directive('permission', permission);
+        
         return app.mount(el);
     },
 

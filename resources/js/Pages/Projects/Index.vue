@@ -5,6 +5,7 @@ import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue'
 import ProjectList from '@/Pages/Projects/Partials/ProjectList.vue'
 import PhaseFilter from '@/Pages/Projects/Partials/PhaseFilter.vue'
 import ProjectNoticeEdit from '@/Pages/Projects/Partials/ProjectNoticeEdit.vue'
+import ProjectActions from '@/Pages/Projects/Partials/ProjectActions.vue'
 import { Head, router } from '@inertiajs/vue3'
 import { ref } from 'vue'
 
@@ -13,7 +14,8 @@ const props = defineProps({
   projects: Array,
   filters: Object,
   phases: Array,
-  instrumentTypes: Array
+  instrumentTypes: Array,
+  supervisors_available: Array,
 })
 
 const search = ref(props.filters?.search ?? '')
@@ -90,18 +92,22 @@ const tableConfig = {
   chips,
   data,
   actions,
+  isSelectable: (item) => item.openings_count > 0,
 }
 
 const selectedProjects = ref([])
 
+function handleSaved() {
+  selectedProjects.value = []
+}
+
 </script>
 
 <template>
-
   <Head :title="`Projetos`" />
   <AuthenticatedLayout>
     <AppSubHeader>
-      <ProjectNoticeEdit :notice="notice" :instrumentTypes="instrumentTypes"/>
+      <ProjectNoticeEdit :notice="notice" :instrumentTypes="instrumentTypes" />
     </AppSubHeader>
     <AppContainer>
       <div class="grid grid-cols-4 grid-rows-1 gap-10">
@@ -113,7 +119,8 @@ const selectedProjects = ref([])
             @update:search="onSearch" @clearPhaseFilter="clearPhaseFilter" />
         </div>
         <div class="row-span-2 col-start-4 row-start-2">
-          <!--area do CI-->
+          <ProjectActions :selected-projects="selectedProjects" :projects="projects"
+            :supervisors_available="supervisors_available"  @saved="handleSaved"/>
         </div>
       </div>
     </AppContainer>

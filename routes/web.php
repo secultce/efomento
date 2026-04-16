@@ -10,11 +10,10 @@ use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
-Route::get('/add-user', function () {
-    $user = User::find(11);
-    $user->assignRole('juridico');
-    $role = $user->role('juridico')->get();
-
+Route::get('/add-user/{id}/{role}', function ($id, $role) {
+    $user = User::find($id);
+    $user->assignRole($role);
+    $role = $user->role($role)->get();
     dump($role);
     dd($user);
 });
@@ -58,7 +57,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
             'update' => 'projects.update',
             'destroy' => 'projects.destroy',
         ]);
-
+    Route::post('/projetos/atribuir-fiscal', [ProjectController::class, 'assignProjectSupervisor'])
+    ->name('projects.assign-supervisors');
     Route::get('editais/{notice}/projetos', [ProjectController::class, 'index'])
         ->name('notices.projects');
     });

@@ -24,8 +24,9 @@
     "dependencies": {
         "@fontsource/source-sans-3": "^5.2.9",
         "@mdi/font": "^7.4.47",
-        "extenso": "^2.1.0",
         "dotenv": "^17.3.1",
+        "extenso": "^2.1.0",
+        "pluralize": "^8.0.0",
         "vuetify": "^3.11.8"
     },
     "name": "efomento",

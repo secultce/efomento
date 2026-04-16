@@ -34,6 +34,11 @@ const props = defineProps({
 
   selectable: { type: Boolean, default: false },
 
+  isSelectable: {
+    type: Function,
+    default: () => true,
+  },
+
   modelValue: {
     type: Array,
     default: () => [],
@@ -48,6 +53,8 @@ const selected = computed({
 })
 
 function toggle(item) {
+  if (!props.isSelectable(item)) return
+  
   const exists = selected.value.includes(item.id)
 
   if (exists) {
@@ -72,7 +79,7 @@ function runAction(action, item) {
       rounded="lg" variant="outlined">
       <!-- LEFT: Checkbox + Reference -->
       <div class="d-flex items-center ga-2">
-        <v-checkbox v-if="selectable" :model-value="isChecked(item)" @update:model-value="() => toggle(item)"
+        <v-checkbox v-if="selectable" :model-value="isChecked(item)" @update:model-value="() => toggle(item)"  :disabled="!isSelectable(item)"
           hide-details density="compact" class="mr-3" />
         <div class="w-[15em] flex-shrink-0">
           <div class="text-caption text-[#3b3b3cFF]">
