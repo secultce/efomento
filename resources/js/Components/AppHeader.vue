@@ -57,6 +57,7 @@ const logout = () => router.post(route('logout'))
                         variant="text"
                         color="white"
                         class="px-3"
+                        data-cy="btnUserAvatar"
                     >
                         <v-avatar size="32" color="white" class="mr-2">
                             <v-img
@@ -82,6 +83,7 @@ const logout = () => router.post(route('logout'))
                     <v-list-item
                         :href="route('profile.edit')"
                         prepend-icon="mdi-account-outline"
+                        data-cy="btnUserAvatar"
                     >
                         Minha conta
                     </v-list-item>
@@ -90,6 +92,7 @@ const logout = () => router.post(route('logout'))
                         prepend-icon="mdi-logout"
                         base-color="error"
                         @click="logout"
+                        data-cy="btnLogout"
                     >
                         Sair
                     </v-list-item>

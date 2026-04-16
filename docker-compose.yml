@@ -63,7 +63,22 @@ services:
       timeout: 5s
       retries: 10
       start_period: 30s
-
+  queue:
+      build:
+        context: ./docker/php
+        dockerfile: Dockerfile
+        args:
+          UID: ${UID}
+          GID: ${GID}
+      container_name: efomento-queue
+      volumes:
+        - .:/var/www
+      depends_on:
+        postgres:
+          condition: service_healthy
+      command: php artisan queue:listen
+      networks:
+        - efomento
 networks:
   efomento:
     driver: bridge

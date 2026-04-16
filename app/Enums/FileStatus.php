@@ -5,12 +5,12 @@ namespace App\Enums;
 use App\Enums\Concerns\HasOptions;
 use App\Enums\Contracts\HasLabel;
 
-enum FileStatus: int implements HasLabel
+enum FileStatus: string implements HasLabel
 {
     use HasOptions;
 
-    case VALID = 1;
-    case INVALID = 2;
+    case VALID = 'valid';
+    case INVALID = 'invalid';
 
     public function label(): string
     {

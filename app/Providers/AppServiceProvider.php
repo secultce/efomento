@@ -8,6 +8,8 @@ use App\Models\Project;
 use Illuminate\Database\Eloquent\Relations\Relation;
 use Illuminate\Support\Facades\Vite;
 use Illuminate\Support\ServiceProvider;
+use App\Observers\NoticeObserver;
+use App\Support\Notify;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -17,6 +19,7 @@ class AppServiceProvider extends ServiceProvider
     public function register(): void
     {
         //
+        $this->app->bind(Notify::class);
     }
 
     /**
@@ -31,5 +34,7 @@ class AppServiceProvider extends ServiceProvider
             'project' => Project::class,
             'opening' => Opening::class,
         ]);
+
+        Notice::observe(NoticeObserver::class);
     }
 }

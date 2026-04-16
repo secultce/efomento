@@ -38,6 +38,17 @@ class HandleInertiaRequests extends Middleware
                 'permissions' => $request->user()?->getAllPermissions()->pluck('name') ?? [],
                 'currentRoute' => Route::currentRouteName(),
             ],
+            'notifications' => function () use ($request) {
+                if (!$request->user()) return [];
+
+                return $request->user()
+                    ->unreadNotifications
+                    ->map(fn ($notification) => [
+                        'id' => $notification->id,
+                        'data' => $notification->data,
+                        'created_at' => $notification->created_at,
+                    ]);
+            },
         ];
     }
 }

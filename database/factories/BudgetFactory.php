@@ -20,8 +20,8 @@ class BudgetFactory extends Factory
     public function definition(): array
     {
         return [
-            'project_id' => Project::factory(),
-            'responsible_user_id' => User::factory(),
+            'project_id' => Project::query()->inRandomOrder()->value('id') ?? Project::factory(),
+            'responsible_user_id' => User::query()->inRandomOrder()->value('id') ?? User::factory(),
 
             'processing_date_for_codip' => $this->faker->optional()->date(),
             'processing_date_for_coafi' => $this->faker->optional()->date(),

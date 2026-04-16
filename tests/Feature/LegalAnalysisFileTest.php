@@ -16,19 +16,26 @@ class LegalAnalysisFileTest extends TestCase
 
     public function test_legal_analysis_file_relationships()
     {
-        $file = LegalAnalysisFile::factory()->create();
+        $analysis = LegalAnalysis::factory()->create();
 
-        $this->assertInstanceOf(LegalAnalysis::class, $file->analysis);
-        $this->assertInstanceOf(File::class, $file->file);
+        $legalAnalysisFile = LegalAnalysisFile::factory()->create([
+            'legal_analysis_id' => $analysis->id,
+        ]);
+
+        $this->assertInstanceOf(LegalAnalysis::class, $legalAnalysisFile->analysis);
+        $this->assertInstanceOf(File::class, $legalAnalysisFile->file);
     }
 
     public function test_status_is_casted_to_enum()
     {
+        $analysis = LegalAnalysis::factory()->create();
+
         $file = LegalAnalysisFile::factory()->create([
-            'status_id' => FileStatus::VALID,
+            'legal_analysis_id' => $analysis->id,
+            'status' => FileStatus::VALID,
         ]);
 
-        $this->assertInstanceOf(FileStatus::class, $file->status_id);
-        $this->assertEquals(FileStatus::VALID, $file->status_id);
+        $this->assertInstanceOf(FileStatus::class, $file->status);
+        $this->assertEquals(FileStatus::VALID, $file->status);
     }
 }

@@ -11,13 +11,13 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('legal_analysis_files', function (Blueprint $table) {
-            $table->id();
-            $table->foreignId('legal_analysis_id')->constrained();
-            $table->foreignId('file_id')->constrained();
-            $table->string('status');
+        Schema::create('notifications', function (Blueprint $table) {
+            $table->uuid('id')->primary();
+            $table->string('type');
+            $table->morphs('notifiable');
+            $table->text('data');
+            $table->timestamp('read_at')->nullable();
             $table->timestamps();
-            $table->unique(['legal_analysis_id', 'file_id']); 
         });
     }
 
@@ -26,6 +26,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('legal_analysis_files');
+        Schema::dropIfExists('notifications');
     }
 };

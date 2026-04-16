@@ -26,7 +26,7 @@ class InstallmentFactory extends Factory
             'justification' => $this->faker->optional()->sentence(),
             'observations' => $this->faker->optional()->paragraph(),
 
-            'installment_number' => $this->faker->optional()->numberBetween(1, 10),
+            'installment_number' => $this->faker->numberBetween(1, 10),
         ];
     }
 }
