@@ -1,5 +1,6 @@
 import { computed } from 'vue'
 import { usePage } from '@inertiajs/vue3'
+import pluralize from 'pluralize'
 
 export function useAuth() {
     const page = usePage()
@@ -9,6 +10,10 @@ export function useAuth() {
     const roles = computed(() => page.props.auth?.roles ?? [])
     const currentRoute = computed(() => page.props.auth?.currentRoute ?? null)
     
+    const singularize = (word) => {
+        return pluralize.singular(word)
+    }
+    
     const can = (permission) => {
         return permissions.value.includes(permission)
     }
@@ -17,10 +22,7 @@ export function useAuth() {
         if (!currentRoute.value) return {}
 
         const parts = currentRoute.value.split('.')
-        const singularize = (word) => {
-            if (word?.endsWith('s')) return word.slice(0, -1)
-            return word
-        }
+        
         return {
             object: singularize(parts[0]) ?? null,
             module: singularize(parts[1]) ?? null,
