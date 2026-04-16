@@ -11,7 +11,8 @@ export function useAuth() {
     const currentRoute = computed(() => page.props.auth?.currentRoute ?? null)
     
     const singularize = (word) => {
-        return pluralize.singular(word)
+        if (!word) return
+        return pluralize?.singular(word)
     }
     
     const can = (permission) => {
@@ -30,7 +31,8 @@ export function useAuth() {
             action: parts[3] ?? null,
         }
     }
-
+    
+    
     const hasRole = (role) => {
         if (Array.isArray(role)) {
             return role.some(r => roles.value.includes(r))
