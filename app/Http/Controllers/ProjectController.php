@@ -14,7 +14,7 @@ use App\Models\OpeningSupervisor;
 use App\Enums\ProjectPhase;
 use App\Enums\InstrumentType;
 use App\Services\ProjectSupervisorService;
-use App\Services\DocumentService;
+use App\Services\ProjectDocumentService;
 
 class ProjectController extends Controller
 {
@@ -68,7 +68,7 @@ class ProjectController extends Controller
         }
     }
     
-    public function createCI(Request $request, DocumentService $service)
+    public function createCI(Request $request, ProjectDocumentService $service)
     {
         $data = $request->validate([
             'selected_projects' => 'required|array',

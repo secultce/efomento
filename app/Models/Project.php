@@ -156,7 +156,7 @@ class Project extends Model  implements Auditable
         return $this->hasOne(Monitoring::class);
     }
 
-    public function documents()
+    public function documents(): HasMany
     {
         return $this->hasMany(Document::class);
     }
