@@ -99,7 +99,7 @@ class Opening extends Model implements Auditable
         $this->project->documents()->create([
             'project_id' => $this->project_id,
             'notice_id' => $this->project->notice_id,
-            'type' => 'CI',
+            'type' => 'ci',
             'body' => $content,
             'phase' => DocumentPhase::OPENING,
             'created_by' => auth()->id(),
