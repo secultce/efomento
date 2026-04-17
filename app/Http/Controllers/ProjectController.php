@@ -83,7 +83,6 @@ class ProjectController extends Controller
             );
             return back()->with('success', 'Comunicações internas criadas com sucesso!');
         } catch (\Throwable $e) {
-            dd($e);
             report($e);
             return back()->withErrors([
                 'message' => 'Erro ao criar comunicações internas. Tente novamente.',
