@@ -1,7 +1,7 @@
 <script setup>
 import { ref, computed } from 'vue'
-import { router } from '@inertiajs/vue3'
 import { useSnackbar } from '@/Composables/useSnackbar'
+import { assignSupervisor } from '@/Services/projectService'
 
 const props = defineProps({
     projectIds: Array,
@@ -38,7 +38,7 @@ const availableSuplentes = computed(() => {
 })
 
 const saveSupervisors = () => {
-    router.post('/projetos/atribuir-fiscal', {
+    assignSupervisor({
         selected_projects: props.projectIds,
         selected_supervisors: [
             form.value.titularSupervisor,

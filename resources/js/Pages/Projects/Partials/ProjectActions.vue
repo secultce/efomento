@@ -35,7 +35,7 @@ const canAssignSupervisor = computed(() => {
     return hasRole('super_admin') || canPerform('opening.assign_supervisor');
 });
 
-const canCreateCi = computed(() => {
+const canCreateCI = computed(() => {
     return hasRole('super_admin') || canPerform('ci.create');
 });
 </script>
@@ -47,13 +47,13 @@ const canCreateCi = computed(() => {
         <v-card-title class="font-weight-bold !text-lg">Ações disponíveis para você </v-card-title>
         <v-card-text class="flex flex-col gap-4">
             <div class="w-full pt-2 flex flex-col gap-1" v-permission="{
-                    condition: canCreateCi,
+                    condition: canCreateCI,
                     message: 'Você não tem permissão para criar um documento de comunicação interna, contate o administrador do sistema.'
                 }">
                 <p>Criar comunicação interna (CI)</p>
                 <v-btn
                     class="w-full !shadow-none !font-bold !bg-[#ffcc05FF] !text-[#2d353fFF] rounded-lg px-4 py-2 text-xs"
-                    :disabled="!(props.selectedProjects?.length > 0) || !canCreateCi"
+                    :disabled="!(props.selectedProjects?.length > 0) || !canCreateCI"
                     @click="openCIDialog"
                 >
                     Criar CI

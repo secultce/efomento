@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
 use Inertia\Response;
 use App\Models\Notice;
@@ -12,8 +13,8 @@ use App\Models\Project;
 use App\Models\OpeningSupervisor;
 use App\Enums\ProjectPhase;
 use App\Enums\InstrumentType;
-use Illuminate\Support\Facades\DB;
 use App\Services\ProjectSupervisorService;
+use App\Services\DocumentService;
 
 class ProjectController extends Controller
 {
@@ -67,7 +68,7 @@ class ProjectController extends Controller
         }
     }
     
-    public function createCI(Request $request)
+    public function createCI(Request $request, DocumentService $service)
     {
         $data = $request->validate([
             'selected_projects' => 'required|array',
@@ -76,17 +77,14 @@ class ProjectController extends Controller
         ]);
 
         try {
-            DB::transaction(function () use ($data) {
-                foreach ($data['project_ids'] as $projectId) {
-                    $project = Project::findOrFail($projectId);
-                    $project->opening->createCI(Auth::id());
-                }
-            });
-
+            $service->createCI(
+                $data['selected_projects'],
+                $data['content']
+            );
             return back()->with('success', 'Comunicações internas criadas com sucesso!');
         } catch (\Throwable $e) {
+            dd($e);
             report($e);
-
             return back()->withErrors([
                 'message' => 'Erro ao criar comunicações internas. Tente novamente.',
             ]);
