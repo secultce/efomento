@@ -12,7 +12,7 @@ class ProjectDocumentService
     public function createDocumentCI(array $selectedProjects, string $content)
     {
         DB::transaction(function () use ($selectedProjects, $content) {
-            $projects = Project::whereIn('id', $selectedProjects)->get();
+            $projects = Project::with('opening')->whereIn('id', $selectedProjects)->get();
 
             if(empty($content)) {
                 throw new \Exception('O conteúdo da comunicação interna não pode ser vazio.');
@@ -24,7 +24,7 @@ class ProjectDocumentService
 
             foreach ($projects as $project) {
                 if ($project->documents()->where('type', 'ci')->where('phase', 'opening')->exists()) {
-                    throw new \Exception("O projeto da inscrição {$project->registration_id} já possui uma comunicação interna para a fase de abertura.");
+                    throw new \Exception("O projeto da inscrição {$project->agent->name} já possui uma comunicação interna para a fase de abertura.");
                 }
 
                 $project->opening->createCI($content);
