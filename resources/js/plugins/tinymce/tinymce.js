@@ -13,5 +13,5 @@ import 'tinymce/plugins/table'
 import 'tinymce/plugins/code'
 import 'tinymce/plugins/image'
 import 'tinymce/plugins/wordcount'
-
+import '@/plugins/tinymce/langs/pt_BR'
 import 'tinymce/skins/ui/oxide/skin.css'

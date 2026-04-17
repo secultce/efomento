@@ -1,7 +1,7 @@
 <script setup>
 import { ref, watch } from 'vue'
 import Editor from '@tinymce/tinymce-vue'
-import '@/plugins/tinymce'
+import '@/plugins/tinymce/tinymce.js'
 
 const props = defineProps({
     modelValue: String,
@@ -38,17 +38,29 @@ const tinyBaseUrl = import.meta.env.VITE_TINYMCE_BASE_URL
             v-model="content"
             :init="{
                 base_url: tinyBaseUrl,
+                language: 'pt_BR',
+                language_url: `${tinyBaseUrl}/langs/pt_BR.js`,
                 license_key: 'gpl',
-                menubar: false,
+                menubar: 'file edit view insert format tools table help',
+                promotion: false,
                 plugins: [
-                    'link', 'lists', 'table', 'code', 'image', 'wordcount'
+                    'link', 'lists', 'table', 'code', 'image',
+                    'wordcount', 'fullscreen', 'preview',
+                    'searchreplace', 'autolink', 'directionality',
+                    'visualblocks', 'visualchars',
+                    'insertdatetime', 'media', 'help'
                 ],
                 toolbar: `
-                    undo redo |
-                    bold italic underline |
-                    bullist numlist |
-                    link table image |
-                    code
+                    undo redo | blocks fontfamily fontsize |
+                    bold italic underline strikethrough |
+                    forecolor backcolor |
+                    alignleft aligncenter alignright alignjustify |
+                    bullist numlist outdent indent |
+                    link image media table |
+                    insertdatetime |
+                    searchreplace |
+                    code preview fullscreen |
+                    removeformat help
                 `,
                 branding: false,
                 ui_container: editorWrapper,
