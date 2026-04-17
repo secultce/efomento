@@ -7,7 +7,7 @@ use App\Models\Opening;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
 
-class DocumentService
+class ProjectDocumentService
 {
     public function createDocumentCI(array $selectedProjects, string $content)
     {
