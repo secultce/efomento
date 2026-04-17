@@ -24,8 +24,6 @@ watch(() => props.modelValue, (val) => {
 })
 
 const tinyBaseUrl = import.meta.env.VITE_TINYMCE_BASE_URL
-  ? `${import.meta.env.VITE_TINYMCE_BASE_URL}/tinymce`
-  : 'http://localhost:5173/tinymce'
 </script>
 
 <template>
