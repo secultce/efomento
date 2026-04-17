@@ -23,7 +23,7 @@ class DocumentService
             }
 
             foreach ($projects as $project) {
-                if ($project->documents()->where('type', 'CI')->where('phase', 'opening')->exists()) {
+                if ($project->documents()->where('type', 'ci')->where('phase', 'opening')->exists()) {
                     throw new \Exception("O projeto da inscrição {$project->registration_id} já possui uma comunicação interna para a fase de abertura.");
                 }
 
