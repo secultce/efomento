@@ -24,7 +24,7 @@ class ProjectDocumentService
 
             foreach ($projects as $project) {
                 if ($project->documents()->where('type', 'ci')->where('phase', 'opening')->exists()) {
-                    throw new \Exception("O projeto da inscrição {$project->agent->name} já possui uma comunicação interna para a fase de abertura.");
+                    throw new \Exception("O projeto do proponente {$project->agent->name} já possui uma comunicação interna para a fase de abertura.");
                 }
 
                 $project->opening->createCI($content);
