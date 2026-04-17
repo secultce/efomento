@@ -2,6 +2,7 @@
 import { ref, computed } from 'vue'
 import { useSnackbar } from '@/Composables/useSnackbar'
 import { assignSupervisor } from '@/Services/projectService'
+import { useForm } from '@inertiajs/vue3'
 
 const props = defineProps({
     projectIds: Array,
@@ -12,28 +13,31 @@ const emit = defineEmits(['update:modelValue'])
 
 const { showSnackbar } = useSnackbar()
 
-const isOpen = ref(false)
+const isOpen = computed({
+    get: () => props.modelValue,
+    set: (val) => emit('update:modelValue', val),
+})
 
 const closeDialog = () => {
-    form.value = { titularSupervisor: null, suplenteSupervisor: null }
+    form.reset()
     isOpen.value = false
     emit('update:modelValue', false)
 }
 
-const form = ref({
+const form = useForm({
     titularSupervisor: null,
     suplenteSupervisor: null,
 })
 
 const availableTitulars = computed(() => {
     return props.supervisors.filter(
-        s => s.id !== form.value.suplenteSupervisor
+        s => s.id !== form.suplenteSupervisor
     )
 })
 
 const availableSuplentes = computed(() => {
     return props.supervisors.filter(
-        s => s.id !== form.value.titularSupervisor
+        s => s.id !== form.titularSupervisor
     )
 })
 
@@ -41,8 +45,8 @@ const saveSupervisors = () => {
     assignSupervisor({
         selected_projects: props.projectIds,
         selected_supervisors: [
-            form.value.titularSupervisor,
-            form.value.suplenteSupervisor,
+            form.titularSupervisor,
+            form.suplenteSupervisor,
         ].filter(Boolean),
     }, {
         onSuccess: () => {
@@ -88,7 +92,7 @@ defineExpose({ isOpen })
             <v-card-actions>
                 <v-spacer></v-spacer>
                 <v-btn variant="outlined"  color="#004c27" class="rounbed-lg" @click="closeDialog">Cancelar</v-btn>
-                <v-btn class="!shadow-none !font-bold !bg-[#ffcc05FF] !text-[#2d353fFF] rounded-lg" :disabled="!form.titularSupervisor" @click="saveSupervisors">Salvar</v-btn>
+                <v-btn class="!shadow-none !font-bold !bg-[#ffcc05FF] !text-[#2d353fFF] rounded-lg" :disabled="!form.titularSupervisor" :loading="form.processing" @click="saveSupervisors">Salvar</v-btn>
             </v-card-actions>
         </v-card>
     </v-dialog>
