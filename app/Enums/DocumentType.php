@@ -8,4 +8,5 @@ enum DocumentType: string
     case EXTRACT          = 'extract';
     case JURIDICAL_OPINION = 'juridical_opinion';
     case DISPATCH         = 'dispatch';
+    case CI              = 'ci';
 }

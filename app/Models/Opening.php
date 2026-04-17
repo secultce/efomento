@@ -11,6 +11,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 use App\Enums\AgentStatus;
 use App\Enums\AccountType;
 use App\Enums\OpeningStatus;
+use App\Enums\DocumentPhase;
 use OwenIt\Auditing\Auditable as AuditableTrait;
 use OwenIt\Auditing\Contracts\Auditable;
 use Illuminate\Support\Facades\Auth;
@@ -91,5 +92,17 @@ class Opening extends Model implements Auditable
                 'is_active' => true,
             ]);
         }
+    }
+
+    public function createCI(string $content): void
+    {
+        $this->project->documents()->create([
+            'project_id' => $this->project_id,
+            'notice_id' => $this->project->notice_id,
+            'type' => 'ci',
+            'body' => $content,
+            'phase' => DocumentPhase::OPENING,
+            'created_by' => auth()->id(),
+        ]);
     }
 }
