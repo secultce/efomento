@@ -77,7 +77,7 @@ class ProjectController extends Controller
         ]);
 
         try {
-            $service->createCI(
+            $service->createDocumentCI(
                 $data['selected_projects'],
                 $data['content']
             );

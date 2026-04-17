@@ -3,12 +3,13 @@
 namespace App\Services;
 use App\Models\Document;
 use App\Models\Project;
+use App\Models\Opening;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
 
 class DocumentService
 {
-    public function createCI(array $selectedProjects, string $content)
+    public function createDocumentCI(array $selectedProjects, string $content)
     {
         DB::transaction(function () use ($selectedProjects, $content) {
             $projects = Project::whereIn('id', $selectedProjects)->get();
@@ -26,14 +27,7 @@ class DocumentService
                     throw new \Exception("O projeto da inscrição {$project->registration_id} já possui uma comunicação interna para a fase de abertura.");
                 }
 
-                $document = new Document();
-                $document->project_id = $project->id;
-                $document->notice_id = $project->notice_id;
-                $document->type = 'CI';
-                $document->body = $content;
-                $document->phase = 'opening';
-                $document->created_by = auth()->id();
-                $document->save();
+                $project->opening->createCI($content);
             }
         });
     }
