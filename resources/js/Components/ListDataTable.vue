@@ -10,7 +10,7 @@ const props = defineProps({
 
   // chips (badges)
   chips: {
-    type: Array,
+    type: [Array, Function],
     default: () => [],
     // [{ label: 'CL', color: 'green' }] OR function
   },
