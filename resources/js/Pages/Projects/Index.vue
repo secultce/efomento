@@ -61,16 +61,32 @@ const reference = (item) => ({
   value: item.agent?.name ?? '-',
 })
 
-const chips = [
-  {
-    label: 'xd',
-    color: 'grey'
-  },
-  {
-    label: 'tc',
-    color: 'green',
-  },
-]
+function getChipColor(status) {
+  const map = {
+    draft: 'gray',
+    pending_signature: 'yellow',
+    signed: 'green',
+  }
+
+  return map[status] ?? 'default'
+}
+
+const chips = (item) => {
+  if (!Array.isArray(item.documents)) return []
+
+  
+  const uniqueDocs = Object.values(
+    item.documents.reduce((acc, doc) => {
+      acc[doc.type] = doc 
+      return acc
+    }, {})
+  )
+
+  return uniqueDocs.map(doc => ({
+    label: doc.type,
+    color: getChipColor(doc.status),
+  }))
+}
 
 const data = [
   {

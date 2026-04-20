@@ -68,6 +68,14 @@ function isChecked(item) {
   return selected.value.includes(item.id)
 }
 
+function resolveChips(item) {
+  if (typeof props.chips === 'function') {
+    return props.chips(item)
+  }
+
+  return props.chips
+}
+
 function runAction(action, item) {
   emit('action', { action, item })
 }
@@ -94,10 +102,10 @@ function runAction(action, item) {
       <!-- MIDDLE: Chips + Data -->
       <div class="flex-1 d-flex justify-center items-start gap-[3.5em]">
         <!-- Chips -->
-        <div v-if="chips.length" class="d-flex flex-col">
+        <div v-if="resolveChips(item).length" class="d-flex flex-col">
           <div class="text-caption opacity-0 mb-1">Label</div> <!-- fake label space -->
           <div class="d-flex gap-2">
-            <v-chip v-for="(chip, i) in chips" :key="i" size="small" rounded="full" class="h-[2em] ml-[-1.5em]"
+            <v-chip v-for="(chip, i) in resolveChips(item)" :key="i" size="small" rounded="full" class="h-[2em] ml-[-1.5em]"
               :color="typeof chip.color === 'function' ? chip.color(item) : chip.color">
               {{ typeof chip.label === 'function' ? chip.label(item) : chip.label }}
             </v-chip>
