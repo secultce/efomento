@@ -15,20 +15,22 @@ use App\Enums\ProjectPhase;
 use App\Enums\InstrumentType;
 use App\Services\ProjectSupervisorService;
 use App\Services\ProjectDocumentService;
-
+use App\Http\Resources\ProjectResource;
 class ProjectController extends Controller
 {
     public function index(Request $request, Notice $notice)
     {
         $query = $notice->projects()
-            ->with(['agent', 'category', 'opening', 'opening.supervisors'])
+            ->with(['agent', 'category', 'opening', 'opening.supervisors', 'documents'])
             ->withCount('openings')
             ->filterPhase($request->phase)
             ->search($request->search);
 
         return Inertia::render('Projects', [
             'notice' => $notice,
-            'projects' => $query->get(),
+            'projects' => ProjectResource::collection(
+                $query->get()
+            )->resolve(),
             'filters' => $request->only(['phase', 'search']),
             'instrumentTypes' => InstrumentType::values(),
             'phases' => collect(ProjectPhase::cases())->map(fn ($phase) => [

@@ -83,7 +83,7 @@ const chips = (item) => {
   )
 
   return uniqueDocs.map(doc => ({
-    label: doc.type,
+    label: doc.type_label,
     color: getChipColor(doc.status),
   }))
 }
