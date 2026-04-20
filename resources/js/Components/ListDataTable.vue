@@ -69,7 +69,6 @@ function isChecked(item) {
 }
 
 function resolveChips(item) {
-  console.log(item)
   if (typeof props.chips === 'function') {
     return props.chips(item)
   }
