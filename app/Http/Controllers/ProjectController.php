@@ -11,6 +11,7 @@ use App\Enums\InstrumentType;
 use App\Services\ProjectSupervisorService;
 use App\Services\ProjectDocumentService;
 use App\Http\Resources\ProjectResource;
+use App\Models\Project;
 
 class ProjectController extends Controller
 {

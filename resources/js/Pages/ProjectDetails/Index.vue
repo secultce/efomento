@@ -22,7 +22,7 @@ const props = defineProps({
                 </div>
             </div>
         </AppSubHeader>
-        <AppContainer>
+        <AppContainer variant="large">
             <AgentData />
         </AppContainer>
     </AuthenticatedLayout>
