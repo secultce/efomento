@@ -26,6 +26,7 @@
         "@fontsource/source-sans-3": "^5.2.9",
         "@mdi/font": "^7.4.47",
         "@tinymce/tinymce-vue": "^6.3.0",
+        "dayjs": "^1.11.20",
         "dotenv": "^17.3.1",
         "extenso": "^2.1.0",
         "pluralize": "^8.0.0",

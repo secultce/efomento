@@ -1,5 +1,5 @@
 <script setup>
-import { ref, watch } from 'vue'
+import { ref, computed } from 'vue'
 import Editor from '@tinymce/tinymce-vue'
 import '@/plugins/tinymce/tinymce.js'
 
@@ -11,16 +11,9 @@ const props = defineProps({
 
 const emit = defineEmits(['update:modelValue'])
 
-const editorWrapper = ref(null)
-
-const content = ref(props.modelValue)
-
-watch(content, (val) => {
-    emit('update:modelValue', val)
-})
-
-watch(() => props.modelValue, (val) => {
-    content.value = val
+const editorValue = computed({
+    get: () => props.modelValue,
+    set: (val) => emit('update:modelValue', val)
 })
 
 const tinyBaseUrl = import.meta.env.VITE_TINYMCE_BASE_URL
@@ -28,12 +21,12 @@ const tinyBaseUrl = import.meta.env.VITE_TINYMCE_BASE_URL
 
 <template>
     <div ref="editorWrapper">
-        <label v-if="label" class="text-subtitle-2 mb-1">
+        <label v-if="label" class="text-subtitle-2 mb-1 block">
             {{ label }}
         </label>
 
         <Editor
-            v-model="content"
+            v-model="editorValue"
             :init="{
                 base_url: tinyBaseUrl,
                 language: 'pt_BR',
@@ -61,12 +54,13 @@ const tinyBaseUrl = import.meta.env.VITE_TINYMCE_BASE_URL
                     removeformat help
                 `,
                 branding: false,
-                ui_container: editorWrapper,
-                height: 600
+                ui_container: '.editor-container', 
+                height: 500,
+                content_style: 'body { font-family:Helvetica,Arial,sans-serif; font-size:14px }'
             }"
         />
 
-        <div v-if="error" class="text-error text-caption mt-1">
+        <div v-if="error" class="text-red-600 text-caption mt-1">
             {{ error }}
         </div>
     </div>

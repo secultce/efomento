@@ -1,11 +1,8 @@
 <?php
 
 namespace App\Services;
-use App\Models\Document;
 use App\Models\Project;
-use App\Models\Opening;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Auth;
 
 class ProjectDocumentService
 {
@@ -24,9 +21,9 @@ class ProjectDocumentService
 
             foreach ($projects as $project) {
                 if ($project->documents()->where('type', 'ci')->where('phase', 'opening')->exists()) {
-                    throw new \Exception("O projeto do proponente {$project->agent->name} já possui uma comunicação interna para a fase de abertura.");
+                   $project->opening->updateCI($content);
+                   continue;
                 }
-
                 $project->opening->createCI($content);
             }
         });

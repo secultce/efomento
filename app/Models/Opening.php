@@ -105,4 +105,19 @@ class Opening extends Model implements Auditable
             'created_by' => auth()->id(),
         ]);
     }
+
+    public function updateCI(string $content): void
+    {
+        $document = $this->project->documents()
+            ->where('type', 'ci')
+            ->where('phase', DocumentPhase::OPENING)
+            ->latest()
+            ->first();
+
+        if ($document) {
+            $document->update([
+                'body' => $content,
+            ]);
+        }
+    }
 }

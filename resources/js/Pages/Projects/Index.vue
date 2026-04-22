@@ -120,6 +120,7 @@ function handleSaved() {
 </script>
 
 <template>
+
   <Head :title="`Projetos`" />
   <AuthenticatedLayout>
     <AppSubHeader>
@@ -136,7 +137,7 @@ function handleSaved() {
         </div>
         <div class="row-span-2 col-start-4 row-start-2">
           <ProjectActions :selected-projects="selectedProjects" :projects="projects"
-            :supervisors_available="supervisors_available"  @saved="handleSaved"/>
+            :supervisors_available="supervisors_available" :notice="notice" @saved="handleSaved" />
         </div>
       </div>
     </AppContainer>
