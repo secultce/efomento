@@ -170,7 +170,7 @@ class Project extends Model implements Auditable
     public function currentStage(): HasOne
     {
         return $this->hasOne(ProjectStage::class)
-            ->where('status', ProjectStageStatus::EM_ANDAMENTO->value);
+            ->where('status', ProjectStageStatus::EM_ANDAMENTO);
     }
 
     public function getCurrentStageName(): ?string
@@ -186,8 +186,8 @@ class Project extends Model implements Auditable
             return 0;
         }
 
-        $approved = $this->stages()
-            ->where('status', ProjectStageStatus::APROVADO->value)
+        $approved = $total
+            ->where('status', ProjectStageStatus::APROVADO)
             ->count();
 
         return (int) round(($approved / $total) * 100);

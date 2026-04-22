@@ -22,7 +22,15 @@ class ProjectStageService
             );
         }
 
-        $stage->approve();
+        $stage->markApproved();
+
+        $next = $stage->getNextStage();
+        if ($next) {
+            $next->update([
+                'status' => ProjectStageStatus::EM_ANDAMENTO,
+                'started_at' => now(),
+            ]);
+        }
     }
 
     public function reject(ProjectStage $stage, string $reason): void
@@ -33,6 +41,10 @@ class ProjectStageService
             );
         }
 
-        $stage->reject($reason);
+        $stage->markRejected($reason);
+
+        $stage->project->stages()
+            ->where('order', '>', $stage->order)
+            ->update(['status' => ProjectStageStatus::BLOQUEADO->value]);
     }
 }

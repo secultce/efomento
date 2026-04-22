@@ -48,33 +48,21 @@ class ProjectStage extends Model implements Auditable
         return $this->belongsTo(User::class, 'responsible_user_id');
     }
 
-    public function approve(): void
+    public function markApproved(): void
     {
         $this->update([
             'status' => ProjectStageStatus::APROVADO,
             'concluded_at' => now(),
         ]);
-
-        $next = $this->getNextStage();
-        if ($next) {
-            $next->update([
-                'status' => ProjectStageStatus::EM_ANDAMENTO,
-                'started_at' => now(),
-            ]);
-        }
     }
 
-    public function reject(string $reason): void
+    public function markRejected(string $reason): void
     {
         $this->update([
             'status' => ProjectStageStatus::REJEITADO,
             'rejection_reason' => $reason,
             'concluded_at' => now(),
         ]);
-
-        $this->project->stages()
-            ->where('order', '>', $this->order)
-            ->update(['status' => ProjectStageStatus::BLOQUEADO->value]);
     }
 
     public function canAdvance(): bool
@@ -85,7 +73,7 @@ class ProjectStage extends Model implements Auditable
 
         return $this->project->stages()
             ->where('order', '<', $this->order)
-            ->where('status', '!=', ProjectStageStatus::APROVADO->value)
+            ->where('status', '!=', ProjectStageStatus::APROVADO)
             ->doesntExist();
     }
 

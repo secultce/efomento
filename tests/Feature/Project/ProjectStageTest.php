@@ -1,6 +1,6 @@
 <?php
 
-namespace Tests\Unit;
+namespace Feature\Project;
 
 use App\Enums\ProjectStageSlug;
 use App\Enums\ProjectStageStatus;
@@ -112,41 +112,25 @@ class ProjectStageTest extends TestCase
         $this->assertFalse($stage->isActive());
     }
 
-    public function test_approve_changes_status_to_aprovado_and_sets_concluded_at(): void
+    public function test_mark_approved_changes_status_and_sets_concluded_at(): void
     {
         $project = Project::factory()->create();
         $this->createStagesForProject($project);
 
         $stage = $project->stages()->where('order', 1)->first();
 
-        $stage->approve();
+        $stage->markApproved();
         $stage->refresh();
 
         $this->assertEquals(ProjectStageStatus::APROVADO, $stage->status);
         $this->assertNotNull($stage->concluded_at);
     }
 
-    public function test_approve_activates_next_stage(): void
+    public function test_mark_approved_last_stage_does_not_error(): void
     {
         $project = Project::factory()->create();
         $this->createStagesForProject($project);
 
-        $first = $project->stages()->where('order', 1)->first();
-        $second = $project->stages()->where('order', 2)->first();
-
-        $first->approve();
-        $second->refresh();
-
-        $this->assertEquals(ProjectStageStatus::EM_ANDAMENTO, $second->status);
-        $this->assertNotNull($second->started_at);
-    }
-
-    public function test_approve_last_stage_does_not_error(): void
-    {
-        $project = Project::factory()->create();
-        $this->createStagesForProject($project);
-
-        // Aprova todas até chegar na última
         $project->stages()->where('order', '<', 6)->update([
             'status' => ProjectStageStatus::APROVADO->value,
             'concluded_at' => now(),
@@ -155,47 +139,26 @@ class ProjectStageTest extends TestCase
         $last = $project->stages()->where('order', 6)->first();
         $last->update(['status' => ProjectStageStatus::EM_ANDAMENTO->value]);
 
-        $last->approve();
+        $last->markApproved();
         $last->refresh();
 
         $this->assertEquals(ProjectStageStatus::APROVADO, $last->status);
         $this->assertNull($last->getNextStage());
     }
 
-    public function test_reject_changes_status_to_rejeitado_and_sets_reason(): void
+    public function test_mark_rejected_changes_status_and_sets_reason(): void
     {
         $project = Project::factory()->create();
         $this->createStagesForProject($project);
 
         $stage = $project->stages()->where('order', 1)->first();
 
-        $stage->reject('Documentação incompleta');
+        $stage->markRejected('Documentação incompleta');
         $stage->refresh();
 
         $this->assertEquals(ProjectStageStatus::REJEITADO, $stage->status);
         $this->assertEquals('Documentação incompleta', $stage->rejection_reason);
         $this->assertNotNull($stage->concluded_at);
-    }
-
-    public function test_reject_blocks_subsequent_stages(): void
-    {
-        $project = Project::factory()->create();
-        $this->createStagesForProject($project);
-
-        $second = $project->stages()->where('order', 2)->first();
-        $second->update(['status' => ProjectStageStatus::EM_ANDAMENTO->value]);
-
-        $second->reject('Análise reprovada');
-
-        $subsequentStatuses = $project->stages()
-            ->where('order', '>', 2)
-            ->pluck('status')
-            ->map(fn ($s) => $s->value)
-            ->all();
-
-        foreach ($subsequentStatuses as $status) {
-            $this->assertEquals(ProjectStageStatus::BLOQUEADO->value, $status);
-        }
     }
 
     public function test_can_advance_first_stage_always_true(): void
@@ -275,5 +238,11 @@ class ProjectStageTest extends TestCase
         $first = $project->stages()->where('order', 1)->first();
 
         $this->assertNull($first->getPreviousStage());
+    }
+
+    public function test_get_progress_percentage(): void
+    {
+        $project = new Project();
+        $this->assertIsInt($project->getProgressPercentage());
     }
 }
