@@ -1,11 +1,8 @@
 <?php
 
 namespace App\Services;
-use App\Models\Document;
 use App\Models\Project;
-use App\Models\Opening;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Auth;
 
 class ProjectDocumentService
 {
