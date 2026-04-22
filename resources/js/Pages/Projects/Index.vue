@@ -117,6 +117,15 @@ function handleSaved() {
   selectedProjects.value = []
 }
 
+function handleAction({ action, item }) {
+  if (action === 'open') {
+    router.get(route('notices.projects.show', {
+      notice: props.notice.id,
+      project: item.id,
+    }))
+  }
+}
+
 </script>
 
 <template>
@@ -132,7 +141,7 @@ function handleSaved() {
         </div>
         <div class="col-span-3 row-span-2 col-start-1 row-start-2 flex flex-col w-full h-full">
           <ProjectList :projects="projects" :table-config="tableConfig" v-model="selectedProjects" :search="search"
-            @update:search="onSearch" @clearPhaseFilter="clearPhaseFilter" />
+            @update:search="onSearch" @clearPhaseFilter="clearPhaseFilter" @action="handleAction"/>
         </div>
         <div class="row-span-2 col-start-4 row-start-2">
           <ProjectActions :selected-projects="selectedProjects" :projects="projects"

@@ -63,6 +63,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
         ->name('projects.create-ci');
     Route::get('editais/{notice}/projetos', [ProjectController::class, 'index'])
         ->name('notices.projects');
+    Route::get('editais/{notice}/projetos/{project}', [ProjectController::class, 'projectDetail'])
+        ->scopeBindings()
+        ->name('notices.projects.show');
     });
 
 Route::middleware('auth')->group(function () {
