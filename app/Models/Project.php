@@ -180,15 +180,14 @@ class Project extends Model implements Auditable
 
     public function getProgressPercentage(): int
     {
-        $total = $this->stages()->count();
+        $stages = $this->stages;
+        $total = $stages->count();
 
         if ($total === 0) {
             return 0;
         }
 
-        $approved = $total
-            ->where('status', ProjectStageStatus::APROVADO)
-            ->count();
+        $approved = $stages->where('status', ProjectStageStatus::APROVADO)->count();
 
         return (int) round(($approved / $total) * 100);
     }
