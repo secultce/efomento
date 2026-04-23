@@ -10,13 +10,15 @@ use App\Http\Requests\Notice\NoticeStoreRequest;
 use App\Http\Requests\Notice\NoticeUpdateRequest;
 use App\Services\NoticeService;
 use App\Enums\InstrumentType;
-
+use App\Http\Resources\AuditResource;
+use App\Services\AuditService;
 
 class NoticeController extends Controller
 {
-    
-
-    public function __construct(private readonly NoticeService $noticeService) {}
+    public function __construct(
+        private readonly NoticeService $noticeService,
+        private readonly AuditService $auditService
+    ) {}
 
     public function index(Request $request)
     {
@@ -73,5 +75,12 @@ class NoticeController extends Controller
         return redirect()
             ->route('notices.index')
             ->with('success', 'Notice deleted successfully.');
+    }
+
+    public function audits(Notice $notice)
+    {
+        $audits = $this->auditService->getAudits($notice);
+
+        return AuditResource::collection($audits);
     }
 }

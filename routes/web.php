@@ -43,6 +43,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
             'update' => 'notices.update',
             'destroy' => 'notices.destroy',
         ]);
+    Route::get('/editais/{notice}/audits', [NoticeController::class, 'audits'])
+        ->name('notices.audits');
 
     Route::resource('projetos', ProjectController::class)
         ->parameters([
@@ -63,7 +65,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
         ->name('projects.create-ci');
     Route::get('editais/{notice}/projetos', [ProjectController::class, 'index'])
         ->name('notices.projects');
-    });
+});
 
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
@@ -73,4 +75,4 @@ Route::middleware('auth')->group(function () {
     Route::put('/grupos', [GroupController::class, 'update'])->name('groups.update');
 });
 
-require __DIR__.'/auth.php';
+require __DIR__ . '/auth.php';

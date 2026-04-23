@@ -3,6 +3,10 @@ import { computed, ref } from 'vue';
 import SupervisorDialog from '@/Pages/Projects/Partials/SupervisorDialog.vue';
 import { useAuth } from '@/Composables/useAuth';
 import HandleCIDialog from './HandleCIDialog.vue';
+import Modal from '@/Components/Modal.vue';
+import axios from 'axios'
+import NoticeHistory from './NoticeHistory.vue'
+import { formatAudits } from '@/Composables/useAuditFormatter'
 
 const { canPerform, hasRole } = useAuth()
 
@@ -10,6 +14,7 @@ const props = defineProps({
     selectedProjects: Array,
     supervisors_available: Array,
     projects: Array,
+    notice: Object,
 })
 
 const supervisorDialog = ref(false)
@@ -36,7 +41,7 @@ const canCreateCI = computed(() => {
 });
 
 const selectedProjectsList = computed(() => {
-    return props.projects.filter(p => 
+    return props.projects.filter(p =>
         props.selectedProjects.includes(p.id)
     )
 })
@@ -64,8 +69,38 @@ const selectedCI = computed(() => {
 function openCIDialog() {
     ciDialog.value = true;
 }
+
+const errorMessage = ref('')
+const showError = ref(false)
+
+const audits = ref([])
+const loadingAudits = ref(false)
+const viewHistory = ref(false);
+
+const openNoticeHistory = async () => {
+    loadingAudits.value = true
+
+    try {
+        const { data } = await axios.get(`/editais/${props.notice.id}/audits`)
+        audits.value = formatAudits(data.data)
+        viewHistory.value = true
+    } catch (e) {
+        console.error(e)
+        errorMessage.value = 'Erro ao carregar o histórico. Tente novamente.'
+        showError.value = true
+    } finally {
+        loadingAudits.value = false
+    }
+}
+
+const closeModal = () => {
+    viewHistory.value = false;
+};
 </script>
 <template>
+    <v-snackbar v-model="showError" color="error" timeout="4000" location="top">
+        {{ errorMessage }}
+    </v-snackbar>
     <handle-c-i-dialog v-model="ciDialog" :project-ids="selectedProjects" :edit-data="selectedCI"
         @saved="$emit('saved')" />
     <supervisor-dialog v-model="supervisorDialog" :project-ids="selectedProjects" :supervisors="supervisors_available"
@@ -115,15 +150,44 @@ function openCIDialog() {
                     @click="openSupervisorDialog">
                     Atribuir Fiscal
                 </v-btn>
-                <p v-if="hasProjectsWithSupervisor" class="text-orange-600 max-w-[22em] whitespace-normal text-xs">Um ou
-                    mais
-                    projetos selecionados já possuem um fiscal. Ao atribuir um novo fiscal, o anterior será desativado.
+                <p v-if="hasProjectsWithSupervisor" class="text-orange-600 max-w-[22em] whitespace-normal text-xs">
+                    Um ou mais projetos selecionados já possuem um fiscal. Ao atribuir um novo fiscal, o anterior será
+                    desativado.
                 </p>
             </div>
             <div class="w-full flex flex-col gap-1">
                 <v-divider class="my-4"></v-divider>
                 <p class="">Conferir histórico de alterações nos processos</p>
-                <v-btn variant="outlined" color="outlineSecondary" class="rounded-lg w-full">Conferir Histórico</v-btn>
+                <v-btn variant="outlined" color="outlineSecondary" class="rounded-lg w-full" @click="openNoticeHistory">
+                    Conferir Histórico
+                </v-btn>
+
+                <Modal :show="viewHistory" @close="closeModal">
+                    <div class="p-6 max-h-[80vh] overflow-y-auto">
+
+                        <h3 class="text-lg font-bold mb-4">
+                            Histórico de alterações
+                        </h3>
+
+                        <div v-if="loadingAudits" class="flex justify-center">
+                            <v-progress-circular indeterminate />
+                        </div>
+
+                        <div v-else-if="audits.length === 0">
+                            <p>Nenhuma alteração encontrada.</p>
+                        </div>
+
+                        <NoticeHistory v-else :audits="audits" />
+
+                        <div class="mt-6 flex justify-end">
+                            <v-btn class="!shadow-none !bg-[#ffcc05FF] !font-bold !text-xs rounded-lg"
+                                @click="closeModal">
+                                Fechar
+                            </v-btn>
+                        </div>
+
+                    </div>
+                </Modal>
             </div>
         </v-card-text>
     </v-card>
