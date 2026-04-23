@@ -4,54 +4,49 @@ namespace App\Observers;
 
 use App\Enums\ProjectStageSlug;
 use App\Enums\ProjectStageStatus;
-use App\Enums\ResponsibleSector;
 use App\Models\Project;
 
 class ProjectObserver
 {
-    /**
-     * Handle the Project "created" event.
-     * Cria automaticamente as 6 etapas do fluxo para o projeto.
-     */
     public function created(Project $project): void
     {
         $stages = [
             [
-                'slug' => ProjectStageSlug::ABERTURA->value,
+                'slug' => ProjectStageSlug::ABERTURA,
                 'order' => 1,
-                'responsible_sector' => ResponsibleSector::C_FINALISTICA->value,
-                'status' => ProjectStageStatus::EM_ANDAMENTO->value,
+                'responsible_sector' => ['fomentation', 'coord_fomentation'],
+                'status' => ProjectStageStatus::EM_ANDAMENTO,
                 'started_at' => now(),
             ],
             [
-                'slug' => ProjectStageSlug::ANALISE_JURIDICA->value,
+                'slug' => ProjectStageSlug::ANALISE_JURIDICA,
                 'order' => 2,
-                'responsible_sector' => ResponsibleSector::ASJUR->value,
-                'status' => ProjectStageStatus::PENDENTE->value,
+                'responsible_sector' => ['financial', 'coord_financial', 'legal_analysis', 'coord_legal'],
+                'status' => ProjectStageStatus::PENDENTE,
             ],
             [
-                'slug' => ProjectStageSlug::FORMALIZACAO->value,
+                'slug' => ProjectStageSlug::FORMALIZACAO,
                 'order' => 3,
-                'responsible_sector' => ResponsibleSector::C_FINALISTICA->value,
-                'status' => ProjectStageStatus::PENDENTE->value,
+                'responsible_sector' => ['legal_analysis', 'coord_legal'],
+                'status' => ProjectStageStatus::PENDENTE,
             ],
             [
-                'slug' => ProjectStageSlug::ORCAMENTO->value,
+                'slug' => ProjectStageSlug::ORCAMENTO,
                 'order' => 4,
-                'responsible_sector' => ResponsibleSector::CODIP->value,
-                'status' => ProjectStageStatus::PENDENTE->value,
+                'responsible_sector' => ['budgetary', 'coord_budgetary'],
+                'status' => ProjectStageStatus::PENDENTE,
             ],
             [
-                'slug' => ProjectStageSlug::PAGAMENTO->value,
+                'slug' => ProjectStageSlug::PAGAMENTO,
                 'order' => 5,
-                'responsible_sector' => ResponsibleSector::CEGEF->value,
-                'status' => ProjectStageStatus::PENDENTE->value,
+                'responsible_sector' => ['financial', 'coord_financial'],
+                'status' => ProjectStageStatus::PENDENTE,
             ],
             [
-                'slug' => ProjectStageSlug::MONITORAMENTO->value,
+                'slug' => ProjectStageSlug::MONITORAMENTO,
                 'order' => 6,
-                'responsible_sector' => ResponsibleSector::MONITORAMENTO->value,
-                'status' => ProjectStageStatus::PENDENTE->value,
+                'responsible_sector' => ['monitoring', 'coord_monitoring'],
+                'status' => ProjectStageStatus::PENDENTE,
             ],
         ];
 
@@ -59,5 +54,4 @@ class ProjectObserver
             $project->stages()->create($stage);
         }
     }
-
 }

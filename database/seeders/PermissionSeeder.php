@@ -59,7 +59,7 @@ class PermissionSeeder extends Seeder
             'coord_fomentation',
             'financial',
             'coord_financial',
-            'LegalAnalysis',
+            'legal_analysis',
             'coord_legal',
             'budgetary',
             'coord_budgetary',

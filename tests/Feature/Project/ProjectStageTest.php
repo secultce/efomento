@@ -4,7 +4,6 @@ namespace Feature\Project;
 
 use App\Enums\ProjectStageSlug;
 use App\Enums\ProjectStageStatus;
-use App\Enums\ResponsibleSector;
 use App\Models\Project;
 use App\Models\ProjectStage;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -24,20 +23,20 @@ class ProjectStageTest extends TestCase
     private function createStagesForProject(Project $project): void
     {
         $definitions = [
-            [ProjectStageSlug::ABERTURA, 1, ResponsibleSector::C_FINALISTICA, ProjectStageStatus::EM_ANDAMENTO],
-            [ProjectStageSlug::ANALISE_JURIDICA, 2, ResponsibleSector::ASJUR, ProjectStageStatus::PENDENTE],
-            [ProjectStageSlug::FORMALIZACAO, 3, ResponsibleSector::C_FINALISTICA, ProjectStageStatus::PENDENTE],
-            [ProjectStageSlug::ORCAMENTO, 4, ResponsibleSector::CODIP, ProjectStageStatus::PENDENTE],
-            [ProjectStageSlug::PAGAMENTO, 5, ResponsibleSector::CEGEF, ProjectStageStatus::PENDENTE],
-            [ProjectStageSlug::MONITORAMENTO, 6, ResponsibleSector::MONITORAMENTO, ProjectStageStatus::PENDENTE],
+            [ProjectStageSlug::ABERTURA, 1, ['fomentation', 'coord_fomentation'], ProjectStageStatus::EM_ANDAMENTO],
+            [ProjectStageSlug::ANALISE_JURIDICA, 2, ['financial', 'coord_financial', 'legal_analysis', 'coord_legal'], ProjectStageStatus::PENDENTE],
+            [ProjectStageSlug::FORMALIZACAO, 3, ['legal_analysis', 'coord_legal'], ProjectStageStatus::PENDENTE],
+            [ProjectStageSlug::ORCAMENTO, 4, ['budgetary', 'coord_budgetary'], ProjectStageStatus::PENDENTE],
+            [ProjectStageSlug::PAGAMENTO, 5, ['financial', 'coord_financial'], ProjectStageStatus::PENDENTE],
+            [ProjectStageSlug::MONITORAMENTO, 6, ['monitoring', 'coord_monitoring'], ProjectStageStatus::PENDENTE],
         ];
 
-        foreach ($definitions as [$slug, $order, $sector, $status]) {
+        foreach ($definitions as [$slug, $order, $roles, $status]) {
             ProjectStage::create([
                 'project_id' => $project->id,
                 'slug' => $slug->value,
                 'order' => $order,
-                'responsible_sector' => $sector->value,
+                'responsible_sector' => $roles,
                 'status' => $status->value,
                 'started_at' => $status === ProjectStageStatus::EM_ANDAMENTO ? now() : null,
             ]);
@@ -71,12 +70,14 @@ class ProjectStageTest extends TestCase
             'project_id' => $project->id,
             'slug' => ProjectStageSlug::ABERTURA->value,
             'order' => 1,
-            'responsible_sector' => ResponsibleSector::C_FINALISTICA->value,
+            'responsible_sector' => ['fomentation', 'coord_fomentation'],
             'status' => ProjectStageStatus::EM_ANDAMENTO->value,
         ]);
 
         $this->assertInstanceOf(ProjectStageSlug::class, $stage->slug);
-        $this->assertInstanceOf(ResponsibleSector::class, $stage->responsible_sector);
+        $this->assertIsArray($stage->responsible_sector);
+        $this->assertContains('fomentation', $stage->responsible_sector);
+        $this->assertContains('coord_fomentation', $stage->responsible_sector);
         $this->assertInstanceOf(ProjectStageStatus::class, $stage->status);
         $this->assertEquals(ProjectStageSlug::ABERTURA, $stage->slug);
         $this->assertEquals(ProjectStageStatus::EM_ANDAMENTO, $stage->status);
@@ -90,7 +91,7 @@ class ProjectStageTest extends TestCase
             'project_id' => $project->id,
             'slug' => ProjectStageSlug::ABERTURA->value,
             'order' => 1,
-            'responsible_sector' => ResponsibleSector::C_FINALISTICA->value,
+            'responsible_sector' => ['fomentation', 'coord_fomentation'],
             'status' => ProjectStageStatus::EM_ANDAMENTO->value,
         ]);
 
@@ -105,7 +106,7 @@ class ProjectStageTest extends TestCase
             'project_id' => $project->id,
             'slug' => ProjectStageSlug::ABERTURA->value,
             'order' => 1,
-            'responsible_sector' => ResponsibleSector::C_FINALISTICA->value,
+            'responsible_sector' => ['fomentation', 'coord_fomentation'],
             'status' => ProjectStageStatus::PENDENTE->value,
         ]);
 

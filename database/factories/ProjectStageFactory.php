@@ -4,7 +4,6 @@ namespace Database\Factories;
 
 use App\Enums\ProjectStageSlug;
 use App\Enums\ProjectStageStatus;
-use App\Enums\ResponsibleSector;
 use App\Models\Project;
 use App\Models\ProjectStage;
 use Illuminate\Database\Eloquent\Factories\Factory;
@@ -25,7 +24,7 @@ class ProjectStageFactory extends Factory
             'project_id' => Project::factory(),
             'slug' => ProjectStageSlug::ABERTURA->value,
             'order' => 1,
-            'responsible_sector' => ResponsibleSector::C_FINALISTICA->value,
+            'responsible_sector' => ['fomentation', 'coord_fomentation'],
             'status' => ProjectStageStatus::PENDENTE->value,
             'responsible_user_id' => null,
             'started_at' => null,

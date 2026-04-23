@@ -4,7 +4,6 @@ namespace App\Models;
 
 use App\Enums\ProjectStageSlug;
 use App\Enums\ProjectStageStatus;
-use App\Enums\ResponsibleSector;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -31,7 +30,7 @@ class ProjectStage extends Model implements Auditable
 
     protected $casts = [
         'slug' => ProjectStageSlug::class,
-        'responsible_sector' => ResponsibleSector::class,
+        'responsible_sector' => 'array',
         'status' => ProjectStageStatus::class,
         'started_at' => 'datetime',
         'concluded_at' => 'datetime',

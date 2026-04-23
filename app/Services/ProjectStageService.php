@@ -4,12 +4,20 @@ namespace App\Services;
 
 use App\Enums\ProjectStageStatus;
 use App\Models\ProjectStage;
+use App\Models\User;
+use Illuminate\Auth\Access\AuthorizationException;
 use InvalidArgumentException;
 
 class ProjectStageService
 {
-    public function advance(ProjectStage $stage): void
+    public function advance(ProjectStage $stage, User $user): void
     {
+        if (! $user->hasAnyRole($stage->responsible_sector)) {
+            throw new AuthorizationException(
+                'Você não tem permissão para tramitar esta etapa.'
+            );
+        }
+
         if ($stage->status !== ProjectStageStatus::EM_ANDAMENTO) {
             throw new InvalidArgumentException(
                 'A etapa precisa estar em andamento para ser aprovada.'
@@ -33,8 +41,14 @@ class ProjectStageService
         }
     }
 
-    public function reject(ProjectStage $stage, string $reason): void
+    public function reject(ProjectStage $stage, string $reason, User $user): void
     {
+        if (! $user->hasAnyRole($stage->responsible_sector)) {
+            throw new AuthorizationException(
+                'Você não tem permissão para tramitar esta etapa.'
+            );
+        }
+
         if ($stage->status !== ProjectStageStatus::EM_ANDAMENTO) {
             throw new InvalidArgumentException(
                 'A etapa precisa estar em andamento para ser rejeitada.'

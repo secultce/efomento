@@ -21,7 +21,7 @@ return new class extends Migration
 
             $table->string('slug');
             $table->tinyInteger('order');
-            $table->string('responsible_sector');
+            $table->jsonb('responsible_sector');
 
             $table->string('status')->default(ProjectStageStatus::PENDENTE->value);
 
@@ -43,7 +43,6 @@ return new class extends Migration
             $table->index('slug');
             $table->index('status');
             $table->index('order');
-            $table->index('responsible_sector');
             $table->unique(['project_id', 'slug']);
         });
     }

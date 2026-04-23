@@ -6,10 +6,13 @@ use App\Enums\ProjectStageSlug;
 use App\Enums\ProjectStageStatus;
 use App\Models\Project;
 use App\Models\ProjectStage;
+use App\Models\User;
 use App\Services\ProjectStageService;
+use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Database\QueryException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use InvalidArgumentException;
+use Spatie\Permission\Models\Role;
 use Tests\TestCase;
 
 class ProjectStageFlowTest extends TestCase
@@ -24,6 +27,16 @@ class ProjectStageFlowTest extends TestCase
         $this->service = new ProjectStageService;
     }
 
+    private function createUserWithRoles(string ...$roles): User
+    {
+        $user = User::factory()->create();
+        foreach ($roles as $role) {
+            $user->assignRole(Role::firstOrCreate(['name' => $role, 'guard_name' => 'web']));
+        }
+
+        return $user;
+    }
+
     public function test_observer_creates_6_stages_on_project_creation(): void
     {
         $project = Project::factory()->create();
@@ -36,15 +49,15 @@ class ProjectStageFlowTest extends TestCase
     {
         $project = Project::factory()->create();
 
-        $slugs = $project->stages()->pluck('slug')->map(fn ($s) => $s->value)->all();
+        $slugs = $project->stages()->pluck('slug')->all();
 
         $this->assertEquals([
-            ProjectStageSlug::ABERTURA->value,
-            ProjectStageSlug::ANALISE_JURIDICA->value,
-            ProjectStageSlug::FORMALIZACAO->value,
-            ProjectStageSlug::ORCAMENTO->value,
-            ProjectStageSlug::PAGAMENTO->value,
-            ProjectStageSlug::MONITORAMENTO->value,
+            ProjectStageSlug::ABERTURA,
+            ProjectStageSlug::ANALISE_JURIDICA,
+            ProjectStageSlug::FORMALIZACAO,
+            ProjectStageSlug::ORCAMENTO,
+            ProjectStageSlug::PAGAMENTO,
+            ProjectStageSlug::MONITORAMENTO,
         ], $slugs);
     }
 
@@ -62,14 +75,13 @@ class ProjectStageFlowTest extends TestCase
     {
         $project = Project::factory()->create();
 
-        $pendentes = $project->stages()
+        $statuses = $project->stages()
             ->where('order', '>', 1)
             ->pluck('status')
-            ->map(fn ($s) => $s->value)
             ->all();
 
-        foreach ($pendentes as $status) {
-            $this->assertEquals(ProjectStageStatus::PENDENTE->value, $status);
+        foreach ($statuses as $status) {
+            $this->assertEquals(ProjectStageStatus::PENDENTE, $status);
         }
     }
 
@@ -77,65 +89,95 @@ class ProjectStageFlowTest extends TestCase
     {
         $project = Project::factory()->create();
 
+        $userByOrder = [
+            1 => $this->createUserWithRoles('fomentation'),
+            2 => $this->createUserWithRoles('financial'),
+            3 => $this->createUserWithRoles('legal_analysis'),
+            4 => $this->createUserWithRoles('budgetary'),
+            5 => $this->createUserWithRoles('coord_financial'),
+            6 => $this->createUserWithRoles('monitoring'),
+        ];
+
         foreach (range(1, 6) as $order) {
             $stage = $project->stages()->where('order', $order)->first();
-            $this->service->advance($stage);
+            $this->service->advance($stage, $userByOrder[$order]);
         }
 
         $project->refresh();
 
         $approvedCount = $project->stages()
-            ->where('status', ProjectStageStatus::APROVADO->value)
+            ->where('status', ProjectStageStatus::APROVADO)
             ->count();
 
         $this->assertEquals(6, $approvedCount);
         $this->assertEquals(100, $project->getProgressPercentage());
     }
 
+    public function test_advance_throws_when_user_lacks_role(): void
+    {
+        $project = Project::factory()->create();
+        $first = $project->stages()->where('order', 1)->first();
+        $user = User::factory()->create();
+
+        $this->expectException(AuthorizationException::class);
+        $this->expectExceptionMessage('Você não tem permissão para tramitar esta etapa.');
+
+        $this->service->advance($first, $user);
+    }
+
+    public function test_reject_throws_when_user_lacks_role(): void
+    {
+        $project = Project::factory()->create();
+        $first = $project->stages()->where('order', 1)->first();
+        $user = User::factory()->create();
+
+        $this->expectException(AuthorizationException::class);
+        $this->expectExceptionMessage('Você não tem permissão para tramitar esta etapa.');
+
+        $this->service->reject($first, 'Motivo', $user);
+    }
+
     public function test_advance_throws_when_stage_not_em_andamento(): void
     {
         $project = Project::factory()->create();
-
         $second = $project->stages()->where('order', 2)->first();
+        $user = $this->createUserWithRoles('financial');
 
         $this->expectException(InvalidArgumentException::class);
         $this->expectExceptionMessage('A etapa precisa estar em andamento para ser aprovada.');
 
-        $this->service->advance($second);
+        $this->service->advance($second, $user);
     }
 
     public function test_service_reject_throws_when_stage_not_em_andamento(): void
     {
         $project = Project::factory()->create();
-
         $second = $project->stages()->where('order', 2)->first();
+        $user = $this->createUserWithRoles('financial');
 
         $this->expectException(InvalidArgumentException::class);
         $this->expectExceptionMessage('A etapa precisa estar em andamento para ser rejeitada.');
 
-        $this->service->reject($second, 'Motivo');
+        $this->service->reject($second, 'Motivo', $user);
     }
 
     public function test_reject_flow_blocks_all_subsequent_stages(): void
     {
         $project = Project::factory()->create();
 
-        // Aprova a primeira etapa
         $first = $project->stages()->where('order', 1)->first();
-        $this->service->advance($first);
+        $this->service->advance($first, $this->createUserWithRoles('fomentation'));
 
-        // Rejeita a segunda
         $second = $project->stages()->where('order', 2)->first()->fresh();
-        $this->service->reject($second, 'Análise jurídica reprovada');
+        $this->service->reject($second, 'Análise jurídica reprovada', $this->createUserWithRoles('financial'));
 
-        $blockedStages = $project->stages()
+        $statuses = $project->stages()
             ->where('order', '>', 2)
             ->pluck('status')
-            ->map(fn ($s) => $s->value)
             ->all();
 
-        foreach ($blockedStages as $status) {
-            $this->assertEquals(ProjectStageStatus::BLOQUEADO->value, $status);
+        foreach ($statuses as $status) {
+            $this->assertEquals(ProjectStageStatus::BLOQUEADO, $status);
         }
     }
 
@@ -169,10 +211,9 @@ class ProjectStageFlowTest extends TestCase
         $project = Project::factory()->create();
 
         $first = $project->stages()->where('order', 1)->first();
-        $this->service->advance($first);
+        $this->service->advance($first, $this->createUserWithRoles('fomentation'));
 
         $project->refresh();
-        // 1 de 6 aprovadas ≈ 17%
         $this->assertEquals(17, $project->getProgressPercentage());
     }
 
@@ -184,10 +225,10 @@ class ProjectStageFlowTest extends TestCase
 
         ProjectStage::create([
             'project_id' => $project->id,
-            'slug' => ProjectStageSlug::ABERTURA->value,
+            'slug' => ProjectStageSlug::ABERTURA,
             'order' => 99,
-            'responsible_sector' => 'c_finalistica',
-            'status' => ProjectStageStatus::PENDENTE->value,
+            'responsible_sector' => ['fomentation'],
+            'status' => ProjectStageStatus::PENDENTE,
         ]);
     }
 
