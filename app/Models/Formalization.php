@@ -36,6 +36,7 @@ class Formalization extends Model implements Auditable
         'sent_to_chief_of_staff_at',
         'official_gazette_published_at',
         'legal_opinion_date',
+        'created_by',
     ];
 
     protected $casts = [
@@ -57,7 +58,7 @@ class Formalization extends Model implements Auditable
         'deliberation' => DeliberationType::class,
     ];
 
-    
+
     public function project()
     {
         return $this->belongsTo(Project::class);

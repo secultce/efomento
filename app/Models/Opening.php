@@ -24,7 +24,7 @@ class Opening extends Model implements Auditable
         'opening_nup',
         'opening_date',
         'agent_status',
-        'opened_by',
+        'created_by',
         'bank',
         'account_type',
         'branch',
@@ -82,7 +82,7 @@ class Opening extends Model implements Auditable
                 'removed_at' => now(),
             ]);
 
-  
+
         foreach ($supervisorIds as $supervisorId) {
             OpeningSupervisor::create([
                 'opening_id' => $this->id,

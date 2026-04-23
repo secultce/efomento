@@ -19,7 +19,7 @@ class LegalAnalysis extends Model implements Auditable
 
     protected $fillable = [
         'project_id',
-        'responsible_user_id',
+        'created_by',
         'processed_at',
     ];
 
@@ -34,7 +34,7 @@ class LegalAnalysis extends Model implements Auditable
 
     public function responsibleUser(): BelongsTo
     {
-        return $this->belongsTo(User::class, 'responsible_user_id');
+        return $this->belongsTo(User::class, 'created_by');
     }
 
     public function files(): HasMany
