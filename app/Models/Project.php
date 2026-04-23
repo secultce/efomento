@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Traits\HasCreatedBy;
 use App\Traits\HasFiles;
 use App\Enums\Gender;
 use App\Enums\Education;
@@ -22,7 +23,7 @@ use App\Models\Formalization;
 
 class Project extends Model  implements Auditable
 {
-    use HasFactory, SoftDeletes, AuditableTrait, HasFiles;
+    use AuditableTrait, HasCreatedBy, HasFactory, HasFiles, SoftDeletes;
 
     protected $fillable = [
         'registration_id',
@@ -39,6 +40,7 @@ class Project extends Model  implements Auditable
         'sent_timestamp',
         'consolidated_result',
         'data_registration',
+        'created_by',
     ];
 
     protected $casts = [

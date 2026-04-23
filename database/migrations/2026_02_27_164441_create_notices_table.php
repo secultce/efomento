@@ -25,6 +25,8 @@ return new class extends Migration
             $table->string('budget_allocation_nup')->nullable()->comment('Budget Allocation NUP');
             $table->date('budget_allocation_request_date')->nullable()->comment('Date of Budget Allocation Request');
             $table->enum('instrument_type', InstrumentType::values())->nullable()->comment('Type of legal instrument');
+            $table->foreignId('created_by')->nullable()->constrained('users')->nullOnDelete();
+            $table->index('created_by');
             $table->timestamps();
         });
     }

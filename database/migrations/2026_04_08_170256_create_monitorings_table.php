@@ -15,6 +15,7 @@ return new class extends Migration
             $table->id();
             $table->foreignId('project_id')->constrained();
             $table->foreignId('created_by')->constrained('users');
+            $table->index('created_by');
 
             $table->date('effective_date_of_the_instrument'); // Data de início de vigência do instrumento
             $table->date('expiration_date_of_the_instrument'); // Data de término de vigência do instrumento

@@ -55,6 +55,8 @@ return new class extends Migration
 
             $table->string('consolidated_result')->nullable();
             $table->jsonb('data_registration')->nullable();
+            $table->foreignId('created_by')->nullable()->constrained('users')->nullOnDelete();
+            $table->index('created_by');
 
             $table->timestamps();
             $table->softDeletes();

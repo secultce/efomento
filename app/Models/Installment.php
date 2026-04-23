@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Traits\HasCreatedBy;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -11,7 +12,7 @@ use OwenIt\Auditing\Contracts\Auditable;
 
 class Installment extends Model implements Auditable
 {
-    use AuditableTrait, HasFactory, SoftDeletes;
+    use AuditableTrait, HasCreatedBy, HasFactory, SoftDeletes;
 
     protected $fillable = [
         'budget_id',

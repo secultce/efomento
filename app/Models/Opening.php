@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Traits\HasCreatedBy;
 use App\Traits\HasFiles;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -17,7 +18,7 @@ use OwenIt\Auditing\Contracts\Auditable;
 use Illuminate\Support\Facades\Auth;
 class Opening extends Model implements Auditable
 {
-    use HasFactory, SoftDeletes, AuditableTrait, HasFiles;
+    use AuditableTrait, HasCreatedBy, HasFactory, HasFiles, SoftDeletes;
 
     protected $fillable = [
         'project_id',
