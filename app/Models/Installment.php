@@ -20,6 +20,7 @@ class Installment extends Model implements Auditable
         'justification',
         'observations',
         'installment_number',
+        'created_by',
     ];
 
     protected $casts = [

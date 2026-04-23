@@ -17,7 +17,7 @@ class Budget extends Model implements Auditable
 
     protected $fillable = [
         'project_id',
-        'responsible_user_id',
+        'created_by',
         'processing_date_for_codip',
         'processing_date_for_coafi',
         'date_of_expense_breakdown_table',
@@ -47,9 +47,9 @@ class Budget extends Model implements Auditable
         return $this->belongsTo(Project::class);
     }
 
-    public function responsibleUser(): BelongsTo
+    public function createdBy(): BelongsTo
     {
-        return $this->belongsTo(User::class, 'responsible_user_id');
+        return $this->belongsTo(User::class, 'created_by');
     }
 
     public function installments(): HasMany

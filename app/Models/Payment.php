@@ -19,6 +19,7 @@ class Payment extends Model
         'creditor_registration_number',
         'communication_sent_at',
         'contact_notes',
+        'created_by',
     ];
 
     protected $casts = [

@@ -21,7 +21,7 @@ class LegalAnalysisFactory extends Factory
     {
         return [
             'project_id' => Project::query()->inRandomOrder()->value('id') ?? Project::factory(),
-            'responsible_user_id' => User::query()->inRandomOrder()->value('id') ?? User::factory(),
+            'created_by' => User::query()->inRandomOrder()->value('id') ?? User::factory(),
             'processed_at' => $this->faker->optional()->dateTime(),
         ];
     }
