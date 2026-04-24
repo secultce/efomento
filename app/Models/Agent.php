@@ -2,15 +2,12 @@
 
 namespace App\Models;
 
-use App\Enums\Gender;
-use App\Enums\Education;
-use App\Enums\SexualOrientation;
-use App\Enums\RaceColor;
-use App\Enums\DisabilityType;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\MorphMany;
+use Illuminate\Database\Eloquent\Relations\MorphOne;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Agent extends Model
 {
@@ -24,31 +21,24 @@ class Agent extends Model
         'phone',
         'email',
         'birth_date',
-        'street',
-        'number',
-        'complement',
-        'postal_code',
-        'neighborhood',
-        'city',
-        'state',
-        'gender',
-        'education',
-        'sexual_orientation',
-        'race',
-        'has_disability',
     ];
 
     protected $casts = [
         'birth_date' => 'date',
-        'gender' => Gender::class,
-        'education' => Education::class,
-        'sexual_orientation' => SexualOrientation::class,
-        'race' => RaceColor::class,
-        'has_disability' => DisabilityType::class,
     ];
 
     public function projects(): HasMany
     {
         return $this->hasMany(Project::class);
+    }
+
+    public function profileSnapshots(): MorphMany
+    {
+        return $this->morphMany(ProfileSnapshot::class, 'object');
+    }
+
+    public function latestSnapshot(): MorphOne
+    {
+        return $this->morphOne(ProfileSnapshot::class, 'object')->latestOfMany('recorded_at');
     }
 }
