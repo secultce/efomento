@@ -2,7 +2,6 @@
 
 use App\Http\Controllers\GroupController;
 use App\Http\Controllers\ProfileController;
-use App\Http\Controllers\UserController;
 use App\Http\Controllers\NoticeController;
 use App\Http\Controllers\ProjectController;
 use App\Models\User;
@@ -43,6 +42,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
             'update' => 'notices.update',
             'destroy' => 'notices.destroy',
         ]);
+    Route::get('/editais/{notice}/audits', [NoticeController::class, 'audits'])
+        ->name('notices.audits');
 
     Route::resource('projetos', ProjectController::class)
         ->parameters([
@@ -66,7 +67,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('editais/{notice}/projetos/{project}', [ProjectController::class, 'projectDetail'])
         ->scopeBindings()
         ->name('notices.projects.show');
-    });
+});
 
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
@@ -76,4 +77,4 @@ Route::middleware('auth')->group(function () {
     Route::put('/grupos', [GroupController::class, 'update'])->name('groups.update');
 });
 
-require __DIR__.'/auth.php';
+require __DIR__ . '/auth.php';
