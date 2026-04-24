@@ -4,7 +4,6 @@ namespace Database\Factories;
 
 use App\Enums\DisabilityType;
 use App\Enums\Education;
-use App\Enums\Gender;
 use App\Enums\ProfileSnapshotSource;
 use App\Enums\RaceColor;
 use App\Enums\SexualOrientation;
@@ -21,11 +20,14 @@ class ProfileSnapshotFactory extends Factory
         return [
             'object_id' => Agent::factory(),
             'object_type' => 'agent',
-            'gender' => fake()->randomElement(Gender::cases())->value,
+            'gender' => fake()->randomElement(['Homem Cis', 'Mulher Cis', 'Não-binário', 'Outro']),
             'sexual_orientation' => fake()->randomElement(SexualOrientation::cases())->value,
             'race' => fake()->randomElement(RaceColor::cases())->value,
             'education' => fake()->randomElement(Education::cases())->value,
             'has_disability' => fake()->randomElement(DisabilityType::cases())->value,
+            'phone' => fake()->phoneNumber(),
+            'email' => fake()->safeEmail(),
+            'birth_date' => fake()->date(),
             'street' => fake()->streetName(),
             'number' => fake()->buildingNumber(),
             'complement' => fake()->optional()->secondaryAddress(),

@@ -2,7 +2,6 @@
 
 namespace Tests\Feature;
 
-use App\Enums\Gender;
 use App\Enums\ProfileSnapshotSource;
 use App\Models\Agent;
 use App\Models\ProfileSnapshot;
@@ -28,13 +27,13 @@ class ProfileSnapshotTest extends TestCase
         $agent = Agent::factory()->create();
 
         $this->service->record($agent, [
-            'gender' => Gender::MASCULINO->value,
+            'gender' => 'Homem Cis',
         ], ProfileSnapshotSource::AGENT_UPDATE);
 
         $this->assertDatabaseHas('profile_snapshots', [
             'object_id'   => $agent->id,
             'object_type' => 'agent',
-            'gender'      => Gender::MASCULINO->value,
+            'gender'      => 'Homem Cis',
             'source'      => ProfileSnapshotSource::AGENT_UPDATE->value,
         ]);
     }
@@ -44,17 +43,17 @@ class ProfileSnapshotTest extends TestCase
         $agent = Agent::factory()->create();
 
         $snapshot = $this->service->recordIfChanged($agent, [
-            'gender' => Gender::OUTRO->value,
+            'gender' => 'Não-binário',
         ], ProfileSnapshotSource::AGENT_UPDATE);
 
         $this->service->recordIfChanged($agent, [
-            'gender' => Gender::MASCULINO->value,
+            'gender' => 'Homem Cis',
         ], ProfileSnapshotSource::AGENT_UPDATE);
 
         $this->assertEquals(1, $agent->profileSnapshots()->count());
         $this->assertDatabaseHas('profile_snapshots', [
             'id'     => $snapshot->id,
-            'gender' => Gender::MASCULINO->value,
+            'gender' => 'Homem Cis',
         ]);
     }
 
@@ -62,12 +61,12 @@ class ProfileSnapshotTest extends TestCase
     {
         $agent = Agent::factory()->create();
 
-        $snapshot = $this->service->recordIfChanged($agent, [
-            'gender' => Gender::MASCULINO->value,
+        $this->service->recordIfChanged($agent, [
+            'gender' => 'Homem Cis',
         ], ProfileSnapshotSource::AGENT_UPDATE);
 
         $resultado = $this->service->recordIfChanged($agent, [
-            'gender' => Gender::MASCULINO->value,
+            'gender' => 'Homem Cis',
         ], ProfileSnapshotSource::AGENT_UPDATE);
 
         $this->assertNull($resultado);
@@ -79,11 +78,11 @@ class ProfileSnapshotTest extends TestCase
         $project = Project::factory()->create();
 
         $this->service->recordIfChanged($project, [
-            'gender' => Gender::FEMININO->value,
+            'gender' => 'Mulher Cis',
         ], ProfileSnapshotSource::PROJECT_REGISTRATION);
 
         $this->service->recordIfChanged($project, [
-            'gender' => Gender::FEMININO->value,
+            'gender' => 'Mulher Cis',
         ], ProfileSnapshotSource::PROJECT_REGISTRATION);
 
         $this->assertEquals(2, $project->profileSnapshots()->count());
@@ -96,20 +95,20 @@ class ProfileSnapshotTest extends TestCase
         ProfileSnapshot::factory()->create([
             'object_id'   => $agent->id,
             'object_type' => 'agent',
-            'gender'      => Gender::OUTRO->value,
+            'gender'      => 'Não-binário',
             'recorded_at' => now()->subDay(),
         ]);
 
         ProfileSnapshot::factory()->create([
             'object_id'   => $agent->id,
             'object_type' => 'agent',
-            'gender'      => Gender::MASCULINO->value,
+            'gender'      => 'Homem Cis',
             'recorded_at' => now(),
         ]);
 
         $latest = $agent->latestSnapshot;
 
-        $this->assertEquals(Gender::MASCULINO, $latest->gender);
+        $this->assertEquals('Homem Cis', $latest->gender);
     }
 
     public function test_cria_snapshot_para_project(): void
@@ -117,13 +116,13 @@ class ProfileSnapshotTest extends TestCase
         $project = Project::factory()->create();
 
         $this->service->record($project, [
-            'gender' => Gender::FEMININO->value,
+            'gender' => 'Mulher Cis',
         ], ProfileSnapshotSource::PROJECT_REGISTRATION);
 
         $this->assertDatabaseHas('profile_snapshots', [
             'object_id'   => $project->id,
             'object_type' => 'project',
-            'gender'      => Gender::FEMININO->value,
+            'gender'      => 'Mulher Cis',
             'source'      => ProfileSnapshotSource::PROJECT_REGISTRATION->value,
         ]);
     }

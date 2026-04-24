@@ -16,9 +16,6 @@ class AgentFactory extends Factory
             'cpf' => fake()->unique()->numerify('###########'),
             'director_position' => fake()->jobTitle(),
             'director_email' => fake()->safeEmail(),
-            'phone' => fake()->phoneNumber(),
-            'email' => fake()->safeEmail(),
-            'birth_date' => fake()->date(),
         ];
     }
 }

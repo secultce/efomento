@@ -12,11 +12,15 @@ class ProfileSnapshotResource extends JsonResource
         return [
             'id' => $this->id,
 
-            'gender' => $this->gender?->value,
+            'gender' => $this->gender,
             'sexual_orientation' => $this->sexual_orientation?->value,
             'race' => $this->race?->value,
             'education' => $this->education?->value,
             'has_disability' => $this->has_disability?->value,
+
+            'phone' => $this->phone,
+            'email' => $this->email,
+            'birth_date' => $this->birth_date?->format('Y-m-d'),
 
             'street' => $this->street,
             'number' => $this->number,

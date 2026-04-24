@@ -18,6 +18,10 @@ return new class extends Migration
             $table->string('education')->nullable();
             $table->string('has_disability')->nullable();
 
+            $table->string('phone')->nullable();
+            $table->string('email')->nullable();
+            $table->date('birth_date')->nullable();
+
             $table->string('street')->nullable();
             $table->string('number')->nullable();
             $table->string('complement')->nullable();

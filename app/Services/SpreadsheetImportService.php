@@ -6,7 +6,6 @@ use App\Enums\AccountType;
 use App\Enums\AgentStatus;
 use App\Enums\CategoryType;
 use App\Enums\DisabilityType;
-use App\Enums\Gender;
 use App\Enums\ProfileSnapshotSource;
 use App\Models\Agent;
 use App\Models\Category;
@@ -67,20 +66,18 @@ class SpreadsheetImportService
 
         return Agent::updateOrCreate(
             ['cpf' => $cpf],
-            [
-                'name' => trim($row[2] ?? ''),
-                'email' => trim($row[36] ?? ''),
-                'phone' => trim($row[38] ?? ''),
-                'birth_date' => $this->parseDate(trim($row[41] ?? '')),
-            ]
+            ['name' => trim($row[2] ?? '')]
         );
     }
 
     private function buildSnapshotData(array $row): array
     {
         return [
-            'gender' => $this->mapGender(trim($row[40] ?? '')),
+            'gender' => trim($row[40] ?? '') ?: null,
             'has_disability' => $this->mapDisability(trim($row[42] ?? '')),
+            'email' => trim($row[36] ?? '') ?: null,
+            'phone' => trim($row[38] ?? '') ?: null,
+            'birth_date' => $this->parseDate(trim($row[41] ?? '')),
             'street' => trim($row[34] ?? '') ?: null,
             'city' => trim($row[35] ?? '') ?: null,
         ];
@@ -147,16 +144,6 @@ class SpreadsheetImportService
             : AccountType::CORRENTE;
     }
 
-    private function mapGender(string $value): Gender
-    {
-        return match ($value) {
-            'Homem Cis' => Gender::MASCULINO,
-            'Mulher Cis' => Gender::FEMININO,
-            'Mulher Trans/travesti',
-            'Não Binárie/outra variabilidade' => Gender::OUTRO,
-            default => Gender::PREFERE_NAO_RESPONDER,
-        };
-    }
 
     private function mapDisability(string $value): DisabilityType
     {

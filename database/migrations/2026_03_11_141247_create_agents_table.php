@@ -17,11 +17,6 @@ return new class extends Migration
             $table->string('director_position')->nullable();
             $table->string('director_email')->nullable();
 
-            $table->string('phone')->nullable();
-            $table->string('email');
-
-            $table->date('birth_date')->nullable();
-
             $table->timestamps();
             $table->softDeletes();
         });
