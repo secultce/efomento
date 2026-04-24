@@ -39,24 +39,54 @@ class ProfileSnapshotTest extends TestCase
         ]);
     }
 
-    public function test_snapshot_anterior_permanece_intacto_apos_novo_registro(): void
+    public function test_agent_update_atualiza_snapshot_existente_ao_mudar_dados(): void
     {
         $agent = Agent::factory()->create();
 
-        $primeiro = $this->service->record($agent, [
+        $snapshot = $this->service->recordIfChanged($agent, [
             'gender' => Gender::OUTRO->value,
         ], ProfileSnapshotSource::AGENT_UPDATE);
 
-        $this->service->record($agent, [
+        $this->service->recordIfChanged($agent, [
             'gender' => Gender::MASCULINO->value,
         ], ProfileSnapshotSource::AGENT_UPDATE);
 
+        $this->assertEquals(1, $agent->profileSnapshots()->count());
         $this->assertDatabaseHas('profile_snapshots', [
-            'id'     => $primeiro->id,
-            'gender' => Gender::OUTRO->value,
+            'id'     => $snapshot->id,
+            'gender' => Gender::MASCULINO->value,
         ]);
+    }
 
-        $this->assertEquals(2, $agent->profileSnapshots()->count());
+    public function test_agent_update_nao_altera_snapshot_se_dados_iguais(): void
+    {
+        $agent = Agent::factory()->create();
+
+        $snapshot = $this->service->recordIfChanged($agent, [
+            'gender' => Gender::MASCULINO->value,
+        ], ProfileSnapshotSource::AGENT_UPDATE);
+
+        $resultado = $this->service->recordIfChanged($agent, [
+            'gender' => Gender::MASCULINO->value,
+        ], ProfileSnapshotSource::AGENT_UPDATE);
+
+        $this->assertNull($resultado);
+        $this->assertEquals(1, $agent->profileSnapshots()->count());
+    }
+
+    public function test_project_registration_sempre_cria_novo_snapshot(): void
+    {
+        $project = Project::factory()->create();
+
+        $this->service->recordIfChanged($project, [
+            'gender' => Gender::FEMININO->value,
+        ], ProfileSnapshotSource::PROJECT_REGISTRATION);
+
+        $this->service->recordIfChanged($project, [
+            'gender' => Gender::FEMININO->value,
+        ], ProfileSnapshotSource::PROJECT_REGISTRATION);
+
+        $this->assertEquals(2, $project->profileSnapshots()->count());
     }
 
     public function test_latest_snapshot_retorna_o_mais_recente(): void

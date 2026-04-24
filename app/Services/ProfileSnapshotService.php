@@ -38,17 +38,35 @@ class ProfileSnapshotService
     public function recordIfChanged(Model $model, array $data, ProfileSnapshotSource $source): ?ProfileSnapshot
     {
         $payload = array_intersect_key($data, array_flip(self::FIELDS));
-        $latest = $model->latestSnapshot;
 
-        if ($latest !== null && $this->isSameData($latest, $payload)) {
+        if ($source === ProfileSnapshotSource::PROJECT_REGISTRATION) {
+            return $model->profileSnapshots()->create([
+                ...$payload,
+                'source' => $source,
+                'recorded_at' => now(),
+            ]);
+        }
+
+        $existing = $model->profileSnapshots()
+            ->where('source', $source->value)
+            ->latest('recorded_at')
+            ->first();
+
+        if ($existing === null) {
+            return $model->profileSnapshots()->create([
+                ...$payload,
+                'source' => $source,
+                'recorded_at' => now(),
+            ]);
+        }
+
+        if ($this->isSameData($existing, $payload)) {
             return null;
         }
 
-        return $model->profileSnapshots()->create([
-            ...$payload,
-            'source' => $source,
-            'recorded_at' => now(),
-        ]);
+        $existing->update([...$payload, 'recorded_at' => now()]);
+
+        return $existing->refresh();
     }
 
     private function isSameData(ProfileSnapshot $snapshot, array $incoming): bool
