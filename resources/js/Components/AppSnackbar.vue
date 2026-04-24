@@ -15,6 +15,7 @@ const {
     :color="snackbarColor"
     :timeout="snackbarTimeout"
     location="bottom right"
+    data-cy="snackAlert"
   >
     {{ snackbarText }}
   </v-snackbar>

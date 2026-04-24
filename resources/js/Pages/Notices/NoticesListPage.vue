@@ -213,19 +213,22 @@ function openDialog(item) {
             <v-col cols="12" md="4">
                 <v-text-field :model-value="search" @update:model-value="onSearch"
                     placeholder="Busque editais específicos" append-inner-icon="mdi-magnify" variant="outlined"
-                    density="compact" hide-details rounded="xl" class="border border-green-700 rounded-xl" />
+                    density="compact" hide-details rounded="xl" class="border border-green-700 rounded-xl"
+                    data-cy="inputBuscaEditalEspecifica"/>
             </v-col>
 
             <v-col cols="12" md="4">
                 <v-select v-model="selectedStatus" @update:model-value="onFilterStatus" :items="statusOptions"
                     placeholder="Filtre por status do processo" variant="outlined" density="compact" rounded="lg"
-                    hide-details clearable />
+                    hide-details clearable
+                    data-cy="selectFiltrarPorStatusDoProcesso"/>
             </v-col>
 
             <v-col cols="12" md="4">
                 <v-select v-model="selectedInstrument" @update:model-value="onFilterInstrument"
                     :items="instrumentOptions" placeholder="Filtre pelo tipo de instrumento" variant="outlined"
-                    density="compact" rounded="lg" hide-details clearable />
+                    density="compact" rounded="lg" hide-details clearable
+                    data-cy="selectFiltrarPorTipoDeInstrumento"/>
             </v-col>
         </v-row>
 
@@ -247,14 +250,14 @@ function openDialog(item) {
 
             <!-- Tipo de instrumento -->
             <template #item.type_ins="{ item }">
-                <span class="titulo-truncado">{{ item.type_ins }}</span>
+                <span class="titulo-truncado" data-cy="tipoDeInstrumentoListaDeEditais">{{ item.type_ins }}</span>
             </template>
             <!-- Número do processo mãe -->
             <template #item.mae="{ item }">
                 <span v-if="item.numeroProcessoMae || item.mae">
                     {{ maskProcessNumber(item.numeroProcessoMae || item.mae) }}
                 </span>
-                <v-btn v-else variant="text" density="compact" class="!text-[#008344] !font-bold spacing tracking-tight"
+                <v-btn v-else variant="text" density="compact" class="!text-[#008344] !font-bold spacing tracking-tight" data-cy="btnIdentificationData"
                     @click="openDialog(item)">
                     Informe os dados de identificação
                 </v-btn>
