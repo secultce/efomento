@@ -14,9 +14,12 @@ use App\Enums\ProjectPhase;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\MorphMany;
+use Illuminate\Database\Eloquent\Relations\MorphOne;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Database\Eloquent\Builder;
 use OwenIt\Auditing\Auditable as AuditableTrait;
 use OwenIt\Auditing\Contracts\Auditable;
 
@@ -30,11 +33,6 @@ class Project extends Model implements Auditable
         'category_id',
         'agent_id',
         'notice_id',
-        'education',
-        'gender',
-        'sexual_orientation',
-        'race',
-        'has_disability',
         'create_timestamp',
         'sent_timestamp',
         'consolidated_result',
@@ -44,11 +42,6 @@ class Project extends Model implements Auditable
     ];
 
     protected $casts = [
-        'education_level' => Education::class,
-        'gender' => Gender::class,
-        'sexual_orientation' => SexualOrientation::class,
-        'race' => RaceColor::class,
-        'has_disability' => DisabilityType::class,
         'create_timestamp' => 'datetime',
         'sent_timestamp' => 'datetime',
         'data_registration' => 'array',
@@ -192,5 +185,15 @@ class Project extends Model implements Auditable
         $approved = $stages->where('status', ProjectStageStatus::APROVADO)->count();
 
         return (int) round(($approved / $total) * 100);
+    }
+
+    public function profileSnapshots(): MorphMany
+    {
+        return $this->morphMany(ProfileSnapshot::class, 'object');
+    }
+
+    public function latestSnapshot(): MorphOne
+    {
+        return $this->morphOne(ProfileSnapshot::class, 'object')->latestOfMany('recorded_at');
     }
 }
