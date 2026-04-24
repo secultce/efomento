@@ -7,6 +7,7 @@ use App\Enums\AgentStatus;
 use App\Enums\CategoryType;
 use App\Enums\DisabilityType;
 use App\Enums\Gender;
+use App\Enums\ProfileSnapshotSource;
 use App\Models\Agent;
 use App\Models\Category;
 use App\Models\Notice;
@@ -18,6 +19,10 @@ use Illuminate\Support\Carbon;
 
 class SpreadsheetImportService
 {
+    public function __construct(
+        private readonly ProfileSnapshotService $snapshotService,
+    ) {}
+
     /**
      * Processa uma linha da planilha e persiste Category, Agent e Project.
      * Retorna o Project criado, ou null se a linha não tiver os dados mínimos.
@@ -35,10 +40,16 @@ class SpreadsheetImportService
         $agent = $this->resolveAgent($row);
         $notice = Notice::where('external_id', $row[0])->first();
 
+        $this->snapshotService->recordIfChanged(
+            $agent,
+            $this->buildSnapshotData($row),
+            ProfileSnapshotSource::AGENT_UPDATE,
+        );
+
         $project = Project::firstOrCreate(
             ['registration_id' => $registrationId],
             [
-                'number' => 'on-' . $registrationId,
+                'number' => 'on-'.$registrationId,
                 'category_id' => $category->id,
                 'agent_id' => $agent->id,
                 'notice_id' => $notice->id,
@@ -50,6 +61,31 @@ class SpreadsheetImportService
         return $project;
     }
 
+    private function resolveAgent(array $row): Agent
+    {
+        $cpf = trim($row[33] ?? '');
+
+        return Agent::updateOrCreate(
+            ['cpf' => $cpf],
+            [
+                'name' => trim($row[2] ?? ''),
+                'email' => trim($row[36] ?? ''),
+                'phone' => trim($row[38] ?? ''),
+                'birth_date' => $this->parseDate(trim($row[41] ?? '')),
+            ]
+        );
+    }
+
+    private function buildSnapshotData(array $row): array
+    {
+        return [
+            'gender' => $this->mapGender(trim($row[40] ?? '')),
+            'has_disability' => $this->mapDisability(trim($row[42] ?? '')),
+            'street' => trim($row[34] ?? '') ?: null,
+            'city' => trim($row[35] ?? '') ?: null,
+        ];
+    }
+
     private function resolveOpening(array $row, int $projectId): Opening
     {
         $user = User::find(1);
@@ -57,18 +93,18 @@ class SpreadsheetImportService
         return Opening::firstOrCreate(
             ['project_id' => $projectId],
             [
-                'opening_nup'      => trim($row[14] ?? ''),
-                'opening_date'     => $this->parseDate(trim($row[15] ?? '')),
-                'agent_status'     => $this->mapAgentStatus(trim($row[1] ?? '')),
-                'opened_by'        => trim($row[13] ?? ''),
-                'bank'             => trim($row[16] ?? ''),
-                'account_type'     => $this->mapAccountType(trim($row[17] ?? '')),
-                'branch'           => trim($row[18] ?? ''),
-                'account'          => trim($row[19] ?? ''),
-                'is_draft'         => true,
+                'opening_nup' => trim($row[14] ?? ''),
+                'opening_date' => $this->parseDate(trim($row[15] ?? '')),
+                'agent_status' => $this->mapAgentStatus(trim($row[1] ?? '')),
+                'opened_by' => trim($row[13] ?? ''),
+                'bank' => trim($row[16] ?? ''),
+                'account_type' => $this->mapAccountType(trim($row[17] ?? '')),
+                'branch' => trim($row[18] ?? ''),
+                'account' => trim($row[19] ?? ''),
+                'is_draft' => true,
                 'certificate_date' => $this->parseDate(trim($row[12] ?? '')),
-                'started_at'       => $this->parseDate(trim($row[15] ?? '')),
-                'user_id'          => $user->id,
+                'started_at' => $this->parseDate(trim($row[15] ?? '')),
+                'user_id' => $user->id,
             ]
         );
     }
@@ -78,25 +114,6 @@ class SpreadsheetImportService
         return Category::firstOrCreate(
             ['name' => $name],
             ['type' => CategoryType::PROJETO]
-        );
-    }
-
-    private function resolveAgent(array $row): Agent
-    {
-        $cpf = trim($row[33] ?? '');
-
-        return Agent::updateOrCreate(
-            ['cpf' => $cpf],
-            [
-                'name' => trim($row[2] ?? ''),
-                'street' => trim($row[34] ?? ''),
-                'city' => trim($row[35] ?? ''),
-                'email' => trim($row[36] ?? ''),
-                'phone' => trim($row[38] ?? ''),
-                'gender' => $this->mapGender(trim($row[40] ?? '')),
-                'birth_date' => $this->parseDate(trim($row[41] ?? '')),
-                'has_disability' => $this->mapDisability(trim($row[42] ?? '')),
-            ]
         );
     }
 
@@ -115,11 +132,11 @@ class SpreadsheetImportService
     {
         return match ($value) {
             'Habilitado', 'Ativo' => AgentStatus::ATIVO,
-            'Suplente'            => AgentStatus::SUPLENTE,
-            'Em análise'          => AgentStatus::EM_ANALISE,
-            'Desclassificado'     => AgentStatus::DESCLASSIFICADO,
-            'Desistente'          => AgentStatus::DESISTENTE,
-            default               => AgentStatus::EM_ANALISE,
+            'Suplente' => AgentStatus::SUPLENTE,
+            'Em análise' => AgentStatus::EM_ANALISE,
+            'Desclassificado' => AgentStatus::DESCLASSIFICADO,
+            'Desistente' => AgentStatus::DESISTENTE,
+            default => AgentStatus::EM_ANALISE,
         };
     }
 
@@ -135,7 +152,8 @@ class SpreadsheetImportService
         return match ($value) {
             'Homem Cis' => Gender::MASCULINO,
             'Mulher Cis' => Gender::FEMININO,
-            'Mulher Trans/travesti', 'Não Binárie/outra variabilidade' => Gender::OUTRO,
+            'Mulher Trans/travesti',
+            'Não Binárie/outra variabilidade' => Gender::OUTRO,
             default => Gender::PREFERE_NAO_RESPONDER,
         };
     }
@@ -164,5 +182,4 @@ class SpreadsheetImportService
             return null;
         }
     }
-
 }
