@@ -22,21 +22,11 @@ class AgentResource extends JsonResource
             'email' => $this->email,
 
             'birth_date' => $this->birth_date?->format('Y-m-d'),
-            
-            'street' => $this->street,
-            'number' => $this->number,
-            'complement' => $this->complement,
-            'postal_code' => $this->postal_code,
-            'neighborhood' => $this->neighborhood,
-            'city' => $this->city,
-            'state' => $this->state,
 
-            'gender' => $this->gender,
-            'education' => $this->education,
-
-            'sexual_orientation' => $this->sexual_orientation?->value,
-            'race' => $this->race?->value,
-            'has_disability' => $this->has_disability?->value,
+            'profile' => $this->whenLoaded(
+                'latestSnapshot',
+                fn () => new ProfileSnapshotResource($this->latestSnapshot),
+            ),
 
             'created_at' => $this->created_at?->toISOString(),
             'updated_at' => $this->updated_at?->toISOString(),
