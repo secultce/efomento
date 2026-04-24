@@ -4,6 +4,7 @@ import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
 import AppContainer from '@/Components/AppContainer.vue';
 import AppSubHeader from '@/Components/AppSubHeader.vue';
 import AgentData from './Partials/AgentData.vue';
+import ProcessTabs from './Partials/ProcessTabs.vue';
 
 const props = defineProps({
   project: Object,
@@ -23,7 +24,10 @@ const props = defineProps({
             </div>
         </AppSubHeader>
         <AppContainer variant="large">
-            <AgentData />
+            <container class="gap-4 flex flex-col">
+                <AgentData :project="props.project" />
+                <ProcessTabs :project="props.project" />
+            </container>
         </AppContainer>
     </AuthenticatedLayout>
 </template>

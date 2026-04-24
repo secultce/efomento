@@ -1,10 +1,31 @@
 <script setup>
+const props = defineProps({
+    project: Object,
+})
 </script>
 <template>
-    <v-card class="w-full pb-4 pt-4 !shadow-none border border-gray-800 rounded-lg">
-        <v-card-title class="font-weight-bold !text-lg">Dados do agente cultural</v-card-title>
-        <v-card-text class="flex flex-col gap-4">
-            <p>Informações sobre o agente cultural responsável pelo projeto selecionado.</p>
-        </v-card-text>
+    <v-card class="w-full !shadow-none border border-gray-800 rounded-lg">      
+        <div class="grid grid-cols-5 p-[0.5em] pl-4 gap-1">
+            <div>
+                <p>Nome do agente cultural</p>
+                <p class="font-bold">{{ props.project?.agent?.name.toUpperCase() }}</p>
+                <p class="text-primary hover:cursor-pointer hover:underline">Conferir histórico de participações</p>
+            </div>
+            <div >
+                <p>Número do processo</p>
+                <p class="font-bold">{{ props.project?.opening_nup }}</p>
+            </div>
+            <div >
+                <p>Status do agente cultural</p>
+                <p class="font-bold">{{ props.project?.opening?.agent_status }}</p>
+            </div>
+            <div >
+                <p>Status do processo</p>
+                <p class="font-bold">{{ props.project?.opening?.status }}</p>
+            </div>
+            <div>
+                botões
+            </div>
+        </div>
     </v-card>
 </template>
