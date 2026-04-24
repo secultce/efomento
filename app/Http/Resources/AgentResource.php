@@ -18,11 +18,6 @@ class AgentResource extends JsonResource
             'director_position' => $this->director_position,
             'director_email' => $this->director_email,
 
-            'phone' => $this->phone,
-            'email' => $this->email,
-
-            'birth_date' => $this->birth_date?->format('Y-m-d'),
-
             'profile' => $this->whenLoaded(
                 'latestSnapshot',
                 fn () => new ProfileSnapshotResource($this->latestSnapshot),

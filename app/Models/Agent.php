@@ -18,13 +18,6 @@ class Agent extends Model
         'cpf',
         'director_position',
         'director_email',
-        'phone',
-        'email',
-        'birth_date',
-    ];
-
-    protected $casts = [
-        'birth_date' => 'date',
     ];
 
     public function projects(): HasMany

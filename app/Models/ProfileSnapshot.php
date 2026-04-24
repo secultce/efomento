@@ -4,7 +4,6 @@ namespace App\Models;
 
 use App\Enums\DisabilityType;
 use App\Enums\Education;
-use App\Enums\Gender;
 use App\Enums\ProfileSnapshotSource;
 use App\Enums\RaceColor;
 use App\Enums\SexualOrientation;
@@ -25,6 +24,9 @@ class ProfileSnapshot extends Model
         'race',
         'education',
         'has_disability',
+        'phone',
+        'email',
+        'birth_date',
         'street',
         'number',
         'complement',
@@ -37,11 +39,11 @@ class ProfileSnapshot extends Model
     ];
 
     protected $casts = [
-        'gender' => Gender::class,
         'sexual_orientation' => SexualOrientation::class,
         'race' => RaceColor::class,
         'education' => Education::class,
         'has_disability' => DisabilityType::class,
+        'birth_date' => 'date',
         'source' => ProfileSnapshotSource::class,
         'recorded_at' => 'datetime',
     ];
