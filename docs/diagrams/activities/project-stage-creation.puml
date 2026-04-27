@@ -1,0 +1,53 @@
+@startuml project-stage-creation
+title Criação automática de etapas do projeto (ProjectStage)
+
+|Origem|
+start
+
+fork
+  :Importação de planilha\n(ImportSpreadsheetCommand);
+fork again
+  :Sync com API Mapa Cultural\n(SyncMapaCulturalService — futuro);
+end fork
+
+|Origem|
+:Verificar se o projeto já existe\nno banco de dados;
+
+if (Projeto existe?) then (sim)
+  :Atualizar dados do projeto\n(Project::update);
+  note right
+    Observer **não** dispara.
+    As etapas já existem e
+    permanecem no estado atual.
+  end note
+  stop
+else (não)
+  :Criar novo projeto\n(Project::create / firstOrCreate);
+endif
+
+|ProjectObserver|
+:created(Project $project);
+
+:Montar array com as 6 etapas\nem ordem sequencial;
+
+|Banco de Dados|
+fork
+  :Abertura\norder=1 | EM_ANDAMENTO\nstarted_at = now();
+fork again
+  :Análise Jurídica\norder=2 | PENDENTE;
+fork again
+  :Formalização\norder=3 | PENDENTE;
+fork again
+  :Orçamento\norder=4 | PENDENTE;
+fork again
+  :Pagamento\norder=5 | PENDENTE;
+fork again
+  :Monitoramento\norder=6 | PENDENTE;
+end fork
+
+|ProjectObserver|
+:6 ProjectStages criados\nassociados ao projeto;
+
+stop
+
+@enduml
