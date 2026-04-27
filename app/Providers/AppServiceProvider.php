@@ -5,11 +5,12 @@ namespace App\Providers;
 use App\Models\Notice;
 use App\Models\Opening;
 use App\Models\Project;
+use App\Observers\NoticeObserver;
+use App\Observers\ProjectObserver;
+use App\Support\Notify;
 use Illuminate\Database\Eloquent\Relations\Relation;
 use Illuminate\Support\Facades\Vite;
 use Illuminate\Support\ServiceProvider;
-use App\Observers\NoticeObserver;
-use App\Support\Notify;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -36,5 +37,6 @@ class AppServiceProvider extends ServiceProvider
         ]);
 
         Notice::observe(NoticeObserver::class);
+        Project::observe(ProjectObserver::class);
     }
 }

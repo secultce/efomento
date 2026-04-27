@@ -136,6 +136,23 @@ entity Project {
   deleted_at : datetime
 }
 
+entity ProjectStage {
+  PK(id) : int
+  FK(project_id) : int
+  slug : App\Enums\ProjectStageSlug
+  order : tinyint
+  responsible_sector : App\Enums\ResponsibleSector
+  status : App\Enums\ProjectStageStatus
+  FK(responsible_user_id) : int
+  started_at : datetime
+  concluded_at : datetime
+  deadline_at : datetime
+  rejection_reason : text
+  notes : text
+  created_at : datetime
+  updated_at : datetime
+}
+
 entity User {
   PK(id) : int
   name : string
@@ -171,6 +188,9 @@ Category ||--o{ Project : category
 Project ||--o{ Audit : audits (morph)
 Project ||--o{ File : files (morph)
 Project ||--o{ File : publicFiles (morph)
+Project ||--o{ ProjectStage : stages
+User ||--o{ ProjectStage : responsibleUser
+ProjectStage ||--o{ Audit : audits (morph)
 User ||--o{ DatabaseNotification : notifications (morph)
 User ||--o{ DatabaseNotification : readNotifications (morph)
 User ||--o{ DatabaseNotification : unreadNotifications (morph)
