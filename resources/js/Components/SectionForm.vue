@@ -58,6 +58,7 @@ const getFieldValue = (key) => {
               :mask="field.mask"
               :type="field.type || 'text'"
               :placeholder="field.placeholder"
+              disabled="!field.isEditable"
               clearable
             />
 
@@ -68,6 +69,7 @@ const getFieldValue = (key) => {
               @update:model-value="updateValue(field.key, $event)"
               :items="field.options"
               :placeholder="field.placeholder"
+              disabled="!field.isEditable"
               clearable
             />
 
@@ -77,6 +79,7 @@ const getFieldValue = (key) => {
               :model-value="getFieldValue(field.key)"
               @update:model-value="updateValue(field.key, $event)"
               :placeholder="field.placeholder"
+              disabled="!field.isEditable"
               type="date"
             />
 
