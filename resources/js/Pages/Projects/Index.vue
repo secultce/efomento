@@ -123,7 +123,7 @@ function handleSaved() {
 
   <Head :title="`Projetos`" />
   <AuthenticatedLayout>
-    <AppSubHeader variant="large" :show-back="true" >
+    <AppSubHeader variant="large" :show-back="true" back-route="/editais">
       <ProjectNoticeEdit :notice="notice" :instrumentTypes="instrumentTypes" />
     </AppSubHeader>
     <AppContainer>
