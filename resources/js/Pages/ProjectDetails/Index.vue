@@ -24,10 +24,10 @@ const props = defineProps({
             </div>
         </AppSubHeader>
         <AppContainer variant="large">
-            <container class="gap-4 flex flex-col">
+            <div class="gap-4 flex flex-col">
                 <AgentData :project="props.project" />
                 <ProcessTabs :project="props.project" />
-            </container>
+            </div>
         </AppContainer>
     </AuthenticatedLayout>
 </template>
