@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Enums\ProjectPhase;
+use App\Enums\ProjectStageStatus;
 use App\Traits\HasFiles;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -55,12 +56,12 @@ class Project extends Model implements Auditable
         return $this->belongsTo(Category::class);
     }
 
-    public function openings()
+    public function openings(): HasMany
     {
         return $this->hasMany(Opening::class);
     }
 
-    public function opening()
+    public function opening(): HasOne
     {
         return $this->hasOne(Opening::class)
             ->latestOfMany('created_at');
@@ -118,7 +119,7 @@ class Project extends Model implements Auditable
         });
     }
 
-    public function formalization()
+    public function formalization(): HasOne
     {
         return $this->hasOne(Formalization::class);
     }
@@ -156,5 +157,35 @@ class Project extends Model implements Auditable
     public function latestSnapshot(): MorphOne
     {
         return $this->morphOne(ProfileSnapshot::class, 'object')->latestOfMany('recorded_at');
+    }
+
+    public function stages(): HasMany
+    {
+        return $this->hasMany(ProjectStage::class)->orderBy('order');
+    }
+
+    public function currentStage(): HasOne
+    {
+        return $this->hasOne(ProjectStage::class)
+            ->where('status', ProjectStageStatus::EM_ANDAMENTO);
+    }
+
+    public function getCurrentStageName(): ?string
+    {
+        return $this->currentStage?->slug?->label();
+    }
+
+    public function getProgressPercentage(): int
+    {
+        $stages = $this->stages;
+        $total = $stages->count();
+
+        if ($total === 0) {
+            return 0;
+        }
+
+        $approved = $stages->where('status', ProjectStageStatus::APROVADO)->count();
+
+        return (int) round(($approved / $total) * 100);
     }
 }

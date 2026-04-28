@@ -7,6 +7,7 @@ use App\Models\Notice;
 use App\Models\Opening;
 use App\Models\Project;
 use App\Observers\NoticeObserver;
+use App\Observers\ProjectObserver;
 use App\Support\Notify;
 use Illuminate\Database\Eloquent\Relations\Relation;
 use Illuminate\Support\Facades\Vite;
@@ -38,5 +39,6 @@ class AppServiceProvider extends ServiceProvider
         ]);
 
         Notice::observe(NoticeObserver::class);
+        Project::observe(ProjectObserver::class);
     }
 }
