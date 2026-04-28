@@ -132,7 +132,7 @@ function handleAction({ action, item }) {
 
   <Head :title="`Projetos`" />
   <AuthenticatedLayout>
-    <AppSubHeader variant="large" :show-back="true" back-route="/editais">
+    <AppSubHeader  back-route="/editais">
       <ProjectNoticeEdit :notice="notice" :instrumentTypes="instrumentTypes" />
     </AppSubHeader>
     <AppContainer>

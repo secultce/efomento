@@ -26,8 +26,12 @@ const updateValue = (key, value) => {
 }
 
 const getFieldValue = (key) => {
+  const path = key
+    .replace(/\[(\d+)\]/g, '.$1') // transforma [0] em .0
+    .split('.')
+
   return props.form?.[key]
-    ?? key.split('.').reduce((acc, part) => acc?.[part], props.project)
+    ?? path.reduce((acc, part) => acc?.[part], props.project)
     ?? null
 }
 

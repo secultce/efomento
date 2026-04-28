@@ -14,8 +14,8 @@ const props = defineProps({
 <template>
     <Head :title="`Projetos`" />
     <AuthenticatedLayout>
-        <AppSubHeader>
-            <div class="grid grid-cols-[1fr_1fr_1fr_auto] items-start lg:mx-[8em] lg:w-10/12 gap-x-4 gap-y-2">
+        <AppSubHeader show-back="true">
+            <div class="grid grid-cols-[1fr_1fr_1fr_auto] items-start lg:w-10/12 gap-x-4 gap-y-2">
                 <div class="col-span-3 col-start-1">
                     <h1>
                         {{ props?.project?.notice?.name }}

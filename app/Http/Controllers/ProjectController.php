@@ -43,7 +43,7 @@ class ProjectController extends Controller
 
     public function projectDetail(Notice $notice, Project $project)
     {
-        $project->load(['notice', 'agent', 'category', 'opening', 'opening.supervisors', 'documents']);
+        $project->load(['notice', 'agent', 'category', 'opening', 'opening.supervisors', 'documents', 'budget','budget.installments', 'formalization']);
 
         return Inertia::render('ProjectDetails', [
             'project' => (new ProjectResource($project))->resolve(),
