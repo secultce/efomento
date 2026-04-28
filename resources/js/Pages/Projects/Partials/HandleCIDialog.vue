@@ -5,6 +5,19 @@ import { useSnackbar } from '@/Composables/useSnackbar'
 import AppTextEditor from '@/Components/AppTextEditor.vue'
 import { saveCI } from '@/Services/documentService'
 
+const PLACEHOLDERS = [
+    { label: 'Nome do edital',      value: '[notice_name]'      },
+    { label: 'Nup Mãe',             value: '[nup_mother]'  },
+    { label: 'Nome do Agente',      value: '[agent_name]'  },
+    { label: 'Finalidade',          value: '[finality]'     },
+    { label: 'Matrícula do Fiscal', value: '[fiscal_matricula]'},
+    { label: 'Nome do Fiscal',      value: '[fiscal_name]'   },
+]
+
+function insertPlaceholder(value) {
+    window.tinymce?.activeEditor?.insertContent(value)
+}
+
 const { showSnackbar } = useSnackbar()
 
 const props = defineProps({
@@ -69,7 +82,21 @@ const closeDialog = () => {
             <v-card-title class="font-weight-bold flex-shrink-0">Crie um documento de comunicação interna
                 (CI)</v-card-title>
             <v-container class="flex-grow-1 d-flex flex-column pa-4 min-h-0">
-                <app-text-editor v-model="form.content" label="" :error="form.errors.content" class="flex-grow-1" />
+                <div class="flex flex-wrap gap-2 mb-3">
+                <v-chip
+                    v-for="p in PLACEHOLDERS"
+                    :key="p.value"
+                    size="small"
+                    color="primary"
+                    variant="outlined"
+                    class="cursor-pointer"
+                    @click="insertPlaceholder(p.value)"
+                >
+                    {{ p.label }}
+                </v-chip>
+            </div>
+
+            <app-text-editor v-model="form.content" label="" :error="form.errors.content" class="flex-grow-1" />
                 <v-card-actions class="flex-shrink-0">
                     <v-spacer></v-spacer>
                     <v-btn variant="outlined" color="#004c27" class="rounded-lg" @click="closeDialog">Cancelar</v-btn>

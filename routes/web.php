@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\DocumentController;
 use App\Http\Controllers\GroupController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\UserController;
@@ -63,6 +64,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
         ->name('projects.assign-supervisors');
     Route::post('/projetos/criar-ci', [ProjectController::class, 'createCI'])
         ->name('projects.create-ci');
+    Route::get('/projetos/documentos/{document}/download', [DocumentController::class, 'download'])
+        ->name('documents.download');
     Route::get('editais/{notice}/projetos', [ProjectController::class, 'index'])
         ->name('notices.projects');
 });

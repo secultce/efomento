@@ -7,9 +7,11 @@ use App\Http\Requests\Document\DocumentUpdateRequest;
 use App\Http\Resources\DocumentResource;
 use App\Models\Document;
 use App\Services\Documents\DocumentService;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
+use Illuminate\Support\Facades\Auth;
 
 class DocumentController extends Controller
 {
@@ -55,5 +57,38 @@ class DocumentController extends Controller
         $document->delete();
 
         return response()->json(null, 204);
+    }
+
+    public function download(Document $document): \Illuminate\Http\Response
+    {
+        $document->loadMissing('project.agent');
+
+        $agentName = $document->project?->agent?->name ?? 'documento';
+        $filename  = 'CI_' . str($agentName)->slug('_') . '_' . $document->created_at->format('Y-m-d') . '.pdf';
+
+        $template = $this->substituirPlaceholders($document, Auth::user());
+
+        $pdf = Pdf::loadView('pdf.ci', ['document' => $template])
+            ->setPaper('a4', 'portrait');
+
+        return $pdf->download($filename);
+    }
+
+    private function substituirPlaceholders($template, $usuario): string
+    {
+        $replacements = [
+            '[notice_name]'   => $template->notice->name,
+            '[nup_mother]'  => $template->notice->nup,
+            '[agent_name]'  => $template->project?->agent?->name,
+            '[finality]'  => $template->notice->instrumentType,
+            '[fiscal_matricula]'  => 'sem matricula',
+            '[fiscal_name]'  => 'sem fiscal',
+        ];
+
+        return str_replace(
+            array_keys($replacements),
+            array_values($replacements),
+            $template
+        );
     }
 }
