@@ -27,7 +27,7 @@ class BudgetTest extends TestCase
         $budget = Budget::factory()->create();
 
         $this->assertNotNull($budget->project);
-        $this->assertNotNull($budget->responsibleUser);
+        $this->assertNotNull($budget->creator);
     }
 
     public function test_it_can_have_installments()

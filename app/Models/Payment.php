@@ -3,6 +3,7 @@
 namespace App\Models;
 
 
+use App\Traits\HasCreatedBy;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -11,7 +12,7 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class Payment extends Model
 {
-    use HasFactory, SoftDeletes;
+    use HasCreatedBy, HasFactory, SoftDeletes;
 
     protected $fillable = [
         'project_id',
@@ -19,6 +20,7 @@ class Payment extends Model
         'creditor_registration_number',
         'communication_sent_at',
         'contact_notes',
+        'created_by',
     ];
 
     protected $casts = [

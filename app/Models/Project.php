@@ -2,9 +2,10 @@
 
 namespace App\Models;
 
+use App\Traits\HasCreatedBy;
+use App\Traits\HasFiles;
 use App\Enums\ProjectPhase;
 use App\Enums\ProjectStageStatus;
-use App\Traits\HasFiles;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -19,7 +20,7 @@ use OwenIt\Auditing\Contracts\Auditable;
 
 class Project extends Model implements Auditable
 {
-    use AuditableTrait, HasFactory, HasFiles, SoftDeletes;
+    use AuditableTrait, HasCreatedBy, HasFactory, HasFiles, SoftDeletes;
 
     protected $fillable = [
         'registration_id',
@@ -31,6 +32,7 @@ class Project extends Model implements Auditable
         'sent_timestamp',
         'consolidated_result',
         'data_registration',
+        'created_by',
     ];
 
     protected $casts = [

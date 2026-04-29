@@ -14,7 +14,8 @@ return new class extends Migration
         Schema::create('budgets', function (Blueprint $table) {
             $table->id();
             $table->foreignId('project_id')->constrained();
-            $table->foreignId('responsible_user_id')->constrained('users');
+            $table->foreignId('created_by')->constrained('users');
+            $table->index('created_by');
 
             // Datas
             $table->date('processing_date_for_codip')->nullable(); // Data de tramitação para a CODIP

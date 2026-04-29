@@ -44,6 +44,8 @@ return new class extends Migration
             $table->date('sent_to_chief_of_staff_at')->nullable();
             $table->date('official_gazette_published_at')->nullable();
             $table->date('legal_opinion_date')->nullable();
+            $table->foreignId('created_by')->nullable()->constrained('users')->nullOnDelete();
+            $table->index('created_by');
 
             $table->timestamps();
             $table->softDeletes();

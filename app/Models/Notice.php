@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Traits\HasCreatedBy;
 use App\Traits\HasFiles;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -13,7 +14,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Notice extends Model implements Auditable
 {
-    use HasFactory, SoftDeletes, AuditableTrait, HasFiles;
+    use AuditableTrait, HasCreatedBy, HasFactory, HasFiles, SoftDeletes;
 
     protected $table = 'notices';
 
@@ -31,7 +32,8 @@ class Notice extends Model implements Auditable
         'creditor_registration_nup',
         'creditor_registration_request_date',
         'budget_allocation_nup',
-        'budget_allocation_request_date'
+        'budget_allocation_request_date',
+        'created_by',
     ];
 
     protected $casts = [

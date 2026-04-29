@@ -36,6 +36,8 @@ return new class extends Migration
             $table->date('opening_date')->nullable();
             $table->enum('agent_status', array_column(AgentStatus::cases(), 'value'))->nullable();
             $table->string('opened_by')->nullable();
+            $table->foreignId('created_by')->nullable()->constrained('users')->nullOnDelete();
+            $table->index('created_by');
 
             $table->string('bank')->nullable();
             $table->enum('account_type', array_column(AccountType::cases(), 'value'))->nullable();

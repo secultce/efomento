@@ -23,7 +23,8 @@ class OpeningResource extends JsonResource
             'opening_date' => $this->opening_date?->format('Y-m-d'),
 
             'agent_status' => $this->agent_status?->value,
-            'opened_by' => $this->opened_by,
+            'opened_by'  => $this->opened_by,
+            'created_by' => $this->created_by,
 
             'bank' => $this->bank,
             'account_type' => $this->account_type?->value,

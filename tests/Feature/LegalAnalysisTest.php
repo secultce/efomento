@@ -24,7 +24,7 @@ class LegalAnalysisTest extends TestCase
         $analysis = LegalAnalysis::factory()->create();
 
         $this->assertInstanceOf(Project::class, $analysis->project);
-        $this->assertInstanceOf(User::class, $analysis->responsibleUser);
+        $this->assertInstanceOf(User::class, $analysis->creator);
         $this->assertInstanceOf(Collection::class, $analysis->files);
     }
 
@@ -56,7 +56,7 @@ class LegalAnalysisTest extends TestCase
         $this->expectException(QueryException::class);
 
         LegalAnalysis::create([
-            'responsible_user_id' => $user->id,
+            'created_by' => $user->id,
         ]);
     }
 
