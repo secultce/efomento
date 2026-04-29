@@ -26,8 +26,6 @@ class OpeningFactory extends Factory
 
             'agent_status' => $this->faker->randomElement(AgentStatus::cases())->value,
 
-            'opened_by' => $this->faker->name(),
-
             'bank' => $this->faker->randomElement([
                 '001',
                 '237',

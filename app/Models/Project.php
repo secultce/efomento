@@ -2,15 +2,15 @@
 
 namespace App\Models;
 
-use App\Enums\DisabilityType;
-use App\Enums\Education;
-use App\Enums\Gender;
-use App\Enums\ProjectPhase;
 use App\Enums\ProjectStageStatus;
-use App\Enums\RaceColor;
-use App\Enums\SexualOrientation;
+use App\Traits\HasCreatedBy;
 use App\Traits\HasFiles;
-use Illuminate\Database\Eloquent\Builder;
+use App\Enums\Gender;
+use App\Enums\Education;
+use App\Enums\SexualOrientation;
+use App\Enums\RaceColor;
+use App\Enums\DisabilityType;
+use App\Enums\ProjectPhase;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -22,7 +22,7 @@ use OwenIt\Auditing\Contracts\Auditable;
 
 class Project extends Model implements Auditable
 {
-    use AuditableTrait, HasFactory, HasFiles, SoftDeletes;
+    use AuditableTrait, HasCreatedBy, HasFactory, HasFiles, SoftDeletes;
 
     protected $fillable = [
         'registration_id',
@@ -39,6 +39,7 @@ class Project extends Model implements Auditable
         'sent_timestamp',
         'consolidated_result',
         'data_registration',
+        'created_by',
         'title_project',
     ];
 

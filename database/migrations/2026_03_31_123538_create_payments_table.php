@@ -17,6 +17,8 @@ return new class extends Migration
             $table->string('creditor_registration_number')->nullable();
             $table->date('communication_sent_at')->nullable();
             $table->text('contact_notes')->nullable();
+            $table->foreignId('created_by')->nullable()->constrained('users')->nullOnDelete();
+            $table->index('created_by');
             $table->timestamps();
             $table->softDeletes();
         });

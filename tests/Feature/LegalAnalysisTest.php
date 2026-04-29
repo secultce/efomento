@@ -24,7 +24,7 @@ class LegalAnalysisTest extends TestCase
         $analysis = LegalAnalysis::factory()->create();
 
         $this->assertInstanceOf(Project::class, $analysis->project);
-        $this->assertInstanceOf(User::class, $analysis->responsibleUser);
+        $this->assertInstanceOf(User::class, $analysis->creator);
         $this->assertInstanceOf(Collection::class, $analysis->files);
     }
 

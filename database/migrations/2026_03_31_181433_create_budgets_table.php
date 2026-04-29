@@ -15,6 +15,7 @@ return new class extends Migration
             $table->id();
             $table->foreignId('project_id')->constrained();
             $table->foreignId('created_by')->constrained('users');
+            $table->index('created_by');
 
             // Datas
             $table->date('processing_date_for_codip')->nullable(); // Data de tramitação para a CODIP

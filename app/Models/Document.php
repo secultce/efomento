@@ -5,6 +5,7 @@ namespace App\Models;
 use App\Enums\DocumentPhase;
 use App\Enums\DocumentStatus;
 use App\Enums\DocumentType;
+use App\Traits\HasCreatedBy;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -15,7 +16,7 @@ use OwenIt\Auditing\Contracts\Auditable;
 
 class Document extends Model  implements Auditable
 {
-    use HasFactory, SoftDeletes, AuditableTrait;
+    use AuditableTrait, HasCreatedBy, HasFactory, SoftDeletes;
 
     protected $fillable = [
         'notice_id',
@@ -41,11 +42,6 @@ class Document extends Model  implements Auditable
     public function project(): BelongsTo
     {
         return $this->belongsTo(Project::class);
-    }
-
-    public function creator(): BelongsTo
-    {
-        return $this->belongsTo(User::class, 'created_by');
     }
 
     public function images(): HasMany
