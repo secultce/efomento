@@ -5,16 +5,6 @@ import { useSnackbar } from '@/Composables/useSnackbar'
 import AppTextEditor from '@/Components/AppTextEditor.vue'
 import { saveCI } from '@/Services/documentService'
 
-const PLACEHOLDERS = [
-    { label: 'Nome do edital',      value: '[notice_name]'      },
-    { label: 'Nup Mãe',             value: '[nup_mother]'  },
-    { label: 'Nome do Agente',      value: '[agent_name]'  },
-    { label: 'Finalidade',          value: '[finality]'     },
-    { label: 'Matrícula do Fiscal', value: '[fiscal_matricula]'},
-    { label: 'Nome do Fiscal',      value: '[fiscal_name]'   },
-    { label: 'Nome do projeto',      value: '[project_name]'   },
-]
-
 function insertPlaceholder(value) {
     window.tinymce?.activeEditor?.insertContent(value)
 }
@@ -25,6 +15,18 @@ const props = defineProps({
     modelValue: Boolean,
     projectIds: Array,
     editData: Object,
+    placeholders: {
+        type: Array,
+        default: () => [
+            { label: 'Nome do edital',      value: '[notice_name]'      },
+            { label: 'Nup Mãe',             value: '[nup_mother]'       },
+            { label: 'Nome do Agente',      value: '[agent_name]'       },
+            { label: 'Finalidade',          value: '[finality]'         },
+            { label: 'Matrícula do Fiscal', value: '[fiscal_matricula]' },
+            { label: 'Nome do Fiscal',      value: '[fiscal_name]'      },
+            { label: 'Nome do projeto',     value: '[project_name]'     },
+        ],
+    },
 })
 
 const form = useForm({
@@ -85,7 +87,7 @@ const closeDialog = () => {
             <v-container class="flex-grow-1 d-flex flex-column pa-4 min-h-0">
                 <div class="flex flex-wrap gap-2 mb-3">
                 <v-chip
-                    v-for="p in PLACEHOLDERS"
+                    v-for="p in placeholders"
                     :key="p.value"
                     size="small"
                     color="primary"

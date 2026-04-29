@@ -66,14 +66,14 @@ class DocumentController extends Controller
         $agentName = $document->project?->agent?->name ?? 'documento';
         $filename  = 'CI_' . str($agentName)->slug('_') . '_' . $document->created_at->format('Y-m-d') . '.pdf';
 
-        $document->body = $this->substituirPlaceholders($document);
+        $document->body = $this->replacePlaceholders($document);
         $pdf = Pdf::loadView('pdf.ci', ['document' => $document])
             ->setPaper('a4', 'portrait');
 
         return $pdf->download($filename);
     }
 
-    private function substituirPlaceholders(Document $document): string
+    private function replacePlaceholders(Document $document): string
     {
         $replacements = [
             '[notice_name]'      => $document->project?->notice?->name,
@@ -82,7 +82,7 @@ class DocumentController extends Controller
             '[finality]'         => $document->project?->notice?->instrument_type,
             '[fiscal_matricula]' => $document->project?->opening?->activeSupervisor?->user?->registration_number ?? 'sem matrícula',
             '[fiscal_name]'      => $document->project?->opening?->activeSupervisor?->user?->name ?? 'sem fiscal',
-            '[project_name]'      => $document->project?->title_project ?? 'sem projeto',
+            '[project_name]'     => $document->project?->title_project ?? 'sem projeto',
         ];
 
         return str_replace(

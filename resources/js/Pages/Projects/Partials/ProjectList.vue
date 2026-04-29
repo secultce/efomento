@@ -1,7 +1,8 @@
 <script setup>
+import { computed } from 'vue'
 import ListDataTable from '@/Components/ListDataTable.vue'
 
-defineProps({
+const props = defineProps({
     projects: Array,
     tableConfig: Object,
     search: String,
@@ -10,10 +11,28 @@ defineProps({
 const emit = defineEmits([
     'update:search',
     'clearPhaseFilter',
-    'update:selectedProjects',
 ])
 
 const selected = defineModel()
+
+const isSelectable = computed(() => props.tableConfig?.isSelectable ?? (() => true))
+
+const selectableProjects = computed(() =>
+    props.projects?.filter(p => isSelectable.value(p)) ?? []
+)
+
+const allSelected = computed(() =>
+    selectableProjects.value.length > 0 &&
+    selectableProjects.value.every(p => selected.value?.includes(p.id))
+)
+
+function toggleAll() {
+    if (allSelected.value) {
+        selected.value = []
+    } else {
+        selected.value = selectableProjects.value.map(p => p.id)
+    }
+}
 
 function onSearch(value) {
     emit('update:search', value)
@@ -41,7 +60,12 @@ function clear() {
                 Exibir todos os proponentes
             </v-btn>
 
-            <div class="flex-[2_1_0%]"></div>
+            <v-btn variant="outlined"
+                class="!font-bold !border-[#cccccc] !text-[#3b3b3c] flex-[1_1_0%] !h-[3em] mb-2 !px-2 !py-1"
+                density="compact" rounded="lg" @click="toggleAll">
+                <v-checkbox-btn :model-value="allSelected" density="compact" hide-details class="mr-1 pointer-events-none" />
+                Marcar todos
+            </v-btn>
         </div>
 
         <ListDataTable :items="projects" v-bind="tableConfig" v-model="selected" selectable />
