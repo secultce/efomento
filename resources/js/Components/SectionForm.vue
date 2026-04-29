@@ -1,8 +1,11 @@
 <script setup>
+import extenso from 'extenso'
 import FormField from './FormField.vue'
 import SelectField from './SelectField.vue'
 import TextField from './TextField.vue'
 import { useDate } from '@/Composables/useDate'
+import { toNumber } from 'lodash'
+import { useFormHelper } from '@/Composables/useFormHelper'
 
 const props = defineProps({
     sections: {
@@ -23,40 +26,13 @@ const props = defineProps({
 const emit = defineEmits(['update:field'])
 
 const { normalizeDate } = useDate()
+const { getFieldValue } = useFormHelper({
+  form: props.form,
+  project: props.project,
+})
 
 const updateValue = (key, value) => {
     emit('update:field', { key, value })
-}
-
-const resolvePath = (obj, key) => {
-  if (!obj) return { exists: false, value: undefined }
-
-  const path = key
-    .replace(/\[(\d+)\]/g, '.$1')
-    .split('.')
-
-  let current = obj
-
-  for (const part of path) {
-    if (current == null || !(part in current)) {
-      return { exists: false, value: undefined }
-    }
-    current = current[part]
-  }
-
-  return { exists: true, value: current }
-}
-
-const getFieldValue = (key) => {
-  const formResult = resolvePath(props.form, key)
-
-  if (formResult.exists) {
-    return formResult.value
-  }
-
-  const projectResult = resolvePath(props.project, key)
-
-  return projectResult.exists ? projectResult.value : null
 }
 
 </script>
@@ -97,7 +73,7 @@ const getFieldValue = (key) => {
               @update:model-value="updateValue(field.key, $event)"
               :items="field.options"
               :placeholder="field.placeholder"
-              disabled="!field.isEditable"
+              :disabled="!field.isEditable"
               clearable
             />
 
@@ -109,6 +85,23 @@ const getFieldValue = (key) => {
               :placeholder="field.placeholder"
               :disabled="!field.isEditable"
               type="date"
+            />
+
+            <!-- money-->
+            <text-field
+              v-else-if="field.inputType === 'money'"
+              :model-value="getFieldValue(field.key)"
+              @update:model-value="updateValue(field.key, $event)"
+              :placeholder="field.placeholder"
+              :disabled="!field.isEditable"
+              :money="true"
+            />
+
+            <!--money extenso-->
+            <text-field
+              v-else-if="field.inputType === 'money_extenso'"
+              :model-value="extenso(toNumber(getFieldValue(field.key)), { mode: 'currency' }).toUpperCase()"
+              :disabled="!field.isEditable"
             />
 
         </form-field>

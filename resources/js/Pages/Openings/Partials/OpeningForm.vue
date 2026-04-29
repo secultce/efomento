@@ -1,10 +1,7 @@
 <script setup>
 import { ref, reactive } from 'vue';
-import { useExternalLink } from '@/Composables/useExternalLinks';
 
 const subTab = ref('todos');
-
-const { openExternalLink } = useExternalLink();
 
 const form = reactive({
     numero_processo: '',
@@ -66,13 +63,13 @@ const onSubmit = () => {
         </v-card-title>
 
         <div class="px-4 pt-2 d-flex ga-2 flex-wrap">
-            <v-btn variant="text" size="small" color="primary" prepend-icon="mdi-open-in-new" @click="openExternalLink('https://mapa.cultura.gov.br/')">
+            <v-btn variant="text" size="small" color="primary" prepend-icon="mdi-open-in-new">
                 Conferir ficha no Mapa
             </v-btn>
-            <v-btn variant="text" size="small" color="primary" prepend-icon="mdi-open-in-new" @click="openExternalLink('https://suite.cultura.gov.br/')">
+            <v-btn variant="text" size="small" color="primary" prepend-icon="mdi-open-in-new">
                 SUITE
             </v-btn>
-            <v-btn variant="text" size="small" color="primary" prepend-icon="mdi-open-in-new" @click="openExternalLink('https://e-parcerias.cultura.gov.br/')">
+            <v-btn variant="text" size="small" color="primary" prepend-icon="mdi-open-in-new">
                 e-PARCERIAS
             </v-btn>
         </div>

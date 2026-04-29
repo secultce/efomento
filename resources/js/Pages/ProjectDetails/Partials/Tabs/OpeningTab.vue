@@ -8,6 +8,9 @@ import AuxLinks from '@/Components/AuxLinks.vue'
 import { viewSections, formSections } from '@/Schemas/Opening'
 import { useForm } from '@inertiajs/vue3'
 import { onMounted } from 'vue'
+import { useFormHelper } from '@/Composables/useFormHelper'
+import { usePayload } from '@/Composables/usePayload'
+const { setFieldValue, buildFormFromSections } = useFormHelper({})
 
 const props = defineProps({
   project: {
@@ -18,9 +21,12 @@ const props = defineProps({
 
 defineEmits(['update:field'])
 
-const form = useForm({})
+
+const form = useForm(
+  buildFormFromSections(formSections)
+)
 const handleFieldUpdate = ({ key, value }) => {
-  form[key] = value
+  setFieldValue(form, key, value)
 }
 
 onMounted(() => {
@@ -32,18 +38,22 @@ onMounted(() => {
 
   form.reset()
 })
-
+const { sanitizePayload } = usePayload()
 const submit = () => {
-  form.patch(route('projects.update', props.project.id), {
-    preserveScroll: true,
-    onSuccess: () => {
-      console.log('Saved successfully')
-    },
-    onError: (errors) => {
-      console.error(errors)
-    }
-  })
+  const payload = sanitizePayload(form, formSections)
+  form
+     .transform(() => payload)
+    .patch(route('projects.update', props.project.id), {
+      preserveScroll: true,
+      onSuccess: () => {
+        console.log('Saved successfully')
+      },
+      onError: (errors) => {
+        console.error(errors)
+      }
+    })
 }
+
 const activeViewIndex = ref('all')
 const activeEditIndex = ref('all')
 </script>

@@ -23,9 +23,7 @@ const props = defineProps({
                 <p>Status do processo</p>
                 <p class="font-bold">{{ props.project?.opening?.status }}</p>
             </div>
-            <div>
-                botões
-            </div>
+           
         </div>
     </v-card>
 </template>

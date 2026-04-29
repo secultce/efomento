@@ -40,7 +40,7 @@ export const formSections = [
             { 
                 label: 'Valor de repasse (Parcela única)',
                 key: 'budget.installments[0].amount',
-                inputType: 'text',
+                inputType: 'money',
                 saveRequired: true,
                 tramitRequired: true,
                 permissionRequired: ['edit_opening'],
@@ -50,8 +50,8 @@ export const formSections = [
             },
             { 
                 label: 'Valor por extenso', 
-                key: 'legal_type', 
-                inputType: 'date',
+                key: 'budget.installments[0].amount',
+                inputType: 'money_extenso',
                 saveRequired: true 
             },
         ],
