@@ -12,6 +12,7 @@ const PLACEHOLDERS = [
     { label: 'Finalidade',          value: '[finality]'     },
     { label: 'Matrícula do Fiscal', value: '[fiscal_matricula]'},
     { label: 'Nome do Fiscal',      value: '[fiscal_name]'   },
+    { label: 'Nome do projeto',      value: '[project_name]'   },
 ]
 
 function insertPlaceholder(value) {

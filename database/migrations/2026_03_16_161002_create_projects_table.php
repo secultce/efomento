@@ -55,6 +55,7 @@ return new class extends Migration
 
             $table->string('consolidated_result')->nullable();
             $table->jsonb('data_registration')->nullable();
+            $table->string('title_project')->nullable();
 
             $table->timestamps();
             $table->softDeletes();

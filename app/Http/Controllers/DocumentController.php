@@ -67,7 +67,6 @@ class DocumentController extends Controller
         $filename  = 'CI_' . str($agentName)->slug('_') . '_' . $document->created_at->format('Y-m-d') . '.pdf';
 
         $document->body = $this->substituirPlaceholders($document);
-
         $pdf = Pdf::loadView('pdf.ci', ['document' => $document])
             ->setPaper('a4', 'portrait');
 
@@ -83,6 +82,7 @@ class DocumentController extends Controller
             '[finality]'         => $document->project?->notice?->instrument_type,
             '[fiscal_matricula]' => $document->project?->opening?->activeSupervisor?->user?->registration_number ?? 'sem matrícula',
             '[fiscal_name]'      => $document->project?->opening?->activeSupervisor?->user?->name ?? 'sem fiscal',
+            '[project_name]'      => $document->project?->title_project ?? 'sem projeto',
         ];
 
         return str_replace(

@@ -39,6 +39,7 @@ class Project extends Model implements Auditable
         'sent_timestamp',
         'consolidated_result',
         'data_registration',
+        'title_project',
     ];
 
     protected $casts = [

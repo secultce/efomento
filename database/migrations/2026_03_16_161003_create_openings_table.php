@@ -21,7 +21,7 @@ return new class extends Migration
                 ->unique()
                 ->constrained()
                 ->nullOnDelete();
-            
+
             $table->foreignId('user_id')
                 ->nullable()
                 ->constrained()
@@ -31,7 +31,7 @@ return new class extends Migration
                 ->nullable()
                 ->constrained('users')
                 ->nullOnDelete();
-            
+
             $table->string('opening_nup')->nullable();
             $table->date('opening_date')->nullable();
             $table->enum('agent_status', array_column(AgentStatus::cases(), 'value'))->nullable();

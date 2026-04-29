@@ -90,10 +90,6 @@
         <div class="content">
             {!! $document->body !!}
         </div>
-
-        <div class="footer">
-            Gerado pelo e-Fomento em {{ now()->format('d/m/Y \à\s H:i') }}
-        </div>
     </div>
 </body>
 </html>

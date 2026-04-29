@@ -42,6 +42,7 @@ class SpreadsheetImportService
                 'category_id' => $category->id,
                 'agent_id' => $agent->id,
                 'notice_id' => $notice->id,
+                'title_project' => $row[6],
             ]
         );
 

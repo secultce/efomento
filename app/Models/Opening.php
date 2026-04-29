@@ -37,6 +37,7 @@ class Opening extends Model implements Auditable
         'started_at',
         'submitted_at',
         'concluded_at',
+        'title_project'
     ];
 
     protected $casts = [
@@ -82,7 +83,7 @@ class Opening extends Model implements Auditable
                 'removed_at' => now(),
             ]);
 
-  
+
         foreach ($supervisorIds as $supervisorId) {
             OpeningSupervisor::create([
                 'opening_id' => $this->id,
