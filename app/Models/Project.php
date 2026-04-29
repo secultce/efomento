@@ -2,14 +2,10 @@
 
 namespace App\Models;
 
-use App\Enums\DisabilityType;
 use App\Traits\HasCreatedBy;
 use App\Traits\HasFiles;
-use App\Enums\Education;
 use App\Enums\ProjectPhase;
 use App\Enums\ProjectStageStatus;
-use App\Enums\RaceColor;
-use App\Enums\SexualOrientation;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
