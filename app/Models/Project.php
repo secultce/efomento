@@ -5,7 +5,6 @@ namespace App\Models;
 use App\Enums\DisabilityType;
 use App\Traits\HasCreatedBy;
 use App\Traits\HasFiles;
-use App\Enums\Gender;
 use App\Enums\Education;
 use App\Enums\ProjectPhase;
 use App\Enums\ProjectStageStatus;
@@ -17,6 +16,8 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
+use Illuminate\Database\Eloquent\Relations\MorphMany;
+use Illuminate\Database\Eloquent\Relations\MorphOne;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use OwenIt\Auditing\Auditable as AuditableTrait;
 use OwenIt\Auditing\Contracts\Auditable;
@@ -31,11 +32,6 @@ class Project extends Model implements Auditable
         'category_id',
         'agent_id',
         'notice_id',
-        'education',
-        'gender',
-        'sexual_orientation',
-        'race',
-        'has_disability',
         'create_timestamp',
         'sent_timestamp',
         'consolidated_result',
@@ -44,11 +40,6 @@ class Project extends Model implements Auditable
     ];
 
     protected $casts = [
-        'education_level' => Education::class,
-        'gender' => Gender::class,
-        'sexual_orientation' => SexualOrientation::class,
-        'race' => RaceColor::class,
-        'has_disability' => DisabilityType::class,
         'create_timestamp' => 'datetime',
         'sent_timestamp' => 'datetime',
         'data_registration' => 'array',
@@ -162,6 +153,16 @@ class Project extends Model implements Auditable
     public function documents(): HasMany
     {
         return $this->hasMany(Document::class);
+    }
+
+    public function profileSnapshots(): MorphMany
+    {
+        return $this->morphMany(ProfileSnapshot::class, 'object');
+    }
+
+    public function latestSnapshot(): MorphOne
+    {
+        return $this->morphOne(ProfileSnapshot::class, 'object')->latestOfMany('recorded_at');
     }
 
     public function stages(): HasMany
