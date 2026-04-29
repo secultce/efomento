@@ -59,6 +59,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
         ->name('projects.create-ci');
     Route::get('/projetos/documentos/{document}/download', [DocumentController::class, 'download'])
         ->name('documents.download');
+    Route::post('/projetos/documentos/download-zip', [DocumentController::class, 'downloadZip'])
+        ->name('documents.download-zip');
     Route::get('editais/{notice}/projetos', [ProjectController::class, 'index'])
         ->name('notices.projects');
 });

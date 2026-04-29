@@ -4,6 +4,7 @@ import SupervisorDialog from '@/Pages/Projects/Partials/SupervisorDialog.vue';
 import { useAuth } from '@/Composables/useAuth';
 import HandleCIDialog from './HandleCIDialog.vue';
 import Modal from '@/Components/Modal.vue';
+import DocumentListDialog from '@/Components/DocumentListDialog.vue';
 import axios from 'axios'
 import NoticeHistory from './NoticeHistory.vue'
 import { formatAudits } from '@/Composables/useAuditFormatter'
@@ -19,6 +20,13 @@ const props = defineProps({
 
 const supervisorDialog = ref(false)
 const ciDialog = ref(false)
+const docListDialog = ref(false)
+
+const selectedDocuments = computed(() =>
+    selectedProjectsList.value.flatMap(p =>
+        (p.documents ?? []).map(d => ({ ...d, project: p }))
+    )
+)
 
 function openSupervisorDialog() {
     supervisorDialog.value = true
@@ -72,6 +80,35 @@ function openCIDialog() {
 
 const errorMessage = ref('')
 const showError = ref(false)
+const downloadingZip = ref(false)
+
+async function downloadZip() {
+    if (!props.selectedProjects?.length) {
+        errorMessage.value = 'Selecione pelo menos 1 projeto para baixar os documentos.'
+        showError.value = true
+        return
+    }
+
+    downloadingZip.value = true
+    try {
+        const response = await axios.post(
+            '/projetos/documentos/download-zip',
+            { project_ids: props.selectedProjects },
+            { responseType: 'blob' }
+        )
+        const url = URL.createObjectURL(new Blob([response.data], { type: 'application/zip' }))
+        const link = document.createElement('a')
+        link.href = url
+        link.download = 'documentos.zip'
+        link.click()
+        URL.revokeObjectURL(url)
+    } catch {
+        errorMessage.value = 'Erro ao baixar os documentos. Tente novamente.'
+        showError.value = true
+    } finally {
+        downloadingZip.value = false
+    }
+}
 
 const audits = ref([])
 const loadingAudits = ref(false)
@@ -105,6 +142,10 @@ const closeModal = () => {
         @saved="$emit('saved')" />
     <supervisor-dialog v-model="supervisorDialog" :project-ids="selectedProjects" :supervisors="supervisors_available"
         @saved="$emit('saved')" />
+    <document-list-dialog
+        v-model="docListDialog"
+        :documents="selectedDocuments"
+    />
     <v-card class="w-full pb-4 pt-4 !shadow-none border border-gray-800 rounded-lg">
         <v-card-title class="font-weight-bold !text-lg">Ações disponíveis para você </v-card-title>
         <v-card-text class="flex flex-col gap-4">
@@ -139,6 +180,24 @@ const closeModal = () => {
                     </v-btn>
                 </template>
             </div>
+            <div class="w-full flex flex-col sm:flex-row gap-2">
+                <v-btn
+                    variant="outlined"
+                    class="flex-1 !shadow-none !border-primary !text-primary rounded-lg text-xs"
+                    :loading="downloadingZip"
+                    @click="downloadZip"
+                    color="primary"
+                >
+                    Baixar todos
+                </v-btn>
+                <v-btn
+                    class="flex-1 !shadow-none !font-bold !bg-[#ffcc05FF] !text-[#2d353fFF] rounded-lg text-xs"
+                    :disabled="!(selectedProjects?.length > 0)"
+                    @click="docListDialog = true">
+                    Conferir documentos
+                </v-btn>
+            </div>
+
             <div class="w-full pt-2 flex flex-col gap-1" v-permission="{
                 condition: canAssignSupervisor,
                 message: 'Você não tem permissão para atribuir fiscais ao projeto, contate o administrador do sistema.'

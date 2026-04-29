@@ -11,7 +11,8 @@ use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
-use Illuminate\Support\Facades\Auth;
+use Symfony\Component\HttpFoundation\BinaryFileResponse;
+use ZipArchive;
 
 class DocumentController extends Controller
 {
@@ -71,6 +72,35 @@ class DocumentController extends Controller
             ->setPaper('a4', 'portrait');
 
         return $pdf->download($filename);
+    }
+
+    public function downloadZip(Request $request): BinaryFileResponse
+    {
+        $projectIds = $request->validate(['project_ids' => 'required|array|min:1'])['project_ids'];
+
+        $documents = Document::with(['project.agent', 'project.notice', 'project.opening.activeSupervisor.user'])
+            ->whereIn('project_id', $projectIds)
+            ->get();
+
+        $tempFile = tempnam(sys_get_temp_dir(), 'docs_') . '.zip';
+        $zip = new ZipArchive();
+        $zip->open($tempFile, ZipArchive::CREATE | ZipArchive::OVERWRITE);
+
+        foreach ($documents as $document) {
+            $document->body = $this->replacePlaceholders($document);
+            $pdf = Pdf::loadView('pdf.ci', ['document' => $document])->setPaper('a4', 'portrait');
+
+            $agentName = $document->project?->agent?->name ?? 'documento';
+            $filename = 'CI_' . str($agentName)->slug('_') . '_' . $document->created_at->format('Y-m-d') . '.pdf';
+
+            $zip->addFromString($filename, $pdf->output());
+        }
+
+        $zip->close();
+
+        return response()->download($tempFile, 'documentos.zip', [
+            'Content-Type' => 'application/zip',
+        ])->deleteFileAfterSend();
     }
 
     private function replacePlaceholders(Document $document): string
