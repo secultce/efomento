@@ -22,7 +22,7 @@ use OwenIt\Auditing\Contracts\Auditable;
 
 class Project extends Model implements Auditable
 {
-    use AuditableTrait, HasCreatedBy, HasFactory, HasFiles, SoftDeletes;
+    use HasFactory, SoftDeletes, AuditableTrait, HasFiles, HasCreatedBy, HasFactory;
 
     protected $fillable = [
         'registration_id',
