@@ -22,12 +22,35 @@ const formatDate = (date) => {
   return isNaN(d) ? '—' : d.toLocaleDateString('pt-BR')
 }
 
-const getValue = (field) => {
-  const value = props.project?.[field.key] ?? props.project?.agent?.[field.key] ?? '—'
-  if (field.format && value !== '—') {
-    return field.format(value)
+const resolvePath = (obj, key) => {
+  if (!obj) return { exists: false, value: undefined }
+
+  const path = key
+    .replace(/\[(\d+)\]/g, '.$1')
+    .split('.')
+
+  let current = obj
+
+  for (const part of path) {
+    if (current == null || !(part in current)) {
+      return { exists: false, value: undefined }
+    }
+    current = current[part]
   }
-  return value
+
+  return { exists: true, value: current }
+}
+
+const getFieldValue = (key) => {
+  const formResult = resolvePath(props.form, key)
+
+  if (formResult.exists) {
+    return formResult.value
+  }
+
+  const projectResult = resolvePath(props.project, key)
+
+  return projectResult.exists ? projectResult.value : null
 }
 
 const copyValue = async (value) => {
@@ -36,7 +59,6 @@ const copyValue = async (value) => {
   try {
     await navigator.clipboard.writeText(value)
 
-    // se já usa seu snackbar global 👇
     showSnackbar('Copiado!', 'success')
   } catch (e) {
     console.error('Erro ao copiar', e)
@@ -60,13 +82,13 @@ const copyValue = async (value) => {
           </span>
 
           <v-icon v-show="hoveredIndex === index" size="14" class="cursor-pointer"
-            @click.stop="copyValue(getValue(field))">
+            @click.stop="copyValue(getFieldValue(field))">
             mdi-content-copy
           </v-icon>
         </div>
 
         <span class="font-bold break-words">
-          {{ getValue(field) }}
+          {{ getFieldValue(field.key) }}
         </span>
       </div>
     </div>

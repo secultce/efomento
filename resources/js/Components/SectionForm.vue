@@ -2,6 +2,7 @@
 import FormField from './FormField.vue'
 import SelectField from './SelectField.vue'
 import TextField from './TextField.vue'
+import { useDate } from '@/Composables/useDate'
 
 const props = defineProps({
     sections: {
@@ -21,18 +22,41 @@ const props = defineProps({
 
 const emit = defineEmits(['update:field'])
 
+const { normalizeDate } = useDate()
+
 const updateValue = (key, value) => {
     emit('update:field', { key, value })
 }
 
-const getFieldValue = (key) => {
+const resolvePath = (obj, key) => {
+  if (!obj) return { exists: false, value: undefined }
+
   const path = key
-    .replace(/\[(\d+)\]/g, '.$1') // transforma [0] em .0
+    .replace(/\[(\d+)\]/g, '.$1')
     .split('.')
 
-  return props.form?.[key]
-    ?? path.reduce((acc, part) => acc?.[part], props.project)
-    ?? null
+  let current = obj
+
+  for (const part of path) {
+    if (current == null || !(part in current)) {
+      return { exists: false, value: undefined }
+    }
+    current = current[part]
+  }
+
+  return { exists: true, value: current }
+}
+
+const getFieldValue = (key) => {
+  const formResult = resolvePath(props.form, key)
+
+  if (formResult.exists) {
+    return formResult.value
+  }
+
+  const projectResult = resolvePath(props.project, key)
+
+  return projectResult.exists ? projectResult.value : null
 }
 
 </script>
@@ -62,7 +86,7 @@ const getFieldValue = (key) => {
               :mask="field.mask"
               :type="field.type || 'text'"
               :placeholder="field.placeholder"
-              disabled="!field.isEditable"
+              :disabled="!field.isEditable"
               clearable
             />
 
@@ -80,10 +104,10 @@ const getFieldValue = (key) => {
             <!-- DATE -->
             <text-field
               v-else-if="field.inputType === 'date'"
-              :model-value="getFieldValue(field.key)"
+              :model-value="normalizeDate(getFieldValue(field.key))"
               @update:model-value="updateValue(field.key, $event)"
               :placeholder="field.placeholder"
-              disabled="!field.isEditable"
+              :disabled="!field.isEditable"
               type="date"
             />
 
