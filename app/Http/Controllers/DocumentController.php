@@ -61,34 +61,34 @@ class DocumentController extends Controller
 
     public function download(Document $document): \Illuminate\Http\Response
     {
-        $document->loadMissing('project.agent');
+        $document->loadMissing('project.agent', 'project.notice', 'project.opening.activeSupervisor.user');
 
         $agentName = $document->project?->agent?->name ?? 'documento';
         $filename  = 'CI_' . str($agentName)->slug('_') . '_' . $document->created_at->format('Y-m-d') . '.pdf';
 
-        $template = $this->substituirPlaceholders($document, Auth::user());
+        $document->body = $this->substituirPlaceholders($document);
 
-        $pdf = Pdf::loadView('pdf.ci', ['document' => $template])
+        $pdf = Pdf::loadView('pdf.ci', ['document' => $document])
             ->setPaper('a4', 'portrait');
 
         return $pdf->download($filename);
     }
 
-    private function substituirPlaceholders($template, $usuario): string
+    private function substituirPlaceholders(Document $document): string
     {
         $replacements = [
-            '[notice_name]'   => $template->notice->name,
-            '[nup_mother]'  => $template->notice->nup,
-            '[agent_name]'  => $template->project?->agent?->name,
-            '[finality]'  => $template->notice->instrumentType,
-            '[fiscal_matricula]'  => 'sem matricula',
-            '[fiscal_name]'  => 'sem fiscal',
+            '[notice_name]'      => $document->project?->notice?->name,
+            '[nup_mother]'       => $document->project?->notice?->nup,
+            '[agent_name]'       => $document->project?->agent?->name,
+            '[finality]'         => $document->project?->notice?->instrument_type,
+            '[fiscal_matricula]' => $document->project?->opening?->activeSupervisor?->user?->registration_number ?? 'sem matrícula',
+            '[fiscal_name]'      => $document->project?->opening?->activeSupervisor?->user?->name ?? 'sem fiscal',
         ];
 
         return str_replace(
             array_keys($replacements),
             array_values($replacements),
-            $template
+            $document->body
         );
     }
 }
