@@ -74,10 +74,10 @@ function getChipColor(status) {
 const chips = (item) => {
   if (!Array.isArray(item.documents)) return []
 
-  
+
   const uniqueDocs = Object.values(
     item.documents.reduce((acc, doc) => {
-      acc[doc.type] = doc 
+      acc[doc.type] = doc
       return acc
     }, {})
   )
@@ -123,7 +123,7 @@ function handleSaved() {
 
   <Head :title="`Projetos`" />
   <AuthenticatedLayout>
-    <AppSubHeader>
+    <AppSubHeader variant="large" :show-back="true" back-route="/editais">
       <ProjectNoticeEdit :notice="notice" :instrumentTypes="instrumentTypes" />
     </AppSubHeader>
     <AppContainer>
