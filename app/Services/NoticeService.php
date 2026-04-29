@@ -20,12 +20,12 @@ class NoticeService
             })
             ->orderBy('created_at', 'desc')
             ->get()
-            ->map(fn (Notice $notice) => [
+            ->map(fn(Notice $notice) => [
                 'id'      => $notice->id,
                 'titulo'  => $notice->name,
                 'mae'     => $notice->nup,
                 'type_ins' => $notice->instrument_type,
-                'status'  => $notice->nup? 'Em abertura de processo': 'Pendente abertura de processo',
+                'status'  => $notice->nup ? 'Em abertura de processo' : 'Pendente abertura de processo',
                 'url'     => $notice->notice_url,
             ]);
     }
@@ -44,5 +44,16 @@ class NoticeService
             'concluidos'    => $comCredenciamento,
             'monitoramento' => $total - $comCredenciamento - $semCredenciamento,
         ];
+    }
+
+    public function updateOrCreateFromMapas(array $notice): Notice
+    {
+        return Notice::updateOrCreate(
+            ['external_id' => $notice['id']],
+            [
+                'name' => $notice['name'],
+                'notice_url' => $notice['singleUrl'],
+            ]
+        );
     }
 }

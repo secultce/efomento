@@ -64,21 +64,45 @@ services:
       retries: 10
       start_period: 30s
   queue:
-      build:
-        context: ./docker/php
-        dockerfile: Dockerfile
-        args:
-          UID: ${UID}
-          GID: ${GID}
-      container_name: efomento-queue
-      volumes:
-        - .:/var/www
-      depends_on:
-        postgres:
-          condition: service_healthy
-      command: php artisan queue:listen
-      networks:
-        - efomento
+    build:
+      context: ./docker/php
+      dockerfile: Dockerfile
+      args:
+        UID: ${UID}
+        GID: ${GID}
+    container_name: efomento-queue
+    volumes:
+      - .:/var/www
+    depends_on:
+      postgres:
+        condition: service_healthy
+    command:
+      [
+        "sh",
+        "-c",
+        "php artisan queue:work --queue=high,medium,low,details,default --sleep=1 --tries=3 --timeout=90",
+      ]
+    networks:
+      - efomento
+
+  scheduler:
+    build:
+      context: ./docker/php
+      dockerfile: Dockerfile
+      args:
+        UID: ${UID}
+        GID: ${GID}
+    container_name: efomento-scheduler
+    volumes:
+      - .:/var/www
+    depends_on:
+      postgres:
+        condition: service_healthy
+    command:
+      ["sh", "-c", "while true; do php artisan schedule:run; sleep 60; done"]
+    networks:
+      - efomento
+
 networks:
   efomento:
     driver: bridge
