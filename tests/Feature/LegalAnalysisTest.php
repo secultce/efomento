@@ -56,7 +56,7 @@ class LegalAnalysisTest extends TestCase
         $this->expectException(QueryException::class);
 
         LegalAnalysis::create([
-            'responsible_user_id' => $user->id,
+            'created_by' => $user->id,
         ]);
     }
 
