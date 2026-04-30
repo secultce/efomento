@@ -49,7 +49,7 @@ const saveAll = () => {
         </div>
         <div class="row-span-2 col-start-4 flex items-start justify-end">
             <v-btn class="!text-[#008344] !font-bold !border-[#008344] !h-[3em] mb-2 !px-2 !py-1"
-                density="compact" 
+                density="compact"
                 rounded="lg"
                 @click="saveAll"
                 :disabled="!form.isDirty"
@@ -59,7 +59,7 @@ const saveAll = () => {
             </v-btn>
         </div>
         <div class="col-start-1 row-start-2 flex flex-col justify-start">
-            <p><span class="font-bold">Nº do processo mãe: </span>{{ notice.nup }}</p>
+            <p><span class="font-bold" data-cy="numeroDeProcessoMaePaginaDeProjetos">Nº do processo mãe: </span>{{ notice.nup }}</p>
             <div v-show="showAll" class="mt-2 space-y-1 transition-all duration-200 ease-in-out">
                 <EditableField label="Tipo de Instrumento:" type="select" :items="instrumentTypes" v-model="form.instrument_type" :error="form.errors.instrument_type"/>
                 <EditableField label="Gestor do processo do sistema:" v-model="form.process_manager" />
@@ -77,7 +77,7 @@ const saveAll = () => {
                 }).format(value)"
                 :error="form.errors.total_notice_amount"
             />
-          
+
             <div v-show="showAll" class="mt-2 space-y-1 transition-all duration-200 ease-in-out">
                 <p><span class="font-bold">Valor por extenso: </span>{{ extenso(Number(form.total_notice_amount), { mode: 'currency' }) }}</p>
                 <EditableField label="Email do gestor:" type="email" v-model="form.process_manager_email" />

@@ -34,7 +34,7 @@ const stats = [
             <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
                 <v-container class="py-6">
                     <v-row>
-                        <p class="text-white text-h6 mb-3">
+                        <p class="text-white text-h6 mb-3" data-cy="mensagemDeBoasVindas">
                             Bem-vindo ao seu espaço, {{ user.name }}
                         </p>
                     </v-row>
@@ -47,7 +47,7 @@ const stats = [
                             <v-card variant="outlined" class="pa-5 bg-white" height="100%">
                                 <v-row align="center">
                                     <v-col cols="6">
-                                        <div class="text-body-2 font-weight-bold">{{ stat.title }}</div>
+                                        <div class="text-body-2 font-weight-bold" data-cy="cardDashboard">{{ stat.title }}</div>
                                     </v-col>
                                     <v-col cols="6" class="text-right">
                                         <div class="text-h4 font-weight-bold text-green-darken-2">

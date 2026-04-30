@@ -234,7 +234,7 @@ function openDialog(item) {
 
         <!-- ── Tabela ─────────────────────────────────────────────────────── -->
         <v-data-table v-model:page="page" v-model:items-per-page="itemsPerPage" :headers="headers"
-            :items="itensFiltrados" class="notices-table">
+            :items="itensFiltrados" class="notices-table" data-cy="linhaTabelaEditais">
             <!-- Título truncado -->
             <template #item.titulo="{ item }">
                 <span class="titulo-truncado">{{ item.titulo }}</span>
@@ -254,7 +254,7 @@ function openDialog(item) {
             </template>
             <!-- Número do processo mãe -->
             <template #item.mae="{ item }">
-                <span v-if="item.numeroProcessoMae || item.mae">
+                <span v-if="item.numeroProcessoMae || item.mae" data-cy="numeroProcessoMae">
                     {{ maskProcessNumber(item.numeroProcessoMae || item.mae) }}
                 </span>
                 <v-btn v-else variant="text" density="compact" class="!text-[#008344] !font-bold spacing tracking-tight" data-cy="btnIdentificationData"
@@ -270,6 +270,7 @@ function openDialog(item) {
                     size="small"
                     :disabled="!(item.numeroProcessoMae || item.mae)"
                     @click="onAccess(item)"
+                    data-cy="btnAcessarDadosDeIdentificacao"
                 >
                     <v-icon
                         :color="!(item.numeroProcessoMae || item.mae) ? 'grey' : '#008344'"

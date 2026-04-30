@@ -13,5 +13,11 @@ export const elements = {
     inputFindEspecificNotice: '[data-cy=inputBuscaEditalEspecifica]',
     selectFilterProcessStatus: '[data-cy=selectFiltrarPorStatusDoProcesso]',
     selectFilterInstrumentType: '[data-cy=selectFiltrarPorTipoDeInstrumento]',
-    tbodyInstrumentTypeNoticesList: '[data-cy=tipoDeInstrumentoListaDeEditais"]'
+    tbodyInstrumentTypeNoticesList: '[data-cy=tipoDeInstrumentoListaDeEditais]',
+    buttonUserAvatar: '[data-cy=btnUserAvatar]',
+    welcomeMessage: '[data-cy=mensagemDeBoasVindas]',
+    buttonAccessIdentificationdata: '[data-cy=btnAcessarDadosDeIdentificacao]',
+    motherProcessNumber: '[data-cy=numeroProcessoMae]',
+    motherProcessNumberProjectPage: '[data-cy=numeroDeProcessoMaePaginaDeProjetos]',
+    tableNoticeList: 'data-cy=linhaTabelaEditais'
 }

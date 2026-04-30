@@ -23,6 +23,7 @@ class Notice {
     acessarFomularioDadosDeIdentificacao() {
         cy.get(el.buttonIdentificationData)
           .should('be.visible')
+          .first()
           .click()
     }
     preencherDadosDeIdentificacaoDoEdital(nup, tipoDeInstrumento, valorTotalEdital, nomeGestorEdital, emailGestorEdital, numeroDeParcelas) {
@@ -31,6 +32,7 @@ class Notice {
 
         cy.get(el.selectInstrumentTypeIdentificationData)
           .should('be.visible')
+
           .click()
 
         cy.contains('.v-list-item',tipoDeInstrumento)
@@ -68,6 +70,15 @@ class Notice {
           .should('be.visible')
     }
 
+    buscarEditalPorNumeroDoProcessoMae(numeroProcessoMae) {
+        cy.get(el.inputFindEspecificNotice)
+          .should('be.visible')
+          .type(numeroProcessoMae)
+        cy.get(el.motherProcessNumber)
+          .should('be.have',numeroProcessoMae)
+          .should('be.visible')
+    }
+
     filtrarEditalPorStatusDoProcesso(statusDoProcesso) {
         cy.get(el.selectFilterProcessStatus)
           .should('be.visible')
@@ -86,6 +97,41 @@ class Notice {
           .click()
 
         cy.get(el.tbodyInstrumentTypeNoticesList)
+    }
+
+    visualizarNomeDoUsuarioLogadoNoHeader(nomeDoUsuarioLogado) {
+        cy.get(el.buttonUserAvatar)
+          .should('be.visible')
+          .and('be.have', nomeDoUsuarioLogado)
+    }
+
+    visualizarMensagemDeBoasVindasComNomeDoUsuario(nomeDoUsuarioLogado, numeroProcessoMae) {
+        cy.get(el.welcomeMessage)
+          .should('be.visible')
+          .and('be.have', nomeDoUsuarioLogado)
+    }
+
+    visualizarInformaçõesDoProcesso(numeroProcessoMae) {
+        cy.get(el.tableNoticeList)
+          .should()
+
+        cy.get(el.motherProcessNumber)
+          .invoke('val')
+          .should()
+
+        cy.get(el.buttonAccessIdentificationdata)
+          .should('be.visible')
+          .first()
+          .click()
+
+       cy.url()
+         .should('match', /\/editais\/\d+\/projetos$/)
+
+       cy.get(el.motherProcessNumberProjectPage)
+         .contains(numeroProcessoMae)
+         .should('be.visible')
+
+
     }
 
 }
