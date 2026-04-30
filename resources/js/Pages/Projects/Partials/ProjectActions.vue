@@ -156,6 +156,7 @@ const closeModal = () => {
                 <template v-if="anyProjectsHasCI">
                     <p>Editar comunicação interna (CI)</p>
                     <v-btn
+                        data-cy="btnCriarCI"
                         class="w-full !shadow-none !font-bold !border-gray-300 !bg-white !text-[#2d353fFF] rounded-lg text-xs gap-6"
                         :disabled="!(props.selectedProjects?.length > 0) || !canCreateCI" variant="outlined"
                         @click="openCIDialog">
@@ -174,6 +175,7 @@ const closeModal = () => {
                 <template v-else>
                     <p>Criar comunicação interna (CI)</p>
                     <v-btn
+                        data-cy="btnCriarCI"
                         class="w-full !shadow-none !font-bold !bg-[#ffcc05FF] !text-[#2d353fFF] rounded-lg px-4 py-2 text-xs"
                         :disabled="!(props.selectedProjects?.length > 0) || !canCreateCI" @click="openCIDialog">
                         Criar CI
@@ -191,6 +193,7 @@ const closeModal = () => {
                     Baixar todos
                 </v-btn>
                 <v-btn
+                    data-cy="btnConferirDocumentos"
                     class="flex-1 !shadow-none !font-bold !bg-[#ffcc05FF] !text-[#2d353fFF] rounded-lg text-xs"
                     :disabled="!(selectedProjects?.length > 0)"
                     @click="docListDialog = true">
@@ -204,6 +207,7 @@ const closeModal = () => {
             }">
                 <p>Atribuir fiscal aos selecionados</p>
                 <v-btn
+                    data-cy="btnAtribuirFiscal"
                     class="w-full !shadow-none !font-bold !bg-[#ffcc05FF] !text-[#2d353fFF] rounded-lg px-4 py-2 text-xs"
                     :disabled="!(props.selectedProjects?.length > 0) || !canAssignSupervisor"
                     @click="openSupervisorDialog">
