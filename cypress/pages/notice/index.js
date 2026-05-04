@@ -3,7 +3,14 @@ import { elements as el} from "./elements"
 class Notice {
 
     acessarPaginaDeEditais(){
-        cy.visit('/editais')
+        cy.visit('/editais')//
+        cy.request({
+          method: 'GET',
+          url:'/editais',
+          failOnStatusCode: false
+        }).then((response) => {
+          expect(response.status).to.eq(200);
+        });
     }
 
     visualizarDashboard() {
