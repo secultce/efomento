@@ -144,7 +144,6 @@ class SpreadsheetImportService
             : AccountType::CORRENTE;
     }
 
-
     private function mapDisability(string $value): DisabilityType
     {
         return match ($value) {

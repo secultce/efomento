@@ -31,10 +31,10 @@ class ProfileSnapshotTest extends TestCase
         ], ProfileSnapshotSource::AGENT_UPDATE);
 
         $this->assertDatabaseHas('profile_snapshots', [
-            'object_id'   => $agent->id,
+            'object_id' => $agent->id,
             'object_type' => 'agent',
-            'gender'      => 'Homem Cis',
-            'source'      => ProfileSnapshotSource::AGENT_UPDATE->value,
+            'gender' => 'Homem Cis',
+            'source' => ProfileSnapshotSource::AGENT_UPDATE->value,
         ]);
     }
 
@@ -52,7 +52,7 @@ class ProfileSnapshotTest extends TestCase
 
         $this->assertEquals(1, $agent->profileSnapshots()->count());
         $this->assertDatabaseHas('profile_snapshots', [
-            'id'     => $snapshot->id,
+            'id' => $snapshot->id,
             'gender' => 'Homem Cis',
         ]);
     }
@@ -93,16 +93,16 @@ class ProfileSnapshotTest extends TestCase
         $agent = Agent::factory()->create();
 
         ProfileSnapshot::factory()->create([
-            'object_id'   => $agent->id,
+            'object_id' => $agent->id,
             'object_type' => 'agent',
-            'gender'      => 'Não-binário',
+            'gender' => 'Não-binário',
             'recorded_at' => now()->subDay(),
         ]);
 
         ProfileSnapshot::factory()->create([
-            'object_id'   => $agent->id,
+            'object_id' => $agent->id,
             'object_type' => 'agent',
-            'gender'      => 'Homem Cis',
+            'gender' => 'Homem Cis',
             'recorded_at' => now(),
         ]);
 
@@ -120,10 +120,10 @@ class ProfileSnapshotTest extends TestCase
         ], ProfileSnapshotSource::PROJECT_REGISTRATION);
 
         $this->assertDatabaseHas('profile_snapshots', [
-            'object_id'   => $project->id,
+            'object_id' => $project->id,
             'object_type' => 'project',
-            'gender'      => 'Mulher Cis',
-            'source'      => ProfileSnapshotSource::PROJECT_REGISTRATION->value,
+            'gender' => 'Mulher Cis',
+            'source' => ProfileSnapshotSource::PROJECT_REGISTRATION->value,
         ]);
     }
 
@@ -132,7 +132,7 @@ class ProfileSnapshotTest extends TestCase
         $agent = Agent::factory()->create();
 
         ProfileSnapshot::factory()->count(3)->create([
-            'object_id'   => $agent->id,
+            'object_id' => $agent->id,
             'object_type' => 'agent',
         ]);
 
@@ -144,13 +144,13 @@ class ProfileSnapshotTest extends TestCase
         $agent = Agent::factory()->create();
 
         $antigo = ProfileSnapshot::factory()->create([
-            'object_id'   => $agent->id,
+            'object_id' => $agent->id,
             'object_type' => 'agent',
             'recorded_at' => now()->subDays(5),
         ]);
 
         $recente = ProfileSnapshot::factory()->create([
-            'object_id'   => $agent->id,
+            'object_id' => $agent->id,
             'object_type' => 'agent',
             'recorded_at' => now(),
         ]);

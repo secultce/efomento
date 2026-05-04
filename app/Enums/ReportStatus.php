@@ -13,6 +13,7 @@ enum ReportStatus: string implements HasLabel
     case REGULAR_E_INADIMPLENTE = 'REGULAR E_INADIMPLENTE';
     case IRREGULAR_E_ADIMPLENTE = 'IRREGULAR E_ADIMPLENTE';
     case IRREGULAR_E_INADIMPLENTE = 'IRREGULAR E_INADIMPLENTE';
+
     public function label(): string
     {
         return match ($this) {
@@ -23,5 +24,4 @@ enum ReportStatus: string implements HasLabel
             self::IRREGULAR_E_INADIMPLENTE => 'Irregular e Inadimplente',
         };
     }
-
 }

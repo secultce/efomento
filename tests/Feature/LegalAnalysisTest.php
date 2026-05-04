@@ -11,7 +11,6 @@ use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Database\QueryException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Foundation\Testing\WithFaker;
 use Illuminate\Support\Collection;
 use Tests\TestCase;
 
@@ -45,7 +44,7 @@ class LegalAnalysisTest extends TestCase
         $analysis->delete();
 
         $this->assertSoftDeleted('legal_analyses', [
-            'id' => $analysis->id
+            'id' => $analysis->id,
         ]);
     }
 
@@ -63,7 +62,7 @@ class LegalAnalysisTest extends TestCase
     public function test_processed_at_cast()
     {
         $analysis = LegalAnalysis::factory()->create([
-            'processed_at' => now()
+            'processed_at' => now(),
         ]);
 
         $this->assertInstanceOf(Carbon::class, $analysis->processed_at);

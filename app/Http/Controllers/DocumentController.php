@@ -20,10 +20,10 @@ class DocumentController extends Controller
     public function index(Request $request): AnonymousResourceCollection
     {
         $documents = $this->documentService->getByContext(
-            noticeId:  $request->integer('notice_id') ?: null,
+            noticeId: $request->integer('notice_id') ?: null,
             projectId: $request->integer('project_id') ?: null,
-            type:      $request->string('type')->toString() ?: null,
-            phase:     $request->string('phase')->toString() ?: null,
+            type: $request->string('type')->toString() ?: null,
+            phase: $request->string('phase')->toString() ?: null,
         );
 
         return DocumentResource::collection($documents);

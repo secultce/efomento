@@ -14,7 +14,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 use OwenIt\Auditing\Auditable as AuditableTrait;
 use OwenIt\Auditing\Contracts\Auditable;
 
-class Document extends Model  implements Auditable
+class Document extends Model implements Auditable
 {
     use AuditableTrait, HasCreatedBy, HasFactory, SoftDeletes;
 
@@ -29,8 +29,8 @@ class Document extends Model  implements Auditable
     ];
 
     protected $casts = [
-        'type'   => DocumentType::class,
-        'phase'  => DocumentPhase::class,
+        'type' => DocumentType::class,
+        'phase' => DocumentPhase::class,
         'status' => DocumentStatus::class,
     ];
 

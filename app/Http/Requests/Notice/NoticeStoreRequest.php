@@ -1,6 +1,7 @@
 <?php
 
 namespace App\Http\Requests\Notice;
+
 use Illuminate\Foundation\Http\FormRequest;
 
 class NoticeStoreRequest extends FormRequest

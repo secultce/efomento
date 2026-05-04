@@ -14,10 +14,10 @@ class FileRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'file'        => ['required', 'file', 'max:20480'],
-            'grp'         => ['required', 'string', 'max:32'],
+            'file' => ['required', 'file', 'max:20480'],
+            'grp' => ['required', 'string', 'max:32'],
             'description' => ['nullable', 'string'],
-            'private'     => ['nullable', 'boolean'],
+            'private' => ['nullable', 'boolean'],
         ];
     }
 }

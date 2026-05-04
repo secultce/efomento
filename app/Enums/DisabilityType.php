@@ -30,5 +30,4 @@ enum DisabilityType: string implements HasLabel
             self::OUTRA => 'Sim, Outra',
         };
     }
-
 }

@@ -1,9 +1,8 @@
 <?php
 
 use App\Http\Controllers\GroupController;
-use App\Http\Controllers\ProfileController;
-use App\Http\Controllers\UserController;
 use App\Http\Controllers\NoticeController;
+use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ProjectController;
 use App\Models\User;
 use Illuminate\Foundation\Application;
@@ -27,12 +26,11 @@ Route::get('/', function () {
     ]);
 });
 
-
 Route::middleware(['auth', 'verified'])->group(function () {
 
     Route::resource('editais', NoticeController::class)
         ->parameters([
-            'editais' => 'notice'
+            'editais' => 'notice',
         ])
         ->names([
             'index' => 'notices.index',
@@ -48,7 +46,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     Route::resource('projetos', ProjectController::class)
         ->parameters([
-            'projetos' => 'project'
+            'projetos' => 'project',
         ])
         ->names([
             'index' => 'projects.index',
@@ -75,4 +73,4 @@ Route::middleware('auth')->group(function () {
     Route::put('/grupos', [GroupController::class, 'update'])->name('groups.update');
 });
 
-require __DIR__ . '/auth.php';
+require __DIR__.'/auth.php';

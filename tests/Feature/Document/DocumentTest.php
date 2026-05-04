@@ -2,8 +2,6 @@
 
 namespace Tests\Feature\Document;
 
-use App\Enums\DocumentImagePosition;
-use App\Enums\DocumentImageSection;
 use App\Enums\DocumentPhase;
 use App\Enums\DocumentStatus;
 use App\Enums\DocumentType;
@@ -23,17 +21,20 @@ class DocumentTest extends TestCase
     use RefreshDatabase;
 
     private DocumentService $service;
+
     private User $user;
+
     private Notice $notice;
+
     private Project $project;
 
     protected function setUp(): void
     {
         parent::setUp();
 
-        $this->service = new DocumentService(new DocumentTypeRegistry());
-        $this->user    = User::factory()->create();
-        $this->notice  = Notice::factory()->create();
+        $this->service = new DocumentService(new DocumentTypeRegistry);
+        $this->user = User::factory()->create();
+        $this->notice = Notice::factory()->create();
         $this->project = Project::factory()->create();
     }
 
@@ -43,20 +44,20 @@ class DocumentTest extends TestCase
 
     public function test_document_type_enum_has_correct_values(): void
     {
-        $this->assertSame('term',             DocumentType::TERM->value);
-        $this->assertSame('extract',          DocumentType::EXTRACT->value);
-        $this->assertSame('juridical_opinion',DocumentType::JURIDICAL_OPINION->value);
-        $this->assertSame('dispatch',         DocumentType::DISPATCH->value);
+        $this->assertSame('term', DocumentType::TERM->value);
+        $this->assertSame('extract', DocumentType::EXTRACT->value);
+        $this->assertSame('juridical_opinion', DocumentType::JURIDICAL_OPINION->value);
+        $this->assertSame('dispatch', DocumentType::DISPATCH->value);
 
-        $this->assertSame('draft',             DocumentStatus::DRAFT->value);
+        $this->assertSame('draft', DocumentStatus::DRAFT->value);
         $this->assertSame('pending_signature', DocumentStatus::PENDING_SIGNATURE->value);
-        $this->assertSame('signed',            DocumentStatus::SIGNED->value);
+        $this->assertSame('signed', DocumentStatus::SIGNED->value);
     }
 
     public function test_document_relationships(): void
     {
         $document = Document::factory()->create([
-            'notice_id'  => $this->notice->id,
+            'notice_id' => $this->notice->id,
             'created_by' => $this->user->id,
         ]);
 
@@ -88,7 +89,7 @@ class DocumentTest extends TestCase
 
     public function test_registry_resolves_valid_combinations(): void
     {
-        $registry = new DocumentTypeRegistry();
+        $registry = new DocumentTypeRegistry;
 
         $result = $registry->resolve(DocumentType::TERM, DocumentPhase::FORMALIZATION);
 
@@ -107,7 +108,7 @@ class DocumentTest extends TestCase
     {
         $this->expectException(\InvalidArgumentException::class);
 
-        (new DocumentTypeRegistry())->resolve(DocumentType::TERM, DocumentPhase::PAYMENT);
+        (new DocumentTypeRegistry)->resolve(DocumentType::TERM, DocumentPhase::PAYMENT);
     }
 
     // -------------------------------------------------------------------------
@@ -117,17 +118,17 @@ class DocumentTest extends TestCase
     public function test_service_creates_document(): void
     {
         $document = $this->service->create([
-            'type'       => 'term',
-            'phase'      => 'formalization',
-            'notice_id'  => $this->notice->id,
+            'type' => 'term',
+            'phase' => 'formalization',
+            'notice_id' => $this->notice->id,
             'project_id' => $this->project->id,
-            'body'       => 'Conteúdo do termo.',
+            'body' => 'Conteúdo do termo.',
         ], $this->user->id);
 
         $this->assertInstanceOf(Document::class, $document);
         $this->assertDatabaseHas('documents', [
-            'type'       => 'term',
-            'phase'      => 'formalization',
+            'type' => 'term',
+            'phase' => 'formalization',
             'created_by' => $this->user->id,
         ]);
     }
@@ -137,21 +138,21 @@ class DocumentTest extends TestCase
         $this->expectException(\InvalidArgumentException::class);
 
         $this->service->create([
-            'type'  => 'term',
+            'type' => 'term',
             'phase' => 'payment',
-            'body'  => 'Inválido.',
+            'body' => 'Inválido.',
         ], $this->user->id);
     }
 
     public function test_service_creates_document_with_images(): void
     {
         $document = $this->service->create([
-            'type'       => 'term',
-            'phase'      => 'formalization',
-            'notice_id'  => $this->notice->id,
+            'type' => 'term',
+            'phase' => 'formalization',
+            'notice_id' => $this->notice->id,
             'project_id' => $this->project->id,
-            'body'       => 'Com imagens.',
-            'images'     => [
+            'body' => 'Com imagens.',
+            'images' => [
                 ['section' => 'header', 'position' => 'left',   'path' => 'logos/a.png'],
                 ['section' => 'footer', 'position' => 'center', 'path' => 'logos/b.png'],
             ],
@@ -169,7 +170,7 @@ class DocumentTest extends TestCase
         $document = Document::factory()->create(['status' => DocumentStatus::DRAFT]);
 
         $updated = $this->service->update($document, [
-            'body'   => 'Novo conteúdo.',
+            'body' => 'Novo conteúdo.',
             'status' => DocumentStatus::PENDING_SIGNATURE->value,
         ]);
 
@@ -193,9 +194,9 @@ class DocumentTest extends TestCase
 
         $this->assertDatabaseHas('document_images', [
             'document_id' => $document->id,
-            'section'     => 'header',
-            'position'    => 'left',
-            'path'        => 'img/logo.png',
+            'section' => 'header',
+            'position' => 'left',
+            'path' => 'img/logo.png',
         ]);
     }
 
@@ -204,9 +205,9 @@ class DocumentTest extends TestCase
         $document = Document::factory()->create();
         DocumentImage::factory()->create([
             'document_id' => $document->id,
-            'section'     => 'header',
-            'position'    => 'left',
-            'path'        => 'old/path.png',
+            'section' => 'header',
+            'position' => 'left',
+            'path' => 'old/path.png',
         ]);
 
         $this->service->update($document, [
@@ -217,9 +218,9 @@ class DocumentTest extends TestCase
 
         $this->assertDatabaseHas('document_images', [
             'document_id' => $document->id,
-            'section'     => 'header',
-            'position'    => 'left',
-            'path'        => 'new/path.png',
+            'section' => 'header',
+            'position' => 'left',
+            'path' => 'new/path.png',
         ]);
         $this->assertDatabaseCount('document_images', 1);
     }
@@ -229,15 +230,15 @@ class DocumentTest extends TestCase
         $document = Document::factory()->create();
         DocumentImage::factory()->create([
             'document_id' => $document->id,
-            'section'     => 'header',
-            'position'    => 'left',
-            'path'        => 'a.png',
+            'section' => 'header',
+            'position' => 'left',
+            'path' => 'a.png',
         ]);
         DocumentImage::factory()->create([
             'document_id' => $document->id,
-            'section'     => 'footer',
-            'position'    => 'center',
-            'path'        => 'b.png',
+            'section' => 'footer',
+            'position' => 'center',
+            'path' => 'b.png',
         ]);
 
         // envia apenas header/left — footer/center deve ser removido
@@ -268,11 +269,11 @@ class DocumentTest extends TestCase
     public function test_get_by_context_filters_by_type_and_phase(): void
     {
         Document::factory()->count(2)->create([
-            'type'  => DocumentType::TERM,
+            'type' => DocumentType::TERM,
             'phase' => DocumentPhase::FORMALIZATION,
         ]);
         Document::factory()->count(1)->create([
-            'type'  => DocumentType::DISPATCH,
+            'type' => DocumentType::DISPATCH,
             'phase' => DocumentPhase::JURIDICAL,
         ]);
 
@@ -312,15 +313,15 @@ class DocumentTest extends TestCase
     {
         $response = $this->actingAs($this->user)
             ->postJson('/api/documents', [
-                'type'       => 'term',
-                'phase'      => 'formalization',
-                'notice_id'  => $this->notice->id,
+                'type' => 'term',
+                'phase' => 'formalization',
+                'notice_id' => $this->notice->id,
                 'project_id' => $this->project->id,
-                'body'       => 'Conteúdo via HTTP.',
+                'body' => 'Conteúdo via HTTP.',
             ]);
 
         $response->assertStatus(201)
-                 ->assertJsonFragment(['type' => 'term', 'phase' => 'formalization']);
+            ->assertJsonFragment(['type' => 'term', 'phase' => 'formalization']);
 
         $this->assertDatabaseHas('documents', ['type' => 'term']);
     }
@@ -330,22 +331,22 @@ class DocumentTest extends TestCase
         $response = $this->postJson('/api/documents', []);
 
         $response->assertStatus(422)
-                 ->assertJsonValidationErrors(['type', 'phase', 'body']);
+            ->assertJsonValidationErrors(['type', 'phase', 'body']);
     }
 
     public function test_store_endpoint_returns_422_for_invalid_combination(): void
     {
         $response = $this->actingAs($this->user)
             ->postJson('/api/documents', [
-                'type'       => 'term',
-                'phase'      => 'payment',
-                'notice_id'  => $this->notice->id,
+                'type' => 'term',
+                'phase' => 'payment',
+                'notice_id' => $this->notice->id,
                 'project_id' => $this->project->id,
-                'body'       => 'Combinação inválida.',
+                'body' => 'Combinação inválida.',
             ]);
 
         $response->assertStatus(422)
-                 ->assertJsonFragment(['message' => 'Combinação de tipo e fase inválida: tipo=term, fase=payment.']);
+            ->assertJsonFragment(['message' => 'Combinação de tipo e fase inválida: tipo=term, fase=payment.']);
     }
 
     // -------------------------------------------------------------------------

@@ -4,7 +4,6 @@ namespace App\Http\Resources;
 
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
-use App\Http\Resources\FileResource;
 
 class FormalizationResource extends JsonResource
 {
@@ -45,11 +44,10 @@ class FormalizationResource extends JsonResource
                     ->groupBy('grp')
                     ->map(fn ($group) => FileResource::collection($group));
             }),
-            
+
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
 
-            
         ];
     }
 }

@@ -2,15 +2,15 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
-use Inertia\Inertia;
+use App\Enums\InstrumentType;
+use App\Enums\ProjectPhase;
+use App\Http\Resources\ProjectResource;
 use App\Models\Notice;
 use App\Models\User;
-use App\Enums\ProjectPhase;
-use App\Enums\InstrumentType;
-use App\Services\ProjectSupervisorService;
 use App\Services\ProjectDocumentService;
-use App\Http\Resources\ProjectResource;
+use App\Services\ProjectSupervisorService;
+use Illuminate\Http\Request;
+use Inertia\Inertia;
 
 class ProjectController extends Controller
 {
@@ -37,9 +37,9 @@ class ProjectController extends Controller
             'supervisors_available' => User::role(['monitoring', 'coord_monitoring'])
                 ->select('id', 'name')
                 ->get(),
-            ]);
+        ]);
     }
-    
+
     public function assignProjectSupervisor(Request $request, ProjectSupervisorService $service)
     {
         $data = $request->validate([
@@ -65,7 +65,7 @@ class ProjectController extends Controller
             ]);
         }
     }
-    
+
     public function createCI(Request $request, ProjectDocumentService $service)
     {
         $data = $request->validate([
@@ -79,9 +79,11 @@ class ProjectController extends Controller
                 $data['selected_projects'],
                 $data['content']
             );
+
             return back()->with('success', 'Comunicações internas criadas com sucesso!');
         } catch (\Throwable $e) {
             report($e);
+
             return back()->withErrors([
                 'message' => $e->getMessage() ?: 'Erro ao criar comunicações internas. Tente novamente.',
             ]);

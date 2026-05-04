@@ -2,14 +2,15 @@
 
 namespace App\Console\Commands;
 
-use Illuminate\Console\Command;
 use App\Services\PUMLGeneratorService;
-use Illuminate\Support\Str;
+use Illuminate\Console\Command;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\File;
 
 class GeneratePUML extends Command
 {
     protected $signature = 'diagram:generate';
+
     protected $description = 'Generate ER and class diagrams for all models dynamically';
 
     public function handle()
@@ -18,10 +19,10 @@ class GeneratePUML extends Command
 
         $models = $this->getAllModels();
 
-        $this->info(count($models) . ' models found.');
+        $this->info(count($models).' models found.');
         $this->info('Generating PUML diagrams...');
 
-        $service = new PUMLGeneratorService();
+        $service = new PUMLGeneratorService;
         $service->generate($models);
 
         $this->info('PUML diagrams generated successfully!');
@@ -35,9 +36,9 @@ class GeneratePUML extends Command
         $models = [];
         foreach ($files as $file) {
             $relative = $file->getRelativePathname();
-            $class = 'App\\Models\\' . strtr(substr($relative, 0, strrpos($relative, '.')), '/', '\\');
+            $class = 'App\\Models\\'.strtr(substr($relative, 0, strrpos($relative, '.')), '/', '\\');
 
-            if (class_exists($class) && is_subclass_of($class, \Illuminate\Database\Eloquent\Model::class)) {
+            if (class_exists($class) && is_subclass_of($class, Model::class)) {
                 $models[] = $class;
             }
         }

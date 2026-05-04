@@ -7,7 +7,6 @@ use App\Models\Project;
 use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Foundation\Testing\WithFaker;
 use Tests\TestCase;
 
 class MonitoringTest extends TestCase
@@ -102,7 +101,7 @@ class MonitoringTest extends TestCase
 
     public function test_fillable_fields()
     {
-        $monitoring = new Monitoring();
+        $monitoring = new Monitoring;
 
         $this->assertEquals([
             'project_id',

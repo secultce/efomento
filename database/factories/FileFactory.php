@@ -20,14 +20,14 @@ class FileFactory extends Factory
     public function definition(): array
     {
         return [
-            'mime_type'   => $this->faker->mimeType(),
-            'name'        => $this->faker->word() . '.' . $this->faker->fileExtension(),
+            'mime_type' => $this->faker->mimeType(),
+            'name' => $this->faker->word().'.'.$this->faker->fileExtension(),
             'object_type' => Project::class,
-            'object_id'   => Project::factory(),
-            'grp'         => Str::random(10),
+            'object_id' => Project::factory(),
+            'grp' => Str::random(10),
             'description' => $this->faker->optional()->sentence(),
-            'path'        => $this->faker->optional()->filePath(),
-            'private'     => $this->faker->boolean(30),
+            'path' => $this->faker->optional()->filePath(),
+            'private' => $this->faker->boolean(30),
         ];
     }
 }

@@ -2,7 +2,6 @@
 
 namespace App\Http\Requests\Opening;
 
-use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 
 class OpeningStoreRequest extends FormRequest
@@ -32,7 +31,7 @@ class OpeningStoreRequest extends FormRequest
 
             'status' => [
                 'nullable',
-                'in:pendente,em_andamento,concluido,rejeitado'
+                'in:pendente,em_andamento,concluido,rejeitado',
             ],
         ];
     }

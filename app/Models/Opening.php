@@ -2,6 +2,10 @@
 
 namespace App\Models;
 
+use App\Enums\AccountType;
+use App\Enums\AgentStatus;
+use App\Enums\DocumentPhase;
+use App\Enums\OpeningStatus;
 use App\Traits\HasCreatedBy;
 use App\Traits\HasFiles;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -9,13 +13,10 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\SoftDeletes;
-use App\Enums\AgentStatus;
-use App\Enums\AccountType;
-use App\Enums\OpeningStatus;
-use App\Enums\DocumentPhase;
+use Illuminate\Support\Facades\Auth;
 use OwenIt\Auditing\Auditable as AuditableTrait;
 use OwenIt\Auditing\Contracts\Auditable;
-use Illuminate\Support\Facades\Auth;
+
 class Opening extends Model implements Auditable
 {
     use AuditableTrait, HasCreatedBy, HasFactory, HasFiles, SoftDeletes;
@@ -83,7 +84,6 @@ class Opening extends Model implements Auditable
                 'is_active' => false,
                 'removed_at' => now(),
             ]);
-
 
         foreach ($supervisorIds as $supervisorId) {
             OpeningSupervisor::create([

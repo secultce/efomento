@@ -18,12 +18,12 @@ class DocumentUpdateRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'body'             => ['nullable', 'string'],
-            'status'           => ['nullable', Rule::enum(DocumentStatus::class)],
-            'images'           => ['nullable', 'array'],
+            'body' => ['nullable', 'string'],
+            'status' => ['nullable', Rule::enum(DocumentStatus::class)],
+            'images' => ['nullable', 'array'],
             'images.*.section' => ['required_with:images', Rule::enum(DocumentImageSection::class)],
-            'images.*.position'=> ['required_with:images', Rule::enum(DocumentImagePosition::class)],
-            'images.*.path'    => ['required_with:images', 'string'],
+            'images.*.position' => ['required_with:images', Rule::enum(DocumentImagePosition::class)],
+            'images.*.path' => ['required_with:images', 'string'],
         ];
     }
 }

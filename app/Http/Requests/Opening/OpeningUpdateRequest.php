@@ -2,12 +2,10 @@
 
 namespace App\Http\Requests\Opening;
 
-use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 
 class OpeningUpdateRequest extends FormRequest
 {
-
     public function authorize(): bool
     {
         return true;
@@ -33,7 +31,7 @@ class OpeningUpdateRequest extends FormRequest
 
             'status' => [
                 'sometimes',
-                'in:pendente,em_andamento,concluido,rejeitado'
+                'in:pendente,em_andamento,concluido,rejeitado',
             ],
         ];
     }

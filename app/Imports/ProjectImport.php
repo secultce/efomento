@@ -9,7 +9,7 @@ use Maatwebsite\Excel\Concerns\ToModel;
 use Maatwebsite\Excel\Concerns\WithChunkReading;
 use Maatwebsite\Excel\Concerns\WithStartRow;
 
-class ProjectImport implements ToModel, WithStartRow, SkipsEmptyRows, WithChunkReading
+class ProjectImport implements SkipsEmptyRows, ToModel, WithChunkReading, WithStartRow
 {
     public function __construct(
         private readonly SpreadsheetImportService $service
