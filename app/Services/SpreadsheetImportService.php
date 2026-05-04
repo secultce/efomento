@@ -39,6 +39,12 @@ class SpreadsheetImportService
         $agent = $this->resolveAgent($row);
         $notice = Notice::where('external_id', $row[0])->first();
 
+        $this->snapshotService->recordIfChanged(
+            $agent,
+            $this->buildSnapshotData($row),
+            ProfileSnapshotSource::AGENT_UPDATE,
+        );
+
         $project = Project::firstOrCreate(
             ['registration_id' => $registrationId],
             [
