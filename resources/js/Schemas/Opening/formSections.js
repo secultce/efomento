@@ -35,39 +35,6 @@ export const formSections = [
         ],
     },
     {
-        title: 'Parcela',
-        fields: [
-            { 
-                label: 'Valor de repasse (Parcela única)',
-                key: 'budget.installments[0].amount',
-                inputType: 'money',
-                saveRequired: true,
-                tramitRequired: true,
-                permissionRequired: ['edit_opening'],
-                mask: '####.######/####-##',
-                placeholder: 'Insira aqui o número do processo',
-                isEditable: true,    
-            },
-            { 
-                label: 'Valor por extenso', 
-                key: 'budget.installments[0].amount',
-                inputType: 'money_extenso',
-                saveRequired: true 
-            },
-        ],
-        options: {
-            addButtonLabel: 'Adicionar parcela',
-             // Define a função para adicionar uma nova parcela
-            onAdd: (fields) => {
-                const newParcela = {
-                    opening_nup: '',
-                    legal_type: '',
-                };
-                fields.push(newParcela);
-            }
-        }
-    },
-    {
         title: 'Certidão e-parcerias',
         fields: [
             { 
@@ -163,6 +130,33 @@ export const formSections = [
             { 
                 label: 'Matricula do fiscal suplente',
                 key: 'opening.supervisors[1].nup',
+                inputType: 'text',
+                saveRequired: true,
+                tramitRequired: true,
+                permissionRequired: ['edit_opening'],
+                mask: '####.######/####-##',
+                placeholder: 'Insira aqui o número do processo',
+                isEditable: true,    
+            },
+        ],
+    },
+    {
+        title: 'Dados do Proponente',
+        fields: [
+            { 
+                label: 'Email Secundario',
+                key: 'opening.supervisors[0].name',
+                inputType: 'text',
+                saveRequired: true,
+                tramitRequired: true,
+                permissionRequired: ['edit_opening'],
+                mask: '####.######/####-##',
+                placeholder: 'Insira aqui o número do processo',
+                isEditable: true,    
+            },
+            { 
+                label: 'Telefone Secundário',
+                key: 'opening.supervisors[0].nup',
                 inputType: 'text',
                 saveRequired: true,
                 tramitRequired: true,

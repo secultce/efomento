@@ -3,6 +3,7 @@
 use App\Http\Controllers\GroupController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\NoticeController;
+use App\Http\Controllers\OpeningController;
 use App\Http\Controllers\ProjectController;
 use App\Models\User;
 use Illuminate\Foundation\Application;
@@ -62,6 +63,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
         ->name('projects.assign-supervisors');
     Route::post('/projetos/criar-ci', [ProjectController::class, 'createCI'])
         ->name('projects.create-ci');
+    Route::patch('/projetos/{project}/abertura/{opening}/atualizar',[OpeningController::class, 'update'])
+        ->name('projects.openings.update');
     Route::get('editais/{notice}/projetos', [ProjectController::class, 'index'])
         ->name('notices.projects');
     Route::get('editais/{notice}/projetos/{project}', [ProjectController::class, 'projectDetail'])

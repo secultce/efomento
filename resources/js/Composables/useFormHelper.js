@@ -17,27 +17,47 @@ export function useFormHelper({ form, project }) {
         return projectResult.exists ? projectResult.value : null
     }
 
-    const setFieldValue = (obj, key, value) => {
-        if (!obj || typeof key !== 'string') return
-
-        const path = key.replace(/\[(\d+)\]/g, '.$1').split('.')
+    const setFieldValue = (obj, path, value) => {
+        const parts = path.split('.')
 
         let current = obj
 
-        path.forEach((part, index) => {
-            const isLast = index === path.length - 1
+        parts.forEach((part, index) => {
+            const isLast = index === parts.length - 1
+
+            // check for array syntax
+            const match = part.match(/^(\w+)\[(\d+)\]$/)
+
+            if (match) {
+            const key = match[1]
+            const arrayIndex = Number(match[2])
+
+            // ensure parent key is array
+            if (!current[key]) {
+                current[key] = []
+            }
+
+            // ensure index exists
+            if (!current[key][arrayIndex]) {
+                current[key][arrayIndex] = {}
+            }
 
             if (isLast) {
+                current[key][arrayIndex] = value
+            } else {
+                current = current[key][arrayIndex]
+            }
+            } else {
+            // normal object key
+            if (isLast) {
                 current[part] = value
-                return
+            } else {
+                if (!current[part] || typeof current[part] !== 'object') {
+                current[part] = {}
+                }
+                current = current[part]
             }
-
-            if (!(part in current)) {
-                const nextPart = path[index + 1]
-                current[part] = isNaN(nextPart) ? {} : []
             }
-
-            current = current[part]
         })
     }
 

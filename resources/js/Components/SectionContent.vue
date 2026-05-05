@@ -1,4 +1,5 @@
 <script setup>
+import { useFormHelper } from '@/Composables/useFormHelper'
 import { useSnackbar } from '@/Composables/useSnackbar'
 import { ref } from 'vue'
 
@@ -16,42 +17,11 @@ const props = defineProps({
   }
 })
 
-const formatDate = (date) => {
-  if (!date) return '—'
-  const d = new Date(date)
-  return isNaN(d) ? '—' : d.toLocaleDateString('pt-BR')
-}
 
-const resolvePath = (obj, key) => {
-  if (!obj) return { exists: false, value: undefined }
-
-  const path = key
-    .replace(/\[(\d+)\]/g, '.$1')
-    .split('.')
-
-  let current = obj
-
-  for (const part of path) {
-    if (current == null || !(part in current)) {
-      return { exists: false, value: undefined }
-    }
-    current = current[part]
-  }
-
-  return { exists: true, value: current }
-}
-
-const getFieldValue = (key) => {
-  const formResult = resolvePath(props.form, key)
-
-  if (formResult.exists) {
-    return formResult.value
-  }
-
-  const projectResult = resolvePath(props.project, key)
-
-  return projectResult.exists ? projectResult.value : null
-}
+const { getFieldValue } = useFormHelper({
+  form: props.form,
+  project: props.project,
+})
 
 const copyValue = async (value) => {
   if (!value) return
@@ -82,7 +52,7 @@ const copyValue = async (value) => {
           </span>
 
           <v-icon v-show="hoveredIndex === index" size="14" class="cursor-pointer"
-            @click.stop="copyValue(getFieldValue(field))">
+            @click.stop="copyValue(getFieldValue(field.key))">
             mdi-content-copy
           </v-icon>
         </div>

@@ -21,5 +21,14 @@ body {
     .v-window__container {
         transition: none !important;
     }
+
+    .no-arrow .v-field__append-inner {
+        padding-inline-end: 0 !important;
+        min-width: unset !important;
+    }
+
+    .no-arrow .v-field__append-inner .v-icon {
+        display: none !important;
+    }
 }
 

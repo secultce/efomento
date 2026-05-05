@@ -10,8 +10,10 @@ import { useForm } from '@inertiajs/vue3'
 import { onMounted } from 'vue'
 import { useFormHelper } from '@/Composables/useFormHelper'
 import { usePayload } from '@/Composables/usePayload'
-const { setFieldValue, buildFormFromSections } = useFormHelper({})
+import { useSnackbar } from '@/Composables/useSnackbar'
 
+const { setFieldValue, buildFormFromSections } = useFormHelper({})
+const { showSnackbar } = useSnackbar()
 const props = defineProps({
   project: {
     type: Object,
@@ -41,17 +43,24 @@ onMounted(() => {
 const { sanitizePayload } = usePayload()
 const submit = () => {
   const payload = sanitizePayload(form, formSections)
+
   form
-     .transform(() => payload)
-    .patch(route('projects.update', props.project.id), {
-      preserveScroll: true,
-      onSuccess: () => {
-        console.log('Saved successfully')
-      },
-      onError: (errors) => {
-        console.error(errors)
+    .transform(() => payload)
+    .patch(
+      route('projects.openings.update', {
+        project: props.project.id,
+        opening: props.project.opening.id,
+      }),
+      {
+        preserveScroll: true,
+        onSuccess: () => {
+          showSnackbar('Abertura atualizada com sucesso!', 'success')
+        },
+        onError: (errors) => {
+          console.error(errors)
+        }
       }
-    })
+    )
 }
 
 const activeViewIndex = ref('all')

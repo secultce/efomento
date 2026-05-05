@@ -2,15 +2,22 @@
 
 namespace App\Http\Requests\Opening;
 
-use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 
 class OpeningUpdateRequest extends FormRequest
 {
-
     public function authorize(): bool
     {
         return true;
+    }
+
+    protected function prepareForValidation(): void
+    {
+        if ($this->has('opening')) {
+            $this->merge($this->input('opening'));
+
+            $this->request->remove('opening');
+        }
     }
 
     public function rules(): array
