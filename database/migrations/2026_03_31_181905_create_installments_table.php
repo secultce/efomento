@@ -19,6 +19,8 @@ return new class extends Migration
             $table->text('justification')->nullable();
             $table->text('observations')->nullable();
             $table->integer('installment_number');
+            $table->foreignId('created_by')->nullable()->constrained('users')->nullOnDelete();
+            $table->index('created_by');
             $table->timestamps();
             $table->softDeletes();
             $table->unique(['budget_id', 'installment_number']);

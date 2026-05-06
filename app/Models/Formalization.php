@@ -2,18 +2,19 @@
 
 namespace App\Models;
 
+use App\Traits\HasCreatedBy;
+use App\Traits\HasFiles;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use App\Enums\ReportStatus;
 use App\Enums\DeliberationType;
-use App\Traits\HasFiles;
 use OwenIt\Auditing\Auditable as AuditableTrait;
 use OwenIt\Auditing\Contracts\Auditable;
 
 class Formalization extends Model implements Auditable
 {
-    use HasFactory, SoftDeletes, HasFiles, AuditableTrait;
+    use AuditableTrait, HasCreatedBy, HasFactory, HasFiles, SoftDeletes;
 
     protected $fillable = [
         'project_id',
@@ -36,6 +37,7 @@ class Formalization extends Model implements Auditable
         'sent_to_chief_of_staff_at',
         'official_gazette_published_at',
         'legal_opinion_date',
+        'created_by',
     ];
 
     protected $casts = [
@@ -57,7 +59,7 @@ class Formalization extends Model implements Auditable
         'deliberation' => DeliberationType::class,
     ];
 
-    
+
     public function project()
     {
         return $this->belongsTo(Project::class);

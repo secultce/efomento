@@ -14,7 +14,8 @@ return new class extends Migration
         Schema::create('legal_analyses', function (Blueprint $table) {
             $table->id();
             $table->foreignId('project_id')->constrained();
-            $table->foreignId('responsible_user_id')->constrained('users');
+            $table->foreignId('created_by')->constrained('users');
+            $table->index('created_by');
             $table->timestamp('processed_at')->nullable();
             $table->timestamps();
             $table->softDeletes();

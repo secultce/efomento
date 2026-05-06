@@ -17,6 +17,7 @@ return new class extends Migration
             $table->longText('body')->nullable();
             $table->string('status')->default('draft');
             $table->foreignId('created_by')->constrained('users');
+            $table->index('created_by');
             $table->timestamps();
             $table->softDeletes();
 

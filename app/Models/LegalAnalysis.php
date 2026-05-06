@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Enums\FileStatus;
+use App\Traits\HasCreatedBy;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -13,13 +14,13 @@ use OwenIt\Auditing\Contracts\Auditable;
 
 class LegalAnalysis extends Model implements Auditable
 {
-    use AuditableTrait, SoftDeletes, HasFactory;
+    use AuditableTrait, HasCreatedBy, HasFactory, SoftDeletes;
 
     protected $table = 'legal_analyses';
 
     protected $fillable = [
         'project_id',
-        'responsible_user_id',
+        'created_by',
         'processed_at',
     ];
 
@@ -30,11 +31,6 @@ class LegalAnalysis extends Model implements Auditable
     public function project(): BelongsTo
     {
         return $this->belongsTo(Project::class);
-    }
-
-    public function responsibleUser(): BelongsTo
-    {
-        return $this->belongsTo(User::class, 'responsible_user_id');
     }
 
     public function files(): HasMany

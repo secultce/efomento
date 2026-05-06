@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Traits\HasCreatedBy;
 use App\Traits\HasFiles;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -13,11 +14,11 @@ use OwenIt\Auditing\Contracts\Auditable;
 
 class Budget extends Model implements Auditable
 {
-    use AuditableTrait, HasFactory, HasFiles, SoftDeletes;
+    use AuditableTrait, HasCreatedBy, HasFactory, HasFiles, SoftDeletes;
 
     protected $fillable = [
         'project_id',
-        'responsible_user_id',
+        'created_by',
         'processing_date_for_codip',
         'processing_date_for_coafi',
         'date_of_expense_breakdown_table',
@@ -45,11 +46,6 @@ class Budget extends Model implements Auditable
     public function project(): BelongsTo
     {
         return $this->belongsTo(Project::class);
-    }
-
-    public function responsibleUser(): BelongsTo
-    {
-        return $this->belongsTo(User::class, 'responsible_user_id');
     }
 
     public function installments(): HasMany
