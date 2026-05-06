@@ -47,7 +47,7 @@ class ProjectController extends Controller
 
     public function projectDetail(Notice $notice, Project $project)
     {
-        $project->load(['notice', 'agent', 'category', 'opening', 'opening.supervisors', 'documents', 'budget','budget.installments', 'formalization', 'latestSnapshot']);
+        $project->load(['notice', 'agent', 'category', 'opening', 'opening.supervisors', 'documents', 'budget','budget.installments', 'formalization', 'agent.latestSnapshot']);
 
         $availableSupervisors = User::role(['monitoring', 'coord_monitoring'])
         ->select('id', 'name')

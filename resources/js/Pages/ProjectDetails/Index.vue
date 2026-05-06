@@ -15,7 +15,6 @@ const props = defineProps({
   openingStatus: Array
 })
 
-console.log(props.openingStatus)
 </script>
 
 <template>

@@ -40,7 +40,6 @@ const props = defineProps({
   }
 })
 
-console.log(props.agentStatus)
 defineEmits(['update:field'])
 
 const form = useForm({
@@ -70,7 +69,6 @@ const form = useForm({
   }
 })
 
-console.log(props.availableSupervisors)
 onMounted(() => {
   const opening = props.project.opening || {}
   const formalization = props.project.formalization || {}
@@ -103,8 +101,8 @@ onMounted(() => {
   }
 
   form.agent = {
-    secondary_email: agent.secondary_email ?? null,
-    secondary_phone: agent.secondary_phone ?? null
+    secondary_email: agent.latest_snapshot?.secondary_email ?? null,
+    secondary_phone: agent.latest_snapshot?.secondary_phone ?? null
   }
 })
 const submit = () => {
@@ -125,11 +123,7 @@ const submit = () => {
       }
     )
 }
-watch(() => form.opening.supervisors, (newVal) => {
-  console.log(newVal)
-  console.log('Current Form IDs:', newVal.map(s => s.id));
-  console.log('Available Items:', props.availableSupervisors);
-}, { deep: true });
+
 const activeViewIndex = ref('all')
 const activeEditIndex = ref('all')
 </script>
