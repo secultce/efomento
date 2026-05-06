@@ -8,6 +8,10 @@ import ProcessTabs from './Partials/ProcessTabs.vue';
 
 const props = defineProps({
   project: Object,
+  supervisorsAvailable: Array,
+  agentStatus: Array,
+  reportStatus: Array,
+  accountType: Array
 })
 </script>
 
@@ -18,15 +22,15 @@ const props = defineProps({
             <div class="grid grid-cols-[1fr_1fr_1fr_auto] items-start lg:w-10/12 gap-x-4 gap-y-2">
                 <div class="col-span-3 col-start-1">
                     <h1>
-                        {{ props?.project?.notice?.name }}
+                        {{ project?.notice?.name }}
                     </h1>
                 </div>
             </div>
         </AppSubHeader>
         <AppContainer variant="large">
             <div class="gap-4 flex flex-col">
-                <AgentData :project="props.project" />
-                <ProcessTabs :project="props.project" />
+                <AgentData :project="project" />
+                <ProcessTabs :project="project" :supervisorsAvailable="supervisorsAvailable" :agentStatus="agentStatus" :reportStatus="reportStatus" :accountType="accountType" />
             </div>
         </AppContainer>
     </AuthenticatedLayout>

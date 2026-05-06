@@ -5,6 +5,11 @@ import OpeningTab from './Tabs/OpeningTab.vue'
 
 const props = defineProps({
   project: Object,
+  supervisorsAvailable: Array,
+  agentStatus: Array,
+  reportStatus: Array,
+  accountType: Array
+
 })
 
 const tab = ref('1')
@@ -36,7 +41,7 @@ const tabs = [
       </v-tabs>
 
       <v-tabs-window v-model="tab">
-        <OpeningTab :project="project" />
+        <OpeningTab :project="project" :availableSupervisors="supervisorsAvailable" :agentStatus="agentStatus" :reportStatus="reportStatus" :accountType="accountType" />
 
         <v-tabs-window-item value="2">
           <v-sheet class="pa-5 h-[35em]" color="orange" />

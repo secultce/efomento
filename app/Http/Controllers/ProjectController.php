@@ -2,12 +2,15 @@
 
 namespace App\Http\Controllers;
 
+use App\Enums\AccountType;
+use App\Enums\AgentStatus;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use App\Models\Notice;
 use App\Models\User;
 use App\Enums\ProjectPhase;
 use App\Enums\InstrumentType;
+use App\Enums\ReportStatus;
 use App\Services\ProjectSupervisorService;
 use App\Services\ProjectDocumentService;
 use App\Http\Resources\ProjectResource;
@@ -45,8 +48,33 @@ class ProjectController extends Controller
     {
         $project->load(['notice', 'agent', 'category', 'opening', 'opening.supervisors', 'documents', 'budget','budget.installments', 'formalization', 'latestSnapshot']);
 
+        $availableSupervisors = User::role(['monitoring', 'coord_monitoring'])
+        ->select('id', 'name')
+        ->get();
+
+        if ($project->opening && $project->opening->supervisors) {
+            $currentSupervisorIds = $project->opening->supervisors
+                ->whereNull('deleted_at') 
+                ->pluck('id')
+                ->filter();
+
+            if ($currentSupervisorIds->isNotEmpty()) {
+                $assignedSupervisors = User::whereIn('id', $currentSupervisorIds)
+                    ->select('id', 'name')
+                    ->get();
+
+                $availableSupervisors = $availableSupervisors
+                    ->merge($assignedSupervisors)
+                    ->unique('id');
+            }
+        }
         return Inertia::render('ProjectDetails', [
             'project' => (new ProjectResource($project))->resolve(),
+            'supervisorsAvailable' => $availableSupervisors,
+            'agentStatus' => AgentStatus::values(),
+            'accountType' => AccountType::values(),
+            'reportStatus' => ReportStatus::values(),
+
         ]);
     }
 
