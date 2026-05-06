@@ -8,15 +8,15 @@ import AuxLinks from '@/Components/AuxLinks.vue'
 import { viewSections, formSections } from '@/Schemas/Opening'
 import { useForm } from '@inertiajs/vue3'
 import { onMounted } from 'vue'
-import { usePayload } from '@/Composables/usePayload'
 import { useSnackbar } from '@/Composables/useSnackbar'
 import TextField from '@/Components/TextField.vue'
 import UserAutocompleteField from '@/Components/UserAutocompleteField.vue'
 import FormField from '@/Components/FormField.vue'
 import SelectField from '@/Components/SelectField.vue'
+import { useDate } from '@/Composables/useDate'
 
 const { showSnackbar } = useSnackbar()
-
+const { normalizeDate } = useDate()
 const props = defineProps({
   project: {
     type: Object,
@@ -78,7 +78,7 @@ onMounted(() => {
 
   form.opening = {
     opening_nup: opening.opening_nup ?? null,
-    opening_date: opening.opening_date ?? null,
+    opening_date: normalizeDate(opening.opening_date) ?? null,
     agent_status: opening.agent_status ?? null,
     opened_by: opening.opened_by ?? null,
     bank: opening.bank ?? null,
@@ -87,11 +87,11 @@ onMounted(() => {
     account: opening.account ?? null,
     supervisors: [
   {
-    id: opening.supervisors?.[0]?.id ? Number(opening.supervisors[0].user_id) : null,
+    id: opening.supervisors?.[0]?.id ? opening.supervisors[0].user_id : null,
     nup: opening.supervisors?.[0]?.nup ?? ''
   },
   {
-    id: opening.supervisors?.[1]?.id ? Number(opening.supervisors[1].user_id) : null,
+    id: opening.supervisors?.[1]?.id ? opening.supervisors[1].user_id : null,
     nup: opening.supervisors?.[1]?.nup ?? ''
   }
 ]
@@ -99,7 +99,7 @@ onMounted(() => {
 
   form.formalization = {
     report_status: formalization.report_status ?? null,
-    eparcerias_certificate_date: formalization.eparcerias_certificate_date ?? null
+    eparcerias_certificate_date: normalizeDate(formalization.eparcerias_certificate_date) ?? null
   }
 
   form.proponent = {
@@ -181,7 +181,7 @@ const activeEditIndex = ref('all')
                     <text-field v-model="form.opening.opening_nup" mask="####.######/####-##" />
                   </form-field>
 
-                  <form-field label="Data de abertura do processo">
+                  <form-field label="Data de abertura do processo" required>
                     <text-field v-model="form.opening.opening_date" type="date" />
                   </form-field>
 
@@ -189,7 +189,7 @@ const activeEditIndex = ref('all')
                     <select-field v-model="form.opening.agent_status" :items="props.agentStatus" placeholder="Selecione um tipo" />
                   </form-field>
 
-                  <form-field label="Responsável por abrir o processo">
+                  <form-field label="Responsável por abrir o processo" required>
                     <text-field v-model="form.opening.opened_by" />
                   </form-field>
                 </div>
@@ -225,6 +225,7 @@ const activeEditIndex = ref('all')
                 <div class="grid grid-cols-2 gap-4">
                   <form-field label="Fiscal titular">
                     <user-autocomplete-field
+                      variant="outlined"
                       v-if="availableSupervisors.length"
                       v-model="form.opening.supervisors[0].id"
                       :items="availableSupervisors"
@@ -236,7 +237,7 @@ const activeEditIndex = ref('all')
                   </form-field>
 
                   <form-field label="Fiscal suplente">
-                    <user-autocomplete-field v-model="form.opening.supervisors[1].id" :items="availableSupervisors" />
+                    <user-autocomplete-field  variant="outlined" v-model="form.opening.supervisors[1].id" :items="availableSupervisors" />
                   </form-field>
 
                   <form-field label="Matrícula suplente">
@@ -245,13 +246,15 @@ const activeEditIndex = ref('all')
                 </div>
               </template>
               <template v-else-if="section.key === 'proponent'">
-                <form-field label="Email secundário">
-                  <text-field v-model="form.proponent.secondary_email" />
-                </form-field>
+                <div class="grid grid-cols-2 gap-4">
+                  <form-field label="Email secundário">
+                    <text-field v-model="form.proponent.secondary_email" />
+                  </form-field>
 
-                <form-field label="Telefone secundário">
-                  <text-field v-model="form.proponent.secondary_phone" />
-                </form-field>
+                  <form-field label="Telefone secundário">
+                    <text-field v-model="form.proponent.secondary_phone" />
+                  </form-field>
+                </div>
               </template>
 
             </template>
