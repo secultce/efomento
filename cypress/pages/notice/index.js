@@ -47,7 +47,6 @@ class Notice {
 
         cy.contains('.v-list-item',tipoDeInstrumento)
           .click()
-        //   .should('be.selected')
 
         cy.get(el.inputTotalValueNotice)
           .type(valorTotalEdital)
@@ -65,7 +64,7 @@ class Notice {
           .click()
 
         cy.get(el.snackAlert)
-        .contains('O valor indicado para o campo nup já se encontra registrado')
+        .contains('Número do processo salvo com sucesso')
         //   .contains('Número do processo salvo com sucesso')
           .should('be.visible')
 
