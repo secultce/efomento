@@ -11,6 +11,9 @@ class Notice {
         }).then((response) => {
           expect(response.status).to.eq(200);
         });
+
+        cy.get(el.tableNoticeList)
+          .should('be.visible')
     }
 
     visualizarDashboard() {
@@ -119,26 +122,80 @@ class Notice {
     }
 
     visualizarInformaçõesDoProcesso(numeroProcessoMae) {
-        cy.get(el.tableNoticeList)
-          .should()
-
-        cy.get(el.motherProcessNumber)
-          .invoke('val')
-          .should()
-
         cy.get(el.buttonAccessIdentificationdata)
           .should('be.visible')
           .first()
           .click()
 
-       cy.url()
+        cy.url()
          .should('match', /\/editais\/\d+\/projetos$/)
 
-       cy.get(el.motherProcessNumberProjectPage)
+        cy.get(el.motherProcessNumberProcessInformation)
          .contains(numeroProcessoMae)
          .should('be.visible')
 
+        cy.get(el.btnShowAllInformation)
+          .should('be.visible')
+          .click()
 
+        cy.get(el.noticeNameProcessInformation)
+          .should('be.visible')
+
+        cy.get(el.motherProcessNumberProcessInformation)
+          .should('be.visible')
+
+        cy.get(el.intrumentTypeProccessInformation)
+          .should('be.visible')
+
+        cy.get(el.budgetAlocationDateProcessInformation)
+          .should('be.visible')
+
+        cy.get(el.totalAmountProcessInformation)
+          .should('be.visible')
+
+        cy.get(el.valueInFullProcessInformation)
+          .should('be.visible')
+
+        cy.get(el.managerEmailProcessInformation)
+          .should('be.visible')
+
+        cy.get(el.processNumberCreditorProcessInformation)
+          .should('be.visible')
+
+        cy.get(el.quotaNumberProcessInformation)
+          .should('be.visible')
+
+        cy.get(el.processNumberBudgetAlocationProcessInformation)
+          .should('be.visible')
+
+        cy.get(el.budgetAlocationCreditorRegister)
+          .should('be.visible')
+
+    }
+
+    alterarQuantidadeDeExibicaoListaDeEditais(quantidadePorPágina) {
+        cy.get(el.selectQuantityListNotices)
+          .should('be.visible')
+          .click()
+
+        cy.contains('.v-list-item', quantidadePorPágina)
+          .should('be.visible')
+          .click()
+
+        cy.get(`${el.tableNoticeList} tbody tr` )
+          .should('have.length', quantidadePorPágina)
+    }
+
+    alterarPaginaDaListaDeEditais() {
+        cy.get(el.pageNumberNoticesList)
+          .contains('2')
+          .should('be.visible')
+          .click()
+
+        cy.get(el.pageNumberNoticesList)
+          .contains('2')
+          .parent()
+          .should('have.css', 'background-color','rgb(255, 193, 7)')
     }
 
 }

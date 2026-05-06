@@ -196,7 +196,7 @@ function openDialog(item) {
 
 <template>
     <nup-dialog v-model="dialog" :item="selectedItem" :instrument-types="instrumentTypes"/>
-    <v-card flat class="pa-6 bg-white">
+    <v-card flat class="pa-6 bg-white" data-cy="tabelaListaDeEditais">
         <!-- ── Cabeçalho ──────────────────────────────────────────────────── -->
         <div class="mb-5">
             <p class="text-subtitle-1 font-weight-bold text-grey-darken-3">
@@ -289,7 +289,7 @@ function openDialog(item) {
                         <!-- Coluna esquerda — vazia (equilíbrio visual) -->
                         <v-col cols="4" />
 
-                        <!-- Coluna central — botões de pageção -->
+                        <!-- Coluna central — botões de paginação -->
                         <v-col cols="4" class="d-flex justify-center align-center gap-1">
                             <v-btn icon variant="text" size="small" :disabled="page <= 1" @click="goToPage(page - 1)">
                                 <v-icon>mdi-chevron-left</v-icon>
@@ -301,7 +301,8 @@ function openDialog(item) {
                                 </span>
                                 <v-btn v-else variant="flat" size="small" rounded :style="page === p
                                     ? 'background-color:#FFC107; color:#fff; min-width:32px'
-                                    : 'min-width:32px'" @click="goToPage(p)">
+                                    : 'min-width:32px'" @click="goToPage(p)"
+                                    data-cy="numeroPaginacaoListaEditais">
                                     {{ p }}
                                 </v-btn>
                             </template>
@@ -319,7 +320,8 @@ function openDialog(item) {
                             </span>
                             <v-select v-model="itemsPerPage" @update:model-value="onChangePerPage"
                                 :items="itemsPerPageOptions" variant="outlined" density="compact" hide-details
-                                style="width: 75px" />
+                                style="width: 75px"
+                                data-cy="quantidadeDeEditaisExibidos"/>
                         </v-col>
 
                     </v-row>

@@ -30,7 +30,7 @@ describe('Página de Editais', () => {
 
   })
 
-  it.only('Garante que é possível visualizar o dashboard de editais', () => {
+  it('Garante que é possível visualizar o dashboard de editais', () => {
     Login.acessarPaginaDeLogin()
     Login.loginComSucesso(user.valid_email, user.password, user.name)
     Notice.acessarPaginaDeEditais()
@@ -91,7 +91,22 @@ describe('Página de Editais', () => {
     Login.acessarPaginaDeLogin()
     Login.loginComSucesso(user.valid_email, user.password, user.name)
     Notice.acessarPaginaDeEditais()
+    Notice.buscarEditalPorNumeroDoProcessoMae(notice.nup)
     Notice.visualizarInformaçõesDoProcesso(notice.nup)
+  })
+
+  it('Garante que é possível alterar a quantidade de itens exibidos na lista de editais', () => {
+    Login.acessarPaginaDeLogin()
+    Login.loginComSucesso(user.valid_email, user.password, user.name)
+    Notice.acessarPaginaDeEditais()
+    Notice.alterarQuantidadeDeExibicaoListaDeEditais(notice.quantityPerPage)
+  })
+
+  it('Garante que é possível mudar a página na listagem de editais', () => {
+    Login.acessarPaginaDeLogin()
+    Login.loginComSucesso(user.valid_email, user.password, user.name)
+    Notice.acessarPaginaDeEditais()
+    Notice.alterarPaginaDaListaDeEditais()
   })
 
 });
