@@ -47,28 +47,12 @@ class ProjectController extends Controller
 
     public function projectDetail(Notice $notice, Project $project)
     {
-        $project->load(['notice', 'agent', 'category', 'opening', 'opening.supervisors', 'documents', 'budget','budget.installments', 'formalization', 'agent.latestSnapshot']);
+        $project->load(['notice', 'agent', 'category', 'opening', 'opening.supervisors', 'opening.supervisors.user', 'documents', 'budget','budget.installments', 'formalization', 'agent.latestSnapshot']);
 
         $availableSupervisors = User::role(['monitoring', 'coord_monitoring'])
-        ->select('id', 'name')
+        ->select('id', 'name', 'registration_number')
         ->get();
 
-        if ($project->opening && $project->opening->supervisors) {
-            $currentSupervisorIds = $project->opening->supervisors
-                ->whereNull('deleted_at') 
-                ->pluck('id')
-                ->filter();
-
-            if ($currentSupervisorIds->isNotEmpty()) {
-                $assignedSupervisors = User::whereIn('id', $currentSupervisorIds)
-                    ->select('id', 'name')
-                    ->get();
-
-                $availableSupervisors = $availableSupervisors
-                    ->merge($assignedSupervisors)
-                    ->unique('id');
-            }
-        }
         return Inertia::render('ProjectDetails', [
             'project' => (new ProjectResource($project))->resolve(),
             'supervisorsAvailable' => $availableSupervisors,

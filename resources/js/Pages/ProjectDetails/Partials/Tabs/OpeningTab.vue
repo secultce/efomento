@@ -86,11 +86,11 @@ onMounted(() => {
     supervisors: [
       {
         id: opening?.supervisors[0]?.user_id ?? null,
-        registration_number: opening.supervisors?.[0]?.registration_number ?? ''
+        registration_number: opening.supervisors?.[0]?.user.registration_number ?? ''
       },
       {
         id: opening?.supervisors[1]?.user_id ?? null,
-        registration_number: opening.supervisors?.[1]?.registration_number ?? ''
+        registration_number: opening.supervisors?.[1]?.user.registration_number ?? ''
       }
     ]
   }
@@ -105,6 +105,15 @@ onMounted(() => {
     secondary_phone: agent.latest_snapshot?.secondary_phone ?? null
   }
 })
+
+const syncSupervisor = (index) => {
+  const selectedId = form.opening.supervisors[index].id
+
+  const user = props.availableSupervisors.find(u => u.id === selectedId)
+
+  form.opening.supervisors[index].registration_number = user?.registration_number ?? ''
+}
+
 const submit = () => {
   form
     .patch(
@@ -118,7 +127,7 @@ const submit = () => {
           showSnackbar('Abertura atualizada com sucesso!', 'success')
         },
         onError: (errors) => {
-          console.error(errors)
+          showSnackbar('Falha ao atualizar abertura!', 'error')
         }
       }
     )
@@ -220,8 +229,12 @@ const activeEditIndex = ref('all')
               <template v-else-if="section.key === 'supervisors'">
                 <div class="grid grid-cols-2 gap-4">
                   <form-field label="Fiscal titular">
-                    <user-autocomplete-field variant="outlined" v-model="form.opening.supervisors[0].id"
-                      :items="availableSupervisors" />
+                    <user-autocomplete-field
+                      variant="outlined"
+                      v-model="form.opening.supervisors[0].id"
+                      :items="availableSupervisors"
+                      @update:modelValue="() => syncSupervisor(0)"
+                    />
                   </form-field>
 
                   <form-field label="Matrícula titular">
@@ -232,8 +245,12 @@ const activeEditIndex = ref('all')
                   </form-field>
 
                   <form-field label="Fiscal suplente">
-                    <user-autocomplete-field variant="outlined" v-model="form.opening.supervisors[1].id"
-                      :items="availableSupervisors" />
+                    <user-autocomplete-field
+                      variant="outlined"
+                      v-model="form.opening.supervisors[1].id"
+                      :items="availableSupervisors"
+                      @update:modelValue="() => syncSupervisor(1)"
+                    />
                   </form-field>
 
                   <form-field label="Matrícula titular">
