@@ -3,7 +3,6 @@ import { elements as el} from "./elements"
 class Notice {
 
     acessarPaginaDeEditais(){
-        cy.visit('/editais')//
         cy.request({
           method: 'GET',
           url:'/editais',

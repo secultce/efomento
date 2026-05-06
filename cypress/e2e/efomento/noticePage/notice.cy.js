@@ -58,7 +58,7 @@ describe('Página de Editais', () => {
     Notice.acessarFomularioDadosDeIdentificacao()
   })
 
-  it.only('Garante que é possível preencher o formulário dados de identificação e processos', function() {
+  it('Garante que é possível preencher o formulário dados de identificação e processos', function() {
     Notice.acessarFomularioDadosDeIdentificacao()
     Notice.preencherDadosDeIdentificacaoDoEdital(this.notice.nup, this.notice.processInstrumentType, this.notice.noticeTotalValue, this.notice.noticeAccompanimentManager, this.notice.noticeManagerEmail, this.notice.quotaNumber)
   })
