@@ -10,6 +10,7 @@ use App\Models\Notice;
 use App\Models\User;
 use App\Enums\ProjectPhase;
 use App\Enums\InstrumentType;
+use App\Enums\OpeningStatus;
 use App\Enums\ReportStatus;
 use App\Services\ProjectSupervisorService;
 use App\Services\ProjectDocumentService;
@@ -71,9 +72,10 @@ class ProjectController extends Controller
         return Inertia::render('ProjectDetails', [
             'project' => (new ProjectResource($project))->resolve(),
             'supervisorsAvailable' => $availableSupervisors,
-            'agentStatus' => AgentStatus::values(),
-            'accountType' => AccountType::values(),
-            'reportStatus' => ReportStatus::values(),
+            'agentStatus' => AgentStatus::options(),
+            'accountType' => AccountType::options(),
+            'reportStatus' => ReportStatus::options(),
+            'openingStatus' => OpeningStatus::options(),
 
         ]);
     }

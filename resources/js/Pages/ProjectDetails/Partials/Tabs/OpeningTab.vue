@@ -33,7 +33,7 @@ const props = defineProps({
   reportStatus: {
     type: Array,
     default: () => []
-  },  
+  },
   accountType: {
     type: Array,
     default: () => []
@@ -54,8 +54,8 @@ const form = useForm({
     branch: null,
     account: null,
     supervisors: [
-      { id: null, nup: '' },
-      { id: null, nup: '' }
+      { id: null, registration_number: '' },
+      { id: null, registration_number: '' }
     ]
   },
 
@@ -64,7 +64,7 @@ const form = useForm({
     eparcerias_certificate_date: null
   },
 
-  proponent: {
+  agent: {
     secondary_email: null,
     secondary_phone: null
   }
@@ -74,7 +74,7 @@ console.log(props.availableSupervisors)
 onMounted(() => {
   const opening = props.project.opening || {}
   const formalization = props.project.formalization || {}
-  const proponent = props.project.proponent || {}
+  const agent = props.project.agent || {}
 
   form.opening = {
     opening_nup: opening.opening_nup ?? null,
@@ -86,15 +86,15 @@ onMounted(() => {
     branch: opening.branch ?? null,
     account: opening.account ?? null,
     supervisors: [
-  {
-    id: opening.supervisors?.[0]?.id ? opening.supervisors[0].user_id : null,
-    nup: opening.supervisors?.[0]?.nup ?? ''
-  },
-  {
-    id: opening.supervisors?.[1]?.id ? opening.supervisors[1].user_id : null,
-    nup: opening.supervisors?.[1]?.nup ?? ''
-  }
-]
+      {
+        id: opening?.supervisors[0]?.user_id ?? null,
+        registration_number: opening.supervisors?.[0]?.registration_number ?? ''
+      },
+      {
+        id: opening?.supervisors[1]?.user_id ?? null,
+        registration_number: opening.supervisors?.[1]?.registration_number ?? ''
+      }
+    ]
   }
 
   form.formalization = {
@@ -102,9 +102,9 @@ onMounted(() => {
     eparcerias_certificate_date: normalizeDate(formalization.eparcerias_certificate_date) ?? null
   }
 
-  form.proponent = {
-    secondary_email: proponent.secondary_email ?? null,
-    secondary_phone: proponent.secondary_phone ?? null
+  form.agent = {
+    secondary_email: agent.secondary_email ?? null,
+    secondary_phone: agent.secondary_phone ?? null
   }
 })
 const submit = () => {
@@ -174,7 +174,6 @@ const activeEditIndex = ref('all')
         <div class="mt-4">
           <section-form :active-edit-index="activeEditIndex" :sections="formSections">
             <template #default="{ section }">
-              <!-- Dados da Abertura -->
               <template v-if="section.key === 'opening'">
                 <div class="grid grid-cols-2 gap-4">
                   <form-field label="Número do processo*" required>
@@ -186,7 +185,8 @@ const activeEditIndex = ref('all')
                   </form-field>
 
                   <form-field label="Status do agente cultural">
-                    <select-field v-model="form.opening.agent_status" :items="props.agentStatus" placeholder="Selecione um tipo" />
+                    <select-field v-model="form.opening.agent_status" :items="props.agentStatus" item-title="label"
+                      item-value="value" placeholder="Selecione um tipo" />
                   </form-field>
 
                   <form-field label="Responsável por abrir o processo" required>
@@ -197,7 +197,8 @@ const activeEditIndex = ref('all')
               <template v-else-if="section.key === 'certificate'">
                 <div class="grid grid-cols-2 gap-4">
                   <form-field label="Regularidade e inadimplência">
-                    <select-field v-model="form.formalization.report_status" :items="props.reportStatus" placeholder="Selecione um tipo" />
+                    <select-field v-model="form.formalization.report_status" :items="props.reportStatus"
+                      item-title="label" item-value="value" placeholder="Selecione um tipo" />
                   </form-field>
 
                   <form-field label="Data da certidão">
@@ -211,7 +212,8 @@ const activeEditIndex = ref('all')
                     <text-field v-model="form.opening.bank" />
                   </form-field>
                   <form-field label="Tipo de conta">
-                    <select-field v-model="form.opening.account_type" :items="props.accountType" placeholder="Selecione um tipo" />
+                    <select-field v-model="form.opening.account_type" item-title="label" item-value="value"
+                      :items="props.accountType" placeholder="Selecione um tipo" />
                   </form-field>
                   <form-field label="Agência">
                     <text-field v-model="form.opening.branch" />
@@ -224,35 +226,38 @@ const activeEditIndex = ref('all')
               <template v-else-if="section.key === 'supervisors'">
                 <div class="grid grid-cols-2 gap-4">
                   <form-field label="Fiscal titular">
-                    <user-autocomplete-field
-                      variant="outlined"
-                      v-if="availableSupervisors.length"
-                      v-model="form.opening.supervisors[0].id"
-                      :items="availableSupervisors"
-                    />
+                    <user-autocomplete-field variant="outlined" v-model="form.opening.supervisors[0].id"
+                      :items="availableSupervisors" />
                   </form-field>
 
                   <form-field label="Matrícula titular">
-                    <text-field v-model="form.opening.supervisors[0].nup" />
+                    <text-field
+                      v-model="form.opening.supervisors[0].registration_number"
+                      :disabled="!form.opening.supervisors[0].id"
+                    />
                   </form-field>
 
                   <form-field label="Fiscal suplente">
-                    <user-autocomplete-field  variant="outlined" v-model="form.opening.supervisors[1].id" :items="availableSupervisors" />
+                    <user-autocomplete-field variant="outlined" v-model="form.opening.supervisors[1].id"
+                      :items="availableSupervisors" />
                   </form-field>
 
-                  <form-field label="Matrícula suplente">
-                    <text-field v-model="form.opening.supervisors[1].nup" />
+                  <form-field label="Matrícula titular">
+                    <text-field
+                      v-model="form.opening.supervisors[1].registration_number"
+                      :disabled="!form.opening.supervisors[1].id"
+                    />
                   </form-field>
                 </div>
               </template>
-              <template v-else-if="section.key === 'proponent'">
+              <template v-else-if="section.key === 'agent'">
                 <div class="grid grid-cols-2 gap-4">
                   <form-field label="Email secundário">
-                    <text-field v-model="form.proponent.secondary_email" />
+                    <text-field v-model="form.agent.secondary_email" />
                   </form-field>
 
                   <form-field label="Telefone secundário">
-                    <text-field v-model="form.proponent.secondary_phone" />
+                    <text-field v-model="form.agent.secondary_phone" />
                   </form-field>
                 </div>
               </template>

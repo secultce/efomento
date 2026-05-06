@@ -19,7 +19,9 @@ return new class extends Migration
             $table->string('has_disability')->nullable();
 
             $table->string('phone')->nullable();
+            $table->string('secondary_phone')->nullable();
             $table->string('email')->nullable();
+            $table->string('secondary_email')->nullable();
             $table->date('birth_date')->nullable();
 
             $table->string('street')->nullable();

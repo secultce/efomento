@@ -3,5 +3,5 @@ export const formSections = [
   { title: "Certidão e-parcerias", key: "certificate" },
   { title: "Dados bancários", key: "bank" },
   { title: "Dados do fiscal", key: "supervisors" },
-  { title: "Dados do Proponente", key: "proponent" },
+  { title: "Dados do Agente", key: "agent" },
 ];

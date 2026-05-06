@@ -1,7 +1,15 @@
 <script setup>
+import { useEnums } from '@/Composables/useEnums'
+
 const props = defineProps({
     project: Object,
+    agentStatus: Array,
+    reportStatus: Array,
+    openingStatus: Array
 })
+
+const { getLabel } = useEnums()
+
 </script>
 <template>
     <v-card class="w-full !shadow-none border border-gray-800 rounded-lg">      
@@ -17,11 +25,15 @@ const props = defineProps({
             </div>
             <div >
                 <p>Status do agente cultural</p>
-                <p class="font-bold">{{ props.project?.opening?.agent_status }}</p>
+                <p class="font-bold">
+                    {{ getLabel(props.agentStatus, props.project?.opening?.agent_status) }}
+                </p>
             </div>
             <div >
                 <p>Status do processo</p>
-                <p class="font-bold">{{ props.project?.opening?.status }}</p>
+                <p class="font-bold">
+                    {{ getLabel(props.openingStatus, props.project?.opening?.status) }}
+                </p>
             </div>
            
         </div>

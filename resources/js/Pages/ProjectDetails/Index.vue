@@ -11,8 +11,11 @@ const props = defineProps({
   supervisorsAvailable: Array,
   agentStatus: Array,
   reportStatus: Array,
-  accountType: Array
+  accountType: Array,
+  openingStatus: Array
 })
+
+console.log(props.openingStatus)
 </script>
 
 <template>
@@ -29,8 +32,8 @@ const props = defineProps({
         </AppSubHeader>
         <AppContainer variant="large">
             <div class="gap-4 flex flex-col">
-                <AgentData :project="project" />
-                <ProcessTabs :project="project" :supervisorsAvailable="supervisorsAvailable" :agentStatus="agentStatus" :reportStatus="reportStatus" :accountType="accountType" />
+                <AgentData :project="project" :agentStatus="agentStatus" :openingStatus="openingStatus" />
+                <ProcessTabs :project="project" :supervisorsAvailable="supervisorsAvailable" :agentStatus="agentStatus" :reportStatus="reportStatus" :accountType="accountType"  />
             </div>
         </AppContainer>
     </AuthenticatedLayout>

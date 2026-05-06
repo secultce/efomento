@@ -25,4 +25,5 @@ enum AgentStatus: string implements HasLabel
             self::DESISTENTE => 'Desistente',
         };
     }
+    
 }
