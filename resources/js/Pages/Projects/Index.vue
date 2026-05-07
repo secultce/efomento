@@ -121,15 +121,18 @@ function handleSaved() {
 }
 
 function handleAction({ action, item }) {
-  if(action !== 'open' || !item?.opening?.id){
+  if(!item?.opening?.id){
     showSnackbar('Projeto ainda não entrou em fase de abertura.', 'error')
     return;
   }
 
-  router.get(route('notices.projects.show', {
-    notice: props.notice.id,
-    project: item.id,
-  }))
+  if(action === 'open'){
+    router.get(route('notices.projects.show', {
+      notice: props.notice.id,
+      project: item.id,
+    }))
+  }
+
   
 }
 
