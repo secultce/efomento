@@ -38,6 +38,15 @@ describe('Página de Editais', () => {
     Notice.visualizarMensagemDeBoasVindasComNomeDoUsuario(this.user.name)
   })
 
+  it('Garante que é possível acessar o formulário dados de identificação e processos', function() {
+    Notice.acessarFomularioDadosDeIdentificacao()
+  })
+
+  it('Garante que é possível preencher o formulário dados de identificação e processos', function() {
+    Notice.acessarFomularioDadosDeIdentificacao()
+    Notice.preencherDadosDeIdentificacaoDoEdital(this.notice.nup, this.notice.processInstrumentType, this.notice.noticeTotalValue, this.notice.noticeAccompanimentManager, this.notice.noticeManagerEmail, this.notice.quotaNumber)
+  })
+
   it('Garante que é possível buscar editais pelo Título', function() {
     Notice.buscarEditalPorTítulo(this.notice.title)
   })
@@ -52,15 +61,6 @@ describe('Página de Editais', () => {
 
   it('Garante que é possível filtrar editais pelo Tipo de Instrumento', function() {
     Notice.filtrarEditalPorTipoDeInstrumento(this.notice.processInstrumentType)
-  })
-
-  it('Garante que é possível acessar o formulário dados de identificação e processos', function() {
-    Notice.acessarFomularioDadosDeIdentificacao()
-  })
-
-  it('Garante que é possível preencher o formulário dados de identificação e processos', function() {
-    Notice.acessarFomularioDadosDeIdentificacao()
-    Notice.preencherDadosDeIdentificacaoDoEdital(this.notice.nup, this.notice.processInstrumentType, this.notice.noticeTotalValue, this.notice.noticeAccompanimentManager, this.notice.noticeManagerEmail, this.notice.quotaNumber)
   })
 
   it('Garante que é possível acessar as informações do processo', function() {
