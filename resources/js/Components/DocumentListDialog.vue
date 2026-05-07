@@ -20,16 +20,8 @@ const isOpen = computed({
 const viewerOpen = ref(false)
 const viewerDocument = ref(null)
 
-const typeNames = {
-    ci:                'Comunicação Interna',
-    term:              'Termo de Execução Cultural',
-    extract:           'Extrato',
-    juridical_opinion: 'Parecer Jurídico',
-    dispatch:          'Despacho',
-}
-
 function typeName(doc) {
-    return typeNames[doc.type?.value ?? doc.type] ?? doc.type_label ?? doc.type
+    return doc.type_name ?? doc.type_label ?? doc.type
 }
 
 function download(doc) {

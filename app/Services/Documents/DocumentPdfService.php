@@ -45,7 +45,7 @@ class DocumentPdfService
     {
         $agentName = $document->project?->agent?->name ?? 'documento';
 
-        return 'CI_' . str($agentName)->slug('_') . '_' . $document->created_at->format('Y-m-d') . '.pdf';
+        return 'CI_' . str($agentName)->slug('_') . '_' . $document->created_at->format('Y-m-d') . '_' . $document->created_at->timestamp . '.pdf';
     }
 
     public function replacePlaceholders(Document $document): string

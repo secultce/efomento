@@ -92,7 +92,7 @@ class SpreadsheetImportService
 
     private function resolveOpening(array $row, int $projectId): Opening
     {
-        $user = User::find(1);
+        $user = User::find(Auth::user()->id);
 
         return Opening::firstOrCreate(
             ['project_id' => $projectId],
