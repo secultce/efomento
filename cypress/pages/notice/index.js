@@ -3,6 +3,7 @@ import { elements as el} from "./elements"
 class Notice {
 
     acessarPaginaDeEditais(){
+        cy.visit('/editais')//
         cy.request({
           method: 'GET',
           url:'/editais',
@@ -64,7 +65,6 @@ class Notice {
 
         cy.get(el.snackAlert)
         .contains('Número do processo salvo com sucesso')
-        //   .contains('Número do processo salvo com sucesso')
           .should('be.visible')
 
     }
@@ -83,7 +83,7 @@ class Notice {
           .should('be.visible')
           .type(numeroProcessoMae)
         cy.get(el.motherProcessNumber)
-          .should('be.have',numeroProcessoMae)
+          .should('contain',numeroProcessoMae)
           .should('be.visible')
     }
 
@@ -92,7 +92,7 @@ class Notice {
           .should('be.visible')
           .type(statusDoProcesso)
         cy.get(el.badgeProcessStatus)
-          .should('be.have',statusDoProcesso)
+          .should('contain',statusDoProcesso)
           .and('be.visible')
     }
 
@@ -110,13 +110,13 @@ class Notice {
     visualizarNomeDoUsuarioLogadoNoHeader(nomeDoUsuarioLogado) {
         cy.get(el.buttonUserAvatar)
           .should('be.visible')
-          .and('be.have', nomeDoUsuarioLogado)
+          .and('contain', nomeDoUsuarioLogado)
     }
 
     visualizarMensagemDeBoasVindasComNomeDoUsuario(nomeDoUsuarioLogado, numeroProcessoMae) {
         cy.get(el.welcomeMessage)
           .should('be.visible')
-          .and('be.have', nomeDoUsuarioLogado)
+          .and('contain', nomeDoUsuarioLogado)
     }
 
     visualizarInformaçõesDoProcesso(numeroProcessoMae) {
