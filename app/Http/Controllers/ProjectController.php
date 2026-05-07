@@ -47,7 +47,19 @@ class ProjectController extends Controller
 
     public function projectDetail(Notice $notice, Project $project)
     {
-        $project->load(['notice', 'agent', 'category', 'opening', 'opening.supervisors', 'opening.supervisors.user', 'documents', 'budget','budget.installments', 'formalization', 'agent.latestSnapshot']);
+        $project->load([
+            'notice', 
+            'agent', 
+            'category', 
+            'opening',  
+            'opening.supervisors' => function ($q) {$q->whereNull('removed_at'); }, 
+            'opening.supervisors.user', 
+            'documents', 
+            'budget',
+            'budget.installments', 
+            'formalization', 
+            'agent.latestSnapshot'
+        ]);
 
         $availableSupervisors = User::role(['monitoring', 'coord_monitoring'])
         ->select('id', 'name', 'registration_number')
