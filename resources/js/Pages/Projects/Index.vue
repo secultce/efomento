@@ -6,6 +6,7 @@ import ProjectList from '@/Pages/Projects/Partials/ProjectList.vue'
 import PhaseFilter from '@/Pages/Projects/Partials/PhaseFilter.vue'
 import ProjectNoticeEdit from '@/Pages/Projects/Partials/ProjectNoticeEdit.vue'
 import ProjectActions from '@/Pages/Projects/Partials/ProjectActions.vue'
+import { useSnackbar } from '@/Composables/useSnackbar'
 import { Head, router } from '@inertiajs/vue3'
 import { ref } from 'vue'
 
@@ -20,6 +21,8 @@ const props = defineProps({
 
 const search = ref(props.filters?.search ?? '')
 const selectedPhase = ref(props.filters?.phase ?? null)
+
+const { showSnackbar } = useSnackbar();
 
 function selectPhase(phase) {
   selectedPhase.value = phase.value
@@ -118,12 +121,16 @@ function handleSaved() {
 }
 
 function handleAction({ action, item }) {
-  if (action === 'open') {
-    router.get(route('notices.projects.show', {
-      notice: props.notice.id,
-      project: item.id,
-    }))
+  if(action !== 'open' || !item?.opening?.id){
+    showSnackbar('Projeto ainda não entrou em fase de abertura.', 'error')
+    return;
   }
+
+  router.get(route('notices.projects.show', {
+    notice: props.notice.id,
+    project: item.id,
+  }))
+  
 }
 
 </script>
