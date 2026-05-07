@@ -64,6 +64,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('/projetos/criar-ci', [ProjectController::class, 'createCI'])
         ->name('projects.create-ci');
     Route::patch('/projetos/{project}/abertura/{opening}/atualizar',[OpeningController::class, 'update'])
+        ->scopeBindings()
         ->name('projects.openings.update');
     Route::get('editais/{notice}/projetos', [ProjectController::class, 'index'])
         ->name('notices.projects');
