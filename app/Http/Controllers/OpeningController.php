@@ -2,15 +2,11 @@
 
 namespace App\Http\Controllers;
 
-use App\Enums\ProfileSnapshotSource;
 use App\Http\Requests\Opening\OpeningUpdateRequest;
-use App\Models\Agent;
 use App\Models\Opening;
 use App\Models\Project;
-use App\Models\User;
-use Illuminate\Http\RedirectResponse;
+use App\Services\OpeningUpdateService;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
 
 class OpeningController extends Controller
 {
@@ -20,6 +16,7 @@ class OpeningController extends Controller
     public function index()
     {
         //
+
     }
 
     /**
@@ -44,73 +41,32 @@ class OpeningController extends Controller
     public function update(
         OpeningUpdateRequest $request,
         Project $project,
-        Opening $opening
+        Opening $opening,
+        OpeningUpdateService $service
     ) {
         if ($opening->project_id !== $project->id) {
             abort(404);
         }
 
         try {
-            return DB::transaction(function () use ($request, $project, $opening) {
 
-                $data = $request->validated();
-                
-                $openingData = $data['opening'] ?? [];
-                $formalizationData = $data['formalization'] ?? [];
-                $agentData = $data['agent'] ?? [];
-                $supervisors = $openingData['supervisors'] ?? [];
+            $service->handle(
+                $project,
+                $opening,
+                $request->validated()
+            );
 
-                $opening->update($openingData);
+            return back()->with(
+                'success',
+                'Abertura atualizada com sucesso.'
+            );
 
-                if ($project->formalization) {
-                    $project->formalization->update($formalizationData);
-                }
+        } catch (\Throwable $e) {
 
-                if ($project->agent) {
-                    $project->agent->profileSnapshots()->updateOrCreate(
-                        [
-                            'source' => ProfileSnapshotSource::PROJECT_UPDATE,
-                        ],
-                        [
-                            'name' => $agentData['name'] ?? $project->agent->name,
-                            'cpf' => $agentData['cpf'] ?? $project->agent->cpf,
-                            'director_position' => $agentData['director_position'] ?? $project->agent->director_position,
-                            'director_email' => $agentData['director_email'] ?? $project->agent->director_email,
-                            ...$agentData,
-                            'recorded_at' => now(),
-                        ]
-                    );
-                }
-
-                if (is_array($supervisors)) {
-
-                    $supervisorIds = collect($supervisors)
-                        ->pluck('id')
-                        ->filter()
-                        ->values()
-                        ->toArray();
-
-                    $project->opening->assignSupervisors($supervisorIds);
-
-                    foreach ($supervisors as $supervisor) {
-                        if (!isset($supervisor['id'])) {
-                            continue;
-                        }
-
-                        $user = User::find($supervisor['id']);
-
-                        if ($user && isset($supervisor['registration_number'])) {
-                            $user->update([
-                                'registration_number' => $supervisor['registration_number'],
-                            ]);
-                        }
-                    }
-                }
-
-                return back()->with('success', 'Abertura atualizada com sucesso.');
-            });
-        }catch (\Throwable $e) {
-            return back()->with('error', 'Erro ao atualizar abertura: ' . $e->getMessage());
+            return back()->with(
+                'error',
+                'Erro ao atualizar abertura'
+            );
         }
     }
 
