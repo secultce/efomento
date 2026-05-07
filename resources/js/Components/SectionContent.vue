@@ -19,7 +19,6 @@ const props = defineProps({
 
 
 const { getFieldValue } = useFormHelper({
-  form: props.form,
   project: props.project,
 })
 
