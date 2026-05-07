@@ -127,7 +127,10 @@ const submit = () => {
           showSnackbar('Abertura atualizada com sucesso!', 'success')
         },
         onError: (errors) => {
-          showSnackbar('Falha ao atualizar abertura!', 'error')
+          const message =
+                Object.values(errors).flat().join(', ') ||
+                'Ocorreu um erro ao atualizar a abertura'
+          showSnackbar('Ocorreu um erro ao atualizar a abertura. ' + message, 'error')
         }
       }
     )
@@ -264,7 +267,7 @@ const activeEditIndex = ref('all')
               <template v-else-if="section.key === 'agent'">
                 <div class="grid grid-cols-2 gap-4">
                   <form-field label="Email secundário">
-                    <text-field v-model="form.agent.secondary_email" />
+                    <text-field v-model="form.agent.secondary_email" type="email"/>
                   </form-field>
 
                   <form-field label="Telefone secundário">
