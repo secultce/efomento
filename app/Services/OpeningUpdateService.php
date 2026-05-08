@@ -6,29 +6,34 @@ use App\Enums\ProfileSnapshotSource;
 use App\Models\Opening;
 use App\Models\Project;
 use App\Models\User;
+use Exception;
 use Illuminate\Support\Facades\DB;
 
 class OpeningUpdateService
 {
     public function handle(Project $project, Opening $opening, array $data): void
     {
-        DB::transaction(function () use ($project, $opening, $data) {
+        try{
+            DB::transaction(function () use ($project, $opening, $data) {
 
-            $openingData = $data['opening'] ?? [];
-            $formalizationData = $data['formalization'] ?? [];
-            $agentData = $data['agent'] ?? [];
-            $supervisors = $openingData['supervisors'] ?? [];
+                $openingData = $data['opening'] ?? [];
+                $formalizationData = $data['formalization'] ?? [];
+                $agentData = $data['agent'] ?? [];
+                $supervisors = $openingData['supervisors'] ?? [];
 
-            unset($openingData['supervisors']);
+                unset($openingData['supervisors']);
 
-            $this->updateOpening($opening, $openingData);
+                $this->updateOpening($opening, $openingData);
 
-            $this->updateFormalization($project, $formalizationData);
+                $this->updateFormalization($project, $formalizationData);
 
-            $this->updateAgentSnapshot($project, $agentData);
+                $this->updateAgentSnapshot($project, $agentData);
 
-            $this->syncSupervisors($project, $supervisors);
-        });
+                $this->syncSupervisors($project, $supervisors);
+            });
+        } catch (Exception $e) {
+            throw new Exception($e->getMessage(), $e->getCode(), $e);
+        }
     }
 
     protected function updateOpening(Opening $opening, array $data): void
