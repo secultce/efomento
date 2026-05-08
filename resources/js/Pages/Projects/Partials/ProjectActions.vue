@@ -8,6 +8,7 @@ import DocumentListDialog from '@/Components/DocumentListDialog.vue';
 import axios from 'axios'
 import NoticeHistory from './NoticeHistory.vue'
 import { formatAudits } from '@/Composables/useAuditFormatter'
+import { downloadDocumentsZip } from '@/Services/documentService'
 
 const { canPerform, hasRole } = useAuth()
 
@@ -91,17 +92,7 @@ async function downloadZip() {
 
     downloadingZip.value = true
     try {
-        const response = await axios.post(
-            '/projetos/documentos/download-zip',
-            { project_ids: props.selectedProjects },
-            { responseType: 'blob' }
-        )
-        const url = URL.createObjectURL(new Blob([response.data], { type: 'application/zip' }))
-        const link = document.createElement('a')
-        link.href = url
-        link.download = 'documentos.zip'
-        link.click()
-        URL.revokeObjectURL(url)
+        await downloadDocumentsZip(props.selectedProjects)
     } catch {
         errorMessage.value = 'Erro ao baixar os documentos. Tente novamente.'
         showError.value = true
