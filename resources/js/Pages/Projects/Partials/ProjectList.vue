@@ -11,6 +11,8 @@ const props = defineProps({
 const emit = defineEmits([
     'update:search',
     'clearPhaseFilter',
+    'update:selectedProjects',
+    'action',
 ])
 
 const selected = defineModel()
@@ -68,6 +70,6 @@ function clear() {
             </v-btn>
         </div>
 
-        <ListDataTable :items="projects" v-bind="tableConfig" v-model="selected" selectable />
+        <ListDataTable :items="projects" v-bind="tableConfig" v-model="selected"  @action="(payload) => emit('action', payload)" selectable />
     </div>
 </template>

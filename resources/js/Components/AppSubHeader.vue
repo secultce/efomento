@@ -16,7 +16,7 @@ const props = defineProps({
     },
     showBack: {
         type: Boolean,
-        default: true,
+        default: false,
     },
 })
 
@@ -33,8 +33,8 @@ function goBack() {
 </script>
 <template>
     <div :class="variant === 'large' ? 'bg-subheader !w-full py-4' : 'px-6 py-4 bg-subheader'">
-        <v-row>
-            <v-col cols="auto" :style="!showBack ? 'visibility: hidden' : ''">
+        <v-row v-if="showBack" :style="showBack ? '' : 'visibility: hidden'">
+            <v-col cols="auto" >
                 <v-btn color="white" data-cy="btnVoltar" @click="goBack">
                     <v-icon>ms:arrow_left_alt</v-icon>
                     <span class="ml-2">{{ backLabel }}</span>
@@ -44,5 +44,6 @@ function goBack() {
                 <slot />
             </v-col>
         </v-row>
+        <slot v-else />
     </div>
 </template>

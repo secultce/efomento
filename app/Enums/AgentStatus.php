@@ -11,7 +11,7 @@ enum AgentStatus: string implements HasLabel
 
     case ATIVO = 'ATIVO';
     case SUPLENTE = 'SUPLENTE';
-    case EM_ANALISE = 'EM_ANAISE';
+    case EM_ANALISE = 'EM_ANALISE';
     case DESCLASSIFICADO = 'DESCLASSIFICADO';
     case DESISTENTE = 'DESISTENTE';
 
@@ -25,4 +25,5 @@ enum AgentStatus: string implements HasLabel
             self::DESISTENTE => 'Desistente',
         };
     }
+    
 }

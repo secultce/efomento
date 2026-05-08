@@ -4,18 +4,31 @@
 
 
 body {
-  font-family: 'Source Sans 3', sans-serif !important;
-  /* Corrige TODOS os modais do TinyMCE dentro de dialogs */
-  .tox-tinymce-aux,
-  .tox-dialog,
-  .tox-menu,
-  .tox-dialog-wrap {
-      z-index: 99999 !important;
-  }
+    font-family: 'Source Sans 3', sans-serif !important;
+    /* Corrige TODOS os modais do TinyMCE dentro de dialogs */
+    .tox-tinymce-aux,
+    .tox-dialog,
+    .tox-menu,
+    .tox-dialog-wrap {
+        z-index: 99999 !important;
+    }
 
-  /* Garante que não fique preso em container estranho */
-  .tox-dialog-wrap {
-      position: fixed !important;
-  }
+    /* Garante que não fique preso em container estranho */
+    .tox-dialog-wrap {
+        position: fixed !important;
+    }
+
+    .v-window__container {
+        transition: none !important;
+    }
+
+    .no-arrow .v-field__append-inner {
+        padding-inline-end: 0 !important;
+        min-width: unset !important;
+    }
+
+    .no-arrow .v-field__append-inner .v-icon {
+        display: none !important;
+    }
 }
 

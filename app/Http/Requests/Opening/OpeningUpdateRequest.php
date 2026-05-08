@@ -2,12 +2,10 @@
 
 namespace App\Http\Requests\Opening;
 
-use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 
 class OpeningUpdateRequest extends FormRequest
 {
-
     public function authorize(): bool
     {
         return true;
@@ -16,25 +14,25 @@ class OpeningUpdateRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'project_id' => ['sometimes', 'exists:projects,id'],
+            'opening.opening_nup' => ['sometimes', 'nullable', 'string', 'max:255'],
+            'opening.opening_date' => ['sometimes', 'nullable', 'date'],
+            'opening.agent_status' => ['sometimes', 'nullable', 'string'],
+            'opening.opened_by' => ['sometimes', 'nullable', 'string'],
 
-            'opening_nup' => ['sometimes', 'nullable', 'string', 'max:255'],
-            'opening_date' => ['sometimes', 'nullable', 'date'],
+            'opening.bank' => ['sometimes', 'nullable', 'string'],
+            'opening.account_type' => ['sometimes', 'nullable', 'string'],
+            'opening.branch' => ['sometimes', 'nullable', 'string'],
+            'opening.account' => ['sometimes', 'nullable', 'string'],
 
-            'agent_status' => ['sometimes', 'nullable', 'string', 'max:255'],
-            'opened_by' => ['sometimes', 'nullable', 'string', 'max:255'],
+            'opening.supervisors' => ['array'],
+            'opening.supervisors.*.id' => ['nullable', 'exists:users,id'],
+            'opening.supervisors.*.registration_number' => ['nullable', 'string'],
 
-            'bank' => ['sometimes', 'nullable', 'string', 'max:255'],
-            'account_type' => ['sometimes', 'nullable', 'string', 'max:100'],
-            'branch' => ['sometimes', 'nullable', 'string', 'max:50'],
-            'account' => ['sometimes', 'nullable', 'string', 'max:50'],
+            'formalization.report_status' => ['nullable', 'string'],
+            'formalization.eparcerias_certificate_date' => ['nullable', 'date'],
 
-            'is_draft' => ['sometimes', 'boolean'],
-
-            'status' => [
-                'sometimes',
-                'in:pendente,em_andamento,concluido,rejeitado'
-            ],
+            'agent.secondary_email' => ['nullable', 'email'],
+            'agent.secondary_phone' => ['nullable', 'string'],
         ];
     }
 }

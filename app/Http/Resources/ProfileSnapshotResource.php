@@ -19,7 +19,9 @@ class ProfileSnapshotResource extends JsonResource
             'has_disability' => $this->has_disability?->value,
 
             'phone' => $this->phone,
+            'secondary_phone' => $this->secondary_phone,
             'email' => $this->email,
+            'secondary_email' => $this->secondary_email,
             'birth_date' => $this->birth_date?->format('Y-m-d'),
 
             'street' => $this->street,
