@@ -44,7 +44,7 @@ const vuetify = createVuetify({
             efomento: {
                 colors: {
                     primary: '#008344',
-                    secondary: '#ffcc05',
+                    secondary: '#ffcc05FF',
                     outlineSecondary: '#004c27',
                     subheader: '#485465',
                 },
@@ -99,7 +99,7 @@ createInertiaApp({
         app.component('AppHeader', AppHeader);
         app.component('AppSubHeader', AppSubHeader);
         app.directive('permission', permission);
-        
+
         return app.mount(el);
     },
 

@@ -1,14 +1,13 @@
 <?php
 
+use App\Http\Controllers\DocumentController;
 use App\Http\Controllers\GroupController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\NoticeController;
 use App\Http\Controllers\OpeningController;
 use App\Http\Controllers\ProjectController;
 use App\Models\User;
-use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
-use Inertia\Inertia;
 
 Route::get('/add-user/{id}/{role}', function ($id, $role) {
     $user = User::find($id);
@@ -19,12 +18,7 @@ Route::get('/add-user/{id}/{role}', function ($id, $role) {
 });
 
 Route::get('/', function () {
-    return Inertia::render('Welcome', [
-        'canLogin' => Route::has('login'),
-        'canRegister' => Route::has('register'),
-        'laravelVersion' => Application::VERSION,
-        'phpVersion' => PHP_VERSION,
-    ]);
+    return redirect()->route('login');
 });
 
 
@@ -63,6 +57,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
         ->name('projects.assign-supervisors');
     Route::post('/projetos/criar-ci', [ProjectController::class, 'createCI'])
         ->name('projects.create-ci');
+    Route::get('/projetos/documentos/{document}/download', [DocumentController::class, 'download'])
+        ->name('documents.download');
+    Route::post('/projetos/documentos/download-zip', [DocumentController::class, 'downloadZip'])
+        ->name('documents.download-zip');
     Route::patch('/projetos/{project}/abertura/{opening}/atualizar',[OpeningController::class, 'update'])
         ->scopeBindings()
         ->name('projects.openings.update');

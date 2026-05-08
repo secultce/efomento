@@ -20,7 +20,7 @@ use OwenIt\Auditing\Contracts\Auditable;
 
 class Project extends Model implements Auditable
 {
-    use AuditableTrait, HasCreatedBy, HasFactory, HasFiles, SoftDeletes;
+    use AuditableTrait, HasFactory, HasFiles, SoftDeletes;
 
     protected $fillable = [
         'registration_id',
@@ -33,6 +33,7 @@ class Project extends Model implements Auditable
         'consolidated_result',
         'data_registration',
         'created_by',
+        'title_project',
     ];
 
     protected $casts = [

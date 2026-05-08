@@ -39,6 +39,7 @@ class Opening extends Model implements Auditable
         'started_at',
         'submitted_at',
         'concluded_at',
+        'title_project'
     ];
 
     protected $casts = [

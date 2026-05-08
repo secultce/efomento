@@ -27,6 +27,7 @@ return new class extends Migration
             $table->jsonb('data_registration')->nullable();
             $table->foreignId('created_by')->nullable()->constrained('users')->nullOnDelete();
             $table->index('created_by');
+            $table->string('title_project')->nullable();
 
             $table->timestamps();
             $table->softDeletes();

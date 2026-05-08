@@ -20,4 +20,15 @@ enum DocumentType: string
             self::CI                => 'CI',
         };
     }
+
+    public function fullLabel(): string
+    {
+        return match($this) {
+            self::TERM              => 'Termo de Execução Cultural',
+            self::EXTRACT           => 'Extrato',
+            self::JURIDICAL_OPINION => 'Parecer Jurídico',
+            self::DISPATCH          => 'Despacho',
+            self::CI                => 'Comunicação Interna',
+        };
+    }
 }
