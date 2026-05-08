@@ -12,15 +12,15 @@ defineProps({
     type: String,
     default: 'px-0',
   },
-  maxWidth: {
+  variant:{
     type: String,
-    default: 'max-w-fit',
-  },
+    default: 'default',
+  }
 })
 </script>
 
 <template>
-  <div :class="['mx-[2em] lg:mx-[10em]', maxWidth]">
+  <div :class="variant === 'large' ? '[mx-[1em] lg:mx-[2em] w-full]' : '[mx-[2em] lg:mx-[10em] max-w-fit]'">
     <v-container
       :fluid="fluid"
       :class="[paddingY, paddingX]"

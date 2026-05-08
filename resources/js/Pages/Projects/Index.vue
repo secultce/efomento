@@ -6,6 +6,7 @@ import ProjectList from '@/Pages/Projects/Partials/ProjectList.vue'
 import PhaseFilter from '@/Pages/Projects/Partials/PhaseFilter.vue'
 import ProjectNoticeEdit from '@/Pages/Projects/Partials/ProjectNoticeEdit.vue'
 import ProjectActions from '@/Pages/Projects/Partials/ProjectActions.vue'
+import { useSnackbar } from '@/Composables/useSnackbar'
 import { Head, router } from '@inertiajs/vue3'
 import { ref } from 'vue'
 
@@ -20,6 +21,8 @@ const props = defineProps({
 
 const search = ref(props.filters?.search ?? '')
 const selectedPhase = ref(props.filters?.phase ?? null)
+
+const { showSnackbar } = useSnackbar();
 
 function selectPhase(phase) {
   selectedPhase.value = phase.value
@@ -117,13 +120,29 @@ function handleSaved() {
   selectedProjects.value = []
 }
 
+function handleAction({ action, item }) {
+  if(!item?.opening?.id){
+    showSnackbar('Projeto ainda não entrou em fase de abertura.', 'error')
+    return;
+  }
+
+  if(action === 'open'){
+    router.get(route('notices.projects.show', {
+      notice: props.notice.id,
+      project: item.id,
+    }))
+  }
+
+  
+}
+
 </script>
 
 <template>
 
   <Head :title="`Projetos`" />
   <AuthenticatedLayout>
-    <AppSubHeader variant="large" :show-back="true" back-route="/editais">
+    <AppSubHeader  back-route="/editais">
       <ProjectNoticeEdit :notice="notice" :instrumentTypes="instrumentTypes" />
     </AppSubHeader>
     <AppContainer>
@@ -133,7 +152,7 @@ function handleSaved() {
         </div>
         <div class="col-span-3 row-span-2 col-start-1 row-start-2 flex flex-col w-full h-full">
           <ProjectList :projects="projects" :table-config="tableConfig" v-model="selectedProjects" :search="search"
-            @update:search="onSearch" @clearPhaseFilter="clearPhaseFilter" />
+            @update:search="onSearch" @clearPhaseFilter="clearPhaseFilter" @action="handleAction"/>
         </div>
         <div class="row-span-2 col-start-4 row-start-2">
           <ProjectActions :selected-projects="selectedProjects" :projects="projects"
