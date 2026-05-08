@@ -4,7 +4,7 @@ import SupervisorDialog from '@/Pages/Projects/Partials/SupervisorDialog.vue';
 import { useAuth } from '@/Composables/useAuth';
 import HandleCIDialog from './HandleCIDialog.vue';
 import Modal from '@/Components/Modal.vue';
-import DocumentListDialog from '@/Components/DocumentListDialog.vue';
+import DocumentListDialog from './DocumentListDialog.vue';
 import axios from 'axios'
 import NoticeHistory from './NoticeHistory.vue'
 import { formatAudits } from '@/Composables/useAuditFormatter'
