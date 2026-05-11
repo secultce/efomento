@@ -25,4 +25,14 @@ return [
 
     'file_max_size' => env('FILE_MAX_SIZE', 20480),
 
+    /*
+    |--------------------------------------------------------------------------
+    | Mapa Cultural
+    |--------------------------------------------------------------------------
+    */
+
+    'mapas_domain' => env('MAPAS_DOMAIN'),
+    'mapas_token' => env('MAPAS_TOKEN'),
+    'mapas_seal' => env('MAPAS_SEAL'),
+
 ];
