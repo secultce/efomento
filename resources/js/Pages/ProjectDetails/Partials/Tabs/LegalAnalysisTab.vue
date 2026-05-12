@@ -1,7 +1,11 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue';
+import SplitScreenTab from '@/Components/SplitScreenTab.vue';
+import SectionChips from '@/Components/SectionChips.vue';
+import SectionContent from '@/Components/SectionContent.vue';
 import AuxLinks from '@/Components/AuxLinks.vue';
 import DocumentEvaluationList from '@/Components/DocumentEvaluationList.vue';
+import { viewSections } from '@/Schemas/Opening';
 import { useSnackbar } from '@/Composables/useSnackbar';
 
 const props = defineProps({
@@ -13,6 +17,7 @@ const props = defineProps({
 
 const { showSnackbar } = useSnackbar();
 
+const activeViewIndex = ref('all');
 const groups = ref([]);
 const loadingFiles = ref(false);
 const tramitando = ref(false);
@@ -50,7 +55,6 @@ async function tramitar() {
         showSnackbar('Avalie todos os documentos antes de tramitar.', 'warning');
         return;
     }
-
     tramitando.value = true;
     try {
         showSnackbar('Análise jurídica tramitada com sucesso!', 'success');
@@ -61,15 +65,36 @@ async function tramitar() {
 </script>
 
 <template>
-    <v-tabs-window-item value="2">
-        <v-sheet class="pa-5">
-            <div class="flex flex-col gap-6">
+    <SplitScreenTab value="2">
+        <template #left-content>
+            <div class="space-y-6">
+                <div>
+                    <p class="font-bold text-lg">Dados disponíveis para consulta</p>
+                    <p class="text-sm text-gray-600">Utilize os filtros abaixo para navegar entre os dados</p>
+                </div>
+
+                <SectionChips v-model="activeViewIndex" :sections="viewSections" />
+
+                <div class="space-y-8">
+                    <template v-for="(section, index) in viewSections" :key="'view-' + section.title">
+                        <SectionContent
+                            v-if="activeViewIndex === 'all' || activeViewIndex === index"
+                            :section="section"
+                            :project="project"
+                        />
+                    </template>
+                </div>
+            </div>
+        </template>
+
+        <template #right-content>
+            <div class="space-y-6">
                 <div class="flex items-center justify-between">
-                    <h2 class="text-base font-bold">Campos para você avaliar</h2>
+                    <p class="font-bold text-lg">Campos para você avaliar</p>
                     <v-btn
                         variant="outlined"
-                        color="primary"
-                        class="rounded-lg text-xs"
+                        color="outlineSecondary"
+                        class="rounded-lg"
                         @click="showSnackbar('Alterações salvas com sucesso!', 'success')"
                     >
                         Salvar alterações
@@ -77,12 +102,12 @@ async function tramitar() {
                 </div>
 
                 <div>
-                    <p class="text-xs text-gray-500 mb-1">Links auxiliares</p>
+                    <p class="font-bold text-sm mb-2">Links auxiliares</p>
                     <AuxLinks />
                 </div>
 
                 <div>
-                    <p class="text-sm font-semibold mb-3">Avalie os documentos</p>
+                    <p class="font-bold text-sm mb-3">Avalie os documentos</p>
 
                     <v-progress-linear v-if="loadingFiles" indeterminate color="primary" class="mb-4" />
 
@@ -96,10 +121,9 @@ async function tramitar() {
                     <p v-else class="text-sm text-gray-400">Nenhum documento encontrado para avaliação.</p>
                 </div>
 
-                <div class="flex justify-center pt-2">
+                <div class="flex justify-center pt-4">
                     <v-btn
-                        color="secondary"
-                        class="text-black font-bold px-16 rounded-lg"
+                        class="w-1/2 !shadow-none !font-bold !bg-[#ffcc05FF] !text-[#2d353fFF] rounded-lg text-xs"
                         :disabled="!allFilesEvaluated"
                         :loading="tramitando"
                         @click="tramitar"
@@ -108,6 +132,6 @@ async function tramitar() {
                     </v-btn>
                 </div>
             </div>
-        </v-sheet>
-    </v-tabs-window-item>
+        </template>
+    </SplitScreenTab>
 </template>
