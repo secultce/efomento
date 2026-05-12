@@ -265,7 +265,6 @@ function openDialog(item) {
             <!-- Ícone de acesso -->
             <template #item.acessar="{ item }">
                 <v-btn
-                    data-cy="btnAcessarProjetos"
                     icon
                     variant="text"
                     size="small"
@@ -273,6 +272,7 @@ function openDialog(item) {
                     @click="onAccess(item)"
                     data-cy="btnAcessarDadosDeIdentificacao"
                 >
+
                     <v-icon
                         :color="!(item.numeroProcessoMae || item.mae) ? 'grey' : '#008344'"
                         size="22"
