@@ -2,16 +2,16 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Notice;
-use Inertia\Inertia;
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
+use App\Enums\InstrumentType;
 use App\Http\Requests\Notice\NoticeStoreRequest;
 use App\Http\Requests\Notice\NoticeUpdateRequest;
-use App\Services\NoticeService;
-use App\Enums\InstrumentType;
 use App\Http\Resources\AuditResource;
+use App\Models\Notice;
 use App\Services\AuditService;
+use App\Services\NoticeService;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Inertia\Inertia;
 
 class NoticeController extends Controller
 {
@@ -49,7 +49,7 @@ class NoticeController extends Controller
     public function show(Notice $notice)
     {
         return Inertia::render('Notices/Show', [
-            'notice' => $notice
+            'notice' => $notice,
         ]);
     }
 

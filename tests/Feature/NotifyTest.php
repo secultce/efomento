@@ -2,13 +2,13 @@
 
 namespace Tests\Feature;
 
-use Tests\TestCase;
 use App\Models\User;
-use App\Support\Notify;
 use App\Notifications\AppNotification;
+use App\Support\Notify;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Notification;
 use PHPUnit\Framework\Attributes\Test;
+use Tests\TestCase;
 
 class NotifyTest extends TestCase
 {
@@ -79,8 +79,7 @@ class NotifyTest extends TestCase
         Notification::assertSentTo(
             $user,
             AppNotification::class,
-            fn ($notification) =>
-                $notification->message === 'Test message' &&
+            fn ($notification) => $notification->message === 'Test message' &&
                 $notification->type === 'success' &&
                 $notification->title === 'Title'
         );

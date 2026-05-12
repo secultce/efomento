@@ -1,7 +1,7 @@
 <script setup>
-import { ref, computed, watch } from 'vue'
-import NupDialog from './NupDialog.vue'
-import { router } from '@inertiajs/vue3'
+import { ref, computed, watch } from 'vue';
+import NupDialog from './NupDialog.vue';
+import { router } from '@inertiajs/vue3';
 
 const props = defineProps({
     notices: {
@@ -15,17 +15,10 @@ const props = defineProps({
     instrumentTypes: {
         type: Array,
         default: () => [],
-    }
-})
+    },
+});
 
-const emit = defineEmits([
-    'search',
-    'filter-status',
-    'filter-instrument',
-    'access',
-    'pagete',
-    'change-per-page',
-])
+const emit = defineEmits(['search', 'filter-status', 'filter-instrument', 'access', 'pagete', 'change-per-page']);
 
 const noticesMock = [
     {
@@ -63,12 +56,11 @@ const noticesMock = [
         tipoInstrumento: 'Termo de execução cultural',
         numeroProcessoMae: '000054554654/45460',
     },
-]
+];
 
-const instrumentOptions = computed(() => props.instrumentTypes)
+const instrumentOptions = computed(() => props.instrumentTypes);
 
-
-const itemsPerPageOptions = [10, 25, 50]
+const itemsPerPageOptions = [10, 25, 50];
 
 // ─── Headers da tabela ────────────────────────────────────────────────────────
 
@@ -78,124 +70,118 @@ const headers = [
     { title: 'Tipo de instrumento', key: 'type_ins', align: 'center', sortable: false },
     { title: 'Nº do processo mãe', key: 'mae', align: 'center', sortable: false },
     { title: 'Acessar', key: 'acessar', align: 'center', sortable: false },
-]
+];
 
 // ─── Estado ───────────────────────────────────────────────────────────────────
 
-const search = ref('')
-const selectedStatus = ref(null)
-const selectedInstrument = ref(null)
-const page = ref(1)
-const itemsPerPage = ref(10)
+const search = ref('');
+const selectedStatus = ref(null);
+const selectedInstrument = ref(null);
+const page = ref(1);
+const itemsPerPage = ref(10);
 
 // ─── Computeds ────────────────────────────────────────────────────────────────
 
-const itens = computed(() => (props.notices.length ? props.notices : noticesMock))
+const itens = computed(() => (props.notices.length ? props.notices : noticesMock));
 
 const itensFiltrados = computed(() => {
-    let lista = itens.value
+    let lista = itens.value;
 
     if (search.value.trim()) {
-        const termo = search.value.toLowerCase()
-        lista = lista.filter(item =>
-            item.titulo?.toLowerCase().includes(termo) ||
-            item.mae?.toLowerCase().includes(termo) ||
-            item.numeroProcessoMae?.toLowerCase().includes(termo)
-        )
+        const termo = search.value.toLowerCase();
+        lista = lista.filter(
+            (item) =>
+                item.titulo?.toLowerCase().includes(termo) ||
+                item.mae?.toLowerCase().includes(termo) ||
+                item.numeroProcessoMae?.toLowerCase().includes(termo)
+        );
     }
 
     if (selectedStatus.value) {
-        lista = lista.filter(item => item.status === selectedStatus.value)
+        lista = lista.filter((item) => item.status === selectedStatus.value);
     }
 
     if (selectedInstrument.value) {
-        lista = lista.filter(item =>
-            item.tipoInstrumento === selectedInstrument.value ||
-            item.type_ins === selectedInstrument.value
-        )
+        lista = lista.filter(
+            (item) => item.tipoInstrumento === selectedInstrument.value || item.type_ins === selectedInstrument.value
+        );
     }
 
-    return lista
-})
+    return lista;
+});
 
 // Reseta para página 1 sempre que qualquer filtro mudar
 watch([search, selectedStatus, selectedInstrument], () => {
-    page.value = 1
-})
+    page.value = 1;
+});
 
-const total = computed(() => itensFiltrados.value.length)
+const total = computed(() => itensFiltrados.value.length);
 
-const totalPages = computed(() => Math.ceil(total.value / itemsPerPage.value) || 1)
+const totalPages = computed(() => Math.ceil(total.value / itemsPerPage.value) || 1);
 
 const visiblePages = computed(() => {
-    const n = totalPages.value
-    const c = page.value
+    const n = totalPages.value;
+    const c = page.value;
 
-    if (n <= 7) return Array.from({ length: n }, (_, i) => i + 1)
+    if (n <= 7) return Array.from({ length: n }, (_, i) => i + 1);
 
-    if (c <= 4) return [1, 2, 3, 4, '...', n]
+    if (c <= 4) return [1, 2, 3, 4, '...', n];
 
-    if (c >= n - 3) return [1, '...', n - 3, n - 2, n - 1, n]
+    if (c >= n - 3) return [1, '...', n - 3, n - 2, n - 1, n];
 
-    return [1, '...', c - 1, c, c + 1, '...', n]
-})
+    return [1, '...', c - 1, c, c + 1, '...', n];
+});
 
 function maskProcessNumber(value) {
-  if (!value) return ''
+    if (!value) return '';
 
-  const digits = value.toString().replace(/\D/g, '')
+    const digits = value.toString().replace(/\D/g, '');
 
-  return digits.replace(
-    /^(\d{5})(\d{6})(\d{4})(\d{2}).*/,
-    '$1.$2/$3-$4'
-  )
+    return digits.replace(/^(\d{5})(\d{6})(\d{4})(\d{2}).*/, '$1.$2/$3-$4');
 }
 
 // ─── Handlers ────────────────────────────────────────────────────────────────
 
 function onSearch(value) {
-    search.value = value
-    emit('search', value)
+    search.value = value;
+    emit('search', value);
 }
 
 function onFilterStatus(value) {
-    emit('filter-status', value)
+    emit('filter-status', value);
 }
 
 function onFilterInstrument(value) {
-    emit('filter-instrument', value)
+    emit('filter-instrument', value);
 }
 
 function onAccess(item) {
-    router.visit(route('notices.projects', item.id))
+    router.visit(route('notices.projects', item.id));
 }
 
 function goToPage(p) {
-    if (typeof p !== 'number' || p < 1 || p > totalPages.value) return
-    page.value = p
-    emit('pagete', p)
+    if (typeof p !== 'number' || p < 1 || p > totalPages.value) return;
+    page.value = p;
+    emit('pagete', p);
 }
 
 function onChangePerPage(qty) {
-    page.value = 1
-    emit('change-per-page', qty)
+    page.value = 1;
+    emit('change-per-page', qty);
 }
-
 
 // ─── nup dialog ───────────────────────────────────────────────────────────────
-const dialog = ref(false)
-const selectedItem = ref(null)
+const dialog = ref(false);
+const selectedItem = ref(null);
 
 function openDialog(item) {
-    selectedItem.value = item
-    dialog.value = true
+    selectedItem.value = item;
+    dialog.value = true;
 }
-
-
 </script>
 
 <template>
-    <nup-dialog v-model="dialog" :item="selectedItem" :instrument-types="instrumentTypes"/>
+    <nup-dialog v-model="dialog" :item="selectedItem" :instrument-types="instrumentTypes" />
     <v-card flat class="pa-6 bg-white" data-cy="tabelaListaDeEditais">
         <!-- ── Cabeçalho ──────────────────────────────────────────────────── -->
         <div class="mb-5">
@@ -211,30 +197,60 @@ function openDialog(item) {
         <!-- ── Filtros ────────────────────────────────────────────────────── -->
         <v-row dense class="mb-4">
             <v-col cols="12" md="4">
-                <v-text-field :model-value="search" @update:model-value="onSearch"
-                    placeholder="Busque editais específicos" append-inner-icon="mdi-magnify" variant="outlined"
-                    density="compact" hide-details rounded="xl" class="border border-green-700 rounded-xl"
-                    data-cy="inputBuscaEditalEspecifica"/>
+                <v-text-field
+                    :model-value="search"
+                    placeholder="Busque editais específicos"
+                    append-inner-icon="mdi-magnify"
+                    variant="outlined"
+                    density="compact"
+                    hide-details
+                    rounded="xl"
+                    class="border border-green-700 rounded-xl"
+                    data-cy="inputBuscaEditalEspecifica"
+                    @update:model-value="onSearch"
+                />
             </v-col>
 
             <v-col cols="12" md="4">
-                <v-select v-model="selectedStatus" @update:model-value="onFilterStatus" :items="statusOptions"
-                    placeholder="Filtre por status do processo" variant="outlined" density="compact" rounded="lg"
-                    hide-details clearable
-                    data-cy="selectFiltrarPorStatusDoProcesso"/>
+                <v-select
+                    v-model="selectedStatus"
+                    :items="statusOptions"
+                    placeholder="Filtre por status do processo"
+                    variant="outlined"
+                    density="compact"
+                    rounded="lg"
+                    hide-details
+                    clearable
+                    data-cy="selectFiltrarPorStatusDoProcesso"
+                    @update:model-value="onFilterStatus"
+                />
             </v-col>
 
             <v-col cols="12" md="4">
-                <v-select v-model="selectedInstrument" @update:model-value="onFilterInstrument"
-                    :items="instrumentOptions" placeholder="Filtre pelo tipo de instrumento" variant="outlined"
-                    density="compact" rounded="lg" hide-details clearable
-                    data-cy="selectFiltrarPorTipoDeInstrumento"/>
+                <v-select
+                    v-model="selectedInstrument"
+                    :items="instrumentOptions"
+                    placeholder="Filtre pelo tipo de instrumento"
+                    variant="outlined"
+                    density="compact"
+                    rounded="lg"
+                    hide-details
+                    clearable
+                    data-cy="selectFiltrarPorTipoDeInstrumento"
+                    @update:model-value="onFilterInstrument"
+                />
             </v-col>
         </v-row>
 
         <!-- ── Tabela ─────────────────────────────────────────────────────── -->
-        <v-data-table v-model:page="page" v-model:items-per-page="itemsPerPage" :headers="headers"
-            :items="itensFiltrados" class="notices-table" data-cy="linhaTabelaEditais">
+        <v-data-table
+            v-model:page="page"
+            v-model:items-per-page="itemsPerPage"
+            :headers="headers"
+            :items="itensFiltrados"
+            class="notices-table"
+            data-cy="linhaTabelaEditais"
+        >
             <!-- Título truncado -->
             <template #item.titulo="{ item }">
                 <span class="titulo-truncado">{{ item.titulo }}</span>
@@ -257,26 +273,28 @@ function openDialog(item) {
                 <span v-if="item.numeroProcessoMae || item.mae" data-cy="numeroProcessoMae">
                     {{ maskProcessNumber(item.numeroProcessoMae || item.mae) }}
                 </span>
-                <v-btn v-else variant="text" density="compact" class="!text-[#008344] !font-bold spacing tracking-tight" data-cy="btnIdentificationData"
-                    @click="openDialog(item)">
+                <v-btn
+                    v-else
+                    variant="text"
+                    density="compact"
+                    class="!text-[#008344] !font-bold spacing tracking-tight"
+                    data-cy="btnIdentificationData"
+                    @click="openDialog(item)"
+                >
                     Informe os dados de identificação
                 </v-btn>
             </template>
             <!-- Ícone de acesso -->
             <template #item.acessar="{ item }">
                 <v-btn
+                    data-cy="btnAcessarDadosDeIdentificacao"
                     icon
                     variant="text"
                     size="small"
                     :disabled="!(item.numeroProcessoMae || item.mae)"
                     @click="onAccess(item)"
-                    data-cy="btnAcessarDadosDeIdentificacao"
                 >
-
-                    <v-icon
-                        :color="!(item.numeroProcessoMae || item.mae) ? 'grey' : '#008344'"
-                        size="22"
-                    >
+                    <v-icon :color="!(item.numeroProcessoMae || item.mae) ? 'grey' : '#008344'" size="22">
                         mdi-eye-circle
                     </v-icon>
                 </v-btn>
@@ -286,7 +304,6 @@ function openDialog(item) {
             <template #bottom>
                 <div class="bg-gray-100">
                     <v-row align="center" class="px-4 ma-0">
-
                         <!-- Coluna esquerda — vazia (equilíbrio visual) -->
                         <v-col cols="4" />
 
@@ -297,19 +314,31 @@ function openDialog(item) {
                             </v-btn>
 
                             <template v-for="p in visiblePages" :key="`p-${p}`">
-                                <span v-if="p === '...'" class="px-1 text-grey-darken-1 text-body-2">
-                                    ...
-                                </span>
-                                <v-btn v-else variant="flat" size="small" rounded :style="page === p
-                                    ? 'background-color:#FFC107; color:#fff; min-width:32px'
-                                    : 'min-width:32px'" @click="goToPage(p)"
-                                    data-cy="numeroPaginacaoListaEditais">
+                                <span v-if="p === '...'" class="px-1 text-grey-darken-1 text-body-2"> ... </span>
+                                <v-btn
+                                    v-else
+                                    variant="flat"
+                                    size="small"
+                                    rounded
+                                    :style="
+                                        page === p
+                                            ? 'background-color:#FFC107; color:#fff; min-width:32px'
+                                            : 'min-width:32px'
+                                    "
+                                    data-cy="numeroPaginacaoListaEditais"
+                                    @click="goToPage(p)"
+                                >
                                     {{ p }}
                                 </v-btn>
                             </template>
 
-                            <v-btn icon variant="text" size="small" :disabled="page >= totalPages"
-                                @click="goToPage(page + 1)">
+                            <v-btn
+                                icon
+                                variant="text"
+                                size="small"
+                                :disabled="page >= totalPages"
+                                @click="goToPage(page + 1)"
+                            >
                                 <v-icon>mdi-chevron-right</v-icon>
                             </v-btn>
                         </v-col>
@@ -319,25 +348,28 @@ function openDialog(item) {
                             <span class="text-body-2 text-grey-darken-1 text-no-wrap">
                                 Alterar exibição da lista: Exibindo {{ itemsPerPage }} itens
                             </span>
-                            <v-select v-model="itemsPerPage" @update:model-value="onChangePerPage"
-                                :items="itemsPerPageOptions" variant="outlined" density="compact" hide-details
+                            <v-select
+                                v-model="itemsPerPage"
+                                :items="itemsPerPageOptions"
+                                variant="outlined"
+                                density="compact"
+                                hide-details
                                 style="width: 75px"
-                                data-cy="quantidadeDeEditaisExibidos"/>
+                                data-cy="quantidadeDeEditaisExibidos"
+                                @update:model-value="onChangePerPage"
+                            />
                         </v-col>
-
                     </v-row>
                 </div>
             </template>
-
         </v-data-table>
-
     </v-card>
 </template>
 
 <style scoped>
 /* Container da tabela */
 .notices-table {
-    border: 1px solid #E0E0E0;
+    border: 1px solid #e0e0e0;
     border-radius: 8px;
     overflow: hidden;
 }
@@ -348,12 +380,12 @@ function openDialog(item) {
     background-color: #f5f5f5 !important;
     font-weight: 700 !important;
     font-size: 0.8125rem !important;
-    border-bottom: 1px solid #F0F0F0 !important;
+    border-bottom: 1px solid #f0f0f0 !important;
 }
 
 /* Divisória sutil entre linhas */
 :deep(.v-data-table__tr:not(:last-child) td) {
-    border-bottom: 1px solid #F0F0F0 !important;
+    border-bottom: 1px solid #f0f0f0 !important;
 }
 
 /* Título com truncamento */
@@ -371,8 +403,8 @@ function openDialog(item) {
     display: inline-flex;
     align-items: center;
     gap: 4px;
-    background-color: #BBDEFB;
-    color: #1565C0;
+    background-color: #bbdefb;
+    color: #1565c0;
     border-radius: 999px;
     padding: 3px 10px;
     font-size: 0.75rem;
@@ -383,6 +415,6 @@ function openDialog(item) {
 .status-dot {
     font-size: 1rem;
     line-height: 1;
-    color: #1565C0;
+    color: #1565c0;
 }
 </style>

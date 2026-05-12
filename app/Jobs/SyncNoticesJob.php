@@ -2,7 +2,6 @@
 
 namespace App\Jobs;
 
-use App\Models\Notice;
 use App\Services\NoticeService;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -18,6 +17,7 @@ class SyncNoticesJob implements ShouldQueue
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
     public int $tries = 3;
+
     public int $timeout = 120;
 
     /**
@@ -36,13 +36,13 @@ class SyncNoticesJob implements ShouldQueue
         Log::info('sync.notices.start');
 
         $seal = config('efomento.mapas_seal');
-        $endpoint = config('efomento.mapas_domain') . "/api/opportunity/find?@select=id,name,singleUrl&@seals={$seal}&publish_site=EQ(Sim)";
+        $endpoint = config('efomento.mapas_domain')."/api/opportunity/find?@select=id,name,singleUrl&@seals={$seal}&publish_site=EQ(Sim)";
 
         $response = Http::timeout(10)
-            ->retry(3, fn($attempt) => $attempt * 1000)
+            ->retry(3, fn ($attempt) => $attempt * 1000)
             ->get($endpoint);
 
-        if (!$response->successful()) {
+        if (! $response->successful()) {
             throw new \Exception('Erro ao buscar API');
         }
 
@@ -63,8 +63,8 @@ class SyncNoticesJob implements ShouldQueue
                     ->name('sync-notices-registrations')
                     ->onQueue('medium')
                     ->allowFailures()
-                    ->then(fn() => Log::info('sync.batch.success'))
-                    ->catch(fn($e) => Log::error('sync.batch.error', ['error' => $e->getMessage()]))
+                    ->then(fn () => Log::info('sync.batch.success'))
+                    ->catch(fn ($e) => Log::error('sync.batch.error', ['error' => $e->getMessage()]))
                     ->dispatch();
             });
 
@@ -80,7 +80,7 @@ class SyncNoticesJob implements ShouldQueue
     {
         Log::error('sync.notices.failed', [
             'message' => $exception->getMessage(),
-            'trace' => $exception->getTraceAsString()
+            'trace' => $exception->getTraceAsString(),
         ]);
     }
 }

@@ -4,7 +4,6 @@ namespace Database\Seeders;
 
 use App\Models\Budget;
 use App\Models\Installment;
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Eloquent\Factories\Sequence;
 use Illuminate\Database\Seeder;
 
@@ -24,7 +23,7 @@ class BudgetSeeder extends Seeder
                 Installment::factory()
                     ->count($totalInstallments)
                     ->state(new Sequence(
-                        fn($sequence) => [
+                        fn ($sequence) => [
                             'budget_id' => $budget->id,
                             'installment_number' => $sequence->index + 1,
                         ]

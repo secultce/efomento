@@ -24,7 +24,7 @@ class ProjectService
                 'create_timestamp' => data_get($registration, 'createTimestamp.date'),
                 'sent_timestamp' => data_get($registration, 'sentTimestamp.date'),
                 'consolidated_result' => $details['registration']['consolidatedResult'] ?? null,
-                'data_registration' => $details
+                'data_registration' => $details,
             ]
         );
     }

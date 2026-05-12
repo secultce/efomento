@@ -2,31 +2,31 @@
 
 namespace Database\Seeders;
 
-use Illuminate\Database\Seeder;
-use App\Models\Notice;
-use App\Models\Project;
-use App\Models\Opening;
 use App\Models\Formalization;
+use App\Models\Notice;
+use App\Models\Opening;
+use App\Models\Project;
+use Illuminate\Database\Seeder;
 
 class NoticeSeeder extends Seeder
 {
     public function run(): void
     {
-        $json    = file_get_contents(database_path('seeders/data/notice_pnab.json'));
+        $json = file_get_contents(database_path('seeders/data/notice_pnab.json'));
         $notices = json_decode($json, associative: true);
 
         foreach ($notices as $noticeData) {
             // 60% chance for the notice to have a nup
-            $hasNup = fake()->boolean(60); 
+            $hasNup = fake()->boolean(60);
             // Create or update Notice
             $notice = Notice::updateOrCreate(
                 ['external_id' => $noticeData['id']],
                 [
                     'external_id' => $noticeData['id'],
                     'name' => $noticeData['nome'],
-                    'notice_url' => env('EXTERNAL_PROVIDER_URL') . $noticeData['id'],
+                    'notice_url' => env('EXTERNAL_PROVIDER_URL').$noticeData['id'],
                     'creditor_registration_request_date' => $this->parseDate($noticeData['inicio'] ?? null),
-                    'nup' => $hasNup? fake()->numerify('#####.######/####-##') : null,
+                    'nup' => $hasNup ? fake()->numerify('#####.######/####-##') : null,
                     'total_notice_amount' => fake()->randomFloat(2, 10000, 500000),
                     'total_commitment_amount' => fake()->randomFloat(2, 5000, 300000),
                     'installments' => fake()->numberBetween(1, 12),

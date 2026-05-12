@@ -47,12 +47,12 @@ class OpeningSupervisorRelationshipTest extends TestCase
         $opening = Opening::factory()->create();
 
         OpeningSupervisor::factory()->create([
-            'opening_id'  => $opening->id,
+            'opening_id' => $opening->id,
             'assigned_at' => now()->subDays(5),
         ]);
 
         $latest = OpeningSupervisor::factory()->create([
-            'opening_id'  => $opening->id,
+            'opening_id' => $opening->id,
             'assigned_at' => now()->subDay(),
         ]);
 

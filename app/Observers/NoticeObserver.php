@@ -13,6 +13,7 @@ class NoticeObserver
     public function __construct(
         private Notify $notify
     ) {}
+
     /**
      * Handle the Notice "created" event.
      */

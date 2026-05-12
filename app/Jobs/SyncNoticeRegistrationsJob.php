@@ -16,6 +16,7 @@ class SyncNoticeRegistrationsJob implements ShouldQueue
     use Batchable, Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
     public int $tries = 3;
+
     public int $timeout = 120;
 
     /**
@@ -29,17 +30,17 @@ class SyncNoticeRegistrationsJob implements ShouldQueue
     public function handle(): void
     {
         // Obtém as inscrições com status 10 (selecionados) para o edital específico
-        $endpoint = config('efomento.mapas_domain') . "/api/opportunity/findRegistrations?@select=createTimestamp,sentTimestamp&@opportunity={$this->noticeId}&status=EQ(10)";
+        $endpoint = config('efomento.mapas_domain')."/api/opportunity/findRegistrations?@select=createTimestamp,sentTimestamp&@opportunity={$this->noticeId}&status=EQ(10)";
 
         $response = Http::withHeaders([
             'authorization' => config('efomento.mapas_token'),
         ])
             ->timeout(10)
-            ->retry(3, fn($attempt) => $attempt * 1000)
+            ->retry(3, fn ($attempt) => $attempt * 1000)
             ->get($endpoint);
 
-        if (!$response->successful()) {
-            throw new \Exception("Erro ao buscar inscrições");
+        if (! $response->successful()) {
+            throw new \Exception('Erro ao buscar inscrições');
         }
 
         $registrations = collect($response->json());
@@ -53,7 +54,7 @@ class SyncNoticeRegistrationsJob implements ShouldQueue
 
         Log::info('sync.registrations.batched', [
             'notice_external_id' => $this->noticeId,
-            'total' => $registrations->count()
+            'total' => $registrations->count(),
         ]);
     }
 

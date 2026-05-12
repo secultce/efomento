@@ -28,7 +28,6 @@ enum ProjectPhase: string
         };
     }
 
-
     public function label(): string
     {
         return match ($this) {
@@ -58,7 +57,7 @@ enum ProjectPhase: string
             self::ORCAMENTO_PARCELA,
             self::PAGAMENTOS,
             self::MONITORAMENTO => 0,
-            
+
         };
     }
 }

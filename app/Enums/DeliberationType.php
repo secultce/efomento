@@ -8,7 +8,7 @@ use App\Enums\Contracts\HasLabel;
 enum DeliberationType: string implements HasLabel
 {
     use HasOptions;
-    
+
     case MANUAL = 'MANUAL';
     case BATCH_CGE = 'BATCH_CGE';
     case FEC = 'FEC';
@@ -21,5 +21,4 @@ enum DeliberationType: string implements HasLabel
             self::FEC => 'FEC',
         };
     }
-
 }
