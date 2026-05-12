@@ -94,7 +94,8 @@ const today = new Date().toISOString().split('T')[0]
                         <v-col cols="12" md="6">
                             <FormField label="Número do processo mãe (SUITE)" :error="form.errors.nup" required>
                                 <TextField v-model="form.nup" placeholder="Insira o número do processo aqui" clearable
-                                    mask="#####.######/####-##" />
+                                    mask="#####.######/####-##"
+                                    data-cy="inputNumeroProcessoSuite"/>
                             </FormField>
                         </v-col>
 
@@ -102,7 +103,8 @@ const today = new Date().toISOString().split('T')[0]
                             <FormField label="Tipo de instrumento" :error="form.errors.instrument_type" required
                                 clearable>
                                 <SelectField v-model="form.instrument_type" :items="instrumentTypes"
-                                    placeholder="Selecione um tipo" />
+                                    placeholder="Selecione um tipo"
+                                    data-cy="selectTipoDeInstrumentoDadosIdentificacao"/>
                             </FormField>
                         </v-col>
 
@@ -110,7 +112,8 @@ const today = new Date().toISOString().split('T')[0]
                             <FormField label="Valor total do edital" :error="form.errors.total_notice_amount"
                                 required>
                                 <TextField v-model="form.total_notice_amount"
-                                    placeholder="Insira o valor total do edital aqui" money />
+                                    placeholder="Insira o valor total do edital aqui" money
+                                    data-cy="inputValorTotalDoEdital"/>
                             </FormField>
                         </v-col>
 
@@ -123,21 +126,24 @@ const today = new Date().toISOString().split('T')[0]
                         <v-col cols="12" md="6">
                             <FormField label="Gestor do acompanhamento do edital" :error="form.errors.process_manager" required>
                                 <TextField v-model="form.process_manager" placeholder="Insira o nome do gestor aqui"
-                                    capitalize />
+                                    capitalize
+                                    data-cy="inputNomeDoGestor"/>
                             </FormField>
                         </v-col>
 
                         <v-col cols="12" md="6">
                             <FormField label="Email do gestor" :error="form.errors.process_manager_email" required>
                                 <TextField v-model="form.process_manager_email"
-                                    placeholder="Insira o email do gestor aqui" />
+                                    placeholder="Insira o email do gestor aqui"
+                                    data-cy="inputEmailDoGestor"/>
                             </FormField>
                         </v-col>
 
                         <v-col cols="12" md="6">
                             <FormField label="Número de parcelas" :error="form.errors.installments" required>
                                 <TextField v-model="form.installments" placeholder="Insira o número de parcelas"
-                                    type="number" />
+                                    type="number"
+                                    data-cy="inputNumeroDeParcelas"/>
                             </FormField>
                         </v-col>
 
@@ -198,7 +204,7 @@ const today = new Date().toISOString().split('T')[0]
                         class="!inline-flex !bg-[#ffcc05FF] !items-center !justify-center !rounded-md !px-4 !py-2
                         !text-xs !font-semibold !tracking-widest !transition !duration-150 !ease-in-out !focus:outline-none
                          !focus:ring-2 !focus:ring-gray-800 !focus:ring-offset-2 !text-black"
-                        :loading="form.processing" :disabled="form.processing" @click="submit">
+                        :loading="form.processing" :disabled="form.processing" @click="submit" data-cy="btnAdiconarDados">
                         Adicionar dados
                     </v-btn>
 

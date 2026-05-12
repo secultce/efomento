@@ -196,7 +196,7 @@ function openDialog(item) {
 
 <template>
     <nup-dialog v-model="dialog" :item="selectedItem" :instrument-types="instrumentTypes"/>
-    <v-card flat class="pa-6 bg-white">
+    <v-card flat class="pa-6 bg-white" data-cy="tabelaListaDeEditais">
         <!-- ── Cabeçalho ──────────────────────────────────────────────────── -->
         <div class="mb-5">
             <p class="text-subtitle-1 font-weight-bold text-grey-darken-3">
@@ -213,25 +213,28 @@ function openDialog(item) {
             <v-col cols="12" md="4">
                 <v-text-field :model-value="search" @update:model-value="onSearch"
                     placeholder="Busque editais específicos" append-inner-icon="mdi-magnify" variant="outlined"
-                    density="compact" hide-details rounded="xl" class="border border-green-700 rounded-xl" />
+                    density="compact" hide-details rounded="xl" class="border border-green-700 rounded-xl"
+                    data-cy="inputBuscaEditalEspecifica"/>
             </v-col>
 
             <v-col cols="12" md="4">
                 <v-select v-model="selectedStatus" @update:model-value="onFilterStatus" :items="statusOptions"
                     placeholder="Filtre por status do processo" variant="outlined" density="compact" rounded="lg"
-                    hide-details clearable />
+                    hide-details clearable
+                    data-cy="selectFiltrarPorStatusDoProcesso"/>
             </v-col>
 
             <v-col cols="12" md="4">
                 <v-select v-model="selectedInstrument" @update:model-value="onFilterInstrument"
                     :items="instrumentOptions" placeholder="Filtre pelo tipo de instrumento" variant="outlined"
-                    density="compact" rounded="lg" hide-details clearable />
+                    density="compact" rounded="lg" hide-details clearable
+                    data-cy="selectFiltrarPorTipoDeInstrumento"/>
             </v-col>
         </v-row>
 
         <!-- ── Tabela ─────────────────────────────────────────────────────── -->
         <v-data-table v-model:page="page" v-model:items-per-page="itemsPerPage" :headers="headers"
-            :items="itensFiltrados" class="notices-table">
+            :items="itensFiltrados" class="notices-table" data-cy="linhaTabelaEditais">
             <!-- Título truncado -->
             <template #item.titulo="{ item }">
                 <span class="titulo-truncado">{{ item.titulo }}</span>
@@ -247,14 +250,14 @@ function openDialog(item) {
 
             <!-- Tipo de instrumento -->
             <template #item.type_ins="{ item }">
-                <span class="titulo-truncado">{{ item.type_ins }}</span>
+                <span class="titulo-truncado" data-cy="tipoDeInstrumentoListaDeEditais">{{ item.type_ins }}</span>
             </template>
             <!-- Número do processo mãe -->
             <template #item.mae="{ item }">
-                <span v-if="item.numeroProcessoMae || item.mae">
+                <span v-if="item.numeroProcessoMae || item.mae" data-cy="numeroProcessoMae">
                     {{ maskProcessNumber(item.numeroProcessoMae || item.mae) }}
                 </span>
-                <v-btn v-else variant="text" density="compact" class="!text-[#008344] !font-bold spacing tracking-tight"
+                <v-btn v-else variant="text" density="compact" class="!text-[#008344] !font-bold spacing tracking-tight" data-cy="btnIdentificationData"
                     @click="openDialog(item)">
                     Informe os dados de identificação
                 </v-btn>
@@ -268,6 +271,7 @@ function openDialog(item) {
                     size="small"
                     :disabled="!(item.numeroProcessoMae || item.mae)"
                     @click="onAccess(item)"
+                    data-cy="btnAcessarDadosDeIdentificacao"
                 >
                     <v-icon
                         :color="!(item.numeroProcessoMae || item.mae) ? 'grey' : '#008344'"
@@ -286,7 +290,7 @@ function openDialog(item) {
                         <!-- Coluna esquerda — vazia (equilíbrio visual) -->
                         <v-col cols="4" />
 
-                        <!-- Coluna central — botões de pageção -->
+                        <!-- Coluna central — botões de paginação -->
                         <v-col cols="4" class="d-flex justify-center align-center gap-1">
                             <v-btn icon variant="text" size="small" :disabled="page <= 1" @click="goToPage(page - 1)">
                                 <v-icon>mdi-chevron-left</v-icon>
@@ -298,7 +302,8 @@ function openDialog(item) {
                                 </span>
                                 <v-btn v-else variant="flat" size="small" rounded :style="page === p
                                     ? 'background-color:#FFC107; color:#fff; min-width:32px'
-                                    : 'min-width:32px'" @click="goToPage(p)">
+                                    : 'min-width:32px'" @click="goToPage(p)"
+                                    data-cy="numeroPaginacaoListaEditais">
                                     {{ p }}
                                 </v-btn>
                             </template>
@@ -316,7 +321,8 @@ function openDialog(item) {
                             </span>
                             <v-select v-model="itemsPerPage" @update:model-value="onChangePerPage"
                                 :items="itemsPerPageOptions" variant="outlined" density="compact" hide-details
-                                style="width: 75px" />
+                                style="width: 75px"
+                                data-cy="quantidadeDeEditaisExibidos"/>
                         </v-col>
 
                     </v-row>
