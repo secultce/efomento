@@ -18,7 +18,6 @@ const mainTab = ref('grupos');
 const saving = ref(false);
 const flash = ref('');
 
-// ─── Matriz reativa: matrix[roleName][permName] = boolean ────────────────────
 const matrix = reactive({});
 
 props.roles.forEach((role) => {
@@ -28,12 +27,8 @@ props.roles.forEach((role) => {
     });
 });
 
-// ─── Helpers ─────────────────────────────────────────────────────────────────
-
-/** Verifica se a permissão existe no banco (ex: usuarios não tem view_own) */
 const isValid = (moduleKey, actionKey) => props.allPermissions.includes(`${moduleKey}.${actionKey}`);
 
-/** Retorna as permissões válidas de um módulo */
 const modulePerms = (moduleKey) => props.allPermissions.filter((p) => p.startsWith(`${moduleKey}.`));
 
 const isAllChecked = (roleName, moduleKey) => {
@@ -54,7 +49,6 @@ const toggleAll = (roleName, moduleKey) => {
     });
 };
 
-// ─── Salvar ──────────────────────────────────────────────────────────────────
 const save = () => {
     saving.value = true;
 
