@@ -2,10 +2,15 @@
 
 namespace App\Http\Controllers;
 
+use App\Enums\AccountType;
+use App\Enums\AgentStatus;
 use App\Enums\InstrumentType;
+use App\Enums\OpeningStatus;
 use App\Enums\ProjectPhase;
+use App\Enums\ReportStatus;
 use App\Http\Resources\ProjectResource;
 use App\Models\Notice;
+use App\Models\Project;
 use App\Models\User;
 use App\Services\ProjectDocumentService;
 use App\Services\ProjectSupervisorService;
@@ -37,6 +42,39 @@ class ProjectController extends Controller
             'supervisors_available' => User::role(['monitoring', 'coord_monitoring'])
                 ->select('id', 'name')
                 ->get(),
+        ]);
+    }
+
+    public function projectDetail(Notice $notice, Project $project)
+    {
+        $project->load([
+            'notice',
+            'agent',
+            'category',
+            'opening',
+            'opening.supervisors' => function ($q) {
+                $q->whereNull('removed_at');
+            },
+            'opening.supervisors.user',
+            'documents',
+            'budget',
+            'budget.installments',
+            'formalization',
+            'agent.latestSnapshot',
+        ]);
+
+        $availableSupervisors = User::role(['monitoring', 'coord_monitoring'])
+            ->select('id', 'name', 'registration_number')
+            ->get();
+
+        return Inertia::render('ProjectDetails', [
+            'project' => (new ProjectResource($project))->resolve(),
+            'supervisorsAvailable' => $availableSupervisors,
+            'agentStatus' => AgentStatus::options(),
+            'accountType' => AccountType::options(),
+            'reportStatus' => ReportStatus::options(),
+            'openingStatus' => OpeningStatus::options(),
+
         ]);
     }
 

@@ -2,7 +2,10 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\Opening\OpeningUpdateRequest;
 use App\Models\Opening;
+use App\Models\Project;
+use App\Services\OpeningUpdateService;
 use Illuminate\Http\Request;
 
 class OpeningController extends Controller
@@ -13,6 +16,7 @@ class OpeningController extends Controller
     public function index()
     {
         //
+
     }
 
     /**
@@ -34,9 +38,36 @@ class OpeningController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, Opening $opening)
-    {
-        //
+    public function update(
+        OpeningUpdateRequest $request,
+        Project $project,
+        Opening $opening,
+        OpeningUpdateService $service
+    ) {
+        if ($opening->project_id !== $project->id) {
+            abort(404);
+        }
+
+        try {
+
+            $service->handle(
+                $project,
+                $opening,
+                $request->validated()
+            );
+
+            return back()->with(
+                'success',
+                'Abertura atualizada com sucesso.'
+            );
+
+        } catch (\Throwable $e) {
+
+            return back()->with(
+                'error',
+                'Erro ao atualizar abertura'
+            );
+        }
     }
 
     /**

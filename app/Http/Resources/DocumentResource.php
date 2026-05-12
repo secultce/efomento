@@ -15,6 +15,7 @@ class DocumentResource extends JsonResource
             'project_id' => $this->project_id,
             'type' => $this->type,
             'type_label' => $this->type->label(),
+            'type_name' => $this->type->fullLabel(),
             'phase' => $this->phase,
             'body' => $this->body,
             'status' => $this->status,

@@ -2,10 +2,15 @@ import js from '@eslint/js';
 import pluginVue from 'eslint-plugin-vue';
 import prettierConfig from 'eslint-config-prettier';
 import globals from 'globals';
+import pluginCypress from 'eslint-plugin-cypress';
 
 export default [
     {
         ignores: ['public/**', 'vendor/**', 'node_modules/**', 'storage/**', 'bootstrap/ssr/**'],
+    },
+    {
+        files: ['cypress/**/*.{js,cjs,mjs}'],
+        ...pluginCypress.configs.recommended,
     },
     js.configs.recommended,
     ...pluginVue.configs['flat/recommended'],

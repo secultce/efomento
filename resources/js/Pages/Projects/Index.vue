@@ -1,145 +1,180 @@
 <script setup>
-import AppContainer from '@/Components/AppContainer.vue'
-import AppSubHeader from '@/Components/AppSubHeader.vue'
-import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue'
-import ProjectList from '@/Pages/Projects/Partials/ProjectList.vue'
-import PhaseFilter from '@/Pages/Projects/Partials/PhaseFilter.vue'
-import ProjectNoticeEdit from '@/Pages/Projects/Partials/ProjectNoticeEdit.vue'
-import ProjectActions from '@/Pages/Projects/Partials/ProjectActions.vue'
-import { Head, router } from '@inertiajs/vue3'
-import { ref } from 'vue'
+import AppContainer from '@/Components/AppContainer.vue';
+import AppSubHeader from '@/Components/AppSubHeader.vue';
+import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
+import ProjectList from '@/Pages/Projects/Partials/ProjectList.vue';
+import PhaseFilter from '@/Pages/Projects/Partials/PhaseFilter.vue';
+import ProjectNoticeEdit from '@/Pages/Projects/Partials/ProjectNoticeEdit.vue';
+import ProjectActions from '@/Pages/Projects/Partials/ProjectActions.vue';
+import { useSnackbar } from '@/Composables/useSnackbar';
+import { Head, router } from '@inertiajs/vue3';
+import { ref } from 'vue';
 
 const props = defineProps({
-  notice: Object,
-  projects: Array,
-  filters: Object,
-  phases: Array,
-  instrumentTypes: Array,
-  supervisors_available: Array,
-})
+    notice: Object,
+    projects: Array,
+    filters: Object,
+    phases: Array,
+    instrumentTypes: Array,
+    supervisors_available: Array,
+});
 
-const search = ref(props.filters?.search ?? '')
-const selectedPhase = ref(props.filters?.phase ?? null)
+const search = ref(props.filters?.search ?? '');
+const selectedPhase = ref(props.filters?.phase ?? null);
+
+const { showSnackbar } = useSnackbar();
 
 function selectPhase(phase) {
-  selectedPhase.value = phase.value
+    selectedPhase.value = phase.value;
 
-  router.get(route('notices.projects', props.notice.id), {
-    phase: selectedPhase.value,
-    search: search.value,
-  }, {
-    preserveState: true,
-    replace: true,
-  })
+    router.get(
+        route('notices.projects', props.notice.id),
+        {
+            phase: selectedPhase.value,
+            search: search.value,
+        },
+        {
+            preserveState: true,
+            replace: true,
+        }
+    );
 }
 
 function onSearch(value) {
-  search.value = value
-  router.get(route('notices.projects', props.notice.id), {
-    phase: selectedPhase.value,
-    search: value,
-  }, {
-    preserveState: true,
-    replace: true,
-  })
-
+    search.value = value;
+    router.get(
+        route('notices.projects', props.notice.id),
+        {
+            phase: selectedPhase.value,
+            search: value,
+        },
+        {
+            preserveState: true,
+            replace: true,
+        }
+    );
 }
 
 function clearPhaseFilter() {
-  selectedPhase.value = null
+    selectedPhase.value = null;
 
-  router.get(route('notices.projects', props.notice.id),
-    {},
-    {
-      preserveState: true,
-      replace: true,
-    })
+    router.get(
+        route('notices.projects', props.notice.id),
+        {},
+        {
+            preserveState: true,
+            replace: true,
+        }
+    );
 }
 
 const reference = (item) => ({
-  label: 'Nome do Proponente',
-  value: item.agent?.name ?? '-',
-})
+    label: 'Nome do Proponente',
+    value: item.agent?.name ?? '-',
+});
 
 function getChipColor(status) {
-  const map = {
-    draft: 'gray',
-    pending_signature: 'yellow',
-    signed: 'green',
-  }
+    const map = {
+        draft: 'gray',
+        pending_signature: 'yellow',
+        signed: 'green',
+    };
 
-  return map[status] ?? 'default'
+    return map[status] ?? 'default';
 }
 
 const chips = (item) => {
-  if (!Array.isArray(item.documents)) return []
+    if (!Array.isArray(item.documents)) return [];
 
+    const uniqueDocs = Object.values(
+        item.documents.reduce((acc, doc) => {
+            acc[doc.type] = doc;
+            return acc;
+        }, {})
+    );
 
-  const uniqueDocs = Object.values(
-    item.documents.reduce((acc, doc) => {
-      acc[doc.type] = doc
-      return acc
-    }, {})
-  )
-
-  return uniqueDocs.map(doc => ({
-    label: doc.type_label,
-    color: getChipColor(doc.status),
-  }))
-}
+    return uniqueDocs.map((doc) => ({
+        label: doc.type_label,
+        color: getChipColor(doc.status),
+    }));
+};
 
 const data = [
-  {
-    label: 'Número do processo',
-    value: (item) => item.opening_nup ?? '-',
-  },
-  {
-    label: 'Fase',
-    value: (item) => item.phase ?? '-',
-  },
-]
+    {
+        label: 'Número do processo',
+        value: (item) => item.opening_nup ?? '-',
+    },
+    {
+        label: 'Fase',
+        value: (item) => item.phase ?? '-',
+    },
+];
 
-const actions = [
-  { name: 'open', label: 'Abrir' },
-]
+const actions = [{ name: 'open', label: 'Abrir' }];
 
 const tableConfig = {
-  reference,
-  chips,
-  data,
-  actions,
-  isSelectable: (item) => item.openings_count > 0,
-}
+    reference,
+    chips,
+    data,
+    actions,
+    isSelectable: (item) => item.openings_count > 0,
+};
 
-const selectedProjects = ref([])
+const selectedProjects = ref([]);
 
 function handleSaved() {
-  selectedProjects.value = []
+    selectedProjects.value = [];
 }
 
+function handleAction({ action, item }) {
+    if (!item?.opening?.id) {
+        showSnackbar('Projeto ainda não entrou em fase de abertura.', 'error');
+        return;
+    }
+
+    if (action === 'open') {
+        router.get(
+            route('notices.projects.show', {
+                notice: props.notice.id,
+                project: item.id,
+            })
+        );
+    }
+}
 </script>
 
 <template>
-
-  <Head :title="`Projetos`" />
-  <AuthenticatedLayout>
-    <AppSubHeader variant="large" :show-back="true" back-route="/editais">
-      <ProjectNoticeEdit :notice="notice" :instrumentTypes="instrumentTypes" />
-    </AppSubHeader>
-    <AppContainer>
-      <div class="grid grid-cols-4 grid-rows-1 gap-10">
-        <div class="col-span-4 col-start-1 text-[#1a1a1aFF]">
-          <PhaseFilter :phases="phases" :selected-phase="selectedPhase" @select="selectPhase" />
-        </div>
-        <div class="col-span-3 row-span-2 col-start-1 row-start-2 flex flex-col w-full h-full">
-          <ProjectList :projects="projects" :table-config="tableConfig" v-model="selectedProjects" :search="search"
-            @update:search="onSearch" @clearPhaseFilter="clearPhaseFilter" />
-        </div>
-        <div class="row-span-2 col-start-4 row-start-2">
-          <ProjectActions :selected-projects="selectedProjects" :projects="projects"
-            :supervisors_available="supervisors_available" :notice="notice" @saved="handleSaved" />
-        </div>
-      </div>
-    </AppContainer>
-  </AuthenticatedLayout>
+    <Head :title="`Projetos`" />
+    <AuthenticatedLayout>
+        <AppSubHeader back-route="/editais">
+            <ProjectNoticeEdit :notice="notice" :instrument-types="instrumentTypes" />
+        </AppSubHeader>
+        <AppContainer>
+            <div class="grid grid-cols-4 grid-rows-1 gap-10">
+                <div class="col-span-4 col-start-1 text-[#1a1a1aFF]">
+                    <PhaseFilter :phases="phases" :selected-phase="selectedPhase" @select="selectPhase" />
+                </div>
+                <div class="col-span-3 row-span-2 col-start-1 row-start-2 flex flex-col w-full h-full">
+                    <ProjectList
+                        v-model="selectedProjects"
+                        :projects="projects"
+                        :table-config="tableConfig"
+                        :search="search"
+                        @update:search="onSearch"
+                        @clear-phase-filter="clearPhaseFilter"
+                        @action="handleAction"
+                    />
+                </div>
+                <div class="row-span-2 col-start-4 row-start-2">
+                    <ProjectActions
+                        :selected-projects="selectedProjects"
+                        :projects="projects"
+                        :supervisors_available="supervisors_available"
+                        :notice="notice"
+                        @saved="handleSaved"
+                    />
+                </div>
+            </div>
+        </AppContainer>
+    </AuthenticatedLayout>
 </template>

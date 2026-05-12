@@ -46,4 +46,15 @@ class NoticeService
             'monitoramento' => $total - $comCredenciamento - $semCredenciamento,
         ];
     }
+
+    public function updateOrCreateFromMapas(array $notice): Notice
+    {
+        return Notice::updateOrCreate(
+            ['external_id' => $notice['id']],
+            [
+                'name' => $notice['name'],
+                'notice_url' => $notice['singleUrl'],
+            ]
+        );
+    }
 }

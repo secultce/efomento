@@ -6,15 +6,19 @@ use App\Http\Requests\Document\DocumentStoreRequest;
 use App\Http\Requests\Document\DocumentUpdateRequest;
 use App\Http\Resources\DocumentResource;
 use App\Models\Document;
+use App\Services\Documents\DocumentPdfService;
 use App\Services\Documents\DocumentService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
+use Illuminate\Http\Response;
+use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
 class DocumentController extends Controller
 {
     public function __construct(
-        private readonly DocumentService $documentService
+        private readonly DocumentService $documentService,
+        private readonly DocumentPdfService $documentPdfService,
     ) {}
 
     public function index(Request $request): AnonymousResourceCollection
@@ -55,5 +59,19 @@ class DocumentController extends Controller
         $document->delete();
 
         return response()->json(null, 204);
+    }
+
+    public function download(Document $document): Response
+    {
+        return $this->documentPdfService->download($document);
+    }
+
+    public function downloadZip(Request $request): BinaryFileResponse
+    {
+        $projectIds = $request->validate(['project_ids' => 'required|array|min:1'])['project_ids'];
+
+        return response()->download($this->documentPdfService->buildZip($projectIds), 'documentos.zip', [
+            'Content-Type' => 'application/zip',
+        ])->deleteFileAfterSend();
     }
 }

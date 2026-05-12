@@ -52,7 +52,14 @@ class SpreadsheetImportService
                 'category_id' => $category->id,
                 'agent_id' => $agent->id,
                 'notice_id' => $notice->id,
+                'title_project' => $row[6],
             ]
+        );
+
+        $this->snapshotService->recordIfChanged(
+            $project,
+            $this->buildSnapshotData($row),
+            ProfileSnapshotSource::PROJECT_REGISTRATION,
         );
 
         $this->resolveOpening($row, $project->id);
@@ -85,7 +92,7 @@ class SpreadsheetImportService
 
     private function resolveOpening(array $row, int $projectId): Opening
     {
-        $user = User::find(1);
+        $user = User::find(Auth::user()->id);
 
         return Opening::firstOrCreate(
             ['project_id' => $projectId],
