@@ -20,7 +20,7 @@ const { showSnackbar } = useSnackbar();
 const activeViewIndex = ref('all');
 const groups = ref([]);
 const loadingFiles = ref(false);
-const tramitando = ref(false);
+const in_progress = ref(false);
 
 const allFilesEvaluated = computed(
     () => groups.value.length > 0 && groups.value.every((g) => g.files.every((f) => f.status !== null))
@@ -50,16 +50,16 @@ function onStatusUpdated({ fileId, status }) {
     }
 }
 
-async function tramitar() {
+async function process() {
     if (!allFilesEvaluated.value) {
         showSnackbar('Avalie todos os documentos antes de tramitar.', 'warning');
         return;
     }
-    tramitando.value = true;
+    in_progress.value = true;
     try {
         showSnackbar('Análise jurídica tramitada com sucesso!', 'success');
     } finally {
-        tramitando.value = false;
+        in_progress.value = false;
     }
 }
 </script>
@@ -91,14 +91,6 @@ async function tramitar() {
             <div class="space-y-6">
                 <div class="flex items-center justify-between">
                     <p class="font-bold text-lg">Campos para você avaliar</p>
-                    <v-btn
-                        variant="outlined"
-                        color="outlineSecondary"
-                        class="rounded-lg"
-                        @click="showSnackbar('Alterações salvas com sucesso!', 'success')"
-                    >
-                        Salvar alterações
-                    </v-btn>
                 </div>
 
                 <div>
@@ -125,8 +117,8 @@ async function tramitar() {
                     <v-btn
                         class="w-1/2 !shadow-none !font-bold !bg-[#ffcc05FF] !text-[#2d353fFF] rounded-lg text-xs"
                         :disabled="!allFilesEvaluated"
-                        :loading="tramitando"
-                        @click="tramitar"
+                        :loading="in_progress"
+                        @click="process"
                     >
                         tramitar
                     </v-btn>
