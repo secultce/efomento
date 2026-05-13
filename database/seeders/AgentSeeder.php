@@ -2,8 +2,8 @@
 
 namespace Database\Seeders;
 
-use Illuminate\Database\Seeder;
 use App\Models\Agent;
+use Illuminate\Database\Seeder;
 
 class AgentSeeder extends Seeder
 {

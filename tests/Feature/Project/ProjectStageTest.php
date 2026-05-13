@@ -243,7 +243,7 @@ class ProjectStageTest extends TestCase
 
     public function test_get_progress_percentage(): void
     {
-        $project = new Project();
+        $project = new Project;
         $this->assertIsInt($project->getProgressPercentage());
     }
 }

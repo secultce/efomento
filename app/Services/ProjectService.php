@@ -6,7 +6,7 @@ use App\Models\Project;
 
 class ProjectService
 {
-    public function updateOrCreateFromRegistration(
+    public function createFromRegistrationIfMissing(
         int $registrationId,
         array $registration,
         array $details,
@@ -14,17 +14,19 @@ class ProjectService
         int $noticeId,
         ?int $categoryId
     ): Project {
-        return Project::updateOrCreate(
-            ['registration_id' => $registrationId],
+        return Project::query()->firstOrCreate(
             [
-                'number' => $details['registration']['number'] ?? null,
+                'registration_id' => $registrationId,
+            ],
+            [
+                'number' => data_get($details, 'registration.number'),
                 'category_id' => $categoryId,
                 'agent_id' => $agentId,
                 'notice_id' => $noticeId,
                 'create_timestamp' => data_get($registration, 'createTimestamp.date'),
                 'sent_timestamp' => data_get($registration, 'sentTimestamp.date'),
-                'consolidated_result' => $details['registration']['consolidatedResult'] ?? null,
-                'data_registration' => $details
+                'consolidated_result' => data_get($details, 'registration.consolidatedResult'),
+                'data_registration' => $details,
             ]
         );
     }

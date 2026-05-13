@@ -16,9 +16,9 @@ class DocumentImageFactory extends Factory
     {
         return [
             'document_id' => Document::factory(),
-            'section'     => $this->faker->randomElement(DocumentImageSection::cases()),
-            'position'    => $this->faker->randomElement(DocumentImagePosition::cases()),
-            'path'        => 'images/' . $this->faker->uuid() . '.png',
+            'section' => $this->faker->randomElement(DocumentImageSection::cases()),
+            'position' => $this->faker->randomElement(DocumentImagePosition::cases()),
+            'path' => 'images/'.$this->faker->uuid().'.png',
         ];
     }
 }

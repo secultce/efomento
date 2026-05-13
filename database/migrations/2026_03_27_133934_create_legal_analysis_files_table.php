@@ -17,7 +17,7 @@ return new class extends Migration
             $table->foreignId('file_id')->constrained();
             $table->string('status');
             $table->timestamps();
-            $table->unique(['legal_analysis_id', 'file_id']); 
+            $table->unique(['legal_analysis_id', 'file_id']);
         });
     }
 

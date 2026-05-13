@@ -13,7 +13,7 @@ class OpeningUpdateService
 {
     public function handle(Project $project, Opening $opening, array $data): void
     {
-        try{
+        try {
             DB::transaction(function () use ($project, $opening, $data) {
 
                 $openingData = $data['opening'] ?? [];
@@ -43,7 +43,7 @@ class OpeningUpdateService
 
     protected function updateFormalization(Project $project, array $data): void
     {
-        if (!$project->formalization || empty($data)) {
+        if (! $project->formalization || empty($data)) {
             return;
         }
 
@@ -52,7 +52,7 @@ class OpeningUpdateService
 
     protected function updateAgentSnapshot(Project $project, array $agentData): void
     {
-        if (!$project->agent) {
+        if (! $project->agent) {
             return;
         }
 
@@ -91,15 +91,15 @@ class OpeningUpdateService
         foreach ($supervisors as $supervisor) {
 
             if (
-                !isset($supervisor['id']) ||
-                !isset($supervisor['registration_number'])
+                ! isset($supervisor['id']) ||
+                ! isset($supervisor['registration_number'])
             ) {
                 continue;
             }
 
             $user = $users->get($supervisor['id']);
 
-            if (!$user) {
+            if (! $user) {
                 continue;
             }
 

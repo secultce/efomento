@@ -42,5 +42,4 @@ class Monitoring extends Model implements Auditable
     {
         return $this->belongsTo(Project::class);
     }
-
 }

@@ -1,11 +1,11 @@
 <?php
 
+use App\Enums\AccountType;
+use App\Enums\AgentStatus;
+use App\Enums\OpeningStatus;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
-use App\Enums\AgentStatus;
-use App\Enums\AccountType;
-use App\Enums\OpeningStatus;
 
 return new class extends Migration
 {

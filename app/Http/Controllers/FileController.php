@@ -6,6 +6,7 @@ use App\Http\Requests\File\FileRequest;
 use App\Http\Resources\FileResource;
 use App\Models\File;
 use App\Services\FileService;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\Relation;
 use Illuminate\Http\Response;
 
@@ -19,7 +20,7 @@ class FileController extends Controller
 
         abort_unless(isset($map[$objectType]), 422, 'Tipo de entidade inválido.');
 
-        /** @var \Illuminate\Database\Eloquent\Model $entity */
+        /** @var Model $entity */
         $entity = $map[$objectType]::findOrFail($objectId);
 
         $file = $this->fileService->upload(

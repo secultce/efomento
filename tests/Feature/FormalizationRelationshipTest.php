@@ -2,10 +2,10 @@
 
 namespace Tests\Feature;
 
+use App\Enums\DeliberationType;
+use App\Enums\ReportStatus;
 use App\Models\Formalization;
 use App\Models\Project;
-use App\Enums\ReportStatus;
-use App\Enums\DeliberationType;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 

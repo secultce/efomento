@@ -24,5 +24,4 @@ enum RaceColor: string implements HasLabel
             self::INDIGENA => 'Indígena',
         };
     }
-
 }

@@ -20,7 +20,7 @@ class DocumentImage extends Model
     ];
 
     protected $casts = [
-        'section'  => DocumentImageSection::class,
+        'section' => DocumentImageSection::class,
         'position' => DocumentImagePosition::class,
     ];
 

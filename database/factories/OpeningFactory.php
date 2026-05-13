@@ -2,13 +2,13 @@
 
 namespace Database\Factories;
 
+use App\Enums\AccountType;
+use App\Enums\AgentStatus;
+use App\Enums\OpeningStatus;
 use App\Models\Opening;
 use App\Models\Project;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
-use App\Enums\AgentStatus;
-use App\Enums\AccountType;
-use App\Enums\OpeningStatus;
 
 class OpeningFactory extends Factory
 {

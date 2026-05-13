@@ -2,18 +2,14 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Payment;
-use Illuminate\Http\Request;
-use App\Http\Resources\PaymentResource;
 use App\Http\Requests\Payment\PaymentStoreRequest;
 use App\Http\Requests\Payment\PaymentUpdateRequest;
+use App\Http\Resources\PaymentResource;
+use App\Models\Payment;
 
 class PaymentController extends Controller
 {
-    public function index()
-    {
-
-    }
+    public function index() {}
 
     public function store(PaymentStoreRequest $request)
     {

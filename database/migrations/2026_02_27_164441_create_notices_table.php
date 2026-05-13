@@ -12,8 +12,8 @@ return new class extends Migration
         Schema::create('notices', function (Blueprint $table) {
             $table->id();
             $table->string('nup')->nullable()->unique()->comment('Parent case number');
-            $table->text('notice_url')->nullable()->comment('Public Notice Url'); 
-            $table->string('external_id')->nullable()->comment('External Notice ID');
+            $table->text('notice_url')->nullable()->comment('Public Notice Url');
+            $table->string('external_id')->nullable()->unique()->comment('External Notice ID');
             $table->string('name')->comment('Notice Name');
             $table->decimal('total_notice_amount', 15, 2)->nullable()->comment('Total Notice Amount');
             $table->decimal('total_commitment_amount', 15, 2)->nullable()->comment('Total Commitment Amount');
