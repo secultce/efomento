@@ -7,14 +7,13 @@ import AgentData from './Partials/AgentData.vue';
 import ProcessTabs from './Partials/ProcessTabs.vue';
 
 const props = defineProps({
-  project: Object,
-  supervisorsAvailable: Array,
-  agentStatus: Array,
-  reportStatus: Array,
-  accountType: Array,
-  openingStatus: Array
-})
-
+    project: Object,
+    supervisorsAvailable: Array,
+    agentStatus: Array,
+    reportStatus: Array,
+    accountType: Array,
+    openingStatus: Array,
+});
 </script>
 
 <template>
@@ -31,8 +30,14 @@ const props = defineProps({
         </AppSubHeader>
         <AppContainer variant="large">
             <div class="gap-4 flex flex-col">
-                <AgentData :project="project" :agentStatus="agentStatus" :openingStatus="openingStatus" />
-                <ProcessTabs :project="project" :supervisorsAvailable="supervisorsAvailable" :agentStatus="agentStatus" :reportStatus="reportStatus" :accountType="accountType"  />
+                <AgentData :project="project" :agent-status="agentStatus" :opening-status="openingStatus" />
+                <ProcessTabs
+                    :project="project"
+                    :supervisors-available="supervisorsAvailable"
+                    :agent-status="agentStatus"
+                    :report-status="reportStatus"
+                    :account-type="accountType"
+                />
             </div>
         </AppContainer>
     </AuthenticatedLayout>

@@ -27,12 +27,12 @@ class DocumentFactory extends Factory
         [$type, $phase] = $this->faker->randomElement($combinations);
 
         return [
-            'notice_id'  => Notice::factory(),
+            'notice_id' => Notice::factory(),
             'project_id' => Project::factory(),
-            'type'       => $type,
-            'phase'      => $phase,
-            'body'       => $this->faker->paragraphs(2, true),
-            'status'     => DocumentStatus::DRAFT,
+            'type' => $type,
+            'phase' => $phase,
+            'body' => $this->faker->paragraphs(2, true),
+            'status' => DocumentStatus::DRAFT,
             'created_by' => User::factory(),
         ];
     }

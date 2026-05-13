@@ -3,13 +3,13 @@
 namespace Tests\Feature;
 
 use App\Models\Document;
-use Tests\TestCase;
-use App\Models\Project;
 use App\Models\Opening;
+use App\Models\Project;
 use App\Models\User;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use App\Services\ProjectDocumentService;
+use Illuminate\Foundation\Testing\RefreshDatabase;
 use PHPUnit\Framework\Attributes\Test;
+use Tests\TestCase;
 
 class ProjectDocumentServiceTest extends TestCase
 {
@@ -29,7 +29,7 @@ class ProjectDocumentServiceTest extends TestCase
             'project_id' => $project->id,
         ]);
 
-        $service = new ProjectDocumentService();
+        $service = new ProjectDocumentService;
 
         $service->createDocumentCI(
             [$project->id],
@@ -70,7 +70,7 @@ class ProjectDocumentServiceTest extends TestCase
             'project_id' => $projectWithoutCI->id,
         ]);
 
-        $service = new ProjectDocumentService();
+        $service = new ProjectDocumentService;
 
         $service->createDocumentCI(
             [$projectWithCI->id, $projectWithoutCI->id],
@@ -78,10 +78,10 @@ class ProjectDocumentServiceTest extends TestCase
         );
 
         $this->assertDatabaseCount(
-            'documents', 
+            'documents',
             Document::whereIn('project_id', [
                 $projectWithCI->id,
-                $projectWithoutCI->id
+                $projectWithoutCI->id,
             ])->count());
 
         $this->assertDatabaseHas('documents', [
@@ -110,7 +110,7 @@ class ProjectDocumentServiceTest extends TestCase
     {
         $this->expectException(\Exception::class);
 
-        $service = new ProjectDocumentService();
+        $service = new ProjectDocumentService;
 
         $project = Project::factory()->create();
 
@@ -122,7 +122,7 @@ class ProjectDocumentServiceTest extends TestCase
     {
         $this->expectException(\Exception::class);
 
-        $service = new ProjectDocumentService();
+        $service = new ProjectDocumentService;
 
         $project = Project::factory()->create();
 

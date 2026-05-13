@@ -1,0 +1,11 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(mkdir -p /home/juin/dev/listados/efomento/.vscode)",
+      "Bash(code --list-extensions)"
+    ],
+    "additionalDirectories": [
+      "/home/juin/dev/listados/efomento"
+    ]
+  }
+}

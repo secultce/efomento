@@ -20,13 +20,13 @@ class NoticeService
             })
             ->orderBy('created_at', 'desc')
             ->get()
-            ->map(fn(Notice $notice) => [
-                'id'      => $notice->id,
-                'titulo'  => $notice->name,
-                'mae'     => $notice->nup,
+            ->map(fn (Notice $notice) => [
+                'id' => $notice->id,
+                'titulo' => $notice->name,
+                'mae' => $notice->nup,
                 'type_ins' => $notice->instrument_type,
-                'status'  => $notice->nup ? 'Em abertura de processo' : 'Pendente abertura de processo',
-                'url'     => $notice->notice_url,
+                'status' => $notice->nup ? 'Em abertura de processo' : 'Pendente abertura de processo',
+                'url' => $notice->notice_url,
             ]);
     }
 
@@ -38,10 +38,11 @@ class NoticeService
         $total = Notice::count();
         $comCredenciamento = Notice::whereNotNull('creditor_registration_request_date')->count();
         $semCredenciamento = Notice::whereNull('creditor_registration_nup')->count();
+
         return [
             'oportunidades' => $total,
-            'pendentes'     => $semCredenciamento,
-            'concluidos'    => $comCredenciamento,
+            'pendentes' => $semCredenciamento,
+            'concluidos' => $comCredenciamento,
             'monitoramento' => $total - $comCredenciamento - $semCredenciamento,
         ];
     }

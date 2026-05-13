@@ -2,10 +2,10 @@
 
 use App\Http\Controllers\DocumentController;
 use App\Http\Controllers\GroupController;
-use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\NoticeController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\OpeningController;
+use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ProjectController;
 use App\Models\User;
 use Illuminate\Support\Facades\Route;
@@ -22,12 +22,11 @@ Route::get('/', function () {
     return redirect()->route('login');
 });
 
-
 Route::middleware(['auth', 'verified'])->group(function () {
 
     Route::resource('editais', NoticeController::class)
         ->parameters([
-            'editais' => 'notice'
+            'editais' => 'notice',
         ])
         ->names([
             'index' => 'notices.index',
@@ -43,7 +42,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     Route::resource('projetos', ProjectController::class)
         ->parameters([
-            'projetos' => 'project'
+            'projetos' => 'project',
         ])
         ->names([
             'index' => 'projects.index',
@@ -62,7 +61,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
         ->name('documents.download');
     Route::post('/projetos/documentos/download-zip', [DocumentController::class, 'downloadZip'])
         ->name('documents.download-zip');
-    Route::patch('/projetos/{project}/abertura/{opening}/atualizar',[OpeningController::class, 'update'])
+    Route::patch('/projetos/{project}/abertura/{opening}/atualizar', [OpeningController::class, 'update'])
         ->scopeBindings()
         ->name('projects.openings.update');
     Route::get('editais/{notice}/projetos', [ProjectController::class, 'index'])
@@ -86,4 +85,4 @@ Route::middleware('auth')->group(function () {
     Route::put('/grupos', [GroupController::class, 'update'])->name('groups.update');
 });
 
-require __DIR__ . '/auth.php';
+require __DIR__.'/auth.php';

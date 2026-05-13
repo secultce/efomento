@@ -1,54 +1,74 @@
 {
-    "$schema": "https://www.schemastore.org/package.json",
-    "private": true,
-    "type": "module",
-    "scripts": {
-        "build": "vite build",
-        "dev": "vite"
-    },
-    "devDependencies": {
-        "@inertiajs/vue3": "^2.0.0",
-        "@tailwindcss/forms": "^0.5.3",
-        "@tailwindcss/vite": "^4.0.0",
-        "@vitejs/plugin-vue": "^6.0.4",
-        "autoprefixer": "^10.4.12",
-        "axios": "^1.11.0",
-        "concurrently": "^9.0.1",
-        "cypress": "^15.11.0",
-        "laravel-vite-plugin": "^2.0.0",
-        "postcss": "^8.4.31",
-        "tailwindcss": "^3.2.1",
-        "vite": "^7.3.1",
-        "vite-plugin-static-copy": "^4.0.1",
-        "vue": "^3.4.0"
-    },
-    "dependencies": {
-        "@fontsource/source-sans-3": "^5.2.9",
-        "@mdi/font": "^7.4.47",
-        "@tinymce/tinymce-vue": "^6.3.0",
-        "dayjs": "^1.11.20",
-        "dotenv": "^17.3.1",
-        "extenso": "^2.1.0",
-        "pluralize": "^8.0.0",
-        "tinymce": "^8.4.0",
-        "vuetify": "^3.11.8"
-    },
-    "name": "efomento",
-    "version": "1.0.0",
-    "description": "Sistema web de gerenciamento de processos de fomento cultural da **Secretaria da Cultura do Ceará (SECULT-CE)**, construído em Laravel 12.",
-    "main": "postcss.config.js",
-    "directories": {
-        "doc": "docs"
-    },
-    "repository": {
-        "type": "git",
-        "url": "git+https://github.com/secultce/efomento.git"
-    },
-    "keywords": [],
-    "author": "",
-    "license": "ISC",
-    "bugs": {
-        "url": "https://github.com/secultce/efomento/issues"
-    },
-    "homepage": "https://github.com/secultce/efomento#readme"
+  "$schema": "https://www.schemastore.org/package.json",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "vite build",
+    "dev": "vite",
+    "lint": "eslint resources/js",
+    "lint:fix": "eslint resources/js --fix",
+    "format": "prettier --write resources/js",
+    "prepare": "husky"
+  },
+  "lint-staged": {
+    "*.php": "bash scripts/pint-lint-staged.sh",
+    "*.{js,vue}": [
+      "eslint --fix",
+      "prettier --write"
+    ]
+  },
+  "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "@inertiajs/vue3": "^2.0.0",
+    "@tailwindcss/forms": "^0.5.3",
+    "@tailwindcss/vite": "^4.0.0",
+    "@vitejs/plugin-vue": "^6.0.4",
+    "autoprefixer": "^10.4.12",
+    "axios": "^1.11.0",
+    "concurrently": "^9.0.1",
+    "cypress": "^15.11.0",
+    "eslint": "^10.3.0",
+    "eslint-config-prettier": "^10.1.8",
+    "eslint-plugin-cypress": "^6.4.1",
+    "eslint-plugin-vue": "^10.9.0",
+    "globals": "^17.6.0",
+    "husky": "^9.1.7",
+    "laravel-vite-plugin": "^2.0.0",
+    "lint-staged": "^16.4.0",
+    "postcss": "^8.4.31",
+    "prettier": "^3.8.3",
+    "tailwindcss": "^3.2.1",
+    "vite": "^7.3.1",
+    "vite-plugin-static-copy": "^4.0.1",
+    "vue": "^3.4.0"
+  },
+  "dependencies": {
+    "@fontsource/source-sans-3": "^5.2.9",
+    "@mdi/font": "^7.4.47",
+    "@tinymce/tinymce-vue": "^6.3.0",
+    "dayjs": "^1.11.20",
+    "dotenv": "^17.3.1",
+    "extenso": "^2.1.0",
+    "pluralize": "^8.0.0",
+    "tinymce": "^8.4.0",
+    "vuetify": "^3.11.8"
+  },
+  "name": "efomento",
+  "version": "1.0.0",
+  "description": "Sistema web de gerenciamento de processos de fomento cultural da **Secretaria da Cultura do Ceará (SECULT-CE)**, construído em Laravel 12.",
+  "main": "postcss.config.js",
+  "directories": {
+    "doc": "docs"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/secultce/efomento.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/secultce/efomento/issues"
+  },
+  "homepage": "https://github.com/secultce/efomento#readme"
 }

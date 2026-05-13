@@ -23,16 +23,16 @@ class DocumentService
         );
 
         $document = Document::create([
-            'notice_id'  => $data['notice_id'],
+            'notice_id' => $data['notice_id'],
             'project_id' => $data['project_id'],
-            'type'       => $data['type'],
-            'phase'      => $data['phase'],
-            'body'       => $data['body'],
-            'status'     => $data['status'] ?? DocumentStatus::DRAFT,
+            'type' => $data['type'],
+            'phase' => $data['phase'],
+            'body' => $data['body'],
+            'status' => $data['status'] ?? DocumentStatus::DRAFT,
             'created_by' => $createdBy,
         ]);
 
-        if (!empty($data['images'])) {
+        if (! empty($data['images'])) {
             $this->syncImages($document, $data['images']);
         }
 
@@ -42,11 +42,11 @@ class DocumentService
     public function update(Document $document, array $data): Document
     {
         $document->update([
-            'body'   => $data['body'] ?? $document->body,
+            'body' => $data['body'] ?? $document->body,
             'status' => $data['status'] ?? $document->status,
         ]);
 
-        if (!empty($data['images'])) {
+        if (! empty($data['images'])) {
             $this->syncImages($document, $data['images']);
         }
 
@@ -60,10 +60,10 @@ class DocumentService
         ?string $phase = null
     ): Collection {
         return Document::query()
-            ->when($noticeId,   fn ($q) => $q->where('notice_id', $noticeId))
-            ->when($projectId,  fn ($q) => $q->where('project_id', $projectId))
-            ->when($type,       fn ($q) => $q->where('type', $type))
-            ->when($phase,      fn ($q) => $q->where('phase', $phase))
+            ->when($noticeId, fn ($q) => $q->where('notice_id', $noticeId))
+            ->when($projectId, fn ($q) => $q->where('project_id', $projectId))
+            ->when($type, fn ($q) => $q->where('type', $type))
+            ->when($phase, fn ($q) => $q->where('phase', $phase))
             ->with('images')
             ->get();
     }
@@ -74,8 +74,8 @@ class DocumentService
             DocumentImage::updateOrCreate(
                 [
                     'document_id' => $document->id,
-                    'section'     => $image['section'],
-                    'position'    => $image['position'],
+                    'section' => $image['section'],
+                    'position' => $image['position'],
                 ],
                 ['path' => $image['path']]
             );
@@ -87,7 +87,7 @@ class DocumentService
 
         $document->images()
             ->get()
-            ->filter(fn ($img) => !in_array($img->section->value.'|'.$img->position->value, $incomingSlots))
+            ->filter(fn ($img) => ! in_array($img->section->value.'|'.$img->position->value, $incomingSlots))
             ->each->delete();
     }
 }

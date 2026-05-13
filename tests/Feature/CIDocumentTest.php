@@ -2,7 +2,6 @@
 
 namespace Tests\Feature;
 
-use Tests\TestCase;
 use App\Models\Document;
 use App\Models\Opening;
 use App\Models\Project;
@@ -11,6 +10,7 @@ use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Mockery;
 use PHPUnit\Framework\Attributes\Test;
+use Tests\TestCase;
 
 class CIDocumentTest extends TestCase
 {
@@ -23,23 +23,23 @@ class CIDocumentTest extends TestCase
     #[Test]
     public function it_persists_ci_document_after_creation_via_endpoint(): void
     {
-        $user    = User::factory()->create();
+        $user = User::factory()->create();
         $project = Project::factory()->create();
         Opening::factory()->create(['project_id' => $project->id]);
 
         $this->actingAs($user)
             ->post(route('projects.create-ci'), [
                 'selected_projects' => [$project->id],
-                'content'           => 'Comunicação interna de teste',
+                'content' => 'Comunicação interna de teste',
             ])
             ->assertRedirect()
             ->assertSessionHas('success');
 
         $this->assertDatabaseHas('documents', [
             'project_id' => $project->id,
-            'type'       => 'ci',
-            'phase'      => 'opening',
-            'body'       => 'Comunicação interna de teste',
+            'type' => 'ci',
+            'phase' => 'opening',
+            'body' => 'Comunicação interna de teste',
             'created_by' => $user->id,
         ]);
     }
@@ -51,20 +51,20 @@ class CIDocumentTest extends TestCase
 
         $this->post(route('projects.create-ci'), [
             'selected_projects' => [$project->id],
-            'content'           => 'Conteúdo',
+            'content' => 'Conteúdo',
         ])->assertRedirect(route('login'));
     }
 
     #[Test]
     public function it_requires_content_to_create_ci(): void
     {
-        $user    = User::factory()->create();
+        $user = User::factory()->create();
         $project = Project::factory()->create();
 
         $this->actingAs($user)
             ->post(route('projects.create-ci'), [
                 'selected_projects' => [$project->id],
-                'content'           => '',
+                'content' => '',
             ])
             ->assertSessionHasErrors('content');
     }
@@ -76,15 +76,15 @@ class CIDocumentTest extends TestCase
     #[Test]
     public function it_returns_zip_download_for_selected_projects(): void
     {
-        $user    = User::factory()->create();
+        $user = User::factory()->create();
         $project = Project::factory()->create();
         Opening::factory()->create(['project_id' => $project->id]);
         Document::factory()->create([
             'project_id' => $project->id,
-            'notice_id'  => $project->notice_id,
-            'type'       => 'ci',
-            'phase'      => 'opening',
-            'body'       => 'Conteúdo do CI',
+            'notice_id' => $project->notice_id,
+            'type' => 'ci',
+            'phase' => 'opening',
+            'body' => 'Conteúdo do CI',
             'created_by' => $user->id,
         ]);
 
@@ -133,20 +133,20 @@ class CIDocumentTest extends TestCase
     #[Test]
     public function it_updates_ci_body_without_creating_a_duplicate(): void
     {
-        $user    = User::factory()->create();
+        $user = User::factory()->create();
         $project = Project::factory()->create();
         Opening::factory()->create(['project_id' => $project->id]);
 
         $this->actingAs($user)
             ->post(route('projects.create-ci'), [
                 'selected_projects' => [$project->id],
-                'content'           => 'Conteúdo original',
+                'content' => 'Conteúdo original',
             ]);
 
         $this->actingAs($user)
             ->post(route('projects.create-ci'), [
                 'selected_projects' => [$project->id],
-                'content'           => 'Conteúdo atualizado',
+                'content' => 'Conteúdo atualizado',
             ])
             ->assertRedirect()
             ->assertSessionHas('success');
@@ -160,17 +160,17 @@ class CIDocumentTest extends TestCase
 
         $this->assertDatabaseHas('documents', [
             'project_id' => $project->id,
-            'type'       => 'ci',
-            'body'       => 'Conteúdo atualizado',
+            'type' => 'ci',
+            'body' => 'Conteúdo atualizado',
         ]);
     }
 
     #[Test]
     public function it_preserves_original_ci_when_editing_another_project(): void
     {
-        $user           = User::factory()->create();
-        $projectWithCI  = Project::factory()->create();
-        $projectNew     = Project::factory()->create();
+        $user = User::factory()->create();
+        $projectWithCI = Project::factory()->create();
+        $projectNew = Project::factory()->create();
 
         Opening::factory()->create(['project_id' => $projectWithCI->id]);
         Opening::factory()->create(['project_id' => $projectNew->id]);
@@ -178,24 +178,24 @@ class CIDocumentTest extends TestCase
         $this->actingAs($user)
             ->post(route('projects.create-ci'), [
                 'selected_projects' => [$projectWithCI->id],
-                'content'           => 'CI do projeto A',
+                'content' => 'CI do projeto A',
             ]);
 
         $this->actingAs($user)
             ->post(route('projects.create-ci'), [
                 'selected_projects' => [$projectWithCI->id],
-                'content'           => 'CI do projeto A atualizado',
+                'content' => 'CI do projeto A atualizado',
             ]);
 
         $this->assertDatabaseHas('documents', [
             'project_id' => $projectWithCI->id,
-            'type'       => 'ci',
-            'body'       => 'CI do projeto A atualizado',
+            'type' => 'ci',
+            'body' => 'CI do projeto A atualizado',
         ]);
 
         $this->assertDatabaseMissing('documents', [
             'project_id' => $projectNew->id,
-            'type'       => 'ci',
+            'type' => 'ci',
         ]);
     }
 }

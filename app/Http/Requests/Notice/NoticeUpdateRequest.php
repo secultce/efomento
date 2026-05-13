@@ -1,10 +1,11 @@
 <?php
 
 namespace App\Http\Requests\Notice;
+
+use App\Enums\InstrumentType;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\Rules\Enum;
-use App\Enums\InstrumentType;
 
 class NoticeUpdateRequest extends FormRequest
 {

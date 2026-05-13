@@ -24,7 +24,7 @@ class File extends Model
     ];
 
     protected $casts = [
-        'private'    => 'boolean',
+        'private' => 'boolean',
         'created_at' => 'datetime',
         'updated_at' => 'datetime',
         'deleted_at' => 'datetime',

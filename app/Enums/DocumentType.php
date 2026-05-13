@@ -4,31 +4,31 @@ namespace App\Enums;
 
 enum DocumentType: string
 {
-    case TERM              = 'term';
-    case EXTRACT           = 'extract';
+    case TERM = 'term';
+    case EXTRACT = 'extract';
     case JURIDICAL_OPINION = 'juridical_opinion';
-    case DISPATCH          = 'dispatch';
-    case CI                = 'ci';
+    case DISPATCH = 'dispatch';
+    case CI = 'ci';
 
     public function label(): string
     {
-        return match($this) {
-            self::TERM              => 'TC',
-            self::EXTRACT           => 'EX',
+        return match ($this) {
+            self::TERM => 'TC',
+            self::EXTRACT => 'EX',
             self::JURIDICAL_OPINION => 'PJ',
-            self::DISPATCH          => 'PO',
-            self::CI                => 'CI',
+            self::DISPATCH => 'PO',
+            self::CI => 'CI',
         };
     }
 
     public function fullLabel(): string
     {
-        return match($this) {
-            self::TERM              => 'Termo de Execução Cultural',
-            self::EXTRACT           => 'Extrato',
+        return match ($this) {
+            self::TERM => 'Termo de Execução Cultural',
+            self::EXTRACT => 'Extrato',
             self::JURIDICAL_OPINION => 'Parecer Jurídico',
-            self::DISPATCH          => 'Despacho',
-            self::CI                => 'Comunicação Interna',
+            self::DISPATCH => 'Despacho',
+            self::CI => 'Comunicação Interna',
         };
     }
 }

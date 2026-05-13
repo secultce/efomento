@@ -2,11 +2,11 @@
 
 namespace Tests\Feature\Models;
 
-use Tests\TestCase;
 use App\Models\Payment;
 use App\Models\Project;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Database\QueryException;
+use Illuminate\Foundation\Testing\RefreshDatabase;
+use Tests\TestCase;
 
 class PaymentTest extends TestCase
 {
@@ -44,5 +44,4 @@ class PaymentTest extends TestCase
             'project_id' => null,
         ]);
     }
-
 }

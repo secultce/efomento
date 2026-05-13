@@ -7,11 +7,11 @@ use App\Enums\ProfileSnapshotSource;
 use App\Models\Agent;
 use App\Models\Category;
 use App\Models\Notice;
-use App\Models\Project;
 use App\Services\ProfileSnapshotService;
 use App\Services\ProjectService;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
+use Illuminate\Database\QueryException;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
@@ -30,6 +30,7 @@ class SyncRegistrationDetailsJob implements ShouldQueue
     public function __construct(public array $registration) {}
 
     public int $tries = 3;
+
     public int $timeout = 120;
 
     /**
@@ -45,7 +46,7 @@ class SyncRegistrationDetailsJob implements ShouldQueue
 
         $details = $this->fetchDetails($id);
 
-        if (!$details) {
+        if (! $details) {
             return;
         }
 
@@ -65,8 +66,9 @@ class SyncRegistrationDetailsJob implements ShouldQueue
                 data_get($details, 'registration.opportunity.id')
             );
 
-            if (!$notice) {
+            if (! $notice) {
                 Log::warning('sync.registration.notice_not_found', ['registration' => $id]);
+
                 return;
             }
 
@@ -79,7 +81,7 @@ class SyncRegistrationDetailsJob implements ShouldQueue
                     $notice->id,
                     $categoryId
                 );
-            } catch (\Illuminate\Database\QueryException $e) {
+            } catch (QueryException $e) {
                 if ($e->getCode() === '23505') { // postgres unique violation
                     Log::warning('sync.registration.duplicate', ['id' => $id]);
                 } else {
@@ -101,16 +103,16 @@ class SyncRegistrationDetailsJob implements ShouldQueue
 
     private function fetchDetails(int $id): ?array
     {
-        $endpoint = config('efomento.mapas_domain') . "/registration/detalhes/{$id}";
+        $endpoint = config('efomento.mapas_domain')."/registration/detalhes/{$id}";
 
         $response = Http::withHeaders([
             'authorization' => config('efomento.mapas_token'),
         ])
             ->timeout(10)
-            ->retry(3, fn($attempt) => $attempt * 1000)
+            ->retry(3, fn ($attempt) => $attempt * 1000)
             ->get($endpoint);
 
-        if (!$response->successful()) {
+        if (! $response->successful()) {
             throw new \Exception("Erro ao buscar detalhes {$id}");
         }
 
@@ -121,7 +123,7 @@ class SyncRegistrationDetailsJob implements ShouldQueue
     {
         $id = data_get($details, 'registration.owner.id');
 
-        if (!$id) {
+        if (! $id) {
             throw new \Exception('Owner não encontrado');
         }
 
@@ -131,10 +133,10 @@ class SyncRegistrationDetailsJob implements ShouldQueue
                     'authorization' => config('efomento.mapas_token'),
                 ])
                     ->timeout(10)
-                    ->retry(3, fn($attempt) => $attempt * 1000)
-                    ->get(config('efomento.mapas_domain') . "/api/agent/findOne?@select=id,name,cpf,genero,orientacaoSexual,raca&id=EQ({$id})");
+                    ->retry(3, fn ($attempt) => $attempt * 1000)
+                    ->get(config('efomento.mapas_domain')."/api/agent/findOne?@select=id,name,cpf,genero,orientacaoSexual,raca&id=EQ({$id})");
 
-                if (!$response->successful()) {
+                if (! $response->successful()) {
                     throw new \Exception('Erro ao buscar agente');
                 }
 
@@ -147,13 +149,13 @@ class SyncRegistrationDetailsJob implements ShouldQueue
     {
         $name = $details['registration']['category'];
 
-        if (!$name) {
+        if (! $name) {
             return null;
         }
 
         return Category::firstOrCreate([
             'name' => $name,
-            'type' => CategoryType::PROJETO->value
+            'type' => CategoryType::PROJETO->value,
         ])->id;
     }
 
@@ -166,7 +168,7 @@ class SyncRegistrationDetailsJob implements ShouldQueue
     {
         Log::error('sync.registration.failed', [
             'registration_id' => $this->registration['id'],
-            'message' => $exception->getMessage()
+            'message' => $exception->getMessage(),
         ]);
     }
 }

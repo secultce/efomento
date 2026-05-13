@@ -22,5 +22,4 @@ enum Education: string implements HasLabel
             self::POS_GRADUACAO => 'Pós-graduação',
         };
     }
-
 }

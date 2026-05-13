@@ -10,10 +10,10 @@ class DocumentImageResource extends JsonResource
     public function toArray(Request $request): array
     {
         return [
-            'id'       => $this->id,
-            'section'  => $this->section,
+            'id' => $this->id,
+            'section' => $this->section,
             'position' => $this->position,
-            'path'     => $this->path,
+            'path' => $this->path,
         ];
     }
 }

@@ -9,7 +9,7 @@ Artisan::command('inspire', function () {
     $this->comment(Inspiring::quote());
 })->purpose('Display an inspiring quote');
 
-Schedule::job(new SyncNoticesJob())
+Schedule::job(new SyncNoticesJob)
     ->dailyAt('06:00')
     ->withoutOverlapping()
     ->onOneServer();

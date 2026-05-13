@@ -11,6 +11,7 @@ use App\Services\Documents\DocumentService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
+use Illuminate\Http\Response;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
 class DocumentController extends Controller
@@ -23,10 +24,10 @@ class DocumentController extends Controller
     public function index(Request $request): AnonymousResourceCollection
     {
         $documents = $this->documentService->getByContext(
-            noticeId:  $request->integer('notice_id') ?: null,
+            noticeId: $request->integer('notice_id') ?: null,
             projectId: $request->integer('project_id') ?: null,
-            type:      $request->string('type')->toString() ?: null,
-            phase:     $request->string('phase')->toString() ?: null,
+            type: $request->string('type')->toString() ?: null,
+            phase: $request->string('phase')->toString() ?: null,
         );
 
         return DocumentResource::collection($documents);
@@ -60,7 +61,7 @@ class DocumentController extends Controller
         return response()->json(null, 204);
     }
 
-    public function download(Document $document): \Illuminate\Http\Response
+    public function download(Document $document): Response
     {
         return $this->documentPdfService->download($document);
     }

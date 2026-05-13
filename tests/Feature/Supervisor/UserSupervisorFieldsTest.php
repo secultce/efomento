@@ -14,13 +14,13 @@ class UserSupervisorFieldsTest extends TestCase
     public function test_cpf_and_registration_number_are_saved(): void
     {
         $user = User::factory()->create([
-            'cpf'                 => '123.456.789-00',
+            'cpf' => '123.456.789-00',
             'registration_number' => 'MAT-2024-001',
         ]);
 
         $this->assertDatabaseHas('users', [
-            'id'                  => $user->id,
-            'cpf'                 => '123.456.789-00',
+            'id' => $user->id,
+            'cpf' => '123.456.789-00',
             'registration_number' => 'MAT-2024-001',
         ]);
     }
@@ -28,7 +28,7 @@ class UserSupervisorFieldsTest extends TestCase
     public function test_cpf_and_registration_number_are_nullable(): void
     {
         $user = User::factory()->create([
-            'cpf'                 => null,
+            'cpf' => null,
             'registration_number' => null,
         ]);
 

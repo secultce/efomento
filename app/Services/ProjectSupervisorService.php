@@ -1,4 +1,5 @@
 <?php
+
 namespace App\Services;
 
 use App\Models\Project;
@@ -14,7 +15,7 @@ class ProjectSupervisorService
 
         DB::transaction(function () use ($projects, $supervisorIds) {
             foreach ($projects as $project) {
-                if (!$project->opening) {
+                if (! $project->opening) {
                     throw new \Exception("Projeto {$project->id} não possui abertura.");
                 }
 

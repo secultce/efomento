@@ -6,7 +6,6 @@ use App\Models\Budget;
 use App\Models\Installment;
 use Illuminate\Database\Eloquent\Factories\Sequence;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Foundation\Testing\WithFaker;
 use Tests\TestCase;
 
 class BudgetTest extends TestCase
@@ -45,7 +44,7 @@ class BudgetTest extends TestCase
         $budget->delete();
 
         $this->assertSoftDeleted('budgets', [
-            'id' => $budgetId
+            'id' => $budgetId,
         ]);
     }
 
@@ -66,7 +65,7 @@ class BudgetTest extends TestCase
         Installment::factory()
             ->count($installmentCount)
             ->state(new Sequence(
-                fn($sequence) => [
+                fn ($sequence) => [
                     'budget_id' => $budget->id,
                     'installment_number' => $sequence->index + 1,
                 ]

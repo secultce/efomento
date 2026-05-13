@@ -33,8 +33,8 @@ class UpdateAuditingTest extends TestCase
 
         $this->assertDatabaseHas('audits', [
             'auditable_type' => Notice::class,
-            'auditable_id'   => $notice->id,
-            'event'          => 'created',
+            'auditable_id' => $notice->id,
+            'event' => 'created',
         ]);
     }
 
@@ -42,17 +42,17 @@ class UpdateAuditingTest extends TestCase
     {
         $oldAmount = '10000.00';
         $newAmount = '25000.00';
-        $oldDate   = '2024-01-15';
-        $newDate   = '2024-06-30';
+        $oldDate = '2024-01-15';
+        $newDate = '2024-06-30';
 
         $notice = Notice::factory()->create([
-            'budget_allocation_nup'              => 'BA-99999',
-            'total_notice_amount'           => $oldAmount,
+            'budget_allocation_nup' => 'BA-99999',
+            'total_notice_amount' => $oldAmount,
             'creditor_registration_request_date' => $oldDate,
         ]);
 
         $notice->update([
-            'total_notice_amount'           => $newAmount,
+            'total_notice_amount' => $newAmount,
             'creditor_registration_request_date' => $newDate,
         ]);
 

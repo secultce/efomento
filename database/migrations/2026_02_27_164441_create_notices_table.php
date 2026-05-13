@@ -1,9 +1,9 @@
 <?php
 
+use App\Enums\InstrumentType;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
-use App\Enums\InstrumentType;
 
 return new class extends Migration
 {
@@ -12,7 +12,7 @@ return new class extends Migration
         Schema::create('notices', function (Blueprint $table) {
             $table->id();
             $table->string('nup')->nullable()->unique()->comment('Parent case number');
-            $table->text('notice_url')->nullable()->comment('Public Notice Url'); 
+            $table->text('notice_url')->nullable()->comment('Public Notice Url');
             $table->string('external_id')->nullable()->comment('External Notice ID');
             $table->string('name')->comment('Notice Name');
             $table->decimal('total_notice_amount', 15, 2)->nullable()->comment('Total Notice Amount');
