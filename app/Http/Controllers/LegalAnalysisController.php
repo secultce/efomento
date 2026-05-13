@@ -4,14 +4,16 @@ namespace App\Http\Controllers;
 
 use App\Enums\FileStatus;
 use App\Models\File;
-use App\Models\LegalAnalysis;
 use App\Models\Project;
+use App\Services\LegalAnalysisService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 
 class LegalAnalysisController extends Controller
 {
+    public function __construct(private readonly LegalAnalysisService $legalAnalysisService) {}
+
     public function index(Project $project): JsonResponse
     {
         $analysis = $project->legalAnalysis;
@@ -43,14 +45,7 @@ class LegalAnalysisController extends Controller
             'status' => ['required', Rule::enum(FileStatus::class)],
         ]);
 
-        $analysis = $project->legalAnalysis ?? LegalAnalysis::create([
-            'project_id' => $project->id,
-        ]);
-
-        $analysis->files()->updateOrCreate(
-            ['file_id' => $file->id],
-            ['status' => $data['status']]
-        );
+        $this->legalAnalysisService->updateFileStatus($project, $file, FileStatus::from($data['status']));
 
         return response()->json(['message' => 'Status atualizado com sucesso']);
     }
