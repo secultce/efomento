@@ -53,10 +53,14 @@ class HandleInertiaRequests extends Middleware
                         'created_at' => $notification->created_at,
                     ]);
             },
-            'allUnreadCount' =>
-                $request->user()
+            'allUnreadCount' => function () use ($request) {
+                if (!$request->user()) {
+                    return 0;
+                }
+                return $request->user()
                     ->unreadNotifications()
-                    ->count(),
+                    ->count();
+            },
         ];
     }
 }

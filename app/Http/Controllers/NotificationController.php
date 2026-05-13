@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Services\NotificationService;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -14,7 +15,7 @@ class NotificationController extends Controller
         private readonly NotificationService $service
     ) {}
 
-    public function index(Request $request): Response
+    public function index(Request $request): JsonResponse
     {
         $notifications = $this->service->getUserNotifications(
             user: $request->user(),
@@ -27,9 +28,7 @@ class NotificationController extends Controller
             pagination: 5
         );
 
-        return Inertia::render('Notifications/Index', [
-            'notifications' => $notifications,
-        ]);
+        return response()->json($notifications);
     }
 
     public function unreadCount(Request $request): array
