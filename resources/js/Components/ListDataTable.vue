@@ -54,7 +54,7 @@ const selected = computed({
 
 function toggle(item) {
   if (!props.isSelectable(item)) return
-  
+
   const exists = selected.value.includes(item.id)
 
   if (exists) {
@@ -88,7 +88,7 @@ function runAction(action, item) {
       <!-- LEFT: Checkbox + Reference -->
       <div class="d-flex items-center ga-2">
         <v-checkbox v-if="selectable" :model-value="isChecked(item)" @update:model-value="() => toggle(item)"  :disabled="!isSelectable(item)"
-          hide-details density="compact" class="mr-3" />
+          hide-details density="compact" class="mr-3" data-cy="checkboxProject"/>
         <div class="w-[15em] flex-shrink-0">
           <div class="text-caption text-[#3b3b3cFF]">
             {{ reference(item).label }}
@@ -117,7 +117,7 @@ function runAction(action, item) {
           <div class="text-caption text-[#3b3b3cFF]">
             {{ m.label }}
           </div>
-          <div class="font-weight-bold text-[#3b3b3cFF]">
+          <div class="font-weight-bold text-[#3b3b3cFF]" data-cy="processNumberProjectList">
             {{ m.value(item) }}
           </div>
         </div>

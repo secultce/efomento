@@ -54,7 +54,9 @@ function clear() {
         <div class="d-flex w-full items-center gap-4">
             <v-text-field :model-value="search" @update:model-value="onSearch"
                 placeholder="Busque pelo agente ou nº do processo" append-inner-icon="mdi-magnify" variant="outlined"
-                density="compact" hide-details rounded="xl" class="mb-2" />
+                density="compact" hide-details rounded="xl" class="mb-2"
+                data-cy="inputFindProjectPage"
+            />
 
             <v-btn variant="outlined"
                 class="!text-[#008344] !font-bold !border-[#008344] flex-[1_1_0%] !h-[3em] mb-2 !px-2 !py-1"
