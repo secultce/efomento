@@ -4,30 +4,26 @@ namespace App\Services;
 
 use App\Models\User;
 use Illuminate\Notifications\DatabaseNotification;
-use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 
 class NoticeService
 {
     public function getUserNotifications(
         User $user,
         array $filters = [],
-        ?int $pagination = 5
+        int $pagination = 5
     ): array {
         $query = $user->notifications()->latest();
 
         if (isset($filters['read'])) {
-            if ($filters['read']) {
-                $query->whereNotNull('read_at');
-            } else {
-                $query->whereNull('read_at');
-            }
+            $filters['read']
+                ? $query->whereNotNull('read_at')
+                : $query->whereNull('read_at');
         }
 
         if (!empty($filters['type'])) {
             $query->where('type', $filters['type']);
         }
 
-        /** @var LengthAwarePaginator $notifications */
         $notifications = $query->paginate($pagination);
 
         return [
@@ -46,10 +42,7 @@ class NoticeService
 
     public function markAsRead(User $user, string $notificationId): bool
     {
-        /** @var DatabaseNotification|null $notification */
-        $notification = $user->notifications()
-            ->where('id', $notificationId)
-            ->first();
+        $notification = $this->findNotification($user, $notificationId);
 
         if (!$notification) {
             return false;
@@ -65,5 +58,14 @@ class NoticeService
     public function markAllAsRead(User $user): void
     {
         $user->unreadNotifications->markAsRead();
+    }
+
+    private function findNotification(
+        User $user,
+        string $notificationId
+    ): ?DatabaseNotification {
+        return $user->notifications()
+            ->where('id', $notificationId)
+            ->first();
     }
 }
