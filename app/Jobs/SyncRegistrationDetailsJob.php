@@ -3,153 +3,169 @@
 namespace App\Jobs;
 
 use App\Enums\CategoryType;
-use App\Enums\ProfileSnapshotSource;
 use App\Models\Agent;
 use App\Models\Category;
 use App\Models\Notice;
+use App\Services\MapasClient;
 use App\Services\ProfileSnapshotService;
 use App\Services\ProjectService;
+use DateTimeInterface;
+use Illuminate\Bus\Batchable;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
-use Illuminate\Database\QueryException;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
+use Illuminate\Queue\Middleware\RateLimited;
+use Illuminate\Queue\Middleware\WithoutOverlapping;
 use Illuminate\Queue\SerializesModels;
-use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
+use RuntimeException;
+use Throwable;
 
 class SyncRegistrationDetailsJob implements ShouldQueue
 {
-    use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
+    use Batchable, Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
-    /**
-     * Create a new job instance.
-     */
-    public function __construct(public array $registration) {}
-
-    public int $tries = 3;
-
+    public int $tries = 10;
     public int $timeout = 120;
+    public int $maxExceptions = 3;
 
-    /**
-     * Execute the job.
-     */
+    public function __construct(
+        public int $registrationId,
+        public array $registration
+    ) {
+        $this->onQueue('details');
+    }
+
+    public function middleware(): array
+    {
+        return [
+            (new RateLimited('mapas-api'))->releaseAfter(30),
+
+            (new WithoutOverlapping("sync-registration-details:{$this->registrationId}"))
+                ->releaseAfter(60)
+                ->expireAfter(600),
+        ];
+    }
+
+    public function retryUntil(): DateTimeInterface
+    {
+        return now()->addHours(2);
+    }
+
     public function handle(
+        MapasClient $mapasClient,
         ProfileSnapshotService $snapshotService,
         ProjectService $projectService
     ): void {
-        $id = $this->registration['id'];
-
-        Log::info('sync.registration.details', ['id' => $id]);
-
-        $details = $this->fetchDetails($id);
-
-        if (! $details) {
+        if ($this->batch()?->cancelled()) {
             return;
         }
 
-        $agentData = $this->getAgent($details);
-        $agent = null;
+        Log::info('sync.registration.details.start', [
+            'registration_id' => $this->registrationId,
+        ]);
 
-        DB::transaction(function () use ($id, $details, $agentData, &$agent, $projectService) {
-            $agent = Agent::firstOrCreate(
-                ['cpf' => $agentData['cpf']],
-                ['name' => $agentData['name']]
+        $details = $mapasClient->registrationDetails($this->registrationId);
+
+        $ownerId = data_get($details, 'registration.owner.id');
+
+        if (!$ownerId) {
+            Log::warning('sync.registration.owner_missing', [
+                'registration_id' => $this->registrationId,
+            ]);
+
+            return;
+        }
+
+        $agentData = $mapasClient->agentById((int) $ownerId);
+
+        $cpf = data_get($agentData, 'cpf');
+
+        if (!$cpf) {
+            Log::warning('sync.registration.agent_cpf_missing', [
+                'registration_id' => $this->registrationId,
+                'owner_id' => $ownerId,
+            ]);
+
+            return;
+        }
+
+        $noticeExternalId = data_get($details, 'registration.opportunity.id');
+
+        if (!$noticeExternalId) {
+            Log::warning('sync.registration.notice_external_id_missing', [
+                'registration_id' => $this->registrationId,
+            ]);
+
+            return;
+        }
+
+        DB::transaction(function () use (
+            $details,
+            $agentData,
+            $cpf,
+            $noticeExternalId,
+            $snapshotService,
+            $projectService
+        ) {
+            $agent = Agent::updateOrCreate(
+                ['cpf' => $cpf],
+                [
+                    'name' => data_get($agentData, 'name') ?: 'Nome não informado',
+                ]
             );
+
+            $notice = Notice::firstWhere('external_id', $noticeExternalId);
+
+            if (!$notice) {
+                throw new RuntimeException("Edital local não encontrado para external_id {$noticeExternalId} na inscrição {$this->registrationId}.");
+            }
 
             $categoryId = $this->resolveCategory($details);
 
-            $notice = Notice::firstWhere(
-                'external_id',
-                data_get($details, 'registration.opportunity.id')
+            $project = $projectService->createFromRegistrationIfMissing(
+                registrationId: $this->registrationId,
+                registration: $this->registration,
+                details: $details,
+                agentId: $agent->id,
+                noticeId: $notice->id,
+                categoryId: $categoryId
             );
 
-            if (! $notice) {
-                Log::warning('sync.registration.notice_not_found', ['registration' => $id]);
-
-                return;
-            }
-
-            try {
-                $projectService->updateOrCreateFromRegistration(
-                    $id,
-                    $this->registration,
-                    $details,
-                    $agent->id,
-                    $notice->id,
-                    $categoryId
-                );
-            } catch (QueryException $e) {
-                if ($e->getCode() === '23505') { // postgres unique violation
-                    Log::warning('sync.registration.duplicate', ['id' => $id]);
-                } else {
-                    throw $e;
-                }
-            }
-        });
-
-        if ($agent) {
-            DB::afterCommit(function () use ($agent, $agentData, $snapshotService) {
-                $snapshotService->recordIfChanged(
+            DB::afterCommit(function () use (
+                $agent,
+                $agentData,
+                $snapshotService,
+                $project,
+                $details
+            ) {
+                // É preciso parear os valores dos enuns com os valores do Mapas
+                /* $snapshotService->recordMapasAgentIfChanged(
                     $agent,
-                    $agentData,
-                    ProfileSnapshotSource::AGENT_UPDATE,
-                );
+                    $agentData
+                ); */
+
+                SyncProjectFilesJob::dispatch(
+                    projectId: $project->id,
+                    registrationId: $this->registrationId,
+                    files: data_get($details, 'registration.files', []),
+                    fileConfigurations: data_get($details, 'fileConfigurations', [])
+                )->onQueue('files');
             });
-        }
-    }
+        }, 3);
 
-    private function fetchDetails(int $id): ?array
-    {
-        $endpoint = config('efomento.mapas_domain')."/registration/detalhes/{$id}";
-
-        $response = Http::withHeaders([
-            'authorization' => config('efomento.mapas_token'),
-        ])
-            ->timeout(10)
-            ->retry(3, fn ($attempt) => $attempt * 1000)
-            ->get($endpoint);
-
-        if (! $response->successful()) {
-            throw new \Exception("Erro ao buscar detalhes {$id}");
-        }
-
-        return $response->json();
-    }
-
-    private function getAgent(array $details): array
-    {
-        $id = data_get($details, 'registration.owner.id');
-
-        if (! $id) {
-            throw new \Exception('Owner não encontrado');
-        }
-
-        return Cache::remember("agent_{$id}", 3600, function () use ($id) {
-            return Cache::lock("agent_lock_{$id}", 10)->block(5, function () use ($id) {
-                $response = Http::withHeaders([
-                    'authorization' => config('efomento.mapas_token'),
-                ])
-                    ->timeout(10)
-                    ->retry(3, fn ($attempt) => $attempt * 1000)
-                    ->get(config('efomento.mapas_domain')."/api/agent/findOne?@select=id,name,cpf,genero,orientacaoSexual,raca&id=EQ({$id})");
-
-                if (! $response->successful()) {
-                    throw new \Exception('Erro ao buscar agente');
-                }
-
-                return $response->json();
-            });
-        });
+        Log::info('sync.registration.details.done', [
+            'registration_id' => $this->registrationId,
+        ]);
     }
 
     private function resolveCategory(array $details): ?int
     {
-        $name = $details['registration']['category'];
+        $name = trim((string) data_get($details, 'registration.category', ''));
 
-        if (! $name) {
+        if ($name === '') {
             return null;
         }
 
@@ -161,13 +177,13 @@ class SyncRegistrationDetailsJob implements ShouldQueue
 
     public function backoff(): array
     {
-        return [1, 5, 10];
+        return [1, 5, 10, 30, 60];
     }
 
-    public function failed(\Throwable $exception)
+    public function failed(Throwable $exception): void
     {
         Log::error('sync.registration.failed', [
-            'registration_id' => $this->registration['id'],
+            'registration_id' => $this->registrationId,
             'message' => $exception->getMessage(),
         ]);
     }

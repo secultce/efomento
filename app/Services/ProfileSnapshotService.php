@@ -16,7 +16,9 @@ class ProfileSnapshotService
         'education',
         'has_disability',
         'phone',
+        'secondary_phone',
         'email',
+        'secondary_email',
         'birth_date',
         'street',
         'number',
@@ -27,9 +29,34 @@ class ProfileSnapshotService
         'state',
     ];
 
-    public function record(Model $model, array $data, ProfileSnapshotSource $source): ProfileSnapshot
-    {
-        $payload = array_intersect_key($data, array_flip(self::FIELDS));
+    private const MAPAS_AGENT_FIELD_MAP = [
+        'genero' => 'gender',
+        'orientacaoSexual' => 'sexual_orientation',
+        'raca' => 'race',
+        'escolaridade' => 'education',
+        'pessoaDeficiente' => 'has_disability',
+
+        'telefone1' => 'phone',
+        'telefone2' => 'secondary_phone',
+        'emailPrivado' => 'email',
+        'emailPublico' => 'secondary_email',
+        'dataDeNascimento' => 'birth_date',
+
+        'En_Nome_Logradouro' => 'street',
+        'En_Num' => 'number',
+        'En_Complemento' => 'complement',
+        'En_CEP' => 'postal_code',
+        'En_Bairro' => 'neighborhood',
+        'En_Municipio' => 'city',
+        'En_Estado' => 'state',
+    ];
+
+    public function record(
+        Model $model,
+        array $data,
+        ProfileSnapshotSource $source
+    ): ProfileSnapshot {
+        $payload = $this->onlySnapshotFields($data);
 
         return $model->profileSnapshots()->create([
             ...$payload,
@@ -38,9 +65,12 @@ class ProfileSnapshotService
         ]);
     }
 
-    public function recordIfChanged(Model $model, array $data, ProfileSnapshotSource $source): ?ProfileSnapshot
-    {
-        $payload = array_intersect_key($data, array_flip(self::FIELDS));
+    public function recordIfChanged(
+        Model $model,
+        array $data,
+        ProfileSnapshotSource $source
+    ): ?ProfileSnapshot {
+        $payload = $this->onlySnapshotFields($data);
 
         if ($source === ProfileSnapshotSource::PROJECT_REGISTRATION) {
             return $model->profileSnapshots()->create([
@@ -67,9 +97,66 @@ class ProfileSnapshotService
             return null;
         }
 
-        $existing->update([...$payload, 'recorded_at' => now()]);
+        $existing->update([
+            ...$payload,
+            'recorded_at' => now(),
+        ]);
 
         return $existing->refresh();
+    }
+
+    public function recordMapasAgentIfChanged(
+        Model $model,
+        array $mapasAgentData
+    ): ?ProfileSnapshot {
+        $normalized = $this->normalizeMapasAgentData($mapasAgentData);
+
+        return $this->recordIfChanged(
+            $model,
+            $normalized,
+            ProfileSnapshotSource::AGENT_UPDATE
+        );
+    }
+
+    private function onlySnapshotFields(array $data): array
+    {
+        return array_intersect_key($data, array_flip(self::FIELDS));
+    }
+
+    private function normalizeMapasAgentData(array $data): array
+    {
+        $normalized = [];
+
+        foreach (self::MAPAS_AGENT_FIELD_MAP as $mapasField => $snapshotField) {
+            if (!array_key_exists($mapasField, $data)) {
+                continue;
+            }
+
+            $value = $data[$mapasField];
+
+            $normalized[$snapshotField] = match ($snapshotField) {
+                'birth_date' => $this->normalizeDate($value),
+                default => $this->normalizeString($value),
+            };
+        }
+
+        return $normalized;
+    }
+
+    private function normalizeString(mixed $value): ?string
+    {
+        if ($value === null) {
+            return null;
+        }
+
+        $value = trim((string) $value);
+
+        return $value === '' ? null : $value;
+    }
+
+    private function normalizeDate(mixed $value): ?string
+    {
+        return $this->normalizeString($value);
     }
 
     private function isSameData(ProfileSnapshot $snapshot, array $incoming): bool

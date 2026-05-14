@@ -15,6 +15,7 @@ return new class extends Migration
             $table->enum('type', array_column(CategoryType::cases(), 'value'));
             $table->timestamps();
             $table->softDeletes();
+            $table->unique(['name', 'type'], 'categories_name_type_unique');
         });
     }
 
