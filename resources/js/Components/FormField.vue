@@ -1,14 +1,14 @@
 <script setup>
-import { useSlots, cloneVNode } from 'vue'
+import { useSlots, cloneVNode } from 'vue';
 
-const props = defineProps({
-    label: String,
-    error: String,
+defineProps({
+    label: { type: String, default: '' },
+    error: { type: String, default: '' },
     required: Boolean,
-    clearable: Boolean
-})
+    clearable: Boolean,
+});
 
-const slots = useSlots()
+const slots = useSlots();
 </script>
 
 <template>
@@ -18,7 +18,7 @@ const slots = useSlots()
             <span v-if="required" class="text-red-500">*</span>
         </label>
 
-        <component v-for="vnode in slots.default?.()" :is="cloneVNode(vnode, { required, clearable })" />
+        <component :is="cloneVNode(vnode, { required, clearable })" v-for="(vnode, i) in slots.default?.()" :key="i" />
 
         <p v-if="error" class="text-red-500 text-xs">
             {{ error }}

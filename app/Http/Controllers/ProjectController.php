@@ -4,18 +4,18 @@ namespace App\Http\Controllers;
 
 use App\Enums\AccountType;
 use App\Enums\AgentStatus;
-use Illuminate\Http\Request;
-use Inertia\Inertia;
-use App\Models\Notice;
-use App\Models\User;
-use App\Enums\ProjectPhase;
 use App\Enums\InstrumentType;
 use App\Enums\OpeningStatus;
+use App\Enums\ProjectPhase;
 use App\Enums\ReportStatus;
-use App\Services\ProjectSupervisorService;
-use App\Services\ProjectDocumentService;
 use App\Http\Resources\ProjectResource;
+use App\Models\Notice;
 use App\Models\Project;
+use App\Models\User;
+use App\Services\ProjectDocumentService;
+use App\Services\ProjectSupervisorService;
+use Illuminate\Http\Request;
+use Inertia\Inertia;
 
 class ProjectController extends Controller
 {
@@ -39,31 +39,33 @@ class ProjectController extends Controller
                 'title' => $phase->label(),
                 'total' => $phase->count($query),
             ]),
-            'supervisors_available' => User::role(['monitoring', 'coord_monitoring'])
+            'supervisorsAvailable' => User::role(['monitoring', 'coord_monitoring'])
                 ->select('id', 'name')
                 ->get(),
-            ]);
+        ]);
     }
 
     public function projectDetail(Notice $notice, Project $project)
     {
         $project->load([
-            'notice', 
-            'agent', 
-            'category', 
-            'opening',  
-            'opening.supervisors' => function ($q) {$q->whereNull('removed_at'); }, 
-            'opening.supervisors.user', 
-            'documents', 
+            'notice',
+            'agent',
+            'category',
+            'opening',
+            'opening.supervisors' => function ($q) {
+                $q->whereNull('removed_at');
+            },
+            'opening.supervisors.user',
+            'documents',
             'budget',
-            'budget.installments', 
-            'formalization', 
-            'agent.latestSnapshot'
+            'budget.installments',
+            'formalization',
+            'agent.latestSnapshot',
         ]);
 
         $availableSupervisors = User::role(['monitoring', 'coord_monitoring'])
-        ->select('id', 'name', 'registration_number')
-        ->get();
+            ->select('id', 'name', 'registration_number')
+            ->get();
 
         return Inertia::render('ProjectDetails', [
             'project' => (new ProjectResource($project))->resolve(),
@@ -101,7 +103,7 @@ class ProjectController extends Controller
             ]);
         }
     }
-    
+
     public function createCI(Request $request, ProjectDocumentService $service)
     {
         $data = $request->validate([
@@ -115,9 +117,11 @@ class ProjectController extends Controller
                 $data['selected_projects'],
                 $data['content']
             );
+
             return back()->with('success', 'Comunicações internas criadas com sucesso!');
         } catch (\Throwable $e) {
             report($e);
+
             return back()->withErrors([
                 'message' => $e->getMessage() ?: 'Erro ao criar comunicações internas. Tente novamente.',
             ]);

@@ -7,39 +7,40 @@ use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
+use Spatie\Permission\PermissionRegistrar;
 
 class GroupController extends Controller
 {
     private array $modules = [
-        'budget_allocation'     => 'Vinculação Orçamentária',
-        'legal_term'    => 'Termo Jurídico',
-        'term_summary'  => 'Extrato do Termo Jurídico',
-        'ci'           => 'CI',
-        'dispatch'     => 'Despacho',
-        'legal_opinion'  => 'Parecer Jurídico',
-        'budget_opinion'  => 'Parecer Orçamentário',
-        'opening'     => 'Abertura',
-        'LegalAnalysis'  => 'Análise Jurídica',
+        'budget_allocation' => 'Vinculação Orçamentária',
+        'legal_term' => 'Termo Jurídico',
+        'term_summary' => 'Extrato do Termo Jurídico',
+        'ci' => 'CI',
+        'dispatch' => 'Despacho',
+        'legal_opinion' => 'Parecer Jurídico',
+        'budget_opinion' => 'Parecer Orçamentário',
+        'opening' => 'Abertura',
+        'LegalAnalysis' => 'Análise Jurídica',
         'formalization' => 'Formalização',
-        'budget'    => 'Orçamento e Parcelas',
-        'payment'    => 'Pagamento Financeiro',
-        'users'     => 'Gerenciamento de Usuários',
-        'groups'       => 'Gerenciamento de Grupos',
+        'budget' => 'Orçamento e Parcelas',
+        'payment' => 'Pagamento Financeiro',
+        'users' => 'Gerenciamento de Usuários',
+        'groups' => 'Gerenciamento de Grupos',
     ];
 
     private array $roleLabels = [
-        'fomentation'             => 'Fomento',
-        'coord_fomentation'       => 'Coord. Fomento',
-        'financial'          => 'Financeiro',
-        'coord_financial'    => 'Coord. Financeiro',
-        'LegalAnalysis'            => 'Jurídico',
-        'coord_legal'      => 'Coord. Jurídico',
-        'budgetary'        => 'Orçamentário',
-        'coord_budgetary'  => 'Coord. Orçamentário',
-        'monitoring'       => 'Monitoramento',
+        'fomentation' => 'Fomento',
+        'coord_fomentation' => 'Coord. Fomento',
+        'financial' => 'Financeiro',
+        'coord_financial' => 'Coord. Financeiro',
+        'LegalAnalysis' => 'Jurídico',
+        'coord_legal' => 'Coord. Jurídico',
+        'budgetary' => 'Orçamentário',
+        'coord_budgetary' => 'Coord. Orçamentário',
+        'monitoring' => 'Monitoramento',
         'coord_monitoring' => 'Coord. Monitoramento',
-        'tracking'      => 'Acompanhamento',
-        'super_admin'         => 'Super Admin',
+        'tracking' => 'Acompanhamento',
+        'super_admin' => 'Super Admin',
     ];
 
     private array $actions = [
@@ -50,7 +51,7 @@ class GroupController extends Controller
         ['key' => 'edit_any',   'label' => 'Editar outros'],
         ['key' => 'delete_own', 'label' => 'Excluir o próprio'],
         ['key' => 'delete_any', 'label' => 'Excluir outros'],
-        ['key'=> 'assign_supervisor', 'label' => 'Atribuir Supervisor'],
+        ['key' => 'assign_supervisor', 'label' => 'Atribuir Supervisor'],
     ];
 
     public function index()
@@ -60,8 +61,8 @@ class GroupController extends Controller
         $roles = Role::with('permissions')
             ->get()
             ->map(fn ($role) => [
-                'name'        => $role->name,
-                'label'       => $this->roleLabels[$role->name] ?? $role->name,
+                'name' => $role->name,
+                'label' => $this->roleLabels[$role->name] ?? $role->name,
                 'permissions' => $role->permissions->pluck('name')->toArray(),
             ]);
 
@@ -72,24 +73,24 @@ class GroupController extends Controller
         $users = User::all();
 
         return Inertia::render('Groups/Index', [
-            'modules'        => $modules,
-            'actions'        => $this->actions,
+            'modules' => $modules,
+            'actions' => $this->actions,
             'allPermissions' => $allPermissions,
-            'roles'          => $roles,
-            'users'          => $users,
+            'roles' => $roles,
+            'users' => $users,
         ]);
     }
 
     public function update(Request $request)
     {
         $validated = $request->validate([
-            'roles'                   => 'required|array',
-            'roles.*.name'            => 'required|string|exists:roles,name',
-            'roles.*.permissions'     => 'present|array',
-            'roles.*.permissions.*'   => 'string|exists:permissions,name',
+            'roles' => 'required|array',
+            'roles.*.name' => 'required|string|exists:roles,name',
+            'roles.*.permissions' => 'present|array',
+            'roles.*.permissions.*' => 'string|exists:permissions,name',
         ]);
 
-        app()[\Spatie\Permission\PermissionRegistrar::class]->forgetCachedPermissions();
+        app()[PermissionRegistrar::class]->forgetCachedPermissions();
 
         foreach ($validated['roles'] as $roleData) {
             $role = Role::findByName($roleData['name']);

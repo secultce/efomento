@@ -5,7 +5,6 @@ namespace Database\Seeders;
 use App\Models\File;
 use App\Models\LegalAnalysis;
 use App\Models\LegalAnalysisFile;
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 
 class LegalAnalysisSeeder extends Seeder

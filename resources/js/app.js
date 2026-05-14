@@ -13,11 +13,10 @@ import AppHeader from '@/Components/AppHeader.vue';
 import AppSubHeader from '@/Components/AppSubHeader.vue';
 import '@fontsource/source-sans-3/400.css';
 import '@fontsource/source-sans-3/700.css';
-import permission from '@/Directives/permission'
-import tinymce from 'tinymce'
+import permission from '@/Directives/permission';
+import tinymce from 'tinymce';
 
-
-tinymce.overrideDefaults({ license_key: 'gpl' })
+tinymce.overrideDefaults({ license_key: 'gpl' });
 
 const materialSymbols = {
     component: (props) => h('span', { class: 'material-symbols-outlined' }, props.icon),
@@ -61,19 +60,14 @@ const appName = import.meta.env.VITE_APP_NAME || 'Laravel';
 function resolvePage(name) {
     const pages = import.meta.glob('./Pages/**/*.vue');
 
-    const normalizedName = name
-        .replace(/\./g, '/')
-        .replace(/\/+$/, '');
+    const normalizedName = name.replace(/\./g, '/').replace(/\/+$/, '');
 
     const formattedName = normalizedName
         .split('/')
-        .map(segment => segment.charAt(0).toUpperCase() + segment.slice(1))
+        .map((segment) => segment.charAt(0).toUpperCase() + segment.slice(1))
         .join('/');
 
-    const paths = [
-        `./Pages/${formattedName}.vue`,
-        `./Pages/${formattedName}/Index.vue`,
-    ];
+    const paths = [`./Pages/${formattedName}.vue`, `./Pages/${formattedName}/Index.vue`];
 
     for (const path of paths) {
         if (pages[path]) {

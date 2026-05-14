@@ -1,22 +1,24 @@
 <?php
+
 namespace App\Services;
 
-use Illuminate\Support\Facades\File;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\Relation;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
-use Illuminate\Database\Eloquent\Relations\BelongsToMany;
-use Illuminate\Database\Eloquent\Relations\MorphOne;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
+use Illuminate\Database\Eloquent\Relations\MorphOne;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
 use Illuminate\Database\Eloquent\Relations\MorphToMany;
+use Illuminate\Database\Eloquent\Relations\Relation;
+use Illuminate\Support\Facades\File;
 use ReflectionClass;
 
 class PUMLGeneratorService
 {
     protected string $diagramsPath;
+
     protected string $classesPath;
 
     public function __construct()
@@ -34,12 +36,16 @@ class PUMLGeneratorService
         $relationships = [];
 
         foreach ($models as $modelClass) {
-            if (!class_exists($modelClass)) continue;
+            if (! class_exists($modelClass)) {
+                continue;
+            }
             $reflection = new ReflectionClass($modelClass);
-            if (!$reflection->isSubclassOf(Model::class)) continue;
+            if (! $reflection->isSubclassOf(Model::class)) {
+                continue;
+            }
 
             /** @var Model $model */
-            $model = new $modelClass();
+            $model = new $modelClass;
 
             // Generate ER entity
             $erContent .= $this->generateEntity($model);
@@ -90,7 +96,7 @@ class PUMLGeneratorService
 
     protected function generateERHeader(): string
     {
-        return <<<EOT
+        return <<<'EOT'
 @startuml e-Fomento — Diagrama de Relacionamento (ER)
 
 !define TABLE(x) class x << (T,#FFAAAA) >>
@@ -137,6 +143,7 @@ EOT;
         }
 
         $content .= "}\n\n";
+
         return $content;
     }
 
@@ -146,8 +153,12 @@ EOT;
         $class = new ReflectionClass($model);
 
         foreach ($class->getMethods(\ReflectionMethod::IS_PUBLIC) as $method) {
-            if ($method->class !== get_class($model)) continue;
-            if ($method->getNumberOfParameters() > 0) continue;
+            if ($method->class !== get_class($model)) {
+                continue;
+            }
+            if ($method->getNumberOfParameters() > 0) {
+                continue;
+            }
 
             try {
                 $return = $method->invoke($model);

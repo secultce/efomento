@@ -5,7 +5,6 @@ namespace Tests\Feature;
 use App\Models\Notice;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Foundation\Testing\WithFaker;
 use Tests\TestCase;
 
 class NoticeAuditTest extends TestCase
@@ -50,8 +49,8 @@ class NoticeAuditTest extends TestCase
                     'date',
                     'old_values',
                     'new_values',
-                ]
-            ]
+                ],
+            ],
         ]);
 
         // Verifica ordenação (latest primeiro)

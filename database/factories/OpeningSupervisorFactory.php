@@ -14,19 +14,19 @@ class OpeningSupervisorFactory extends Factory
     public function definition(): array
     {
         return [
-            'opening_id'  => Opening::factory(),
-            'user_id'     => User::factory(),
+            'opening_id' => Opening::factory(),
+            'user_id' => User::factory(),
             'assigned_by' => User::factory(),
-            'is_active'   => true,
+            'is_active' => true,
             'assigned_at' => now(),
-            'removed_at'  => null,
+            'removed_at' => null,
         ];
     }
 
     public function inactive(): static
     {
         return $this->state([
-            'is_active'  => false,
+            'is_active' => false,
             'removed_at' => now(),
         ]);
     }

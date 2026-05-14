@@ -17,14 +17,17 @@ class File extends Model
         'name',
         'object_type',
         'object_id',
+        'source',
+        'external_id',
         'grp',
+        'title',
         'description',
         'path',
         'private',
     ];
 
     protected $casts = [
-        'private'    => 'boolean',
+        'private' => 'boolean',
         'created_at' => 'datetime',
         'updated_at' => 'datetime',
         'deleted_at' => 'datetime',

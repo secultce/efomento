@@ -1,10 +1,10 @@
 <?php
 
+use App\Enums\DeliberationType;
+use App\Enums\ReportStatus;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
-use App\Enums\ReportStatus;
-use App\Enums\DeliberationType;
 
 return new class extends Migration
 {

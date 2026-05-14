@@ -1,7 +1,11 @@
 <?php
 
+use App\Providers\AppServiceProvider;
+use Maatwebsite\Excel\ExcelServiceProvider;
+use OwenIt\Auditing\AuditingServiceProvider;
+
 return [
-    App\Providers\AppServiceProvider::class,
-    OwenIt\Auditing\AuditingServiceProvider::class,
-    Maatwebsite\Excel\ExcelServiceProvider::class,
+    AppServiceProvider::class,
+    AuditingServiceProvider::class,
+    ExcelServiceProvider::class,
 ];

@@ -7,7 +7,6 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-
     public function up(): void
     {
         Schema::create('categories', function (Blueprint $table) {
@@ -16,9 +15,9 @@ return new class extends Migration
             $table->enum('type', array_column(CategoryType::cases(), 'value'));
             $table->timestamps();
             $table->softDeletes();
+            $table->unique(['name', 'type'], 'categories_name_type_unique');
         });
     }
-
 
     public function down(): void
     {

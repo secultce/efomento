@@ -29,14 +29,14 @@ class FileService
         );
 
         return File::create([
-            'mime_type'   => $file->getMimeType() ?? $file->getClientMimeType(),
-            'name'        => $file->getClientOriginalName(),
+            'mime_type' => $file->getMimeType() ?? $file->getClientMimeType(),
+            'name' => $file->getClientOriginalName(),
             'object_type' => $this->getMorphAlias($entity),
-            'object_id'   => $entity->getKey(),
-            'grp'         => $grp,
+            'object_id' => $entity->getKey(),
+            'grp' => $grp,
             'description' => $options['description'] ?? null,
-            'path'        => $path,
-            'private'     => (bool) ($options['private'] ?? false),
+            'path' => $path,
+            'private' => (bool) ($options['private'] ?? false),
         ]);
     }
 
@@ -51,18 +51,18 @@ class FileService
 
     private function buildPath(Model $entity, UploadedFile $file): string
     {
-        $alias    = $this->getMorphAlias($entity);
-        $id       = $entity->getKey();
-        $ext      = $file->getClientOriginalExtension();
+        $alias = $this->getMorphAlias($entity);
+        $id = $entity->getKey();
+        $ext = $file->getClientOriginalExtension();
         $basename = pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME);
-        $slug     = Str::slug($basename);
+        $slug = Str::slug($basename);
 
         return "{$alias}/{$id}/{$slug}.{$ext}";
     }
 
     private function getMorphAlias(Model $entity): string
     {
-        $map   = Relation::getMorphMap();
+        $map = Relation::getMorphMap();
         $class = get_class($entity);
         $alias = array_search($class, $map, true);
 

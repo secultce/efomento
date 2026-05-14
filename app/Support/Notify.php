@@ -20,7 +20,7 @@ class Notify
     public function user(?User $user = null): self
     {
         $this->targets = collect([
-            $user ?? Auth::user()
+            $user ?? Auth::user(),
         ])->filter();
 
         return $this;
@@ -29,19 +29,21 @@ class Notify
     public function users(iterable $users): self
     {
         $this->targets = collect($users);
-        
+
         return $this;
     }
 
     public function allUsers(): self
     {
-        $this->targets = User::all(); 
+        $this->targets = User::all();
+
         return $this;
     }
 
     public function where(callable $callback): self
     {
         $this->targets = $this->targets->filter($callback);
+
         return $this;
     }
 
@@ -54,12 +56,12 @@ class Notify
     {
         if ($this->targets->isNotEmpty()) {
             Notification::send(
-                $this->targets, 
+                $this->targets,
                 new AppNotification($message, $type, $title, $meta)
             );
         }
 
-        $this->reset(); 
+        $this->reset();
     }
 
     public function default(string $message, ?string $title = null, array $meta = []): void

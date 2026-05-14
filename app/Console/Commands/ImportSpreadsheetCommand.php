@@ -20,6 +20,7 @@ class ImportSpreadsheetCommand extends Command
 
         if (! file_exists($path)) {
             $this->error("Arquivo não encontrado: {$path}");
+
             return self::FAILURE;
         }
 

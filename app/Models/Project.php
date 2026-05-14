@@ -2,10 +2,9 @@
 
 namespace App\Models;
 
-use App\Traits\HasCreatedBy;
-use App\Traits\HasFiles;
 use App\Enums\ProjectPhase;
 use App\Enums\ProjectStageStatus;
+use App\Traits\HasFiles;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;

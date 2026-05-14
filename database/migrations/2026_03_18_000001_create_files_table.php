@@ -14,7 +14,10 @@ return new class extends Migration
             $table->string('name');
             $table->string('object_type');
             $table->unsignedBigInteger('object_id');
+            $table->string('source')->nullable();
+            $table->string('external_id')->nullable();
             $table->string('grp', 32);
+            $table->string('title')->nullable();
             $table->text('description')->nullable();
             $table->string('path', 1024)->nullable();
             $table->boolean('private')->default(false);
@@ -23,6 +26,11 @@ return new class extends Migration
 
             $table->index(['object_type', 'object_id']);
             $table->index('grp');
+
+            $table->unique(
+                ['object_type', 'object_id', 'source', 'external_id'],
+                'files_object_source_external_unique'
+            );
         });
     }
 

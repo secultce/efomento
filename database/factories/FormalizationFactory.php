@@ -2,12 +2,13 @@
 
 namespace Database\Factories;
 
-use Illuminate\Database\Eloquent\Factories\Factory;
+use App\Enums\DeliberationType;
+use App\Enums\ReportStatus;
 use App\Models\Formalization;
 use App\Models\Project;
-use App\Enums\ReportStatus;
-use App\Enums\DeliberationType;
 use App\Models\User;
+use Illuminate\Database\Eloquent\Factories\Factory;
+
 class FormalizationFactory extends Factory
 {
     protected $model = Formalization::class;
@@ -47,28 +48,28 @@ class FormalizationFactory extends Factory
                     'grp' => 'commitment_term',
                     'path' => 'files/commitment1.pdf',
                     'mime_type' => 'application/pdf',
-                    'private' => false
+                    'private' => false,
                 ],
                 [
                     'name' => 'Term Summary',
                     'grp' => 'term_summary',
                     'path' => 'files/summary1.pdf',
                     'mime_type' => 'application/pdf',
-                    'private' => false
+                    'private' => false,
                 ],
                 [
                     'name' => 'Official Gazette',
                     'grp' => 'official_gazette',
                     'path' => 'files/gazette1.pdf',
                     'mime_type' => 'application/pdf',
-                    'private' => true
+                    'private' => true,
                 ],
                 [
                     'name' => 'Legal Opinion',
                     'grp' => 'legal_opinion',
                     'path' => 'files/legal1.pdf',
                     'mime_type' => 'application/pdf',
-                    'private' => true
+                    'private' => true,
                 ],
             ]);
         });

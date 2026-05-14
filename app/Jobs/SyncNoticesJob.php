@@ -2,73 +2,99 @@
 
 namespace App\Jobs;
 
-use App\Models\Notice;
+use App\Services\MapasClient;
 use App\Services\NoticeService;
+use Illuminate\Bus\Batch;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
+use Illuminate\Queue\Middleware\WithoutOverlapping;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Facades\Bus;
-use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
+use Throwable;
 
 class SyncNoticesJob implements ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
     public int $tries = 3;
+
     public int $timeout = 120;
 
-    /**
-     * Create a new job instance.
-     */
     public function __construct()
     {
         $this->onQueue('high');
     }
 
-    /**
-     * Execute the job.
-     */
-    public function handle(NoticeService $noticeService): void
+    public function middleware(): array
     {
+        return [
+            (new WithoutOverlapping('sync-notices'))
+                ->releaseAfter(300)
+                ->expireAfter(3600),
+        ];
+    }
+
+    public function handle(
+        MapasClient $mapasClient,
+        NoticeService $noticeService
+    ): void {
         Log::info('sync.notices.start');
 
-        $seal = config('efomento.mapas_seal');
-        $endpoint = config('efomento.mapas_domain') . "/api/opportunity/find?@select=id,name,singleUrl&@seals={$seal}&publish_site=EQ(Sim)";
+        $notices = $mapasClient->publishedNotices();
 
-        $response = Http::timeout(10)
-            ->retry(3, fn($attempt) => $attempt * 1000)
-            ->get($endpoint);
+        $jobs = $notices
+            ->filter(fn (array $notice) => filled(data_get($notice, 'id')))
+            ->map(function (array $notice) use ($noticeService) {
+                $noticeService->createFromMapasIfMissing($notice);
 
-        if (!$response->successful()) {
-            throw new \Exception('Erro ao buscar API');
+                return (new SyncNoticeRegistrationsJob((int) data_get($notice, 'id')))
+                    ->onQueue('medium');
+            })
+            ->values();
+
+        if ($jobs->isEmpty()) {
+            Log::info('sync.notices.empty');
+
+            return;
         }
 
-        $notices = collect($response->json());
+        Bus::batch($jobs->all())
+            ->name('sync-notices-registration-loaders')
+            ->onQueue('medium')
+            ->allowFailures()
+            ->then(function (Batch $batch) {
+                Log::info('sync.batch.success', [
+                    'batch_id' => $batch->id,
+                    'total_jobs' => $batch->totalJobs,
+                    'processed_jobs' => $batch->processedJobs(),
+                    'failed_jobs' => $batch->failedJobs,
+                ]);
+            })
+            ->catch(function (Batch $batch, Throwable $e) {
+                Log::error('sync.batch.error', [
+                    'batch_id' => $batch->id,
+                    'error' => $e->getMessage(),
+                ]);
+            })
+            ->finally(function (Batch $batch) {
+                Log::info('sync.batch.finished', [
+                    'batch_id' => $batch->id,
+                    'total_jobs' => $batch->totalJobs,
+                    'processed_jobs' => $batch->processedJobs(),
+                    'pending_jobs' => $batch->pendingJobs,
+                    'failed_jobs' => $batch->failedJobs,
+                    'progress' => $batch->progress(),
+                ]);
+            })
+            ->dispatch();
 
-        $jobs = [];
-
-        foreach ($notices as $notice) {
-            $noticeService->updateOrCreateFromMapas($notice);
-
-            $jobs[] = new SyncNoticeRegistrationsJob($notice['id']);
-        }
-
-        collect($jobs)
-            ->chunk(50)
-            ->each(function ($chunk) {
-                Bus::batch($chunk->all())
-                    ->name('sync-notices-registrations')
-                    ->onQueue('medium')
-                    ->allowFailures()
-                    ->then(fn() => Log::info('sync.batch.success'))
-                    ->catch(fn($e) => Log::error('sync.batch.error', ['error' => $e->getMessage()]))
-                    ->dispatch();
-            });
-
-        Log::info('sync.notices.done', ['total' => $notices->count()]);
+        Log::info('sync.notices.registration_jobs_dispatched', [
+            'total' => $notices->count(),
+            'valid' => $jobs->count(),
+        ]);
     }
 
     public function backoff(): array
@@ -76,11 +102,10 @@ class SyncNoticesJob implements ShouldQueue
         return [1, 5, 10];
     }
 
-    public function failed(\Throwable $exception)
+    public function failed(Throwable $exception): void
     {
         Log::error('sync.notices.failed', [
             'message' => $exception->getMessage(),
-            'trace' => $exception->getTraceAsString()
         ]);
     }
 }

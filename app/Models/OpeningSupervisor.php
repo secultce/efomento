@@ -22,9 +22,9 @@ class OpeningSupervisor extends Model
     ];
 
     protected $casts = [
-        'is_active'   => 'boolean',
+        'is_active' => 'boolean',
         'assigned_at' => 'datetime',
-        'removed_at'  => 'datetime',
+        'removed_at' => 'datetime',
     ];
 
     public function opening(): BelongsTo

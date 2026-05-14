@@ -2,13 +2,13 @@
 
 namespace App\Models;
 
+use App\Enums\DeliberationType;
+use App\Enums\ReportStatus;
 use App\Traits\HasCreatedBy;
 use App\Traits\HasFiles;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
-use App\Enums\ReportStatus;
-use App\Enums\DeliberationType;
 use OwenIt\Auditing\Auditable as AuditableTrait;
 use OwenIt\Auditing\Contracts\Auditable;
 
@@ -58,7 +58,6 @@ class Formalization extends Model implements Auditable
         'report_status' => ReportStatus::class,
         'deliberation' => DeliberationType::class,
     ];
-
 
     public function project()
     {

@@ -26,5 +26,4 @@ enum SexualOrientation: string implements HasLabel
             self::PREFERE_NAO_RESPONDER => 'Prefere não responder',
         };
     }
-
 }

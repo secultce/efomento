@@ -3,8 +3,8 @@
 namespace App\Http\Middleware;
 
 use Illuminate\Http\Request;
-use Inertia\Middleware;
 use Illuminate\Support\Facades\Route;
+use Inertia\Middleware;
 
 class HandleInertiaRequests extends Middleware
 {
@@ -39,15 +39,29 @@ class HandleInertiaRequests extends Middleware
                 'currentRoute' => Route::currentRouteName(),
             ],
             'notifications' => function () use ($request) {
-                if (!$request->user()) return [];
+                if (!$request->user()) {
+                    return [];
+                }
 
                 return $request->user()
-                    ->unreadNotifications
+                    ->unreadNotifications()
+                    ->latest()
+                    ->limit(5)
+                    ->get()
                     ->map(fn ($notification) => [
                         'id' => $notification->id,
                         'data' => $notification->data,
                         'created_at' => $notification->created_at,
                     ]);
+            },
+            'allUnreadCount' => function () use ($request) {
+                if (!$request->user()) {
+                    return 0;
+                }
+                
+                return $request->user()
+                    ->unreadNotifications()
+                    ->count();
             },
         ];
     }

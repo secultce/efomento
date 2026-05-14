@@ -37,6 +37,5 @@ export const elements = {
     processNumberCreditorProcessInformation: '[data-cy=numeroProcessoCredorInformacoesDoProcesso]',
     quotaNumberProcessInformation: '[data-cy=numeroParcelasInformacoesDoProcesso]',
     processNumberBudgetAlocationProcessInformation: '[data-cy=numeroProcessoDotacaoInformacoesDoProcesso]',
-    budgetAlocationCreditorRegister: '[data-cy=dataSolicitacaoCadastroCredorInformacoesDoProcesso]'
-
-}
+    budgetAlocationCreditorRegister: '[data-cy=dataSolicitacaoCadastroCredorInformacoesDoProcesso]',
+};
