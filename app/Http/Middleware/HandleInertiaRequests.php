@@ -39,17 +39,29 @@ class HandleInertiaRequests extends Middleware
                 'currentRoute' => Route::currentRouteName(),
             ],
             'notifications' => function () use ($request) {
-                if (! $request->user()) {
+                if (!$request->user()) {
                     return [];
                 }
 
                 return $request->user()
-                    ->unreadNotifications
+                    ->unreadNotifications()
+                    ->latest()
+                    ->limit(5)
+                    ->get()
                     ->map(fn ($notification) => [
                         'id' => $notification->id,
                         'data' => $notification->data,
                         'created_at' => $notification->created_at,
                     ]);
+            },
+            'allUnreadCount' => function () use ($request) {
+                if (!$request->user()) {
+                    return 0;
+                }
+                
+                return $request->user()
+                    ->unreadNotifications()
+                    ->count();
             },
         ];
     }
