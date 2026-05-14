@@ -33,7 +33,7 @@ class SyncRegistrationDetailsJob implements ShouldQueue
 
     public function __construct(
         public int $registrationId,
-        public array $registration = []
+        public array $registration
     ) {
         $this->onQueue('details');
     }

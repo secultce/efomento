@@ -165,8 +165,10 @@ class DownloadMapasProjectFileJob implements ShouldQueue
 
             throw $exception;
         } finally {
-            if (file_exists($temporaryPath)) {
-                @unlink($temporaryPath);
+            if (is_file($temporaryPath) && !unlink($temporaryPath)) {
+                Log::warning('sync.tmp_file_not_deleted', [
+                    'path' => $temporaryPath,
+                ]);
             }
         }
     }
