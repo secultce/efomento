@@ -9,7 +9,9 @@ use App\Models\Project;
 use App\Observers\NoticeObserver;
 use App\Observers\ProjectObserver;
 use App\Support\Notify;
+use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Database\Eloquent\Relations\Relation;
+use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Facades\Vite;
 use Illuminate\Support\ServiceProvider;
 
@@ -40,5 +42,11 @@ class AppServiceProvider extends ServiceProvider
 
         Notice::observe(NoticeObserver::class);
         Project::observe(ProjectObserver::class);
+
+        RateLimiter::for('mapas-api', function () {
+            return Limit::perMinute(
+                (int) config('efomento.mapas_rate_limit_per_minute', 60)
+            )->by('mapas-api');
+        });
     }
 }

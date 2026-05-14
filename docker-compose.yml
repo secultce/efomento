@@ -63,6 +63,7 @@ services:
       timeout: 5s
       retries: 10
       start_period: 30s
+
   queue:
     build:
       context: ./docker/php
@@ -80,7 +81,29 @@ services:
       [
         "sh",
         "-c",
-        "php artisan queue:work --queue=high,medium,low,details,default --sleep=1 --tries=3 --timeout=90",
+        "php artisan queue:work --queue=high,medium,details,default --sleep=1 --tries=3 --timeout=240",
+      ]
+    networks:
+      - efomento
+
+  queue-files:
+    build:
+      context: ./docker/php
+      dockerfile: Dockerfile
+      args:
+        UID: ${UID}
+        GID: ${GID}
+    container_name: efomento-queue-files
+    volumes:
+      - .:/var/www
+    depends_on:
+      postgres:
+        condition: service_healthy
+    command:
+      [
+        "sh",
+        "-c",
+        "php artisan queue:work --queue=files --sleep=1 --tries=3 --timeout=240",
       ]
     networks:
       - efomento
@@ -98,8 +121,7 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
-    command:
-      ["sh", "-c", "while true; do php artisan schedule:run; sleep 60; done"]
+    command: ["php", "artisan", "schedule:work"]
     networks:
       - efomento
 

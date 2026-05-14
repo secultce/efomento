@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Models\Notice;
 use Illuminate\Support\Collection;
+use InvalidArgumentException;
 
 class NoticeService
 {
@@ -47,13 +48,21 @@ class NoticeService
         ];
     }
 
-    public function updateOrCreateFromMapas(array $notice): Notice
+    public function createFromMapasIfMissing(array $notice): Notice
     {
-        return Notice::updateOrCreate(
-            ['external_id' => $notice['id']],
+        $externalId = data_get($notice, 'id');
+
+        if (!$externalId) {
+            throw new InvalidArgumentException('Edital sem id externo.');
+        }
+
+        return Notice::query()->firstOrCreate(
             [
-                'name' => $notice['name'],
-                'notice_url' => $notice['singleUrl'],
+                'external_id' => $externalId,
+            ],
+            [
+                'name' => data_get($notice, 'name') ?: 'Edital sem nome',
+                'notice_url' => data_get($notice, 'singleUrl'),
             ]
         );
     }
