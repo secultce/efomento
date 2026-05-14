@@ -39,7 +39,7 @@ class ProjectController extends Controller
                 'title' => $phase->label(),
                 'total' => $phase->count($query),
             ]),
-            'supervisors_available' => User::role(['monitoring', 'coord_monitoring'])
+            'supervisorsAvailable' => User::role(['monitoring', 'coord_monitoring'])
                 ->select('id', 'name')
                 ->get(),
         ]);

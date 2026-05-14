@@ -1,22 +1,22 @@
 <script setup>
-import { ref, computed } from 'vue'
-import Editor from '@tinymce/tinymce-vue'
-import '@/plugins/tinymce/tinymce.js'
+import { computed } from 'vue';
+import Editor from '@tinymce/tinymce-vue';
+import '@/plugins/tinymce/tinymce.js';
 
 const props = defineProps({
-    modelValue: String,
-    label: String,
-    error: String,
-})
+    modelValue: { type: String, default: '' },
+    label: { type: String, default: '' },
+    error: { type: String, default: '' },
+});
 
-const emit = defineEmits(['update:modelValue'])
+const emit = defineEmits(['update:modelValue']);
 
 const editorValue = computed({
     get: () => props.modelValue,
-    set: (val) => emit('update:modelValue', val)
-})
+    set: (val) => emit('update:modelValue', val),
+});
 
-const tinyBaseUrl = import.meta.env.VITE_TINYMCE_BASE_URL
+const tinyBaseUrl = import.meta.env.VITE_TINYMCE_BASE_URL;
 </script>
 
 <template>
@@ -35,11 +35,22 @@ const tinyBaseUrl = import.meta.env.VITE_TINYMCE_BASE_URL
                 menubar: 'file edit view insert format tools table help',
                 promotion: false,
                 plugins: [
-                    'link', 'lists', 'table', 'code', 'image',
-                    'wordcount', 'fullscreen', 'preview',
-                    'searchreplace', 'autolink', 'directionality',
-                    'visualblocks', 'visualchars',
-                    'insertdatetime', 'media', 'help'
+                    'link',
+                    'lists',
+                    'table',
+                    'code',
+                    'image',
+                    'wordcount',
+                    'fullscreen',
+                    'preview',
+                    'searchreplace',
+                    'autolink',
+                    'directionality',
+                    'visualblocks',
+                    'visualchars',
+                    'insertdatetime',
+                    'media',
+                    'help',
                 ],
                 toolbar: `
                     undo redo | blocks fontfamily fontsize |
@@ -54,9 +65,9 @@ const tinyBaseUrl = import.meta.env.VITE_TINYMCE_BASE_URL
                     removeformat help
                 `,
                 branding: false,
-                ui_container: '.editor-container', 
+                ui_container: '.editor-container',
                 height: 500,
-                content_style: 'body { font-family:Helvetica,Arial,sans-serif; font-size:14px }'
+                content_style: 'body { font-family:Helvetica,Arial,sans-serif; font-size:14px }',
             }"
         />
 

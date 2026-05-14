@@ -128,7 +128,7 @@ class ProfileSnapshotService
         $normalized = [];
 
         foreach (self::MAPAS_AGENT_FIELD_MAP as $mapasField => $snapshotField) {
-            if (!array_key_exists($mapasField, $data)) {
+            if (! array_key_exists($mapasField, $data)) {
                 continue;
             }
 

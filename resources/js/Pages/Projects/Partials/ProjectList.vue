@@ -3,14 +3,14 @@ import { computed } from 'vue';
 import ListDataTable from '@/Components/ListDataTable.vue';
 
 const props = defineProps({
-    projects: Array,
-    tableConfig: Object,
-    search: String,
+    projects: { type: Array, default: () => [] },
+    tableConfig: { type: Object, default: null },
+    search: { type: String, default: '' },
 });
 
 const emit = defineEmits(['update:search', 'clearPhaseFilter', 'update:selectedProjects', 'action']);
 
-const selected = defineModel();
+const selected = defineModel({ type: Array, default: () => [] });
 
 const isSelectable = computed(() => props.tableConfig?.isSelectable ?? (() => true));
 

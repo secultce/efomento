@@ -21,7 +21,9 @@ class SyncNoticeRegistrationsJob implements ShouldQueue
     use Batchable, Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
     public int $tries = 10;
+
     public int $timeout = 120;
+
     public int $maxExceptions = 3;
 
     public function __construct(public int $noticeId)
@@ -54,16 +56,16 @@ class SyncNoticeRegistrationsJob implements ShouldQueue
         $registrations = $mapasClient->selectedRegistrations($this->noticeId);
 
         $missingIdCount = $registrations
-            ->filter(fn(array $registration) => blank(data_get($registration, 'id')))
+            ->filter(fn (array $registration) => blank(data_get($registration, 'id')))
             ->count();
 
         $jobs = $registrations
-            ->filter(fn(array $registration) => filled(data_get($registration, 'id')))
+            ->filter(fn (array $registration) => filled(data_get($registration, 'id')))
             ->map(function (array $registration) {
-                return (new SyncRegistrationDetailsJob(
+                return new SyncRegistrationDetailsJob(
                     registrationId: (int) data_get($registration, 'id'),
                     registration: $registration
-                ));
+                );
             })
             ->values();
 
@@ -88,7 +90,7 @@ class SyncNoticeRegistrationsJob implements ShouldQueue
 
         $chunks->each(function ($chunk, int $index) {
             Bus::batch($chunk->all())
-                ->name("sync-registration-details:notice:{$this->noticeId}:chunk:" . ($index + 1))
+                ->name("sync-registration-details:notice:{$this->noticeId}:chunk:".($index + 1))
                 ->onQueue('details')
                 ->allowFailures()
                 ->dispatch();

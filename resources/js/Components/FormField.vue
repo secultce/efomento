@@ -1,9 +1,9 @@
 <script setup>
 import { useSlots, cloneVNode } from 'vue';
 
-const props = defineProps({
-    label: String,
-    error: String,
+defineProps({
+    label: { type: String, default: '' },
+    error: { type: String, default: '' },
     required: Boolean,
     clearable: Boolean,
 });

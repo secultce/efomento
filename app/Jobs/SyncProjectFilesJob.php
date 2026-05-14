@@ -16,6 +16,7 @@ class SyncProjectFilesJob implements ShouldQueue
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
     public int $tries = 3;
+
     public int $timeout = 120;
 
     public function __construct(
@@ -44,7 +45,7 @@ class SyncProjectFilesJob implements ShouldQueue
         }
 
         $jobs = $normalizedFiles
-            ->map(fn(array $file) => new DownloadMapasProjectFileJob(
+            ->map(fn (array $file) => new DownloadMapasProjectFileJob(
                 projectId: $this->projectId,
                 registrationId: $this->registrationId,
                 file: $file

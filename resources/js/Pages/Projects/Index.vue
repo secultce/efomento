@@ -11,12 +11,12 @@ import { Head, router } from '@inertiajs/vue3';
 import { ref } from 'vue';
 
 const props = defineProps({
-    notice: Object,
-    projects: Array,
-    filters: Object,
-    phases: Array,
-    instrumentTypes: Array,
-    supervisors_available: Array,
+    notice: { type: Object, default: null },
+    projects: { type: Array, default: () => [] },
+    filters: { type: Object, default: null },
+    phases: { type: Array, default: () => [] },
+    instrumentTypes: { type: Array, default: () => [] },
+    supervisorsAvailable: { type: Array, default: () => [] },
 });
 
 const search = ref(props.filters?.search ?? '');
@@ -169,7 +169,7 @@ function handleAction({ action, item }) {
                     <ProjectActions
                         :selected-projects="selectedProjects"
                         :projects="projects"
-                        :supervisors_available="supervisors_available"
+                        :supervisors-available="supervisorsAvailable"
                         :notice="notice"
                         @saved="handleSaved"
                     />

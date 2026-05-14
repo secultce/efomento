@@ -1,5 +1,5 @@
 <script setup>
-const props = defineProps({
+defineProps({
     sections: {
         type: Array,
         required: true,
@@ -8,7 +8,7 @@ const props = defineProps({
         type: [Number, String],
         required: true,
     },
-    form: Object,
+    form: { type: Object, default: null },
 });
 </script>
 

@@ -2,12 +2,12 @@
 import { ref } from 'vue';
 import OpeningTab from './Tabs/OpeningTab.vue';
 
-const props = defineProps({
-    project: Object,
-    supervisorsAvailable: Array,
-    agentStatus: Array,
-    reportStatus: Array,
-    accountType: Array,
+defineProps({
+    project: { type: Object, default: null },
+    supervisorsAvailable: { type: Array, default: () => [] },
+    agentStatus: { type: Array, default: () => [] },
+    reportStatus: { type: Array, default: () => [] },
+    accountType: { type: Array, default: () => [] },
 });
 
 const tab = ref('1');

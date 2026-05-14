@@ -9,10 +9,10 @@ class RegistrationFileExtractor
     public function extract(array $files, array $fileConfigurations): Collection
     {
         $configurationsByGroup = collect($fileConfigurations)
-            ->keyBy(fn(array $configuration) => data_get($configuration, 'groupName'));
+            ->keyBy(fn (array $configuration) => data_get($configuration, 'groupName'));
 
         return collect($files)
-            ->reject(fn(array $file, string $group) => $group === 'zipArchive')
+            ->reject(fn (array $file, string $group) => $group === 'zipArchive')
             ->map(function (array $file, string $group) use ($configurationsByGroup) {
                 $configuration = $configurationsByGroup->get($group, []);
 
@@ -26,7 +26,7 @@ class RegistrationFileExtractor
                     'private' => true,
                 ];
             })
-            ->filter(fn(array $file) => filled($file['external_id']) && filled($file['url']) && filled($file['name']))
+            ->filter(fn (array $file) => filled($file['external_id']) && filled($file['url']) && filled($file['name']))
             ->values();
     }
 }

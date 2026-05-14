@@ -13,11 +13,13 @@ import { downloadDocumentsZip } from '@/Services/documentService';
 const { canPerform, hasRole } = useAuth();
 
 const props = defineProps({
-    selectedProjects: Array,
-    supervisors_available: Array,
-    projects: Array,
-    notice: Object,
+    selectedProjects: { type: Array, default: () => [] },
+    supervisorsAvailable: { type: Array, default: () => [] },
+    projects: { type: Array, default: () => [] },
+    notice: { type: Object, default: null },
 });
+
+defineEmits(['saved']);
 
 const supervisorDialog = ref(false);
 const ciDialog = ref(false);
@@ -125,10 +127,10 @@ const closeModal = () => {
         :edit-data="selectedCI"
         @saved="$emit('saved')"
     />
-    <supervisor-dialog
+    <SupervisorDialog
         v-model="supervisorDialog"
         :project-ids="selectedProjects"
-        :supervisors="supervisors_available"
+        :supervisors="supervisorsAvailable"
         @saved="$emit('saved')"
     />
     <document-list-dialog v-model="docListDialog" :documents="selectedDocuments" />

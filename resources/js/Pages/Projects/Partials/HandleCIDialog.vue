@@ -13,8 +13,8 @@ const { showSnackbar } = useSnackbar();
 
 const props = defineProps({
     modelValue: Boolean,
-    projectIds: Array,
-    editData: Object,
+    projectIds: { type: Array, default: () => [] },
+    editData: { type: Object, default: null },
     placeholders: {
         type: Array,
         default: () => [
