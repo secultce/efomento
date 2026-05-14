@@ -35,4 +35,14 @@ return [
     'mapas_token' => env('MAPAS_TOKEN'),
     'mapas_seal' => env('MAPAS_SEAL'),
 
+    'http_timeout' => env('MAPAS_HTTP_TIMEOUT', 10),
+    'http_retries' => env('MAPAS_HTTP_RETRIES', 3),
+    'http_retry_sleep_ms' => env('MAPAS_HTTP_RETRY_SLEEP_MS', 1000),
+
+    'mapas_rate_limit_per_minute' => env('MAPAS_RATE_LIMIT_PER_MINUTE', 60),
+
+    'registration_detail_chunk' => env('MAPAS_REGISTRATION_DETAIL_CHUNK', 100),
+
+    'file_download_timeout' => env('MAPAS_FILE_DOWNLOAD_TIMEOUT', 60),
+
 ];
