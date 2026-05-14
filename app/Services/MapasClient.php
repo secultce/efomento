@@ -83,7 +83,7 @@ class MapasClient
 
         $json = $response->json();
 
-        if (!is_array($json)) {
+        if (! is_array($json)) {
             throw new RuntimeException("Resposta inválida da API Mapas: {$path}");
         }
 
@@ -97,8 +97,8 @@ class MapasClient
             ->timeout((int) config('efomento.http_timeout', 10))
             ->retry(
                 (int) config('efomento.http_retries', 3),
-                fn(int $attempt) => $attempt * (int) config('efomento.http_retry_sleep_ms', 1000),
-                fn(Throwable $exception, PendingRequest $request) => $this->shouldRetry($exception),
+                fn (int $attempt) => $attempt * (int) config('efomento.http_retry_sleep_ms', 1000),
+                fn (Throwable $exception, PendingRequest $request) => $this->shouldRetry($exception),
                 throw: false
             );
 
@@ -137,8 +137,8 @@ class MapasClient
             ->timeout((int) config('efomento.file_download_timeout', 60))
             ->retry(
                 (int) config('efomento.http_retries', 3),
-                fn(int $attempt) => $attempt * (int) config('efomento.http_retry_sleep_ms', 1000),
-                fn(Throwable $exception, PendingRequest $request) => $this->shouldRetry($exception),
+                fn (int $attempt) => $attempt * (int) config('efomento.http_retry_sleep_ms', 1000),
+                fn (Throwable $exception, PendingRequest $request) => $this->shouldRetry($exception),
                 throw: false
             )
             ->sink($absolutePath)

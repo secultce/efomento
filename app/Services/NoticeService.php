@@ -52,7 +52,7 @@ class NoticeService
     {
         $externalId = data_get($notice, 'id');
 
-        if (!$externalId) {
+        if (! $externalId) {
             throw new InvalidArgumentException('Edital sem id externo.');
         }
 

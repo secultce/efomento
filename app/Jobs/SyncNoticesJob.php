@@ -20,6 +20,7 @@ class SyncNoticesJob implements ShouldQueue
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
     public int $tries = 3;
+
     public int $timeout = 120;
 
     public function __construct()
@@ -45,7 +46,7 @@ class SyncNoticesJob implements ShouldQueue
         $notices = $mapasClient->publishedNotices();
 
         $jobs = $notices
-            ->filter(fn(array $notice) => filled(data_get($notice, 'id')))
+            ->filter(fn (array $notice) => filled(data_get($notice, 'id')))
             ->map(function (array $notice) use ($noticeService) {
                 $noticeService->createFromMapasIfMissing($notice);
 
@@ -56,6 +57,7 @@ class SyncNoticesJob implements ShouldQueue
 
         if ($jobs->isEmpty()) {
             Log::info('sync.notices.empty');
+
             return;
         }
 

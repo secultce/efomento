@@ -28,7 +28,9 @@ class SyncRegistrationDetailsJob implements ShouldQueue
     use Batchable, Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
     public int $tries = 10;
+
     public int $timeout = 120;
+
     public int $maxExceptions = 3;
 
     public function __construct(
@@ -71,7 +73,7 @@ class SyncRegistrationDetailsJob implements ShouldQueue
 
         $ownerId = data_get($details, 'registration.owner.id');
 
-        if (!$ownerId) {
+        if (! $ownerId) {
             Log::warning('sync.registration.owner_missing', [
                 'registration_id' => $this->registrationId,
             ]);
@@ -83,7 +85,7 @@ class SyncRegistrationDetailsJob implements ShouldQueue
 
         $cpf = data_get($agentData, 'cpf');
 
-        if (!$cpf) {
+        if (! $cpf) {
             Log::warning('sync.registration.agent_cpf_missing', [
                 'registration_id' => $this->registrationId,
                 'owner_id' => $ownerId,
@@ -94,7 +96,7 @@ class SyncRegistrationDetailsJob implements ShouldQueue
 
         $noticeExternalId = data_get($details, 'registration.opportunity.id');
 
-        if (!$noticeExternalId) {
+        if (! $noticeExternalId) {
             Log::warning('sync.registration.notice_external_id_missing', [
                 'registration_id' => $this->registrationId,
             ]);
@@ -107,7 +109,6 @@ class SyncRegistrationDetailsJob implements ShouldQueue
             $agentData,
             $cpf,
             $noticeExternalId,
-            $snapshotService,
             $projectService
         ) {
             $agent = Agent::updateOrCreate(
@@ -119,7 +120,7 @@ class SyncRegistrationDetailsJob implements ShouldQueue
 
             $notice = Notice::firstWhere('external_id', $noticeExternalId);
 
-            if (!$notice) {
+            if (! $notice) {
                 throw new RuntimeException("Edital local não encontrado para external_id {$noticeExternalId} na inscrição {$this->registrationId}.");
             }
 
@@ -135,9 +136,7 @@ class SyncRegistrationDetailsJob implements ShouldQueue
             );
 
             DB::afterCommit(function () use (
-                $agent,
-                $agentData,
-                $snapshotService,
+
                 $project,
                 $details
             ) {

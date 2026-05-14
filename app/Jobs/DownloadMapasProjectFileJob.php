@@ -24,7 +24,9 @@ class DownloadMapasProjectFileJob implements ShouldQueue
     use Batchable, Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
     public int $tries = 10;
+
     public int $timeout = 180;
+
     public int $maxExceptions = 3;
 
     public function __construct(
@@ -98,7 +100,7 @@ class DownloadMapasProjectFileJob implements ShouldQueue
         $temporaryDirectory = storage_path('app/tmp/mapas-files');
         Filesystem::ensureDirectoryExists($temporaryDirectory);
 
-        $temporaryPath = $temporaryDirectory . '/' . uniqid('mapas_', true);
+        $temporaryPath = $temporaryDirectory.'/'.uniqid('mapas_', true);
 
         try {
             $download = $mapasClient->downloadFileTo(
@@ -125,7 +127,7 @@ class DownloadMapasProjectFileJob implements ShouldQueue
                 }
             }
 
-            if (!$stored) {
+            if (! $stored) {
                 throw new RuntimeException(
                     "Falha ao gravar arquivo no storage: {$storagePath}"
                 );
@@ -159,13 +161,13 @@ class DownloadMapasProjectFileJob implements ShouldQueue
                 ->where('external_id', (string) $this->file['external_id'])
                 ->exists();
 
-            if (!$fileWasRegistered) {
+            if (! $fileWasRegistered) {
                 Storage::disk($disk)->delete($storagePath);
             }
 
             throw $exception;
         } finally {
-            if (is_file($temporaryPath) && !unlink($temporaryPath)) {
+            if (is_file($temporaryPath) && ! unlink($temporaryPath)) {
                 Log::warning('sync.tmp_file_not_deleted', [
                     'path' => $temporaryPath,
                 ]);
