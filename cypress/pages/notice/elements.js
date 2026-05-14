@@ -1,4 +1,5 @@
 export const elements = {
+    appContainer: '[id=app]',
     buttonIdentificationData: '[data-cy=btnIdentificationData]',
     badgeProcessStatus: '[data-cy=statusDoProcesso]',
     inputProcessNumber: '[data-cy=inputNumeroProcessoSuite]',
