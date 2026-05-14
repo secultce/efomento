@@ -1,5 +1,6 @@
 <script setup>
-import { router } from '@inertiajs/vue3'
+import { router } from '@inertiajs/vue3';
+import AppNotificationMenu from './AppNotificationMenu.vue';
 
 defineProps({
     usuario: {
@@ -10,7 +11,7 @@ defineProps({
         type: Number,
         default: 0,
     },
-})
+});
 
 const iniciais = (name) =>
     name
@@ -18,9 +19,9 @@ const iniciais = (name) =>
         .map((n) => n[0])
         .slice(0, 2)
         .join('')
-        .toUpperCase() ?? '?'
+        .toUpperCase() ?? '?';
 
-const logout = () => router.post(route('logout'))
+const logout = () => router.post(route('logout'));
 </script>
 
 <template>
@@ -32,43 +33,16 @@ const logout = () => router.post(route('logout'))
         </v-app-bar-title>
 
         <template #append>
-            <v-btn variant="text" color="white" href="/editais">
-                Editais
-            </v-btn>
+            <v-btn variant="text" color="white" href="/editais"> Editais </v-btn>
 
-            <v-btn variant="text" color="white">
-                Indicadores
-            </v-btn>
-
-            <v-btn icon variant="text" color="white" class="mx-1">
-                <v-badge
-                    :content="notificacoes"
-                    color="error"
-                    :model-value="notificacoes > 0"
-                >
-                    <v-icon>mdi-bell-outline</v-icon>
-                </v-badge>
-            </v-btn>
-
+            <v-btn variant="text" color="white"> Indicadores </v-btn>
+            <app-notification-menu />
             <v-menu location="bottom end">
                 <template #activator="{ props: menuProps }">
-                    <v-btn
-                        v-bind="menuProps"
-                        variant="text"
-                        color="white"
-                        class="px-3"
-                        data-cy="btnUserAvatar"
-                    >
+                    <v-btn v-bind="menuProps" variant="text" color="white" class="px-3" data-cy="btnUserAvatar">
                         <v-avatar size="32" color="white" class="mr-2">
-                            <v-img
-                                v-if="usuario.avatar"
-                                :src="usuario.avatar"
-                                :alt="usuario.name"
-                            />
-                            <span
-                                v-else
-                                class="text-primary text-caption font-weight-bold"
-                            >
+                            <v-img v-if="usuario.avatar" :src="usuario.avatar" :alt="usuario.name" />
+                            <span v-else class="text-primary text-caption font-weight-bold">
                                 {{ iniciais(usuario.name) }}
                             </span>
                         </v-avatar>
@@ -88,12 +62,7 @@ const logout = () => router.post(route('logout'))
                         Minha conta
                     </v-list-item>
                     <v-divider />
-                    <v-list-item
-                        prepend-icon="mdi-logout"
-                        base-color="error"
-                        @click="logout"
-                        data-cy="btnLogout"
-                    >
+                    <v-list-item prepend-icon="mdi-logout" base-color="error" data-cy="btnLogout" @click="logout">
                         Sair
                     </v-list-item>
                 </v-list>
