@@ -2,8 +2,8 @@
 import { computed } from 'vue';
 
 const props = defineProps({
-    modelValue: Boolean,
-    document: Object,
+    modelValue: { type: Boolean, default: false },
+    document: { type: Object, default: null },
 });
 
 const emit = defineEmits(['update:modelValue']);
@@ -61,6 +61,7 @@ function close() {
             <v-divider />
 
             <v-card-text class="flex-grow-1 overflow-y-auto pa-6">
+                <!-- eslint-disable-next-line vue/no-v-html -->
                 <div v-if="resolvedBody" class="text-sm text-[#3b3b3c] leading-relaxed" v-html="resolvedBody" />
                 <div v-else class="text-center text-gray-400 py-6">Sem conteúdo disponível.</div>
             </v-card-text>

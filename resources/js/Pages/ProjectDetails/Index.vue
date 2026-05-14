@@ -6,13 +6,13 @@ import AppSubHeader from '@/Components/AppSubHeader.vue';
 import AgentData from './Partials/AgentData.vue';
 import ProcessTabs from './Partials/ProcessTabs.vue';
 
-const props = defineProps({
-    project: Object,
-    supervisorsAvailable: Array,
-    agentStatus: Array,
-    reportStatus: Array,
-    accountType: Array,
-    openingStatus: Array,
+defineProps({
+    project: { type: Object, default: null },
+    supervisorsAvailable: { type: Array, default: () => [] },
+    agentStatus: { type: Array, default: () => [] },
+    reportStatus: { type: Array, default: () => [] },
+    accountType: { type: Array, default: () => [] },
+    openingStatus: { type: Array, default: () => [] },
 });
 </script>
 

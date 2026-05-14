@@ -1,5 +1,5 @@
 <script setup>
-import { ref, watch } from 'vue';
+import { ref } from 'vue';
 import SplitScreenTab from '@/Components/SplitScreenTab.vue';
 import SectionChips from '@/Components/SectionChips.vue';
 import SectionContent from '@/Components/SectionContent.vue';
@@ -299,8 +299,6 @@ const activeEditIndex = ref('all');
                     <div class="w-full justify-center flex">
                         <v-btn
                             class="w-1/2 mt-4 !shadow-none !font-bold !bg-[#ffcc05FF] !text-[#2d353fFF] rounded-lg text-xs"
-                            Atribuir
-                            Fiscal
                         >
                             tramitar
                         </v-btn>

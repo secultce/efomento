@@ -1,55 +1,51 @@
 <script setup>
-import { ref, watch } from 'vue'
-import { useDate } from '@/Composables/useDate'
-import { useMask } from '@/Composables/useMask'
+import { ref, watch } from 'vue';
+import { useDate } from '@/Composables/useDate';
+import { useMask } from '@/Composables/useMask';
 
-const { formatDate, normalizeDate } = useDate()
-const { applyMask } = useMask()
+const { formatDate, normalizeDate } = useDate();
+const { applyMask } = useMask();
 
 const props = defineProps({
-    modelValue: [String, Number, Array, Object, Date],
+    modelValue: { type: [String, Number, Array, Object, Date], default: null },
     type: {
         type: String,
-        default: 'text', //text | number | textarea | select | date
+        default: 'text',
     },
-
-    mask: String,
-
-    format: Function,
-
+    mask: { type: String, default: undefined },
+    format: { type: Function, default: undefined },
     items: {
         type: Array,
-        default: () => []
+        default: () => [],
     },
+    label: { type: String, default: '' },
+    error: { type: String, default: '' },
+});
 
-    label: String,
+const emit = defineEmits(['update:modelValue']);
 
-    error: String,
-})
+const editing = ref(false);
+const localValue = ref(props.modelValue);
 
-const emit = defineEmits(['update:modelValue'])
-
-const editing = ref(false)
-const localValue = ref(props.modelValue)
-
-watch(() => props.modelValue, (val) => {
-    if (props.type === 'date' && val) {
-        localValue.value = normalizeDate(val)
-    } else {
-        localValue.value = val
+watch(
+    () => props.modelValue,
+    (val) => {
+        if (props.type === 'date' && val) {
+            localValue.value = normalizeDate(val);
+        } else {
+            localValue.value = val;
+        }
     }
-})
+);
 
 const startEdit = () => {
-    editing.value = true
-}
+    editing.value = true;
+};
 
 const stopEdit = () => {
-    editing.value = false
-    emit('update:modelValue', localValue.value)
-}
-
-
+    editing.value = false;
+    emit('update:modelValue', localValue.value);
+};
 </script>
 
 <template>
@@ -57,32 +53,58 @@ const stopEdit = () => {
         <span class="font-bold">{{ label }} </span>
         <!-- EDIT MODE -->
         <template v-if="editing">
-
             <!-- TEXT / NUMBER -->
-            <v-text-field v-if="type === 'text' || type === 'number' || type === 'email'"
-                :model-value="props.mask ? applyMask(localValue, props.mask) : localValue" @update:modelValue="val => {
-                    localValue = props.mask ? val.replace(/\D/g, '') : val
-                }" :type="type" density="compact" autofocus hide-details :error-messages="error" @blur="stopEdit"
-                @keyup.enter="stopEdit" />
+            <v-text-field
+                v-if="type === 'text' || type === 'number' || type === 'email'"
+                :model-value="props.mask ? applyMask(localValue, props.mask) : localValue"
+                :type="type"
+                density="compact"
+                autofocus
+                hide-details
+                :error-messages="error"
+                @update:model-value="
+                    (val) => {
+                        localValue = props.mask ? val.replace(/\D/g, '') : val;
+                    }
+                "
+                @blur="stopEdit"
+                @keyup.enter="stopEdit"
+            />
 
             <!-- TEXTAREA -->
-            <v-textarea v-else-if="type === 'textarea'" v-model="localValue" density="compact" :error-messages="error"
-                auto-grow @blur="stopEdit" />
+            <v-textarea
+                v-else-if="type === 'textarea'"
+                v-model="localValue"
+                density="compact"
+                :error-messages="error"
+                auto-grow
+                @blur="stopEdit"
+            />
 
             <!-- SELECT -->
-            <v-select v-else-if="type === 'select'" v-model="localValue" :items="items" :error-messages="error"
-                density="compact" @update:modelValue="stopEdit" />
+            <v-select
+                v-else-if="type === 'select'"
+                v-model="localValue"
+                :items="items"
+                :error-messages="error"
+                density="compact"
+                @update:model-value="stopEdit"
+            />
 
             <!-- DATE -->
-            <v-text-field v-else-if="type === 'date'" v-model="localValue" type="date" density="compact"
-                :error-messages="error" @blur="stopEdit" />
-
+            <v-text-field
+                v-else-if="type === 'date'"
+                v-model="localValue"
+                type="date"
+                density="compact"
+                :error-messages="error"
+                @blur="stopEdit"
+            />
         </template>
 
         <!-- DISPLAY MODE -->
         <template v-else>
-            <span @click="startEdit" class="hover:bg-gray-100 cursor-pointer px-1 rounded">
-
+            <span class="hover:bg-gray-100 cursor-pointer px-1 rounded" @click="startEdit">
                 <!-- DATE FORMAT -->
                 <template v-if="type === 'date'">
                     {{ modelValue ? formatDate(modelValue) : '-' }}
@@ -95,21 +117,12 @@ const stopEdit = () => {
 
                 <!-- select label -->
                 <template v-else-if="type === 'select'">
-                    {{
-                        modelValue ?
-                            items.find(i => i.value === modelValue)?.title ?? modelValue
-                            : '-'
-                    }}
+                    {{ modelValue ? (items.find((i) => i.value === modelValue)?.title ?? modelValue) : '-' }}
                 </template>
 
                 <!-- default -->
                 <template v-else>
-                    {{ modelValue ?
-                        props.mask
-                            ? applyMask(String(modelValue), props.mask)
-                            : modelValue
-                        : '-'
-                    }}
+                    {{ modelValue ? (props.mask ? applyMask(String(modelValue), props.mask) : modelValue) : '-' }}
                 </template>
             </span>
             <div v-if="error" class="text-red-500 text-xs mt-1">

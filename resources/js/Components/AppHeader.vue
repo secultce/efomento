@@ -1,6 +1,6 @@
 <script setup>
 import { router } from '@inertiajs/vue3';
-import AppNotificationMenu from './AppNotificationMenu.vue';
+import AppNotificationMenu from '@/Components/AppNotificationMenu.vue';
 
 defineProps({
     user: {
