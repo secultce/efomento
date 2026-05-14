@@ -2,10 +2,10 @@
 import { useEnums } from '@/Composables/useEnums';
 
 const props = defineProps({
-    project: Object,
-    agentStatus: Array,
-    reportStatus: Array,
-    openingStatus: Array,
+    project: { type: Object, default: null },
+    agentStatus: { type: Array, default: () => [] },
+    reportStatus: { type: Array, default: () => [] },
+    openingStatus: { type: Array, default: () => [] },
 });
 
 const { getLabel } = useEnums();

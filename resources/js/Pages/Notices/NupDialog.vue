@@ -9,9 +9,9 @@ import SelectField from '@/Components/SelectField.vue';
 import { useSnackbar } from '@/Composables/useSnackbar';
 
 const props = defineProps({
-    modelValue: Boolean,
-    item: Object,
-    instrumentTypes: Array,
+    modelValue: { type: Boolean, default: false },
+    item: { type: Object, default: null },
+    instrumentTypes: { type: Array, default: () => [] },
 });
 
 const { showSnackbar } = useSnackbar();
@@ -72,8 +72,6 @@ const valorExtenso = computed(() => {
 
     return extenso(value, { mode: 'currency' });
 });
-
-const today = new Date().toISOString().split('T')[0];
 </script>
 
 <template>

@@ -2,7 +2,7 @@
 import { computed } from 'vue';
 
 const props = defineProps({
-    modelValue: null,
+    modelValue: { type: [String, Number, Object], default: null },
     items: {
         type: Array,
         default: () => [],

@@ -6,8 +6,8 @@ import EditableField from '@/Components/EditableField.vue';
 import { useSnackbar } from '@/Composables/useSnackbar';
 
 const props = defineProps({
-    notice: Object,
-    instrumentTypes: Array,
+    notice: { type: Object, default: null },
+    instrumentTypes: { type: Array, default: () => [] },
 });
 
 const form = useForm({

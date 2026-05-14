@@ -1,10 +1,8 @@
 <script setup>
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
 import Users from '@/Pages/Groups/Users.vue';
-import { Head, router, usePage } from '@inertiajs/vue3';
-import { reactive, ref, computed } from 'vue';
-
-const page = usePage();
+import { Head, router } from '@inertiajs/vue3';
+import { reactive, ref } from 'vue';
 
 const props = defineProps({
     modules: { type: Array, required: true },
