@@ -3,11 +3,15 @@ import { router } from '@inertiajs/vue3';
 import AppNotificationMenu from './AppNotificationMenu.vue';
 
 defineProps({
-    usuario: {
+    user: {
         type: Object,
         required: true,
     },
-    notificacoes: {
+    notifications: {
+        type: Array,
+        default: () => [],
+    },
+    notificationsCount: {
         type: Number,
         default: 0,
     },
@@ -36,18 +40,18 @@ const logout = () => router.post(route('logout'));
             <v-btn variant="text" color="white" href="/editais"> Editais </v-btn>
 
             <v-btn variant="text" color="white"> Indicadores </v-btn>
-            <app-notification-menu />
+            <app-notification-menu :notifications="notifications" :notifications-count="notificationsCount" />
             <v-menu location="bottom end">
                 <template #activator="{ props: menuProps }">
                     <v-btn v-bind="menuProps" variant="text" color="white" class="px-3" data-cy="btnUserAvatar">
                         <v-avatar size="32" color="white" class="mr-2">
-                            <v-img v-if="usuario.avatar" :src="usuario.avatar" :alt="usuario.name" />
+                            <v-img v-if="user.avatar" :src="user.avatar" :alt="user.name" />
                             <span v-else class="text-primary text-caption font-weight-bold">
-                                {{ iniciais(usuario.name) }}
+                                {{ iniciais(user.name) }}
                             </span>
                         </v-avatar>
 
-                        <span class="text-body-2">{{ usuario.name }}</span>
+                        <span class="text-body-2">{{ user.name }}</span>
 
                         <v-icon end size="16">mdi-chevron-down</v-icon>
                     </v-btn>
