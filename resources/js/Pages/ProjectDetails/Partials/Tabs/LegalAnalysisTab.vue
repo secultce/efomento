@@ -61,12 +61,13 @@ onMounted(fetchFiles);
                 <div>
                     <p class="font-bold text-sm mb-3">Avalie os documentos</p>
 
+                    <!--                    <p>{{ groups }}</p>-->
                     <v-progress-linear v-if="loadingFiles" indeterminate color="primary" class="mb-4" />
 
                     <DocumentEvaluationList
                         v-else-if="groups.length > 0"
                         :groups="groups"
-                        :project-id="project.id"
+                        :project="project"
                         @status-updated="onStatusUpdated"
                     />
 

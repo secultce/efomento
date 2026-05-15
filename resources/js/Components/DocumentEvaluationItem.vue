@@ -7,8 +7,8 @@ const props = defineProps({
         type: Object,
         required: true,
     },
-    projectId: {
-        type: Number,
+    project: {
+        type: Object,
         required: true,
     },
 });
@@ -30,7 +30,7 @@ async function onStatusChange(status) {
 
     loading.value = true;
     try {
-        await window.axios.put(`/projetos/${props.projectId}/analise-juridica/arquivos/${props.file.id}`, {
+        await window.axios.put(`/projetos/${props.project.id}/analise-juridica/arquivos/${props.file.id}`, {
             status,
         });
 
@@ -51,10 +51,7 @@ function openFile() {
 
 function downloadFile() {
     if (props.file.url) {
-        const link = document.createElement('a');
-        link.href = props.file.url;
-        link.download = props.file.name;
-        link.click();
+        window.open(props.file.url + '?download=1', '_blank');
     }
 }
 </script>
@@ -62,8 +59,8 @@ function downloadFile() {
 <template>
     <v-card variant="outlined" class="rounded-lg px-4 py-2">
         <div class="flex items-center justify-between gap-4">
-            <span class="text-sm font-semibold text-[#3b3b3c] truncate flex-1">
-                {{ file.name }}
+            <span class="text-sm font-semibold text-[#3b3b3c] truncate flex-1" :title="file.title">
+                {{ file.title }}
             </span>
 
             <div class="flex items-center gap-2 flex-shrink-0">
