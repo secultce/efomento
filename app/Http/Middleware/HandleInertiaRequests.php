@@ -39,7 +39,7 @@ class HandleInertiaRequests extends Middleware
                 'currentRoute' => Route::currentRouteName(),
             ],
             'notifications' => function () use ($request) {
-                if (!$request->user()) {
+                if (! $request->user()) {
                     return [];
                 }
 
@@ -55,10 +55,10 @@ class HandleInertiaRequests extends Middleware
                     ]);
             },
             'allUnreadCount' => function () use ($request) {
-                if (!$request->user()) {
+                if (! $request->user()) {
                     return 0;
                 }
-                
+
                 return $request->user()
                     ->unreadNotifications()
                     ->count();
