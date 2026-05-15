@@ -1,10 +1,13 @@
 import axios from 'axios';
 import { router } from '@inertiajs/vue3';
 
-export function fetchNotifications(page = 1) {
+export function fetchNotifications(page = 1, read = null) {
     return axios.get('/notificacoes', {
         params: {
             page,
+            ...(read !== null && {
+                read,
+            }),
         },
     });
 }

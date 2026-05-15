@@ -27,6 +27,7 @@ const notificationsData = ref(props.initialNotifications);
 const currentPage = ref(1);
 const pageCount = ref(1);
 const loading = ref(false);
+const selectedFilter = ref(null);
 
 const loadNotifications = async () => {
     if (loading.value) return;
@@ -34,7 +35,7 @@ const loadNotifications = async () => {
     loading.value = true;
 
     try {
-        const response = await fetchNotifications(currentPage.value);
+        const response = await fetchNotifications(currentPage.value, selectedFilter.value);
 
         notificationsData.value = response.data.userNotifications || [];
 
@@ -53,6 +54,14 @@ watch(notificationsMenu, async (opened) => {
 });
 
 watch(currentPage, async () => {
+    if (notificationsMenu.value) {
+        await loadNotifications();
+    }
+});
+
+watch(selectedFilter, async () => {
+    currentPage.value = 1;
+
     if (notificationsMenu.value) {
         await loadNotifications();
     }
@@ -130,6 +139,34 @@ const handleNavigation = (notification) => {
             <v-divider />
 
             <v-card-text class="!p-0">
+                <div class="px-1 pb-1 pt-1 flex gap-2">
+                    <v-chip
+                        size="small"
+                        :variant="selectedFilter === null ? 'flat' : 'outlined'"
+                        color="primary"
+                        @click="selectedFilter = null"
+                    >
+                        Todas
+                    </v-chip>
+
+                    <v-chip
+                        size="small"
+                        :variant="selectedFilter === false ? 'flat' : 'outlined'"
+                        color="primary"
+                        @click="selectedFilter = false"
+                    >
+                        Não lidas
+                    </v-chip>
+
+                    <v-chip
+                        size="small"
+                        :variant="selectedFilter === true ? 'flat' : 'outlined'"
+                        color="primary"
+                        @click="selectedFilter = true"
+                    >
+                        Lidas
+                    </v-chip>
+                </div>
                 <div v-if="loading" class="p-4 text-center">Carregando...</div>
 
                 <div v-else-if="!notificationsData || notificationsData.length === 0" class="p-4 text-center">
