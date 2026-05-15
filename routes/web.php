@@ -78,6 +78,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
     });
     Route::get('/projetos/{project}/analise-juridica', [LegalAnalysisController::class, 'index'])
         ->name('legal-analysis.index');
+    Route::get('/projetos/{project}/analise-juridica/arquivos/{file}', [LegalAnalysisController::class, 'serveFile'])
+        ->name('legal-analysis.files.serve');
     Route::put('/projetos/{project}/analise-juridica/arquivos/{file}', [LegalAnalysisController::class, 'updateFileStatus'])
         ->name('legal-analysis.update-status');
 });

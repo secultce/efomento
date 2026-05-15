@@ -6,8 +6,8 @@ defineProps({
         type: Array,
         required: true,
     },
-    projectId: {
-        type: Number,
+    project: {
+        type: Object,
         required: true,
     },
 });
@@ -23,7 +23,7 @@ const emit = defineEmits(['status-updated']);
                     v-for="file in group.files"
                     :key="file.id"
                     :file="file"
-                    :project-id="projectId"
+                    :project="project"
                     @status-updated="emit('status-updated', $event)"
                 />
             </div>
