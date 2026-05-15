@@ -8,7 +8,6 @@ import { computed, onMounted, onUnmounted, ref, watch } from 'vue';
 const page = usePage();
 
 const user = computed(() => page.props.auth.user);
-const notifications = computed(() => page.props.notifications);
 const notificationsCount = computed(() => page.props.allUnreadCount);
 const previousCount = ref(notificationsCount.value);
 
@@ -27,7 +26,7 @@ let interval = null;
 onMounted(() => {
     interval = setInterval(() => {
         router.reload({
-            only: ['notifications', 'allUnreadCount'],
+            only: ['allUnreadCount'],
             preserveState: true,
             preserveScroll: true,
         });
@@ -41,7 +40,7 @@ onUnmounted(() => {
 
 <template>
     <v-app theme="efomento">
-        <AppHeader :user="user" :notifications="notifications" :notifications-count="notificationsCount" />
+        <AppHeader :user="user" :notifications-count="notificationsCount" />
         <v-main>
             <AppSnackbar />
             <AppSubHeader v-if="$slots.subheader">

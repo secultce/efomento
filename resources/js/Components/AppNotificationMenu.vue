@@ -1,18 +1,109 @@
 <script setup>
-import { ref } from 'vue';
+import { ref, watch } from 'vue';
+import { useDate } from '@/Composables/useDate';
+import { useSnackbar } from '@/Composables/useSnackbar';
+import { router } from '@inertiajs/vue3';
+import { fetchNotifications, markNotificationAsRead, markAllNotificationsAsRead } from '@/Services/notificationService';
 
 const notificationsMenu = ref(false);
 
-defineProps({
-    notifications: {
-        type: Array,
-        default: () => [],
-    },
+const { formatRelativeDate } = useDate();
+const { showSnackbar } = useSnackbar();
+
+const props = defineProps({
     notificationsCount: {
         type: Number,
         default: 0,
     },
+
+    initialNotifications: {
+        type: Array,
+        default: () => [],
+    },
 });
+
+const notificationsData = ref(props.initialNotifications);
+
+const currentPage = ref(1);
+const pageCount = ref(1);
+const loading = ref(false);
+
+const loadNotifications = async () => {
+    if (loading.value) return;
+
+    loading.value = true;
+
+    try {
+        const response = await fetchNotifications(currentPage.value);
+
+        notificationsData.value = response.data.userNotifications || [];
+
+        pageCount.value = response.data.pageCount || 1;
+    } catch (error) {
+        console.error('Erro ao buscar notificações:', error);
+    } finally {
+        loading.value = false;
+    }
+};
+
+watch(notificationsMenu, async (opened) => {
+    if (opened) {
+        await loadNotifications();
+    }
+});
+
+watch(currentPage, async () => {
+    if (notificationsMenu.value) {
+        await loadNotifications();
+    }
+});
+
+const closeMenu = () => {
+    notificationsMenu.value = false;
+};
+
+const markAllAsRead = () => {
+    markAllNotificationsAsRead({
+        preserveScroll: true,
+
+        onSuccess: () => {
+            showSnackbar('Todas as notificações foram marcadas como lidas!', 'success');
+
+            closeMenu();
+        },
+
+        onError: () => {
+            showSnackbar('Erro ao marcar as notificações como lidas!', 'error');
+        },
+    });
+};
+
+const handleNavigation = (notification) => {
+    const meta = notification?.data?.meta;
+
+    const navigate = () => {
+        if (meta?.route) {
+            router.get(route(meta.route, meta.params || {}));
+
+            closeMenu();
+        }
+    };
+
+    if (!notification.read_at) {
+        markNotificationAsRead(notification.id, {
+            preserveScroll: true,
+            preserveState: true,
+
+            onSuccess: () => {
+                navigate();
+            },
+        });
+
+        return;
+    }
+
+    navigate();
+};
 </script>
 
 <template>
@@ -22,6 +113,7 @@ defineProps({
                 <v-badge :content="notificationsCount" color="error" :model-value="notificationsCount > 0">
                     <v-icon>mdi-bell-outline</v-icon>
                 </v-badge>
+
                 <span class="ml-2">Notificações</span>
             </v-btn>
         </template>
@@ -30,7 +122,7 @@ defineProps({
             <v-card-title class="d-flex align-center justify-space-between">
                 <span class="font-bold text-sm">Notificações</span>
 
-                <v-btn variant="text" color="primary" size="small" @click="notificationsMenu = false">
+                <v-btn variant="text" color="primary" size="small" @click="markAllAsRead">
                     Marcar todas como lidas
                 </v-btn>
             </v-card-title>
@@ -38,24 +130,53 @@ defineProps({
             <v-divider />
 
             <v-card-text class="!p-0">
-                <div v-if="notifications.length === 0">Você não possui notificações.</div>
+                <div v-if="loading" class="p-4 text-center">Carregando...</div>
+
+                <div v-else-if="!notificationsData || notificationsData.length === 0" class="p-4 text-center">
+                    Você não possui notificações.
+                </div>
 
                 <div v-else>
                     <div
-                        v-for="notification in notifications"
+                        v-for="notification in notificationsData"
                         :key="notification.id"
-                        class="bg-[#f5f5f5FF] mt-1 p-2 flex space-x-2"
+                        :class="['mt-1 p-2 flex space-x-2', notification.read_at ? 'bg-[#f5f5f5]' : 'bg-white']"
                     >
-                        <v-avatar
-                            :image="
-                                notification?.data?.avatar ||
-                                'https://i.ibb.co/ZRZh8d7F/Captura-de-tela-de-2026-05-14-15-56-17.png'
-                            "
-                        ></v-avatar>
+                        <v-avatar color="primary">
+                            <v-img
+                                v-if="notification?.meta?.user?.avatar"
+                                :src="notification.meta.user.avatar"
+                                alt="User Avatar"
+                            />
+                            <span v-else class="text-h6">
+                                {{ notification?.meta?.user?.name?.charAt(0).toUpperCase() || 'U' }}
+                            </span>
+                        </v-avatar>
+
+                        <div class="flex-1">
+                            <p class="text-sm font-bold hyphens-auto">
+                                {{ notification?.data?.title }}
+                            </p>
+
+                            <p v-if="notification?.data?.message" class="text-sm">
+                                {{ notification.data.message }}
+                            </p>
+
+                            <div class="mt-1">
+                                <v-btn
+                                    v-if="notification?.data?.meta?.route"
+                                    class="bg-secondary !font-bold !text-xs !rounded-lg !shadow-none"
+                                    size="small"
+                                    @click="handleNavigation(notification)"
+                                >
+                                    Conferir
+                                </v-btn>
+                            </div>
+                        </div>
+
                         <div>
-                            <p>{{ notification?.data?.title }}</p>
-                            <div>
-                                <v-btn class="bg-secondary !font-bold !text-xs !rounded-lg">Conferir</v-btn>
+                            <div class="text-xs text-gray-500 whitespace-nowrap">
+                                {{ formatRelativeDate(notification?.created_at) }}
                             </div>
                         </div>
                     </div>
@@ -64,8 +185,15 @@ defineProps({
 
             <v-divider />
 
-            <v-card-actions>
-                <v-spacer />
+            <v-card-actions class="justify-center py-3">
+                <v-pagination
+                    v-if="pageCount > 1"
+                    v-model="currentPage"
+                    :length="pageCount"
+                    :total-visible="pageCount"
+                    density="comfortable"
+                    rounded="circle"
+                />
             </v-card-actions>
         </v-card>
     </v-menu>

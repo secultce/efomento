@@ -14,7 +14,7 @@ class AppNotification extends Notification implements ShouldQueue
         public string $message,
         public string $type = 'default', // success, error, warning, info, default
         public ?string $title = null,
-        public array $meta = []
+        public ?object $meta = null
     ) {}
 
     public function via($notifiable): array
