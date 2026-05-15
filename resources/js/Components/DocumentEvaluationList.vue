@@ -18,8 +18,6 @@ const emit = defineEmits(['status-updated']);
 <template>
     <div class="flex flex-col gap-6">
         <div v-for="group in groups" :key="group.group" class="flex flex-col gap-2">
-            <p class="text-sm text-gray-500">{{ group.group }}</p>
-
             <div class="flex flex-col gap-2">
                 <DocumentEvaluationItem
                     v-for="file in group.files"
