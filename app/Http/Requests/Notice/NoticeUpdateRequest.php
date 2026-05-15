@@ -30,7 +30,7 @@ class NoticeUpdateRequest extends FormRequest
             'external_id' => 'nullable|string',
             'total_notice_amount' => 'nullable|numeric',
             'total_commitment_amount' => 'nullable|numeric',
-            'installments' => 'nullable|integer',
+            'installments' => 'nullable|integer|min:0',
             'process_manager' => 'nullable|string',
             'process_manager_email' => 'nullable|email',
             'budget_allocation_nup' => 'nullable|string',
