@@ -4,10 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Services\NotificationService;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Http\Request;
-use Inertia\Inertia;
-use Inertia\Response;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
 
 class NotificationController extends Controller
 {
@@ -49,7 +47,7 @@ class NotificationController extends Controller
             $id
         );
 
-        if (!$success) {
+        if (! $success) {
             return back()->with(
                 'error',
                 'Notification not found.'
