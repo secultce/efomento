@@ -15,7 +15,7 @@ const tab = ref('1');
 
 const tabs = [
     { value: 'opening', label: 'Abertura' },
-    { value: '2', label: 'Análise jurídica' },
+    { value: 'legal-analysis', label: 'Análise jurídica' },
     { value: '3', label: 'Formalização de processos' },
     { value: '4', label: 'Orçamento e parcela' },
     { value: '5', label: 'Pagamentos' },

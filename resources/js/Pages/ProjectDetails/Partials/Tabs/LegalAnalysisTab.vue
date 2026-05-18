@@ -25,7 +25,7 @@ onMounted(fetchFiles);
 </script>
 
 <template>
-    <SplitScreenTab value="2">
+    <SplitScreenTab value="legal-analysis">
         <template #left-content>
             <div class="space-y-6">
                 <div>
