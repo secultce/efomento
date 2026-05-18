@@ -10,7 +10,9 @@ class Notice {
         }).then((response) => {
             expect(response.status).to.eq(200);
         });
+    }
 
+    showTableNoticeList() {
         cy.get(el.tableNoticeList).should('be.visible');
     }
 

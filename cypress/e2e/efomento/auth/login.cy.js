@@ -1,38 +1,38 @@
-import Login from '../../../pages/auth'
+import Login from '../../../pages/auth';
+import Notice from '../../../pages/notice';
 
 describe('Login', () => {
+    let data;
 
-  let data;
+    before(() => {
+        cy.fixture('users').then((tData) => {
+            data = tData;
+        });
+    });
 
-  before(() => {
-    cy.fixture('users').then((tData) => {
-      data = tData;
-    })
-  })
+    it('Validate it is possible to login with valid credentials', () => {
+        Login.accessLoginPage();
+        Login.successLogin(data.valid_email, data.password, data.name);
+    });
 
-  it('Login com sucesso', () => {
-    Login.acessarPaginaDeLogin()
-    Login.loginComSucesso(data.valid_email, data.password, data.name)
-  })
+    it('Validate it is not possible to login with invalid password', () => {
+        Login.accessLoginPage();
+        Login.loginWithInvalidPassword(data.valid_email, data.incorrect_password);
+    });
 
-  it('Login com senha incorreta',() => {
-    Login.acessarPaginaDeLogin()
-    Login.loginComSenhaIncorreta(data.valid_email, data.incorrect_password)
-  })
+    it('Validate it is possible to login with invalid email', () => {
+        Login.accessLoginPage();
+        Login.loginWithInvalidEmail(data.invalid_email, data.password);
+    });
 
-  it('Login com email inválido', () => {
-    Login.acessarPaginaDeLogin()
-    Login.loginComEmailInvalido(data.invalid_email, data.password)
-  })
+    it('Validate that accessing notice page when logged out redirects to login page', () => {
+        Notice.acessarPaginaDeEditais();
+        Login.validateUnlogedUserRedirectsToLogin();
+    });
 
-  it('Valida que acesso à rota /editais deslogado redireciona para /login', () => {
-    Login.acessarPaginaDeEditais()
-    Login.validarRedirecionamentoDeslogado()
-  })
-
-  it('Valida que ao clicar no botão de logout redireciona para /login', () => {
-    Login.acessarPaginaDeLogin()
-    Login.loginComSucesso(data.valid_email, data.password, data.name)
-    Login.validarQueLogoutRedirecionaParaLogin()
-  })
-})
+    it('Validate click on logout button redirects to login page', () => {
+        Login.accessLoginPage();
+        Login.successLogin(data.valid_email, data.password, data.name);
+        Login.validateLogoutRedirectsToLoginPage();
+    });
+});
