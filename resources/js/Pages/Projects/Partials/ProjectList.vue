@@ -42,12 +42,6 @@ function clear() {
         <h3 class="!text-[#1a1a1aFF] mb-4">Lista de agentes culturais em processo</h3>
 
         <div class="d-flex w-full items-center gap-4">
-<<<<<<< HEAD
-            <v-text-field :model-value="search" @update:model-value="onSearch"
-                placeholder="Busque pelo agente ou nº do processo" append-inner-icon="mdi-magnify" variant="outlined"
-                density="compact" hide-details rounded="xl" class="mb-2"
-                data-cy="inputFindProjectPage"
-=======
             <v-text-field
                 :model-value="search"
                 placeholder="Busque pelo agente ou nº do processo"
@@ -57,8 +51,8 @@ function clear() {
                 hide-details
                 rounded="xl"
                 class="mb-2"
+                data-cy="inputFindProjectPage"
                 @update:model-value="onSearch"
->>>>>>> develop
             />
 
             <v-btn
