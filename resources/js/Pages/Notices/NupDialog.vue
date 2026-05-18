@@ -163,6 +163,7 @@ const valorExtenso = computed(() => {
                                     placeholder="Insira o número de parcelas"
                                     type="number"
                                     data-cy="inputNumeroDeParcelas"
+                                    min="0"
                                 />
                             </FormField>
                         </v-col>

@@ -20,7 +20,7 @@ class NotificationService
                 : $query->whereNull('read_at');
         }
 
-        if (!empty($filters['type'])) {
+        if (! empty($filters['type'])) {
             $query->where('type', $filters['type']);
         }
 
@@ -44,11 +44,11 @@ class NotificationService
     {
         $notification = $this->findNotification($user, $notificationId);
 
-        if (!$notification) {
+        if (! $notification) {
             return false;
         }
 
-        if (!$notification->read_at) {
+        if (! $notification->read_at) {
             $notification->markAsRead();
         }
 
