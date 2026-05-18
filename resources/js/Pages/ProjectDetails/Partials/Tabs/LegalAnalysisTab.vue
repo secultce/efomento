@@ -17,15 +17,14 @@ const props = defineProps({
 
 const activeViewIndex = ref('all');
 
-const { groups, loadingFiles, in_progress, allFilesEvaluated, fetchFiles, onStatusUpdated, process } = useLegalAnalysis(
-    toRef(props, 'project')
-);
+const { groups, statusOptions, loadingFiles, in_progress, allFilesEvaluated, fetchFiles, onStatusUpdated, process } =
+    useLegalAnalysis(toRef(props, 'project'));
 
 onMounted(fetchFiles);
 </script>
 
 <template>
-    <SplitScreenTab value="2">
+    <SplitScreenTab value="legal-analysis">
         <template #left-content>
             <div class="space-y-6">
                 <div>
@@ -61,12 +60,14 @@ onMounted(fetchFiles);
                 <div>
                     <p class="font-bold text-sm mb-3">Avalie os documentos</p>
 
+                    <!--                    <p>{{ groups }}</p>-->
                     <v-progress-linear v-if="loadingFiles" indeterminate color="primary" class="mb-4" />
 
                     <DocumentEvaluationList
                         v-else-if="groups.length > 0"
                         :groups="groups"
-                        :project-id="project.id"
+                        :project="project"
+                        :status-options="statusOptions"
                         @status-updated="onStatusUpdated"
                     />
 
