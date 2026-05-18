@@ -5,7 +5,7 @@ namespace App\Http\Controllers;
 use App\Enums\FileStatus;
 use App\Models\File;
 use App\Models\Project;
-use App\Repositories\LegalAnalysisRepository;
+use App\Services\LegalAnalysisService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
@@ -14,7 +14,7 @@ use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class LegalAnalysisController extends Controller
 {
-    public function __construct(private readonly LegalAnalysisRepository $legalAnalysisRepository) {}
+    public function __construct(private readonly LegalAnalysisService $legalAnalysisService) {}
 
     public function index(Project $project): JsonResponse
     {
@@ -61,7 +61,7 @@ class LegalAnalysisController extends Controller
             'status' => ['required', Rule::enum(FileStatus::class)],
         ]);
 
-        $this->legalAnalysisRepository->updateFileStatus($project, $file, FileStatus::from($data['status']));
+        $this->legalAnalysisService->updateFileStatus($project, $file, FileStatus::from($data['status']));
 
         return response()->json(['message' => 'Status atualizado com sucesso']);
     }
