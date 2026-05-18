@@ -25,7 +25,7 @@ class DownloadMapasProjectFileJob implements ShouldQueue
 
     public int $tries = 10;
 
-    public int $timeout = 180;
+    public int $timeout = 240;
 
     public int $maxExceptions = 3;
 

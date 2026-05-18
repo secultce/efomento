@@ -16,8 +16,10 @@ class CategoryFactory extends Factory
     public function definition(): array
     {
         return [
-            'name' => $this->faker->words(2, true),
-            'type' => $this->faker->randomElement(CategoryType::cases()),
+            'name' => $this->faker->unique()->words(2, true),
+            'type' => $this->faker
+                ->randomElement(CategoryType::cases())
+                ->value,
         ];
     }
 }
