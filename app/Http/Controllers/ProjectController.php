@@ -61,11 +61,14 @@ class ProjectController extends Controller
             'budget.installments',
             'formalization',
             'agent.latestSnapshot',
+            'stages',
         ]);
 
         $availableSupervisors = User::role(['monitoring', 'coord_monitoring'])
             ->select('id', 'name', 'registration_number')
             ->get();
+
+        $currentStage = $project->currentStage;
 
         return Inertia::render('ProjectDetails', [
             'project' => (new ProjectResource($project))->resolve(),
@@ -74,7 +77,10 @@ class ProjectController extends Controller
             'accountType' => AccountType::options(),
             'reportStatus' => ReportStatus::options(),
             'openingStatus' => OpeningStatus::options(),
-
+            'currentStage' => $currentStage,
+            'canReturn' => $currentStage
+                ? ($currentStage->order > 1 && auth()->user()->hasAnyRole($currentStage->responsible_sector))
+                : false,
         ]);
     }
 

@@ -8,6 +8,7 @@ use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\OpeningController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ProjectController;
+use App\Http\Controllers\ProjectStageController;
 use App\Models\User;
 use Illuminate\Support\Facades\Route;
 
@@ -65,6 +66,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::patch('/projetos/{project}/abertura/{opening}/atualizar', [OpeningController::class, 'update'])
         ->scopeBindings()
         ->name('projects.openings.update');
+    Route::post('/projetos/{project}/etapas/{stage}/devolver', [ProjectStageController::class, 'return'])
+        ->scopeBindings()
+        ->name('projects.stages.return');
     Route::get('editais/{notice}/projetos', [ProjectController::class, 'index'])
         ->name('notices.projects');
     Route::get('editais/{notice}/projetos/{project}', [ProjectController::class, 'projectDetail'])
