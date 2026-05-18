@@ -20,3 +20,9 @@ Schedule::command('queue:prune-batches --hours=72 --unfinished=168 --cancelled=1
     ->timezone('America/Fortaleza')
     ->withoutOverlapping()
     ->onOneServer();
+
+Schedule::command('queue:prune-failed --hours=168')
+    ->dailyAt('03:40')
+    ->timezone('America/Fortaleza')
+    ->withoutOverlapping()
+    ->onOneServer();

@@ -83,9 +83,13 @@ class SyncRegistrationDetailsJob implements ShouldQueue
 
         $agentData = $mapasClient->agentById((int) $ownerId);
 
-        $cpf = data_get($agentData, 'cpf');
+        $cpf = preg_replace(
+            '/\D+/',
+            '',
+            (string) data_get($agentData, 'cpf', '')
+        );
 
-        if (! $cpf) {
+        if (blank($cpf)) {
             Log::warning('sync.registration.agent_cpf_missing', [
                 'registration_id' => $this->registrationId,
                 'owner_id' => $ownerId,
@@ -109,6 +113,7 @@ class SyncRegistrationDetailsJob implements ShouldQueue
             $agentData,
             $cpf,
             $noticeExternalId,
+            $snapshotService,
             $projectService
         ) {
             $agent = Agent::updateOrCreate(
@@ -136,15 +141,16 @@ class SyncRegistrationDetailsJob implements ShouldQueue
             );
 
             DB::afterCommit(function () use (
-
+                $agent,
+                $agentData,
+                $snapshotService,
                 $project,
                 $details
             ) {
-                // É preciso parear os valores dos enuns com os valores do Mapas
-                /* $snapshotService->recordMapasAgentIfChanged(
+                $snapshotService->recordMapasAgentIfChanged(
                     $agent,
                     $agentData
-                ); */
+                );
 
                 SyncProjectFilesJob::dispatch(
                     projectId: $project->id,

@@ -13,6 +13,29 @@ use Throwable;
 
 class MapasClient
 {
+    private const AGENT_SELECT_FIELDS = [
+        'id',
+        'name',
+        'cpf',
+        'genero',
+        'orientacaoSexual',
+        'raca',
+        'escolaridade',
+        'pessoaDeficiente',
+        'telefone1',
+        'telefone2',
+        'emailPublico',
+        'emailPrivado',
+        'dataDeNascimento',
+        'En_Nome_Logradouro',
+        'En_Num',
+        'En_Complemento',
+        'En_CEP',
+        'En_Bairro',
+        'En_Municipio',
+        'En_Estado',
+    ];
+
     public function publishedNotices(): Collection
     {
         return collect($this->get('/api/opportunity/find', [
@@ -46,7 +69,7 @@ class MapasClient
             return $cached;
         }
 
-        return Cache::lock("mapas:agent-lock:{$agentId}", 10)
+        return Cache::lock("mapas:agent-lock:{$agentId}", 60)
             ->block(5, function () use ($key, $agentId) {
                 $cached = Cache::get($key);
 
@@ -55,7 +78,7 @@ class MapasClient
                 }
 
                 $agent = $this->get('/api/agent/findOne', [
-                    '@select' => 'id,name,cpf,genero,orientacaoSexual,raca,escolaridade,pessoaDeficiente,telefone1,telefone2,emailPublico,emailPrivado,dataDeNascimento,En_Nome_Logradouro,En_Num,En_Complemento,En_CEP,En_Bairro,En_Municipio,En_Estado',
+                    '@select' => implode(',', self::AGENT_SELECT_FIELDS),
                     'id' => "EQ({$agentId})",
                 ]);
 

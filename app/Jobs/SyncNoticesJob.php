@@ -80,7 +80,7 @@ class SyncNoticesJob implements ShouldQueue
                 ]);
             })
             ->finally(function (Batch $batch) {
-                Log::info('sync.batch.finished', [
+                Log::info('sync.notice_registration_loaders.finished', [
                     'batch_id' => $batch->id,
                     'total_jobs' => $batch->totalJobs,
                     'processed_jobs' => $batch->processedJobs(),
