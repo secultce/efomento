@@ -16,7 +16,7 @@ return new class extends Migration
 
             $table->string('registration_id')->unique();
             $table->string('number')->nullable();
-            $table->foreignId('category_id')->constrained();
+            $table->foreignId('category_id')->nullable()->constrained();
             $table->foreignId('agent_id')->constrained();
             $table->foreignId('notice_id')->constrained();
 
