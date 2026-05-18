@@ -38,13 +38,13 @@ class Login {
     validarQueLogoutRedirecionaParaLogin() {
         cy.get(el.btnUserAvatar).click();
         cy.get(el.btnLogout).should('be.visible').click();
-        cy.url().should('be.equal', `${Cypress.config('baseUrl')}/`);
+        cy.url().should('be.equal', `${Cypress.config('baseUrl')}/login`);
     }
 
     deslogar() {
         cy.get(el.btnUserAvatar).click();
         cy.get(el.btnLogout).should('be.visible').click();
-        cy.url().should('be.equal', `${Cypress.config('baseUrl')}/`);
+        cy.url().should('be.equal', `${Cypress.config('baseUrl')}/login`);
     }
 }
 

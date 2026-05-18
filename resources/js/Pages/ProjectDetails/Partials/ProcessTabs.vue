@@ -1,6 +1,7 @@
 <script setup>
 import { ref } from 'vue';
 import OpeningTab from './Tabs/OpeningTab.vue';
+import LegalAnalysisTab from './Tabs/LegalAnalysisTab.vue';
 
 defineProps({
     project: { type: Object, default: null },
@@ -14,7 +15,7 @@ const tab = ref('1');
 
 const tabs = [
     { value: 'opening', label: 'Abertura' },
-    { value: '2', label: 'Análise jurídica' },
+    { value: 'legal-analysis', label: 'Análise jurídica' },
     { value: '3', label: 'Formalização de processos' },
     { value: '4', label: 'Orçamento e parcela' },
     { value: '5', label: 'Pagamentos' },
@@ -46,9 +47,7 @@ const tabs = [
                     :account-type="accountType"
                 />
 
-                <v-tabs-window-item value="2">
-                    <v-sheet class="pa-5 h-[35em]" color="orange" />
-                </v-tabs-window-item>
+                <LegalAnalysisTab :project="project" />
 
                 <v-tabs-window-item value="3">
                     <v-sheet class="pa-5 h-[35em]" color="brown" />
