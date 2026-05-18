@@ -39,7 +39,10 @@ class LegalAnalysisController extends Controller
             ];
         })->values();
 
-        return response()->json($grouped);
+        return response()->json([
+            'groups' => $grouped,
+            'statusOptions' => FileStatus::options(),
+        ]);
     }
 
     public function serveFile(Project $project, File $file, Request $request): StreamedResponse

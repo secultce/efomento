@@ -10,6 +10,10 @@ defineProps({
         type: Object,
         required: true,
     },
+    statusOptions: {
+        type: Array,
+        required: true,
+    },
 });
 
 const emit = defineEmits(['status-updated']);
@@ -24,6 +28,7 @@ const emit = defineEmits(['status-updated']);
                     :key="file.id"
                     :file="file"
                     :project="project"
+                    :status-options="statusOptions"
                     @status-updated="emit('status-updated', $event)"
                 />
             </div>

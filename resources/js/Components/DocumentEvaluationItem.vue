@@ -11,16 +11,15 @@ const props = defineProps({
         type: Object,
         required: true,
     },
+    statusOptions: {
+        type: Array,
+        required: true,
+    },
 });
 
 const emit = defineEmits(['status-updated']);
 
 const { showSnackbar } = useSnackbar();
-
-const statusOptions = [
-    { title: 'De acordo', value: 'valid' },
-    { title: 'Necessita de ajuste', value: 'invalid' },
-];
 
 const selectedStatus = ref(props.file.status ?? null);
 const loading = ref(false);
@@ -67,7 +66,7 @@ function downloadFile() {
                 <v-select
                     v-model="selectedStatus"
                     :items="statusOptions"
-                    item-title="title"
+                    item-title="label"
                     item-value="value"
                     placeholder="Selecione um status"
                     density="compact"

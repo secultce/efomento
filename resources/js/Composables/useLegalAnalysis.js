@@ -5,6 +5,7 @@ export function useLegalAnalysis(project) {
     const { showSnackbar } = useSnackbar();
 
     const groups = ref([]);
+    const statusOptions = ref([]);
     const loadingFiles = ref(false);
     const in_progress = ref(false);
 
@@ -16,7 +17,8 @@ export function useLegalAnalysis(project) {
         loadingFiles.value = true;
         try {
             const { data } = await window.axios.get(`/projetos/${project.value.id}/analise-juridica`);
-            groups.value = data;
+            groups.value = data.groups;
+            statusOptions.value = data.statusOptions;
         } catch {
             showSnackbar('Erro ao carregar documentos.', 'error');
         } finally {
@@ -49,6 +51,7 @@ export function useLegalAnalysis(project) {
 
     return {
         groups,
+        statusOptions,
         loadingFiles,
         in_progress,
         allFilesEvaluated,

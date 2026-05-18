@@ -17,9 +17,8 @@ const props = defineProps({
 
 const activeViewIndex = ref('all');
 
-const { groups, loadingFiles, in_progress, allFilesEvaluated, fetchFiles, onStatusUpdated, process } = useLegalAnalysis(
-    toRef(props, 'project')
-);
+const { groups, statusOptions, loadingFiles, in_progress, allFilesEvaluated, fetchFiles, onStatusUpdated, process } =
+    useLegalAnalysis(toRef(props, 'project'));
 
 onMounted(fetchFiles);
 </script>
@@ -68,6 +67,7 @@ onMounted(fetchFiles);
                         v-else-if="groups.length > 0"
                         :groups="groups"
                         :project="project"
+                        :status-options="statusOptions"
                         @status-updated="onStatusUpdated"
                     />
 
