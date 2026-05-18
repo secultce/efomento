@@ -7,10 +7,6 @@ defineProps({
         type: Object,
         required: true,
     },
-    notifications: {
-        type: Array,
-        default: () => [],
-    },
     notificationsCount: {
         type: Number,
         default: 0,
@@ -40,7 +36,7 @@ const logout = () => router.post(route('logout'));
             <v-btn variant="text" color="white" href="/editais"> Editais </v-btn>
 
             <v-btn variant="text" color="white"> Indicadores </v-btn>
-            <app-notification-menu :notifications="notifications" :notifications-count="notificationsCount" />
+            <app-notification-menu :notifications-count="notificationsCount" />
             <v-menu location="bottom end">
                 <template #activator="{ props: menuProps }">
                     <v-btn v-bind="menuProps" variant="text" color="white" class="px-3" data-cy="btnUserAvatar">
