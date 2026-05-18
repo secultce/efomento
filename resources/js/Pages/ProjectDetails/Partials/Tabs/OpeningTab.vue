@@ -14,6 +14,7 @@ import UserAutocompleteField from '@/Components/UserAutocompleteField.vue';
 import FormField from '@/Components/FormField.vue';
 import SelectField from '@/Components/SelectField.vue';
 import { useDate } from '@/Composables/useDate';
+import TramitButton from '@/Pages/ProjectDetails/Partials/Tabs/Actions/TramitButton.vue';
 
 const { showSnackbar } = useSnackbar();
 const { normalizeDate } = useDate();
@@ -296,13 +297,7 @@ const activeEditIndex = ref('all');
                             </template>
                         </template>
                     </section-form>
-                    <div class="w-full justify-center flex">
-                        <v-btn
-                            class="w-1/2 mt-4 !shadow-none !font-bold !bg-[#ffcc05FF] !text-[#2d353fFF] rounded-lg text-xs"
-                        >
-                            tramitar
-                        </v-btn>
-                    </div>
+                    <tramit-button />
                 </div>
             </div>
         </template>
