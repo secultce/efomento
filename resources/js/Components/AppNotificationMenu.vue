@@ -181,12 +181,12 @@ const handleNavigation = (notification) => {
                     >
                         <v-avatar color="primary">
                             <v-img
-                                v-if="notification?.meta?.user?.avatar"
-                                :src="notification.meta.user.avatar"
+                                v-if="notification?.data?.meta?.user?.avatar"
+                                :src="notification?.data?.meta?.user?.avatar"
                                 alt="User Avatar"
                             />
                             <span v-else class="text-h6">
-                                {{ notification?.meta?.user?.name?.charAt(0).toUpperCase() || 'U' }}
+                                {{ notification?.data?.meta?.user?.name?.charAt(0).toUpperCase() || 'U' }}
                             </span>
                         </v-avatar>
 
@@ -196,7 +196,7 @@ const handleNavigation = (notification) => {
                             </p>
 
                             <p v-if="notification?.data?.message" class="text-sm">
-                                {{ notification.data.message }}
+                                {{ notification?.data?.message }}
                             </p>
 
                             <div class="mt-1">
