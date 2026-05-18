@@ -2,7 +2,7 @@ import Login from '../../../pages/auth';
 import Notice from '../../../pages/notice';
 import Project from '../../../pages/project';
 
-describe('Página de Projetos', () => {
+describe('Project Page', () => {
     beforeEach(() => {
         cy.fixture('users').as('user');
         cy.fixture('notices').as('notice');
@@ -24,14 +24,13 @@ describe('Página de Projetos', () => {
         });
     });
 
-    it('Garante que é possível buscar um projeto pelo número do processo', function() {
+    it('Ensure it is possible to search for a project by process number', function () {
         cy.get('@currentNotice').then((notice) => {
             Project.findByProcessNumber(notice.nup);
         });
     });
 
-    it('Garante que a busca não retorna resultados para um número de processo inválido', function() {
+    it('Ensure search returns no results for a invalid process number', function () {
         Project.findByNonExistentProcessNumber();
     });
 });
-
