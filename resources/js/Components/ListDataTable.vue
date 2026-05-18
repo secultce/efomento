@@ -82,24 +82,6 @@ function runAction(action, item) {
 </script>
 
 <template>
-<<<<<<< HEAD
-  <div class="w-full">
-    <v-card v-for="item in items" :key="item.id" class="mb-3 pa-4 h-[4em] rounded d-flex justify-between items-center !border-[#ccccccFF]"
-      rounded="lg" variant="outlined">
-      <!-- LEFT: Checkbox + Reference -->
-      <div class="d-flex items-center ga-2">
-        <v-checkbox v-if="selectable" :model-value="isChecked(item)" @update:model-value="() => toggle(item)"  :disabled="!isSelectable(item)"
-          hide-details density="compact" class="mr-3" data-cy="checkboxProject"/>
-        <div class="w-[15em] flex-shrink-0">
-          <div class="text-caption text-[#3b3b3cFF]">
-            {{ reference(item).label }}
-          </div>
-          <div class="font-weight-bold text-[#3b3b3cFF]">
-            {{ reference(item).value }}
-          </div>
-        </div>
-      </div>
-=======
     <div class="w-full">
         <v-card
             v-for="item in items"
@@ -128,7 +110,6 @@ function runAction(action, item) {
                     </div>
                 </div>
             </div>
->>>>>>> develop
 
             <!-- MIDDLE: Chips + Data -->
             <div class="flex-1 d-flex justify-center items-start gap-[3.5em]">
@@ -150,28 +131,6 @@ function runAction(action, item) {
                     </div>
                 </div>
 
-<<<<<<< HEAD
-        <!-- Data blocks -->
-        <div v-for="(m, i) in data" :key="i" class="flex flex-col text-center w-[10em]">
-          <div class="text-caption text-[#3b3b3cFF]">
-            {{ m.label }}
-          </div>
-          <div class="font-weight-bold text-[#3b3b3cFF]" data-cy="processNumberProjectList">
-            {{ m.value(item) }}
-          </div>
-        </div>
-      </div>
-
-      <!-- RIGHT: Actions -->
-      <div class="d-flex justify-end ga-2">
-        <v-btn v-for="a in actions" :key="a.name" size="small" color="#004c27FF" variant="ghost" class="leading-normal"
-          @click="runAction(a.name, item)">
-          {{ a.label }}
-        </v-btn>
-      </div>
-    </v-card>
-  </div>
-=======
                 <!-- Data blocks -->
                 <div v-for="(m, i) in data" :key="i" class="flex flex-col text-center w-[10em]">
                     <div class="text-caption text-[#3b3b3cFF]">
@@ -199,5 +158,4 @@ function runAction(action, item) {
             </div>
         </v-card>
     </div>
->>>>>>> develop
 </template>
