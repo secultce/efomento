@@ -10,19 +10,19 @@ Artisan::command('inspire', function () {
 })->purpose('Display an inspiring quote');
 
 Schedule::job(new SyncNoticesJob)
-    ->dailyAt('06:00')
+    ->dailyAt('15:53')
     ->timezone('America/Fortaleza')
     ->withoutOverlapping()
     ->onOneServer();
 
 Schedule::command('queue:prune-batches --hours=72 --unfinished=168 --cancelled=168')
-    ->dailyAt('03:30')
+    ->dailyAt('15:53')
     ->timezone('America/Fortaleza')
     ->withoutOverlapping()
     ->onOneServer();
 
 Schedule::command('queue:prune-failed --hours=168')
-    ->dailyAt('03:40')
+    ->dailyAt('15:53')
     ->timezone('America/Fortaleza')
     ->withoutOverlapping()
     ->onOneServer();

@@ -11,8 +11,10 @@ use App\Enums\ReportStatus;
 use App\Http\Resources\ProjectResource;
 use App\Models\Notice;
 use App\Models\Project;
+use App\Models\ProjectStage;
 use App\Models\User;
 use App\Services\ProjectDocumentService;
+use App\Services\ProjectStageService;
 use App\Services\ProjectSupervisorService;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -61,6 +63,7 @@ class ProjectController extends Controller
             'budget.installments',
             'formalization',
             'agent.latestSnapshot',
+            'stages',
         ]);
 
         $availableSupervisors = User::role(['monitoring', 'coord_monitoring'])
@@ -76,6 +79,29 @@ class ProjectController extends Controller
             'openingStatus' => OpeningStatus::options(),
 
         ]);
+    }
+
+    public function tramitProject(
+        Request $request,
+        ProjectStageService $service
+    ) {
+        $data = $request->validate([
+            'stage_id' => ['required', 'exists:project_stages,id'],
+        ]);
+
+        $stage = ProjectStage::with('project')->findOrFail($data['stage_id']);
+
+        try {
+            $service->advance($stage, $request->user());
+
+            return back()->with('success', 'Processo tramitado com sucesso!');
+        } catch (\Throwable $e) {
+            report($e);
+
+            return back()->withErrors([
+                'message' => 'Erro ao tramitar processo.',
+            ]);
+        }
     }
 
     public function assignProjectSupervisor(Request $request, ProjectSupervisorService $service)

@@ -7,7 +7,7 @@ const buttonText = ref('OK');
 const onConfirm = ref(() => {});
 
 export function useAlert() {
-    const open = ({ alertTitle = 'Alert', alertMessage = '', confirmText = 'OK', action = () => {} }) => {
+    const showAlert = ({ alertTitle = 'Alert', alertMessage = '', confirmText = 'OK', action = () => {} }) => {
         title.value = alertTitle;
         message.value = alertMessage;
         buttonText.value = confirmText;
@@ -16,13 +16,13 @@ export function useAlert() {
         isOpen.value = true;
     };
 
-    const close = () => {
+    const closeAlert = () => {
         isOpen.value = false;
     };
 
     const confirm = () => {
         onConfirm.value();
-        close();
+        closeAlert();
     };
 
     return {
@@ -30,8 +30,8 @@ export function useAlert() {
         title,
         message,
         buttonText,
-        open,
-        close,
+        showAlert,
+        closeAlert,
         confirm,
     };
 }
