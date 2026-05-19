@@ -1,6 +1,6 @@
 <script setup>
 import { computed, watch } from 'vue';
-import { useForm, usePage } from '@inertiajs/vue3';
+import { router, useForm, usePage } from '@inertiajs/vue3';
 import { useSnackbar } from '@/Composables/useSnackbar';
 import AppTextEditor from '@/Components/AppTextEditor.vue';
 import { returnProcess } from '@/Services/projectService';
@@ -41,6 +41,12 @@ const handleReturn = () => {
             onError: (errors) => {
                 const msg = Object.values(errors).flat().join(', ') || 'Ocorreu um erro ao devolver o processo.';
                 showSnackbar(msg, 'error');
+            },
+            onFinish: () => {
+                router.visit(window.location.pathname, {
+                    preserveState: false,
+                    preserveScroll: true,
+                });
             },
         }
     );
