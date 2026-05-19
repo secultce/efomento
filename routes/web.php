@@ -65,6 +65,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::patch('/projetos/{project}/abertura/{opening}/atualizar', [OpeningController::class, 'update'])
         ->scopeBindings()
         ->name('projects.openings.update');
+    Route::patch('/projetos/{project}/abertura/tramitar', [ProjectController::class, 'tramitProject'])
+        ->name('projects.openings.tramit');
     Route::get('editais/{notice}/projetos', [ProjectController::class, 'index'])
         ->name('notices.projects');
     Route::get('editais/{notice}/projetos/{project}', [ProjectController::class, 'projectDetail'])

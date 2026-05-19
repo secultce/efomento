@@ -6,6 +6,7 @@ use App\Enums\CategoryType;
 use App\Models\Agent;
 use App\Models\Category;
 use App\Models\Notice;
+use App\Models\Opening;
 use App\Services\MapasClient;
 use App\Services\ProfileSnapshotService;
 use App\Services\ProjectService;
@@ -138,6 +139,11 @@ class SyncRegistrationDetailsJob implements ShouldQueue
                 agentId: $agent->id,
                 noticeId: $notice->id,
                 categoryId: $categoryId
+            );
+
+            Opening::firstOrCreate(
+                ['project_id' => $project->id],
+                ['is_draft' => true]
             );
 
             DB::afterCommit(function () use (

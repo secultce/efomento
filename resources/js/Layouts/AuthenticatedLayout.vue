@@ -3,6 +3,7 @@ import { router, usePage } from '@inertiajs/vue3';
 import AppHeader from '@/Components/AppHeader.vue';
 import AppSubHeader from '@/Components/AppSubHeader.vue';
 import AppSnackbar from '@/Components/AppSnackbar.vue';
+import AppAlert from '@/Components/AppAlert.vue';
 import { computed, onMounted, onUnmounted, ref, watch } from 'vue';
 
 const page = usePage();
@@ -43,6 +44,7 @@ onUnmounted(() => {
         <AppHeader :user="user" :notifications-count="notificationsCount" />
         <v-main>
             <AppSnackbar />
+            <AppAlert />
             <AppSubHeader v-if="$slots.subheader">
                 <slot name="subheader" />
             </AppSubHeader>
