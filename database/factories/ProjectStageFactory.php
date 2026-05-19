@@ -24,7 +24,7 @@ class ProjectStageFactory extends Factory
             'project_id' => Project::factory(),
             'slug' => ProjectStageSlug::ABERTURA->value,
             'order' => 1,
-            'responsible_sector' => ['fomentation', 'coord_fomentation'],
+            'responsible_sector' => ['super_admin', 'fomentation', 'coord_fomentation'],
             'status' => ProjectStageStatus::PENDENTE->value,
             'responsible_user_id' => null,
             'started_at' => null,

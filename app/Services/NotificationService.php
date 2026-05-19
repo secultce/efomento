@@ -14,6 +14,7 @@ class NotificationService
     public function notifyProcessReturned(Project $project, string $reason, array $roles): void
     {
         $users = User::role($roles)->get();
+
         $this->notify->users($users)->warning(
             'O processo "'.$project->title_project.'" foi devolvido para ajustes.',
             'Processo devolvido',
