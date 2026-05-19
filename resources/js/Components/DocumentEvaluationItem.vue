@@ -1,6 +1,7 @@
 <script setup>
-import { ref } from 'vue';
+import { ref, computed } from 'vue';
 import { useSnackbar } from '@/Composables/useSnackbar';
+import { useAuth } from '@/Composables/useAuth';
 
 const props = defineProps({
     file: {
@@ -16,6 +17,14 @@ const props = defineProps({
         required: true,
     },
 });
+
+const { hasRole } = useAuth();
+
+const stage = computed(() => props.project.stages?.find((s) => s.slug === 'analise_juridica'));
+
+const canUserHandleLegalAnalysis = computed(() =>
+    hasRole(['super_admin', 'legal_analysis', 'coord_legal', 'coord_financial'])
+);
 
 const emit = defineEmits(['status-updated']);
 
@@ -63,20 +72,29 @@ function downloadFile() {
             </span>
 
             <div class="flex items-center gap-2 flex-shrink-0">
-                <v-select
-                    v-model="selectedStatus"
-                    :items="statusOptions"
-                    item-title="label"
-                    item-value="value"
-                    placeholder="Selecione um status"
-                    density="compact"
-                    variant="outlined"
-                    hide-details
-                    :loading="loading"
-                    :disabled="loading"
-                    class="w-52"
-                    @update:model-value="onStatusChange"
-                />
+                <div
+                    v-permission="{
+                        condition: !canUserHandleLegalAnalysis || stage?.status !== 'aprovado',
+                        message: !canUserHandleLegalAnalysis
+                            ? 'Usuário não tem permissão para avaliar documentos'
+                            : 'Análise jurídica já foi tramitada.',
+                    }"
+                >
+                    <v-select
+                        v-model="selectedStatus"
+                        :items="statusOptions"
+                        item-title="label"
+                        item-value="value"
+                        placeholder="Selecione um status"
+                        density="compact"
+                        variant="outlined"
+                        hide-details
+                        :loading="loading"
+                        :disabled="loading"
+                        class="w-52"
+                        @update:model-value="onStatusChange"
+                    />
+                </div>
 
                 <v-btn icon size="small" variant="text" :disabled="!file.url" @click="openFile">
                     <v-icon color="primary" size="22">mdi-eye</v-icon>
