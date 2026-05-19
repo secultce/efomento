@@ -16,8 +16,10 @@ class ProjectStageService
         private Notify $notify
     ) {}
 
-    public function advance(ProjectStage $stage, User $user): void
-    {
+    public function advance(
+        ProjectStage $stage,
+        User $user
+    ): ?ProjectStage {
         if (! $user->hasAnyRole($stage->responsible_sector)) {
             throw new AuthorizationException(
                 'Você não tem permissão para tramitar esta etapa.'
@@ -35,7 +37,6 @@ class ProjectStageService
                 'Não é possível avançar: existem etapas anteriores não aprovadas.'
             );
         }
-        $previousStage = $stage;
 
         $stage->markApproved();
 
@@ -46,47 +47,9 @@ class ProjectStageService
                 'status' => ProjectStageStatus::EM_ANDAMENTO,
                 'started_at' => now(),
             ]);
-
-            $previousName = str($previousStage->slug->value)
-                ->replace('_', ' ')
-                ->title();
-
-            $nextName = str($next->slug->value)
-                ->replace('_', ' ')
-                ->title();
-
-            $message = sprintf(
-                '%s tramitou o projeto %s de %s para %s.',
-                $user->name,
-                $stage->project->title_project,
-                $previousName,
-                $nextName
-            );
-
-            $title = sprintf(
-                'Projeto %s Atualizado',
-                $stage->project->title_project,
-            );
-
-            $this->notify
-                ->allUsers()
-                ->info(
-                    $message,
-                    $title,
-                    (object) [
-                        'route' => 'notices.projects.show',
-                        'params' => [
-                            'notice' => $stage->project->notice_id,
-                            'project' => $stage->project->id,
-
-                        ],
-                        'user' => [
-                            'name' => $user->name,
-                            'avatar' => $user->profile_picture,
-                        ],
-                    ]
-                );
         }
+
+        return $next?->fresh();
     }
 
     public function reject(ProjectStage $stage, string $reason, User $user): void

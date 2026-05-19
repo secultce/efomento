@@ -151,7 +151,7 @@ const tramit = () => {
     tramitLoading.value = true;
 
     router.patch(
-        route('projects.openings.tramit', {
+        route('projects.stages.advance', {
             project: props.project.id,
             stage_id: stage.id,
         }),
@@ -183,6 +183,18 @@ const tramit = () => {
         }
     );
 };
+
+const permissionMessage = computed(() => {
+    if (!canUserHandleOpening.value) {
+        return 'Usuário não tem permissão para fazer alterações na Abertura';
+    }
+
+    if (stage.status === 'bloqueado') {
+        return 'Este projeto está bloqueado e não pode receber alterações no momento.';
+    }
+
+    return 'Projeto já foi tramitado e não está mais na fase de Abertura. Aguarde a resposta da Análise Jurídica ou entre em contato com o setor responsável para solicitar a devolução.';
+});
 
 const activeViewIndex = ref('all');
 const activeEditIndex = ref('all');
@@ -231,11 +243,9 @@ const activeEditIndex = ref('all');
                 <section-chips v-model="activeEditIndex" :sections="formSections" />
                 <div
                     v-permission="{
-                        condition: !canUserHandleOpening || stage.status !== 'aprovado',
-
-                        message: !canUserHandleOpening
-                            ? 'Usuário não tem permissão para fazer alterações na Abertura'
-                            : 'Projeto já foi tramitado e não está mais na fase de Abertura. Aguarde a resposta da Análise Jurídica ou entre em contato com o setor responsável para solicitar a devolução.',
+                        condition:
+                            !canUserHandleOpening || (stage.status !== 'aprovado' && stage.status !== 'bloqueado'),
+                        message: permissionMessage,
                     }"
                     class="mt-4"
                 >

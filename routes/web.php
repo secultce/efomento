@@ -69,8 +69,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('/projetos/{project}/etapas/{stage}/devolver', [ProjectStageController::class, 'return'])
         ->scopeBindings()
         ->name('projects.stages.return');
-    Route::patch('/projetos/{project}/abertura/tramitar', [ProjectController::class, 'tramitProject'])
-        ->name('projects.openings.tramit');
+    Route::patch('/projetos/{project}/abertura/tramitar', [ProjectStageController::class, 'advance'])
+        ->name('projects.stages.advance');
     Route::get('editais/{notice}/projetos', [ProjectController::class, 'index'])
         ->name('notices.projects');
     Route::get('editais/{notice}/projetos/{project}', [ProjectController::class, 'projectDetail'])

@@ -21,7 +21,6 @@ const activeViewIndex = ref('all');
 
 const { groups, statusOptions, loadingFiles, in_progress, allFilesEvaluated, fetchFiles, onStatusUpdated, process } =
     useLegalAnalysis(toRef(props, 'project'));
-
 onMounted(fetchFiles);
 </script>
 

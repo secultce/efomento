@@ -2,7 +2,8 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Requests\ReturnStageRequest;
+use App\Http\Requests\Stages\AdvanceStageRequest;
+use App\Http\Requests\Stages\ReturnStageRequest;
 use App\Models\Project;
 use App\Models\ProjectStage;
 use App\Services\NotificationService;
@@ -16,8 +17,39 @@ class ProjectStageController extends Controller
         private NotificationService $notificationService
     ) {}
 
-    public function return(ReturnStageRequest $request, Project $project, ProjectStage $stage)
-    {
+    public function advance(
+        ProjectStageService $service,
+        AdvanceStageRequest $request
+    ) {
+        $data = $request->validated();
+
+        $currentStage = ProjectStage::with('project')->findOrFail($data['stage_id']);
+
+        try {
+            $nextStage = $service->advance($currentStage, $request->user());
+
+            $this->notificationService
+                ->notifyStageAdvanced(
+                    $currentStage,
+                    $nextStage,
+                    $request->user()
+                );
+
+            return back()->with('success', 'Processo tramitado com sucesso!');
+        } catch (\Throwable $e) {
+            report($e);
+
+            return back()->withErrors([
+                'message' => 'Erro ao tramitar processo.'.$e->getMessage(),
+            ]);
+        }
+    }
+
+    public function return(
+        ReturnStageRequest $request,
+        Project $project,
+        ProjectStage $stage
+    ) {
         try {
             $this->stageService->returnStage(
                 $stage,
