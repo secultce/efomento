@@ -5,15 +5,17 @@ import SectionChips from '@/Components/SectionChips.vue';
 import SectionContent from '@/Components/SectionContent.vue';
 import AuxLinks from '@/Components/AuxLinks.vue';
 import DocumentEvaluationList from '@/Components/DocumentEvaluationList.vue';
+import ReturnProcessModal from '@/Components/ReturnProcessModal.vue';
 import { viewSections } from '@/Schemas/Opening';
 import { useLegalAnalysis } from '@/Composables/useLegalAnalysis';
 
 const props = defineProps({
-    project: {
-        type: Object,
-        required: true,
-    },
+    project: { type: Object, required: true },
+    canReturn: { type: Boolean, default: false },
+    currentStage: { type: Object, default: null },
 });
+
+const showReturnModal = ref(false);
 
 const activeViewIndex = ref('all');
 
@@ -27,8 +29,18 @@ onMounted(fetchFiles);
     <SplitScreenTab value="legal-analysis">
         <template #left-content>
             <div class="space-y-6">
-                <div>
-                    <p class="font-bold text-lg">Dados disponíveis para consulta</p>
+                <div class="">
+                    <p class="font-bold text-lg d-flex justify-between">
+                        Dados disponíveis para consulta
+                        <!--                        <span>{{ currentStage }}</span>-->
+                        <v-btn
+                            v-if="canReturn && currentStage"
+                            class="!shadow-none !font-bold !bg-[#ffcc05FF] !text-[#2d353fFF] rounded-lg text-xs"
+                            @click="showReturnModal = true"
+                        >
+                            DEVOLVER PROCESSO
+                        </v-btn>
+                    </p>
                     <p class="text-sm text-gray-600">Utilize os filtros abaixo para navegar entre os dados</p>
                 </div>
 
@@ -74,7 +86,7 @@ onMounted(fetchFiles);
                     <p v-else class="text-sm text-gray-400">Nenhum documento encontrado para avaliação.</p>
                 </div>
 
-                <div class="flex justify-center pt-4">
+                <div class="flex justify-center gap-3 pt-4">
                     <v-btn
                         class="w-1/2 !shadow-none !font-bold !bg-[#ffcc05FF] !text-[#2d353fFF] rounded-lg text-xs"
                         :disabled="!allFilesEvaluated"
@@ -87,4 +99,11 @@ onMounted(fetchFiles);
             </div>
         </template>
     </SplitScreenTab>
+
+    <ReturnProcessModal
+        v-if="canReturn && currentStage"
+        v-model="showReturnModal"
+        :project-id="project.id"
+        :stage-id="currentStage.id"
+    />
 </template>

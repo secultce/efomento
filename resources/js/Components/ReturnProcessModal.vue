@@ -1,11 +1,12 @@
 <script setup>
 import { computed, watch } from 'vue';
-import { useForm } from '@inertiajs/vue3';
+import { useForm, usePage } from '@inertiajs/vue3';
 import { useSnackbar } from '@/Composables/useSnackbar';
 import AppTextEditor from '@/Components/AppTextEditor.vue';
 import { returnProcess } from '@/Services/projectService';
 
 const { showSnackbar } = useSnackbar();
+const page = usePage();
 
 const props = defineProps({
     modelValue: Boolean,
@@ -28,6 +29,11 @@ const handleReturn = () => {
         { reason: form.reason },
         {
             onSuccess: () => {
+                const flash = page.props.flash;
+                if (flash?.error) {
+                    showSnackbar(flash.error, 'error');
+                    return;
+                }
                 showSnackbar('Processo devolvido com sucesso!', 'success');
                 emit('returned');
                 close();

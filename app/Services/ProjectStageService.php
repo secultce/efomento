@@ -65,6 +65,7 @@ class ProjectStageService
 
     public function returnStage(ProjectStage $stage, string $reason, User $user): ProjectStage
     {
+
         if (! $user->hasAnyRole($stage->responsible_sector)) {
             throw new AuthorizationException('Você não tem permissão para devolver esta etapa.');
         }

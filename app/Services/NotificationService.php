@@ -2,11 +2,25 @@
 
 namespace App\Services;
 
+use App\Models\Project;
 use App\Models\User;
+use App\Support\Notify;
 use Illuminate\Notifications\DatabaseNotification;
 
 class NotificationService
 {
+    public function __construct(private Notify $notify) {}
+
+    public function notifyProcessReturned(Project $project, string $reason, array $roles): void
+    {
+        $users = User::role($roles)->get();
+        $this->notify->users($users)->warning(
+            'O processo "'.$project->title_project.'" foi devolvido para ajustes.',
+            'Processo devolvido',
+            ['reason' => $reason]
+        );
+    }
+
     public function getUserNotifications(
         User $user,
         array $filters = [],

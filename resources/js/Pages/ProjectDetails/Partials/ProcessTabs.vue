@@ -2,7 +2,6 @@
 import { ref } from 'vue';
 import OpeningTab from './Tabs/OpeningTab.vue';
 import LegalAnalysisTab from './Tabs/LegalAnalysisTab.vue';
-import ReturnProcessModal from '@/Components/ReturnProcessModal.vue';
 
 defineProps({
     project: { type: Object, default: null },
@@ -15,7 +14,6 @@ defineProps({
 });
 
 const tab = ref('1');
-const showReturnModal = ref(false);
 
 const tabs = [
     { value: 'opening', label: 'Abertura' },
@@ -29,13 +27,6 @@ const tabs = [
 
 <template>
     <v-card class="w-full !shadow-none border border-gray-800 rounded-lg">
-        <p>{{ canReturn }}</p>
-        <div v-if="canReturn" class="flex justify-end px-4 pt-3">
-            <v-btn color="error" variant="outlined" class="rounded-lg font-bold" @click="showReturnModal = true">
-                DEVOLVER PROCESSO
-            </v-btn>
-        </div>
-
         <v-sheet elevation="2">
             <v-tabs v-model="tab" grow>
                 <v-tab
@@ -58,7 +49,7 @@ const tabs = [
                     :account-type="accountType"
                 />
 
-                <LegalAnalysisTab :project="project" />
+                <LegalAnalysisTab :project="project" :can-return="canReturn" :current-stage="currentStage" />
 
                 <v-tabs-window-item value="3">
                     <v-sheet class="pa-5 h-[35em]" color="brown" />
@@ -77,12 +68,5 @@ const tabs = [
                 </v-tabs-window-item>
             </v-tabs-window>
         </v-sheet>
-
-        <ReturnProcessModal
-            v-if="canReturn && currentStage"
-            v-model="showReturnModal"
-            :project-id="project.id"
-            :stage-id="currentStage.id"
-        />
     </v-card>
 </template>
