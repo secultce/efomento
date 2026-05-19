@@ -1,6 +1,4 @@
 <script setup>
-import { useAlert } from '@/Composables/useAlert';
-
 const props = defineProps({
     action: {
         type: Function,
