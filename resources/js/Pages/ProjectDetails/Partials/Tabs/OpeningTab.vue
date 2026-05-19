@@ -49,7 +49,7 @@ const props = defineProps({
 const stage = props.project.stages.find((s) => s.slug === 'abertura');
 
 const canUserHandleOpening = computed(() => {
-    return hasRole('super_admin') || hasRole('fomentation') || hasRole('coord_fomentation') || hasRole('super_admin');
+    return hasRole('super_admin') || hasRole('fomentation') || hasRole('coord_fomentation');
 });
 
 defineEmits(['update:field']);
