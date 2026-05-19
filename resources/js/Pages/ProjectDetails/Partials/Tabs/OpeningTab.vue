@@ -145,7 +145,11 @@ const submit = () => {
     );
 };
 
+const tramitLoading = ref(false);
+
 const tramit = () => {
+    tramitLoading.value = true;
+
     router.patch(
         route('projects.openings.tramit', {
             project: props.project.id,
@@ -172,6 +176,9 @@ const tramit = () => {
                 const message = Object.values(errors).flat().join(', ') || 'Erro ao tramitar projeto';
 
                 showSnackbar(message, 'error');
+            },
+            onFinish: () => {
+                tramitLoading.value = false;
             },
         }
     );
@@ -349,7 +356,7 @@ const activeEditIndex = ref('all');
                             </template>
                         </template>
                     </section-form>
-                    <tramit-button :action="tramit" :disabled="!canUserHandleOpening" />
+                    <tramit-button :action="tramit" :disabled="!canUserHandleOpening" :loading="tramitLoading" />
                 </div>
             </div>
         </template>
