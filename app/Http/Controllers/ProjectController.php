@@ -104,7 +104,7 @@ class ProjectController extends Controller
             report($e);
 
             return back()->withErrors([
-                'message' => 'Erro ao tramitar processo.',
+                'message' => 'Erro ao tramitar processo.'.$e->getMessage(),
             ]);
         }
     }

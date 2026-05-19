@@ -18,7 +18,7 @@ class NotificationService
         $this->notify->users($users)->warning(
             'O processo "'.$project->title_project.'" foi devolvido para ajustes.',
             'Processo devolvido',
-            ['reason' => $reason]
+            (object) ['reason' => $reason]
         );
     }
 
