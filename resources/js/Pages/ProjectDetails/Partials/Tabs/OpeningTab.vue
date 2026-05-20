@@ -1,12 +1,12 @@
 <script setup>
-import { ref } from 'vue';
+import { computed, ref } from 'vue';
 import SplitScreenTab from '@/Components/SplitScreenTab.vue';
 import SectionChips from '@/Components/SectionChips.vue';
 import SectionContent from '@/Components/SectionContent.vue';
 import SectionForm from '@/Components/SectionForm.vue';
 import AuxLinks from '@/Components/AuxLinks.vue';
 import { viewSections, formSections } from '@/Schemas/Opening';
-import { useForm } from '@inertiajs/vue3';
+import { router, useForm } from '@inertiajs/vue3';
 import { onMounted } from 'vue';
 import { useSnackbar } from '@/Composables/useSnackbar';
 import TextField from '@/Components/TextField.vue';
@@ -14,9 +14,15 @@ import UserAutocompleteField from '@/Components/UserAutocompleteField.vue';
 import FormField from '@/Components/FormField.vue';
 import SelectField from '@/Components/SelectField.vue';
 import { useDate } from '@/Composables/useDate';
+import TramitButton from '@/Pages/ProjectDetails/Partials/Tabs/Actions/TramitButton.vue';
+import { useAlert } from '@/Composables/useAlert';
+import { useAuth } from '@/Composables/useAuth';
 
 const { showSnackbar } = useSnackbar();
 const { normalizeDate } = useDate();
+const { showAlert } = useAlert();
+const { hasRole } = useAuth();
+
 const props = defineProps({
     project: {
         type: Object,
@@ -38,6 +44,12 @@ const props = defineProps({
         type: Array,
         default: () => [],
     },
+});
+
+const stage = props.project.stages.find((s) => s.slug === 'abertura');
+
+const canUserHandleOpening = computed(() => {
+    return hasRole('super_admin') || hasRole('fomentation') || hasRole('coord_fomentation');
 });
 
 defineEmits(['update:field']);
@@ -133,6 +145,57 @@ const submit = () => {
     );
 };
 
+const tramitLoading = ref(false);
+
+const tramit = () => {
+    tramitLoading.value = true;
+
+    router.patch(
+        route('projects.stages.advance', {
+            project: props.project.id,
+            stage: stage.id,
+        }),
+        {},
+        {
+            preserveScroll: true,
+            onSuccess: () => {
+                showAlert({
+                    alertTitle: 'Tarefa marcada como tramitada',
+                    alertMessage:
+                        'As informações foram validadas e as pessoas envolvidas nesse processo foram notificadas.',
+                    confirmText: 'Entendi',
+                    action: () => {
+                        router.visit(window.location.pathname, {
+                            preserveState: false,
+                            preserveScroll: true,
+                        });
+                    },
+                });
+            },
+            onError: (errors) => {
+                const message = Object.values(errors).flat().join(', ') || 'Erro ao tramitar projeto';
+
+                showSnackbar(message, 'error');
+            },
+            onFinish: () => {
+                tramitLoading.value = false;
+            },
+        }
+    );
+};
+
+const permissionMessage = computed(() => {
+    if (!canUserHandleOpening.value) {
+        return 'Usuário não tem permissão para fazer alterações na Abertura';
+    }
+
+    if (stage.status === 'bloqueado') {
+        return 'Este projeto está bloqueado e não pode receber alterações no momento.';
+    }
+
+    return 'Projeto já foi tramitado e não está mais na fase de Abertura. Aguarde a resposta da Análise Jurídica ou entre em contato com o setor responsável para solicitar a devolução.';
+});
+
 const activeViewIndex = ref('all');
 const activeEditIndex = ref('all');
 </script>
@@ -178,7 +241,14 @@ const activeEditIndex = ref('all');
                 </div>
                 <aux-links />
                 <section-chips v-model="activeEditIndex" :sections="formSections" />
-                <div class="mt-4">
+                <div
+                    v-permission="{
+                        condition:
+                            !canUserHandleOpening || (stage.status !== 'aprovado' && stage.status !== 'bloqueado'),
+                        message: permissionMessage,
+                    }"
+                    class="mt-4"
+                >
                     <section-form :active-edit-index="activeEditIndex" :sections="formSections">
                         <template #default="{ section }">
                             <template v-if="section.key === 'opening'">
@@ -296,13 +366,7 @@ const activeEditIndex = ref('all');
                             </template>
                         </template>
                     </section-form>
-                    <div class="w-full justify-center flex">
-                        <v-btn
-                            class="w-1/2 mt-4 !shadow-none !font-bold !bg-[#ffcc05FF] !text-[#2d353fFF] rounded-lg text-xs"
-                        >
-                            tramitar
-                        </v-btn>
-                    </div>
+                    <tramit-button :action="tramit" :disabled="!canUserHandleOpening" :loading="tramitLoading" />
                 </div>
             </div>
         </template>

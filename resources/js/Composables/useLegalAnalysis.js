@@ -1,13 +1,19 @@
 import { ref, computed } from 'vue';
+import { router, usePage } from '@inertiajs/vue3';
 import { useSnackbar } from '@/Composables/useSnackbar';
+import { useAlert } from '@/Composables/useAlert';
 
 export function useLegalAnalysis(project) {
     const { showSnackbar } = useSnackbar();
+    const { showAlert } = useAlert();
+    const page = usePage();
 
     const groups = ref([]);
     const statusOptions = ref([]);
     const loadingFiles = ref(false);
     const in_progress = ref(false);
+
+    const stage = computed(() => project.value.stages?.find((s) => s.slug === 'analise_juridica'));
 
     const allFilesEvaluated = computed(
         () => groups.value.length > 0 && groups.value.every((g) => g.files.every((f) => f.status !== null))
@@ -36,17 +42,50 @@ export function useLegalAnalysis(project) {
         }
     }
 
-    async function process() {
+    function process() {
         if (!allFilesEvaluated.value) {
             showSnackbar('Avalie todos os documentos antes de tramitar.', 'warning');
             return;
         }
+
         in_progress.value = true;
-        try {
-            showSnackbar('Análise jurídica tramitada com sucesso!', 'success');
-        } finally {
-            in_progress.value = false;
-        }
+
+        router.patch(
+            route('projects.stages.advance', {
+                project: project.value.id,
+                stage: stage.value.id,
+            }),
+            {},
+            {
+                preserveScroll: true,
+                onSuccess: () => {
+                    const flash = page.props.flash;
+                    if (flash?.error) {
+                        showSnackbar(flash.error, 'error');
+                        return;
+                    }
+                    showAlert({
+                        alertTitle: 'Análise jurídica tramitada',
+                        alertMessage:
+                            'Os documentos foram avaliados e as pessoas envolvidas nesse processo foram notificadas.',
+                        confirmText: 'Entendi',
+                        action: () => {
+                            router.visit(window.location.pathname, {
+                                preserveState: false,
+                                preserveScroll: true,
+                            });
+                        },
+                    });
+                },
+                onError: (errors) => {
+                    const message = Object.values(errors).flat().join(', ') || 'Erro ao tramitar análise jurídica.';
+                    showSnackbar(message, 'error');
+                },
+                onFinish: () => {
+                    in_progress.value = false;
+                },
+            }
+        );
     }
 
     return {

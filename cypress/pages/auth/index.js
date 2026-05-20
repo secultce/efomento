@@ -27,7 +27,7 @@ class Login {
         cy.get(el.btnLogin).should('be.visible').click();
     }
 
-    validateUnlogedUserRedirectsToLogin() {
+    validateUnloggedUserRedirectsToLogin() {
         cy.url().should('be.equal', `${Cypress.config('baseUrl')}/login`);
     }
 

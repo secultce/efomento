@@ -5,13 +5,21 @@ namespace App\Services;
 use App\Enums\ProjectStageStatus;
 use App\Models\ProjectStage;
 use App\Models\User;
+use App\Support\Notify;
 use Illuminate\Auth\Access\AuthorizationException;
+use Illuminate\Support\Facades\DB;
 use InvalidArgumentException;
 
 class ProjectStageService
 {
-    public function advance(ProjectStage $stage, User $user): void
-    {
+    public function __construct(
+        private Notify $notify
+    ) {}
+
+    public function advance(
+        ProjectStage $stage,
+        User $user
+    ): ?ProjectStage {
         if (! $user->hasAnyRole($stage->responsible_sector)) {
             throw new AuthorizationException(
                 'Você não tem permissão para tramitar esta etapa.'
@@ -33,12 +41,15 @@ class ProjectStageService
         $stage->markApproved();
 
         $next = $stage->getNextStage();
+
         if ($next) {
             $next->update([
                 'status' => ProjectStageStatus::EM_ANDAMENTO,
                 'started_at' => now(),
             ]);
         }
+
+        return $next?->fresh();
     }
 
     public function reject(ProjectStage $stage, string $reason, User $user): void
@@ -60,5 +71,36 @@ class ProjectStageService
         $stage->project->stages()
             ->where('order', '>', $stage->order)
             ->update(['status' => ProjectStageStatus::BLOQUEADO->value]);
+    }
+
+    public function returnStage(ProjectStage $stage, string $reason, User $user): ProjectStage
+    {
+
+        if (! $user->hasAnyRole($stage->responsible_sector)) {
+            throw new AuthorizationException('Você não tem permissão para devolver esta etapa.');
+        }
+
+        if ($stage->status !== ProjectStageStatus::EM_ANDAMENTO) {
+            throw new InvalidArgumentException('A etapa precisa estar em andamento para ser devolvida.');
+        }
+
+        $previousStage = $stage->getPreviousStage();
+        if (! $previousStage) {
+            throw new InvalidArgumentException('Não há etapa anterior para devolução.');
+        }
+
+        DB::transaction(function () use ($stage, $reason, $previousStage) {
+            $stage->markRejected($reason);
+            $stage->project->stages()
+                ->where('order', '>', $stage->order)
+                ->update(['status' => ProjectStageStatus::BLOQUEADO->value]);
+            $previousStage->update([
+                'status' => ProjectStageStatus::EM_ANDAMENTO,
+                'started_at' => now(),
+                'concluded_at' => null,
+            ]);
+        });
+
+        return $previousStage->fresh();
     }
 }

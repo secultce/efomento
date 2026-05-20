@@ -1,34 +1,60 @@
 <script setup>
-import { ref, toRef, onMounted } from 'vue';
+import { ref, computed, toRef, onMounted } from 'vue';
 import SplitScreenTab from '@/Components/SplitScreenTab.vue';
 import SectionChips from '@/Components/SectionChips.vue';
 import SectionContent from '@/Components/SectionContent.vue';
 import AuxLinks from '@/Components/AuxLinks.vue';
 import DocumentEvaluationList from '@/Components/DocumentEvaluationList.vue';
+import ReturnProcessModal from '@/Components/ReturnProcessModal.vue';
+import TramitButton from '@/Pages/ProjectDetails/Partials/Tabs/Actions/TramitButton.vue';
 import { viewSections } from '@/Schemas/Opening';
 import { useLegalAnalysis } from '@/Composables/useLegalAnalysis';
+import { useAuth } from '@/Composables/useAuth';
 
 const props = defineProps({
-    project: {
-        type: Object,
-        required: true,
-    },
+    project: { type: Object, required: true },
+    canReturn: { type: Boolean, default: false },
+    currentStage: { type: Object, default: null },
 });
+
+const { hasRole } = useAuth();
+
+const canUserHandleLegalAnalysis = computed(() =>
+    hasRole(['super_admin', 'legal_analysis', 'coord_legal', 'coord_financial'])
+);
+
+const showReturnModal = ref(false);
 
 const activeViewIndex = ref('all');
 
 const { groups, statusOptions, loadingFiles, in_progress, allFilesEvaluated, fetchFiles, onStatusUpdated, process } =
     useLegalAnalysis(toRef(props, 'project'));
-
 onMounted(fetchFiles);
+
+const stage = computed(() => props.project.stages?.find((s) => s.slug === 'analise_juridica'));
 </script>
 
 <template>
     <SplitScreenTab value="legal-analysis">
         <template #left-content>
             <div class="space-y-6">
-                <div>
-                    <p class="font-bold text-lg">Dados disponíveis para consulta</p>
+                <div class="">
+                    <p class="font-bold text-lg d-flex justify-between">
+                        Dados disponíveis para consulta
+                        <v-btn
+                            v-if="canReturn && currentStage"
+                            v-permission="{
+                                condition: !canUserHandleLegalAnalysis || stage?.status !== 'aprovado',
+                                message: !canUserHandleLegalAnalysis
+                                    ? 'Usuário não tem permissão para avaliar documentos'
+                                    : 'Análise jurídica já foi tramitada.',
+                            }"
+                            class="!shadow-none !font-bold !bg-[#ffcc05FF] !text-[#2d353fFF] rounded-lg text-xs"
+                            @click="showReturnModal = true"
+                        >
+                            DEVOLVER PROCESSO
+                        </v-btn>
+                    </p>
                     <p class="text-sm text-gray-600">Utilize os filtros abaixo para navegar entre os dados</p>
                 </div>
 
@@ -59,8 +85,6 @@ onMounted(fetchFiles);
 
                 <div>
                     <p class="font-bold text-sm mb-3">Avalie os documentos</p>
-
-                    <!--                    <p>{{ groups }}</p>-->
                     <v-progress-linear v-if="loadingFiles" indeterminate color="primary" class="mb-4" />
 
                     <DocumentEvaluationList
@@ -74,17 +98,25 @@ onMounted(fetchFiles);
                     <p v-else class="text-sm text-gray-400">Nenhum documento encontrado para avaliação.</p>
                 </div>
 
-                <div class="flex justify-center pt-4">
-                    <v-btn
-                        class="w-1/2 !shadow-none !font-bold !bg-[#ffcc05FF] !text-[#2d353fFF] rounded-lg text-xs"
-                        :disabled="!allFilesEvaluated"
-                        :loading="in_progress"
-                        @click="process"
-                    >
-                        tramitar
-                    </v-btn>
-                </div>
+                <TramitButton
+                    v-permission="{
+                        condition: !canUserHandleLegalAnalysis || stage?.status !== 'aprovado',
+                        message: !canUserHandleLegalAnalysis
+                            ? 'Usuário não tem permissão para avaliar documentos'
+                            : 'Análise jurídica já foi tramitada.',
+                    }"
+                    :action="process"
+                    :disabled="!canUserHandleLegalAnalysis || !allFilesEvaluated"
+                    :loading="in_progress"
+                />
             </div>
         </template>
     </SplitScreenTab>
+
+    <ReturnProcessModal
+        v-if="canReturn && currentStage"
+        v-model="showReturnModal"
+        :project-id="project.id"
+        :stage-id="currentStage.id"
+    />
 </template>

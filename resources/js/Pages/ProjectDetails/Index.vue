@@ -13,6 +13,8 @@ defineProps({
     reportStatus: { type: Array, default: () => [] },
     accountType: { type: Array, default: () => [] },
     openingStatus: { type: Array, default: () => [] },
+    currentStage: { type: Object, default: null },
+    canReturn: { type: Boolean, default: false },
 });
 </script>
 
@@ -37,6 +39,8 @@ defineProps({
                     :agent-status="agentStatus"
                     :report-status="reportStatus"
                     :account-type="accountType"
+                    :current-stage="currentStage"
+                    :can-return="canReturn"
                 />
             </div>
         </AppContainer>
