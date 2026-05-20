@@ -1,38 +1,35 @@
-import Login from '../../../pages/auth'
+import Login from '../../../pages/auth';
+import Notice from '../../../pages/notice';
 
 describe('Login', () => {
+    beforeEach(() => {
+        cy.fixture('users').as('user');
+        Login.accessLoginPage();
+    });
 
-  let data;
+    describe('Positive Tests', () => {
+        it('Validate it is possible to login with valid credentials', function () {
+            Login.successLogin(this.user.valid_email, this.user.password, this.user.name);
+        });
 
-  before(() => {
-    cy.fixture('users').then((tData) => {
-      data = tData;
-    })
-  })
+        it('Validate that accessing notice page when logged out redirects to login page', () => {
+            Notice.acessarPaginaDeEditais();
+            Login.validateUnloggedUserRedirectsToLogin();
+        });
 
-  it('Login com sucesso', () => {
-    Login.acessarPaginaDeLogin()
-    Login.loginComSucesso(data.valid_email, data.password, data.name)
-  })
+        it('Validate click on logout button redirects to login page', function () {
+            Login.successLogin(this.user.valid_email, this.user.password, this.user.name);
+            Login.validateLogoutRedirectsToLoginPage();
+        });
+    });
 
-  it('Login com senha incorreta',() => {
-    Login.acessarPaginaDeLogin()
-    Login.loginComSenhaIncorreta(data.valid_email, data.incorrect_password)
-  })
+    describe('Negative Tests', () => {
+        it('Validate it is not possible to login with invalid password', function () {
+            Login.loginWithInvalidPassword(this.user.valid_email, this.user.incorrect_password);
+        });
 
-  it('Login com email inválido', () => {
-    Login.acessarPaginaDeLogin()
-    Login.loginComEmailInvalido(data.invalid_email, data.password)
-  })
-
-  it('Valida que acesso à rota /editais deslogado redireciona para /login', () => {
-    Login.acessarPaginaDeEditais()
-    Login.validarRedirecionamentoDeslogado()
-  })
-
-  it('Valida que ao clicar no botão de logout redireciona para /login', () => {
-    Login.acessarPaginaDeLogin()
-    Login.loginComSucesso(data.valid_email, data.password, data.name)
-    Login.validarQueLogoutRedirecionaParaLogin()
-  })
-})
+        it('Validate it is not possible to login with invalid email', function () {
+            Login.loginWithInvalidEmail(this.user.invalid_email, this.user.password);
+        });
+    });
+});

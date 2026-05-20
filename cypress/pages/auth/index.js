@@ -1,47 +1,43 @@
 import { elements as el } from './elements';
 
 class Login {
-    acessarPaginaDeLogin() {
+    accessLoginPage() {
         cy.visit('/login');
     }
 
-    acessarPaginaDeEditais() {
-        cy.visit('/editais');
-    }
-
-    loginComSucesso(email, password, name) {
-        cy.get(el.inputEmail).type(email);
-        cy.get(el.inputPassword).type(password);
+    successLogin(email, password, name) {
+        cy.get(el.email).type(email);
+        cy.get(el.password).type(password);
         cy.get(el.btnLogin).should('be.visible').click();
         cy.url().should('be.equal', `${Cypress.config('baseUrl')}/editais`);
         cy.contains(el.welcomeMessage + name).should('be.visible');
     }
 
-    loginComSenhaIncorreta(email, password) {
-        cy.get(el.inputEmail).type(email);
-        cy.get(el.inputPassword).type(password);
+    loginWithInvalidPassword(email, password) {
+        cy.get(el.email).type(email);
+        cy.get(el.password).type(password);
         cy.get(el.btnLogin).should('be.visible').click();
         cy.get('p').contains(el.passwordErrorMessage).should('be.visible');
     }
 
-    loginComEmailInvalido(email, password) {
-        cy.get(el.inputEmail).type(email);
-        cy.get(el.inputEmail).should('have.prop', 'validity').and('include', { valid: false });
-        cy.get(el.inputPassword).type(password);
+    loginWithInvalidEmail(email, password) {
+        cy.get(el.email).type(email);
+        cy.get(el.email).should('have.prop', 'validity').and('include', { valid: false });
+        cy.get(el.password).type(password);
         cy.get(el.btnLogin).should('be.visible').click();
     }
 
-    validarRedirecionamentoDeslogado() {
+    validateUnloggedUserRedirectsToLogin() {
         cy.url().should('be.equal', `${Cypress.config('baseUrl')}/login`);
     }
 
-    validarQueLogoutRedirecionaParaLogin() {
+    validateLogoutRedirectsToLoginPage() {
         cy.get(el.btnUserAvatar).click();
         cy.get(el.btnLogout).should('be.visible').click();
         cy.url().should('be.equal', `${Cypress.config('baseUrl')}/login`);
     }
 
-    deslogar() {
+    logout() {
         cy.get(el.btnUserAvatar).click();
         cy.get(el.btnLogout).should('be.visible').click();
         cy.url().should('be.equal', `${Cypress.config('baseUrl')}/login`);

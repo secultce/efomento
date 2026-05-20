@@ -1,17 +1,15 @@
-import Login from '../../pages/auth';
 import Profile from '../../pages/profile';
 
-class CredentialsReset{
-    resetarNomeEEmail(defaultEmail, defaultName) {
-        Profile.acessarPaginaDePerfil()
-        Profile.alterarNomeEEmailESalvar(defaultName, defaultEmail)
+class CredentialsReset {
+    resetNameAndEmail(defaultEmail, defaultName) {
+        Profile.acessarPaginaDePerfil();
+        Profile.alterarNomeEEmailESalvar(defaultName, defaultEmail);
     }
 
-    resetarSenha(updatedPassword, defaultPassword) {
-        Profile.acessarPaginaDePerfil()
-        Profile.alterarSenhaESalvar(updatedPassword, defaultPassword)
+    resetPassword(updatedPassword, defaultPassword) {
+        Profile.acessarPaginaDePerfil();
+        Profile.alterarSenhaESalvar(updatedPassword, defaultPassword);
     }
-
 }
 
-export default new CredentialsReset()
+export default new CredentialsReset();
