@@ -1,8 +1,7 @@
 import { elements as el } from './elements';
 
 class Notice {
-    acessarPaginaDeEditais() {
-        cy.visit('/editais'); //
+    accessNoticePage() {
         cy.request({
             method: 'GET',
             url: '/editais',
@@ -16,121 +15,124 @@ class Notice {
         cy.get(el.tableNoticeList).should('be.visible');
     }
 
-    visualizarDashboard() {
-        cy.get('[data-cy=cardDashboard]').contains('Todos os editais disponíveis').should('be.visible');
+    viewDashboard() {
+        cy.get(el.dashboardCard).contains('Todos os editais disponíveis').should('be.visible');
 
-        cy.get('[data-cy=cardDashboard]').contains('Editais com processos em andamento').should('be.visible');
+        cy.get(el.dashboardCard).contains('Editais com processos em andamento').should('be.visible');
 
-        cy.get('[data-cy=cardDashboard]').contains('Processos Finalizados').should('be.visible');
+        cy.get(el.dashboardCard).contains('Processos Finalizados').should('be.visible');
     }
 
-    acessarFomularioDadosDeIdentificacao() {
-        cy.get(el.buttonIdentificationData).should('be.visible').first().click();
+    accessIdentificationDataForm() {
+        cy.get(el.identificationDataFormButton).should('be.visible').first().click();
     }
-    preencherDadosDeIdentificacaoDoEdital(
-        nup,
-        tipoDeInstrumento,
-        valorTotalEdital,
-        nomeGestorEdital,
-        emailGestorEdital,
-        numeroDeParcelas
+    fillNoticeIdentificationDataForm(
+        noticeNup,
+        instrumentType,
+        totalAmountNotice,
+        noticeManagerAccompaniment,
+        managerEmail,
+        quotaNumber
     ) {
-        cy.get(el.inputProcessNumber).type(nup);
+        cy.get(el.noticeNupIdentificationDataFormInput).type(noticeNup);
 
-        cy.get(el.selectInstrumentTypeIdentificationData)
+        cy.get(el.instrumentTypeIdentificationDataFormSelect)
             .should('be.visible')
 
             .click();
 
-        cy.contains('.v-list-item', tipoDeInstrumento).click();
+        cy.contains('.v-list-item', instrumentType).click();
 
-        cy.get(el.inputTotalValueNotice).type(valorTotalEdital);
+        cy.get(el.totalAmountNoticeIdentificationDataFormInput).type(totalAmountNotice);
 
-        cy.get(el.inputNoticeManagerAccompaniment).type(nomeGestorEdital);
+        cy.get(el.noticeManagerAccompanimentIdentificationDataFormInput).type(noticeManagerAccompaniment);
 
-        cy.get(el.inputManagerEmail).type(emailGestorEdital);
+        cy.get(el.managerEmailIdentificationDataFormInput).type(managerEmail);
 
-        cy.get(el.inputQuotaNumber).type(numeroDeParcelas);
+        cy.get(el.quotaNumberIdentificationDataFormInput).type(quotaNumber);
 
-        cy.get(el.buttonAddData).click();
+        cy.get(el.addDataIdentificationDataFormButton).click();
 
         cy.get(el.snackAlert).contains('Número do processo salvo com sucesso').should('be.visible');
     }
 
-    buscarEditalPorTítulo(tituloDoEdital) {
-        cy.get(el.inputFindEspecificNotice).should('be.visible').type(tituloDoEdital);
-        cy.get('.v-data-table__tr > .v-data-table-column--align-start').contains(tituloDoEdital).should('be.visible');
+    findNoticeByTitle(noticeTitle) {
+        cy.get(el.findSpecificNoticeInput).should('be.visible').type(noticeTitle);
+        cy.get('.v-data-table__tr > .v-data-table-column--align-start').contains(noticeTitle).should('be.visible');
     }
 
-    buscarEditalPorNumeroDoProcessoMae(numeroProcessoMae) {
-        cy.get(el.inputFindEspecificNotice).should('be.visible').type(numeroProcessoMae);
-        cy.get(el.motherProcessNumber).should('contain', numeroProcessoMae).should('be.visible');
+    findNoticeByNoticeNup(noticeNup) {
+        cy.get(el.findSpecificNoticeInput).should('be.visible').type(noticeNup);
+        cy.get(el.noticeNupNoticesList).should('contain', noticeNup).should('be.visible');
     }
 
-    filtrarEditalPorStatusDoProcesso(statusDoProcesso) {
-        cy.get(el.selectFilterProcessStatus).should('be.visible').type(statusDoProcesso);
-        cy.get(el.badgeProcessStatus).should('contain', statusDoProcesso).and('be.visible');
+    filterNoticeByProcessStatus(processStatus) {
+        cy.get(el.processStatusBadge).should('be.visible').type(processStatus);
+        cy.get(el.processStatusBadge).should('contain', processStatus).and('be.visible');
     }
 
-    filtrarEditalPorTipoDeInstrumento(tipoDeInstrumento) {
-        cy.get(el.selectFilterInstrumentType).should('be.visible').click();
-
-        cy.contains('.v-list-item', tipoDeInstrumento).click();
-
-        cy.get(el.tbodyInstrumentTypeNoticesList);
+    filterNoticeByInstrumentType(instrumentType) {
+        cy.get(el.instrumentTypeIdentificationDataFormSelect).should('be.visible').click();
+        cy.contains('.v-list-item', instrumentType).click();
+        cy.get(el.instrumentTypeNoticesList).should('be.visible').and('contain', instrumentType);
     }
 
-    visualizarNomeDoUsuarioLogadoNoHeader(nomeDoUsuarioLogado) {
-        cy.get(el.buttonUserAvatar).should('be.visible').and('contain', nomeDoUsuarioLogado);
+    showLoggedUsernameOnHeader(nameLoggedUser) {
+        cy.get(el.userAvatarButton).should('be.visible').and('contain', nameLoggedUser);
     }
 
-    visualizarMensagemDeBoasVindasComNomeDoUsuario(nomeDoUsuarioLogado, numeroProcessoMae) {
-        cy.get(el.welcomeMessage).should('be.visible').and('contain', nomeDoUsuarioLogado);
+    showWelcomeMessageWithNameLoggedUser(nameloggedUser) {
+        cy.get(el.welcomeMessage).should('be.visible').and('contain', nameloggedUser);
     }
 
-    visualizarInformaçõesDoProcesso(numeroProcessoMae) {
-        cy.get(el.buttonAccessIdentificationdata).should('be.visible').first().click();
+    showAllInformationAboutProcess(noticeNup) {
+        cy.get(el.noticeNupNoticesList)
+            .contains(noticeNup)
+            .closest('tr')
+            .find(el.accessNoticeInformationButton)
+            .click();
 
         cy.url().should('match', /\/editais\/\d+\/projetos$/);
 
-        cy.get(el.motherProcessNumberProcessInformation).contains(numeroProcessoMae).should('be.visible');
+        cy.get(el.noticeNupShowAllInformation).contains(noticeNup).should('be.visible');
 
-        cy.get(el.btnShowAllInformation).should('be.visible').click();
+        cy.get(el.showAllInformationButton).should('be.visible').click();
 
-        cy.get(el.noticeNameProcessInformation).should('be.visible');
+        cy.get(el.noticeTitleShowAllInformation).should('be.visible');
 
-        cy.get(el.motherProcessNumberProcessInformation).should('be.visible');
+        cy.get(el.noticeNupShowAllInformation).should('be.visible');
 
-        cy.get(el.intrumentTypeProccessInformation).should('be.visible');
+        cy.get(el.instrumentTypeShowAllInformation).should('be.visible');
 
-        cy.get(el.budgetAlocationDateProcessInformation).should('be.visible');
+        cy.get(el.noticeManagerShowAllInformation).should('be.visible');
 
-        cy.get(el.totalAmountProcessInformation).should('be.visible');
+        cy.get(el.budgetAllocationRequestDateShowAllInformation).should('be.visible');
 
-        cy.get(el.valueInFullProcessInformation).should('be.visible');
+        cy.get(el.totalAmountShowAllInformation).should('be.visible');
 
-        cy.get(el.managerEmailProcessInformation).should('be.visible');
+        cy.get(el.valueInFullShowAllInformation).should('be.visible');
 
-        cy.get(el.processNumberCreditorProcessInformation).should('be.visible');
+        cy.get(el.managerEmailShowAllInformation).should('be.visible');
 
-        cy.get(el.quotaNumberProcessInformation).should('be.visible');
+        cy.get(el.processNumberCreditorShowAllInformation).should('be.visible');
 
-        cy.get(el.processNumberBudgetAlocationProcessInformation).should('be.visible');
+        cy.get(el.quotaNumberShowAllInformation).should('be.visible');
 
-        cy.get(el.budgetAlocationCreditorRegister).should('be.visible');
+        cy.get(el.processNumberBudgetAlocationShowAllInformation).should('be.visible');
+
+        cy.get(el.budgetAllocationCreditorRegisterDateShowAllInformation).should('be.visible');
     }
 
-    alterarQuantidadeDeExibicaoListaDeEditais(quantidadePorPágina) {
-        cy.get(el.selectQuantityListNotices).should('be.visible').click();
+    modifyQuantityPerPageOnNoticesList(quantityPerPage) {
+        cy.get(el.quantityListNoticesSelect).should('be.visible').click();
 
-        cy.contains('.v-list-item', quantidadePorPágina).should('be.visible').click();
+        cy.contains('.v-list-item', quantityPerPage).should('be.visible').click();
 
-        cy.get(`${el.tableNoticeList} tbody tr`).should('have.length', quantidadePorPágina);
+        cy.get(`${el.noticeListTable} tbody tr`).should('have.length', quantityPerPage);
     }
 
-    alterarPaginaDaListaDeEditais() {
+    changePageOnNoticesList() {
         cy.get(el.pageNumberNoticesList).contains('2').should('be.visible').click();
-
         cy.get(el.pageNumberNoticesList)
             .contains('2')
             .parent()

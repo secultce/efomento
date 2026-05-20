@@ -182,7 +182,7 @@ function openDialog(item) {
 
 <template>
     <nup-dialog v-model="dialog" :item="selectedItem" :instrument-types="instrumentTypes" />
-    <v-card flat class="pa-6 bg-white" data-cy="tabelaListaDeEditais">
+    <v-card flat class="pa-6 bg-white" data-cy="table-notice-list">
         <!-- ── Cabeçalho ──────────────────────────────────────────────────── -->
         <div class="mb-5">
             <p class="text-subtitle-1 font-weight-bold text-grey-darken-3">
@@ -206,7 +206,7 @@ function openDialog(item) {
                     hide-details
                     rounded="xl"
                     class="border border-green-700 rounded-xl"
-                    data-cy="inputBuscaEditalEspecifica"
+                    data-cy="find-specific-notice"
                     @update:model-value="onSearch"
                 />
             </v-col>
@@ -221,7 +221,7 @@ function openDialog(item) {
                     rounded="lg"
                     hide-details
                     clearable
-                    data-cy="selectFiltrarPorStatusDoProcesso"
+                    data-cy="filter-notice-by-status-process"
                     @update:model-value="onFilterStatus"
                 />
             </v-col>
@@ -236,7 +236,7 @@ function openDialog(item) {
                     rounded="lg"
                     hide-details
                     clearable
-                    data-cy="selectFiltrarPorTipoDeInstrumento"
+                    data-cy="instrument-type-identification-data-form-select"
                     @update:model-value="onFilterInstrument"
                 />
             </v-col>
@@ -249,7 +249,7 @@ function openDialog(item) {
             :headers="headers"
             :items="itensFiltrados"
             class="notices-table"
-            data-cy="linhaTabelaEditais"
+            data-cy="row-table-notice-list"
         >
             <!-- Título truncado -->
             <template #item.titulo="{ item }">
@@ -258,7 +258,7 @@ function openDialog(item) {
 
             <!-- Badge de status -->
             <template #item.status="{ item }">
-                <span class="status-badge">
+                <span class="status-badge" data-cy="process-status-notices-list">
                     <span class="status-dot">•</span>
                     {{ item.status }}
                 </span>
@@ -266,11 +266,11 @@ function openDialog(item) {
 
             <!-- Tipo de instrumento -->
             <template #item.type_ins="{ item }">
-                <span class="titulo-truncado" data-cy="tipoDeInstrumentoListaDeEditais">{{ item.type_ins }}</span>
+                <span class="titulo-truncado" data-cy="instrument-type-notices-list">{{ item.type_ins }}</span>
             </template>
             <!-- Número do processo mãe -->
             <template #item.mae="{ item }">
-                <span v-if="item.numeroProcessoMae || item.mae" data-cy="numeroProcessoMae">
+                <span v-if="item.numeroProcessoMae || item.mae" data-cy="notice-nup-notices-list">
                     {{ maskProcessNumber(item.numeroProcessoMae || item.mae) }}
                 </span>
                 <v-btn
@@ -278,7 +278,7 @@ function openDialog(item) {
                     variant="text"
                     density="compact"
                     class="!text-[#008344] !font-bold spacing tracking-tight"
-                    data-cy="btnIdentificationData"
+                    data-cy="access-identification-data-form-button"
                     @click="openDialog(item)"
                 >
                     Informe os dados de identificação
@@ -287,11 +287,11 @@ function openDialog(item) {
             <!-- Ícone de acesso -->
             <template #item.acessar="{ item }">
                 <v-btn
-                    data-cy="btnAcessarDadosDeIdentificacao"
                     icon
                     variant="text"
                     size="small"
                     :disabled="!(item.numeroProcessoMae || item.mae)"
+                    data-cy="access-notice-information"
                     @click="onAccess(item)"
                 >
                     <v-icon :color="!(item.numeroProcessoMae || item.mae) ? 'grey' : '#008344'" size="22">
@@ -325,7 +325,7 @@ function openDialog(item) {
                                             ? 'background-color:#FFC107; color:#fff; min-width:32px'
                                             : 'min-width:32px'
                                     "
-                                    data-cy="numeroPaginacaoListaEditais"
+                                    data-cy="pagination-number-notice-list"
                                     @click="goToPage(p)"
                                 >
                                     {{ p }}
@@ -355,7 +355,7 @@ function openDialog(item) {
                                 density="compact"
                                 hide-details
                                 style="width: 75px"
-                                data-cy="quantidadeDeEditaisExibidos"
+                                data-cy="quantity-notices-per-page-notice-list"
                                 @update:model-value="onChangePerPage"
                             />
                         </v-col>
