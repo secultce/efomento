@@ -52,7 +52,7 @@ class Notify
         $this->targets = collect();
     }
 
-    public function send(string $message, string $type = 'default', ?string $title = null, ?object $meta = null): void
+    public function send(string $message, string $type = 'default', ?string $title = null, object|array|null $meta = null): void
     {
         if ($this->targets->isNotEmpty()) {
             Notification::send(
@@ -64,27 +64,27 @@ class Notify
         $this->reset();
     }
 
-    public function default(string $message, ?string $title = null, ?object $meta = null): void
+    public function default(string $message, ?string $title = null, object|array|null $meta = null): void
     {
         $this->send($message, 'default', $title, $meta);
     }
 
-    public function success(string $message, ?string $title = null, ?object $meta = null): void
+    public function success(string $message, ?string $title = null, object|array|null $meta = null): void
     {
         $this->send($message, 'success', $title, $meta);
     }
 
-    public function error(string $message, ?string $title = null, ?object $meta = null): void
+    public function error(string $message, ?string $title = null, object|array|null $meta = null): void
     {
         $this->send($message, 'error', $title, $meta);
     }
 
-    public function warning(string $message, ?string $title = null, ?object $meta = null): void
+    public function warning(string $message, ?string $title = null, object|array|null $meta = null): void
     {
         $this->send($message, 'warning', $title, $meta);
     }
 
-    public function info(string $message, ?string $title = null, ?object $meta = null): void
+    public function info(string $message, ?string $title = null, object|array|null $meta = null): void
     {
         $this->send($message, 'info', $title, $meta);
     }

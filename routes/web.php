@@ -84,6 +84,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
     });
     Route::get('/projetos/{project}/analise-juridica', [LegalAnalysisController::class, 'index'])
         ->name('legal-analysis.index');
+    Route::patch('/projetos/{project}/analise-juridica/tramitar', [LegalAnalysisController::class, 'tramit'])
+        ->name('projects.legal-analysis.tramit');
     Route::get('/projetos/{project}/analise-juridica/arquivos/{file}', [LegalAnalysisController::class, 'serveFile'])
         ->scopeBindings()
         ->name('legal-analysis.files.serve');
