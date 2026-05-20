@@ -24,7 +24,7 @@ class ProjectStageFlowTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        $this->service = new ProjectStageService;
+        $this->service = app(ProjectStageService::class);
     }
 
     private function createUserWithRoles(string ...$roles): User
@@ -91,7 +91,7 @@ class ProjectStageFlowTest extends TestCase
 
         $userByOrder = [
             1 => $this->createUserWithRoles('fomentation'),
-            2 => $this->createUserWithRoles('financial'),
+            2 => $this->createUserWithRoles('legal_analysis'),
             3 => $this->createUserWithRoles('legal_analysis'),
             4 => $this->createUserWithRoles('budgetary'),
             5 => $this->createUserWithRoles('coord_financial'),
@@ -141,7 +141,7 @@ class ProjectStageFlowTest extends TestCase
     {
         $project = Project::factory()->create();
         $second = $project->stages()->where('order', 2)->first();
-        $user = $this->createUserWithRoles('financial');
+        $user = $this->createUserWithRoles('legal_analysis');
 
         $this->expectException(InvalidArgumentException::class);
         $this->expectExceptionMessage('A etapa precisa estar em andamento para ser aprovada.');
@@ -153,7 +153,7 @@ class ProjectStageFlowTest extends TestCase
     {
         $project = Project::factory()->create();
         $second = $project->stages()->where('order', 2)->first();
-        $user = $this->createUserWithRoles('financial');
+        $user = $this->createUserWithRoles('legal_analysis');
 
         $this->expectException(InvalidArgumentException::class);
         $this->expectExceptionMessage('A etapa precisa estar em andamento para ser rejeitada.');
@@ -169,7 +169,7 @@ class ProjectStageFlowTest extends TestCase
         $this->service->advance($first, $this->createUserWithRoles('fomentation'));
 
         $second = $project->stages()->where('order', 2)->first()->fresh();
-        $this->service->reject($second, 'Análise jurídica reprovada', $this->createUserWithRoles('financial'));
+        $this->service->reject($second, 'Análise jurídica reprovada', $this->createUserWithRoles('legal_analysis'));
 
         $statuses = $project->stages()
             ->where('order', '>', 2)
