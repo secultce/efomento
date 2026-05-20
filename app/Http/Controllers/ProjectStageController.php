@@ -18,7 +18,6 @@ class ProjectStageController extends Controller
     ) {}
 
     public function advance(
-        ProjectStageService $service,
         AdvanceStageRequest $request
     ) {
         $data = $request->validated();
@@ -26,7 +25,7 @@ class ProjectStageController extends Controller
         $currentStage = ProjectStage::with('project')->findOrFail($data['stage_id']);
 
         try {
-            $nextStage = $service->advance($currentStage, $request->user());
+            $nextStage = $this->stageService->advance($currentStage, $request->user());
 
             $this->notificationService
                 ->notifyStageAdvanced(
