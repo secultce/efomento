@@ -2,13 +2,13 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Requests\Stages\AdvanceStageRequest;
 use App\Http\Requests\Stages\ReturnStageRequest;
 use App\Models\Project;
 use App\Models\ProjectStage;
 use App\Services\NotificationService;
 use App\Services\ProjectStageService;
 use Illuminate\Auth\Access\AuthorizationException;
+use Illuminate\Http\Request;
 
 class ProjectStageController extends Controller
 {
@@ -18,29 +18,22 @@ class ProjectStageController extends Controller
     ) {}
 
     public function advance(
-        AdvanceStageRequest $request
+        Request $request,
+        Project $project,
+        ProjectStage $stage
     ) {
-        $data = $request->validated();
-
-        $currentStage = ProjectStage::with('project')->findOrFail($data['stage_id']);
-
         try {
-            $nextStage = $this->stageService->advance($currentStage, $request->user());
+            $stage->load('project');
 
-            $this->notificationService
-                ->notifyStageAdvanced(
-                    $currentStage,
-                    $nextStage,
-                    $request->user()
-                );
+            $nextStage = $this->stageService->advance($stage, $request->user());
+
+            $this->notificationService->notifyStageAdvanced($stage, $nextStage, $request->user());
 
             return back()->with('success', 'Processo tramitado com sucesso!');
         } catch (\Throwable $e) {
             report($e);
 
-            return back()->withErrors([
-                'message' => 'Erro ao tramitar processo.'.$e->getMessage(),
-            ]);
+            return back()->with('error', 'Erro ao tramitar processo: '.$e->getMessage());
         }
     }
 

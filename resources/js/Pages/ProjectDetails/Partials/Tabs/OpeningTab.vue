@@ -153,7 +153,7 @@ const tramit = () => {
     router.patch(
         route('projects.stages.advance', {
             project: props.project.id,
-            stage_id: stage.id,
+            stage: stage.id,
         }),
         {},
         {
