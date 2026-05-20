@@ -30,6 +30,8 @@ const activeViewIndex = ref('all');
 const { groups, statusOptions, loadingFiles, in_progress, allFilesEvaluated, fetchFiles, onStatusUpdated, process } =
     useLegalAnalysis(toRef(props, 'project'));
 onMounted(fetchFiles);
+
+const stage = computed(() => props.project.stages?.find((s) => s.slug === 'analise_juridica'));
 </script>
 
 <template>
@@ -39,9 +41,14 @@ onMounted(fetchFiles);
                 <div class="">
                     <p class="font-bold text-lg d-flex justify-between">
                         Dados disponíveis para consulta
-                        <!--                        <span>{{ currentStage }}</span>-->
                         <v-btn
                             v-if="canReturn && currentStage"
+                            v-permission="{
+                                condition: !canUserHandleLegalAnalysis || stage?.status !== 'aprovado',
+                                message: !canUserHandleLegalAnalysis
+                                    ? 'Usuário não tem permissão para avaliar documentos'
+                                    : 'Análise jurídica já foi tramitada.',
+                            }"
                             class="!shadow-none !font-bold !bg-[#ffcc05FF] !text-[#2d353fFF] rounded-lg text-xs"
                             @click="showReturnModal = true"
                         >
@@ -78,8 +85,6 @@ onMounted(fetchFiles);
 
                 <div>
                     <p class="font-bold text-sm mb-3">Avalie os documentos</p>
-
-                    <!--                    <p>{{ groups }}</p>-->
                     <v-progress-linear v-if="loadingFiles" indeterminate color="primary" class="mb-4" />
 
                     <DocumentEvaluationList
@@ -94,6 +99,12 @@ onMounted(fetchFiles);
                 </div>
 
                 <TramitButton
+                    v-permission="{
+                        condition: !canUserHandleLegalAnalysis || stage?.status !== 'aprovado',
+                        message: !canUserHandleLegalAnalysis
+                            ? 'Usuário não tem permissão para avaliar documentos'
+                            : 'Análise jurídica já foi tramitada.',
+                    }"
                     :action="process"
                     :disabled="!canUserHandleLegalAnalysis || !allFilesEvaluated"
                     :loading="in_progress"

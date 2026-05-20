@@ -5,9 +5,7 @@ namespace App\Http\Controllers;
 use App\Enums\FileStatus;
 use App\Models\File;
 use App\Models\Project;
-use App\Models\ProjectStage;
 use App\Services\LegalAnalysisService;
-use App\Services\ProjectStageService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
@@ -58,25 +56,6 @@ class LegalAnalysisController extends Controller
         }
 
         return $disk->response($file->path, $file->name);
-    }
-
-    public function tramit(Request $request, Project $project, ProjectStageService $stageService): mixed
-    {
-        $data = $request->validate([
-            'stage_id' => ['required', 'exists:project_stages,id'],
-        ]);
-
-        $stage = ProjectStage::with('project')->findOrFail($data['stage_id']);
-
-        try {
-            $stageService->advance($stage, $request->user());
-
-            return back()->with('success', 'Análise jurídica tramitada com sucesso!');
-        } catch (\Throwable $e) {
-            report($e);
-
-            return back()->with('error', 'Erro ao tramitar: '.$e->getMessage());
-        }
     }
 
     public function updateFileStatus(Request $request, Project $project, File $file): JsonResponse

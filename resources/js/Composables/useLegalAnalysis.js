@@ -51,8 +51,11 @@ export function useLegalAnalysis(project) {
         in_progress.value = true;
 
         router.patch(
-            route('projects.legal-analysis.tramit', { project: project.value.id }),
-            { stage_id: stage.value.id },
+            route('projects.stages.advance', {
+                project: project.value.id,
+                stage: stage.value.id,
+            }),
+            {},
             {
                 preserveScroll: true,
                 onSuccess: () => {
