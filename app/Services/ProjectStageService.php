@@ -78,7 +78,6 @@ class ProjectStageService
                         'params' => [
                             'notice' => $stage->project->notice_id,
                             'project' => $stage->project->id,
-
                         ],
                         'user' => [
                             'name' => $user->name,

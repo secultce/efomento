@@ -1,19 +1,27 @@
 <script setup>
-import { ref, toRef, onMounted } from 'vue';
+import { ref, computed, toRef, onMounted } from 'vue';
 import SplitScreenTab from '@/Components/SplitScreenTab.vue';
 import SectionChips from '@/Components/SectionChips.vue';
 import SectionContent from '@/Components/SectionContent.vue';
 import AuxLinks from '@/Components/AuxLinks.vue';
 import DocumentEvaluationList from '@/Components/DocumentEvaluationList.vue';
 import ReturnProcessModal from '@/Components/ReturnProcessModal.vue';
+import TramitButton from '@/Pages/ProjectDetails/Partials/Tabs/Actions/TramitButton.vue';
 import { viewSections } from '@/Schemas/Opening';
 import { useLegalAnalysis } from '@/Composables/useLegalAnalysis';
+import { useAuth } from '@/Composables/useAuth';
 
 const props = defineProps({
     project: { type: Object, required: true },
     canReturn: { type: Boolean, default: false },
     currentStage: { type: Object, default: null },
 });
+
+const { hasRole } = useAuth();
+
+const canUserHandleLegalAnalysis = computed(() =>
+    hasRole(['super_admin', 'legal_analysis', 'coord_legal', 'coord_financial'])
+);
 
 const showReturnModal = ref(false);
 
@@ -86,16 +94,11 @@ onMounted(fetchFiles);
                     <p v-else class="text-sm text-gray-400">Nenhum documento encontrado para avaliação.</p>
                 </div>
 
-                <div class="flex justify-center gap-3 pt-4">
-                    <v-btn
-                        class="w-1/2 !shadow-none !font-bold !bg-[#ffcc05FF] !text-[#2d353fFF] rounded-lg text-xs"
-                        :disabled="!allFilesEvaluated"
-                        :loading="in_progress"
-                        @click="process"
-                    >
-                        tramitar
-                    </v-btn>
-                </div>
+                <TramitButton
+                    :action="process"
+                    :disabled="!canUserHandleLegalAnalysis || !allFilesEvaluated"
+                    :loading="in_progress"
+                />
             </div>
         </template>
     </SplitScreenTab>
