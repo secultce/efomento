@@ -1,0 +1,30 @@
+name: Codecov
+
+on:
+  pull_request:
+    branches: [main, develop]
+
+jobs:
+  coverage:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: "8.4"
+          coverage: pcov
+
+      - name: Instalar dependências PHP
+        run: composer install --no-interaction --prefer-dist
+
+      - name: Rodar testes com cobertura
+        run: ./vendor/bin/phpunit --coverage-clover coverage.xml
+
+      - name: Enviar relatório ao Codecov
+        uses: codecov/codecov-action@v5
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          files: coverage.xml
+          fail_ci_if_error: true
