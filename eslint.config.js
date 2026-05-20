@@ -6,7 +6,14 @@ import pluginCypress from 'eslint-plugin-cypress';
 
 export default [
     {
-        ignores: ['public/**', 'vendor/**', 'node_modules/**', 'storage/**', 'bootstrap/ssr/**'],
+        ignores: [
+            'public/**',
+            'vendor/**',
+            'node_modules/**',
+            'storage/**',
+            'bootstrap/ssr/**',
+            'resources/js/ziggy.js',
+        ],
     },
     {
         files: ['cypress/**/*.{js,cjs,mjs}'],
