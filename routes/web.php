@@ -8,6 +8,7 @@ use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\OpeningController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ProjectController;
+use App\Http\Controllers\ProjectStageController;
 use App\Models\User;
 use Illuminate\Support\Facades\Route;
 
@@ -65,8 +66,11 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::patch('/projetos/{project}/abertura/{opening}/atualizar', [OpeningController::class, 'update'])
         ->scopeBindings()
         ->name('projects.openings.update');
-    Route::patch('/projetos/{project}/abertura/tramitar', [ProjectController::class, 'tramitProject'])
-        ->name('projects.openings.tramit');
+    Route::post('/projetos/{project}/etapas/{stage}/devolver', [ProjectStageController::class, 'return'])
+        ->scopeBindings()
+        ->name('projects.stages.return');
+    Route::patch('/projetos/{project}/abertura/tramitar', [ProjectStageController::class, 'advance'])
+        ->name('projects.stages.advance');
     Route::get('editais/{notice}/projetos', [ProjectController::class, 'index'])
         ->name('notices.projects');
     Route::get('editais/{notice}/projetos/{project}', [ProjectController::class, 'projectDetail'])
@@ -80,6 +84,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
     });
     Route::get('/projetos/{project}/analise-juridica', [LegalAnalysisController::class, 'index'])
         ->name('legal-analysis.index');
+    Route::patch('/projetos/{project}/analise-juridica/tramitar', [LegalAnalysisController::class, 'tramit'])
+        ->name('projects.legal-analysis.tramit');
     Route::get('/projetos/{project}/analise-juridica/arquivos/{file}', [LegalAnalysisController::class, 'serveFile'])
         ->scopeBindings()
         ->name('legal-analysis.files.serve');

@@ -11,10 +11,8 @@ use App\Enums\ReportStatus;
 use App\Http\Resources\ProjectResource;
 use App\Models\Notice;
 use App\Models\Project;
-use App\Models\ProjectStage;
 use App\Models\User;
 use App\Services\ProjectDocumentService;
-use App\Services\ProjectStageService;
 use App\Services\ProjectSupervisorService;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -70,6 +68,8 @@ class ProjectController extends Controller
             ->select('id', 'name', 'registration_number')
             ->get();
 
+        $currentStage = $project->currentStage;
+
         return Inertia::render('ProjectDetails', [
             'project' => (new ProjectResource($project))->resolve(),
             'supervisorsAvailable' => $availableSupervisors,
@@ -77,31 +77,11 @@ class ProjectController extends Controller
             'accountType' => AccountType::options(),
             'reportStatus' => ReportStatus::options(),
             'openingStatus' => OpeningStatus::options(),
-
+            'currentStage' => $currentStage,
+            'canReturn' => $currentStage
+                ? ($currentStage->order > 1 && auth()->user()->hasAnyRole($currentStage->responsible_sector))
+                : false,
         ]);
-    }
-
-    public function tramitProject(
-        Request $request,
-        ProjectStageService $service
-    ) {
-        $data = $request->validate([
-            'stage_id' => ['required', 'exists:project_stages,id'],
-        ]);
-
-        $stage = ProjectStage::with('project')->findOrFail($data['stage_id']);
-
-        try {
-            $service->advance($stage, $request->user());
-
-            return back()->with('success', 'Processo tramitado com sucesso!');
-        } catch (\Throwable $e) {
-            report($e);
-
-            return back()->withErrors([
-                'message' => 'Erro ao tramitar processo.',
-            ]);
-        }
     }
 
     public function assignProjectSupervisor(Request $request, ProjectSupervisorService $service)

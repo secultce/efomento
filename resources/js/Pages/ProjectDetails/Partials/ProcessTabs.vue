@@ -9,6 +9,8 @@ defineProps({
     agentStatus: { type: Array, default: () => [] },
     reportStatus: { type: Array, default: () => [] },
     accountType: { type: Array, default: () => [] },
+    currentStage: { type: Object, default: null },
+    canReturn: { type: Boolean, default: false },
 });
 
 const tab = ref('1');
@@ -47,7 +49,7 @@ const tabs = [
                     :account-type="accountType"
                 />
 
-                <LegalAnalysisTab :project="project" />
+                <LegalAnalysisTab :project="project" :can-return="canReturn" :current-stage="currentStage" />
 
                 <v-tabs-window-item value="3">
                     <v-sheet class="pa-5 h-[35em]" color="brown" />
