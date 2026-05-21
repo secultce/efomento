@@ -83,7 +83,6 @@ class Project extends Model implements Auditable
         return $this->opening?->opening_nup;
     }
 
-
     public function scopeFilterPhase(Builder $query, ?string $phase): Builder
     {
         if (! $phase) {
