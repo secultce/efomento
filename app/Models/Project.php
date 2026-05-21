@@ -42,7 +42,7 @@ class Project extends Model implements Auditable
     ];
 
     protected $appends = ['phase', 'opening_nup'];
-
+    
     public function notice(): BelongsTo
     {
         return $this->belongsTo(Notice::class);
