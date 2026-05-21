@@ -17,6 +17,7 @@ class OpeningSupervisorFactory extends Factory
             'opening_id' => Opening::factory(),
             'user_id' => User::factory(),
             'assigned_by' => User::factory(),
+            'type' => null,
             'is_active' => true,
             'assigned_at' => now(),
             'removed_at' => null,
@@ -29,5 +30,15 @@ class OpeningSupervisorFactory extends Factory
             'is_active' => false,
             'removed_at' => now(),
         ]);
+    }
+
+    public function principal(): static
+    {
+        return $this->state(['type' => OpeningSupervisor::TYPE_PRINCIPAL]);
+    }
+
+    public function alternate(): static
+    {
+        return $this->state(['type' => OpeningSupervisor::TYPE_ALTERNATE]);
     }
 }
