@@ -26,8 +26,20 @@ function goBack() {
 
     if (!cameFromLogin && window.history.length > 1) {
         window.history.back();
-    } else if (props.backRoute) {
-        router.visit(props.backRoute);
+        setTimeout(() => {
+            router.reload({
+                preserveState: false,
+                preserveScroll: true,
+            });
+        }, 50);
+
+        return;
+    }
+
+    if (props.backRoute) {
+        router.visit(props.backRoute, {
+            preserveState: false,
+        });
     }
 }
 </script>
