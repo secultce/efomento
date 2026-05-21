@@ -41,8 +41,8 @@ class Project extends Model implements Auditable
         'data_registration' => 'array',
     ];
 
-    protected $appends = ['phase', 'opening_nup'];
-    
+    protected $appends = ['phase','opening_nup'];
+
     public function notice(): BelongsTo
     {
         return $this->belongsTo(Notice::class);
