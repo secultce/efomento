@@ -1,12 +1,12 @@
 <script setup>
 import { computed, ref } from 'vue';
-import SupervisorDialog from '@/Pages/Projects/Partials/SupervisorDialog.vue';
+import axios from 'axios';
+import SupervisorDialog from '@/Pages/Projects/Partials/Actions/Opening/SupervisorDialog.vue';
 import { useAuth } from '@/Composables/useAuth';
 import HandleCIDialog from './HandleCIDialog.vue';
 import Modal from '@/Components/Modal.vue';
-import DocumentListDialog from './DocumentListDialog.vue';
-import axios from 'axios';
-import NoticeHistory from './NoticeHistory.vue';
+import DocumentListDialog from '@/Pages/Projects/Partials/Actions/Opening/DocumentListDialog.vue';
+import NoticeHistory from '@/Pages/Projects/Partials/Actions/Opening/NoticeHistory.vue';
 import { formatAudits } from '@/Composables/useAuditFormatter';
 import { downloadDocumentsZip } from '@/Services/documentService';
 

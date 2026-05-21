@@ -6,7 +6,8 @@ use App\Enums\AccountType;
 use App\Enums\AgentStatus;
 use App\Enums\InstrumentType;
 use App\Enums\OpeningStatus;
-use App\Enums\ProjectPhase;
+use App\Enums\ProjectStageSlug;
+use App\Enums\ProjectStageStatus;
 use App\Enums\ReportStatus;
 use App\Http\Resources\ProjectResource;
 use App\Models\Notice;
@@ -21,25 +22,59 @@ class ProjectController extends Controller
 {
     public function index(Request $request, Notice $notice)
     {
-        $query = $notice->projects()
-            ->with(['agent', 'category', 'opening', 'opening.supervisors', 'documents'])
-            ->withCount('openings')
-            ->filterPhase($request->phase)
+        $projectsQuery = $notice->projects()
+            ->with([
+                'agent',
+                'category',
+                'opening',
+                'opening.supervisors',
+                'documents',
+                'currentStage',
+            ])
             ->search($request->search);
+
+        $phaseCountQuery = $notice->projects()
+            ->search($request->search);
+
+        $projectsQuery->filterPhase($request->phase);
 
         return Inertia::render('Projects', [
             'notice' => $notice,
+
             'projects' => ProjectResource::collection(
-                $query->get()
+                $projectsQuery->get()
             )->resolve(),
-            'filters' => $request->only(['phase', 'search']),
-            'instrumentTypes' => InstrumentType::values(),
-            'phases' => collect(ProjectPhase::cases())->map(fn ($phase) => [
-                'value' => $phase->value,
-                'title' => $phase->label(),
-                'total' => $phase->count($query),
+
+            'filters' => $request->only([
+                'phase',
+                'search',
             ]),
-            'supervisorsAvailable' => User::role(['monitoring', 'coord_monitoring'])
+
+            'instrumentTypes' => InstrumentType::values(),
+
+            'phases' => collect(ProjectStageSlug::cases())
+                ->map(function ($stage) use ($phaseCountQuery) {
+                    return [
+                        'value' => $stage->value,
+
+                        'title' => $stage->label(),
+
+                        'total' => (clone $phaseCountQuery)
+                            ->whereHas('stages', function ($q) use ($stage) {
+                                $q->where('slug', $stage)
+                                    ->where(
+                                        'status',
+                                        ProjectStageStatus::EM_ANDAMENTO
+                                    );
+                            })
+                            ->count(),
+                    ];
+                }),
+
+            'supervisorsAvailable' => User::role([
+                'monitoring',
+                'coord_monitoring',
+            ])
                 ->select('id', 'name')
                 ->get(),
         ]);
