@@ -42,152 +42,152 @@ class Project extends Model implements Auditable
     ];
 
     protected $appends = ['phase', 'opening_nup'];
+    
+    public function notice(): BelongsTo
+    {
+        return $this->belongsTo(Notice::class);
+    }
 
-        public function notice(): BelongsTo
-        {
-            return $this->belongsTo(Notice::class);
+    public function agent(): BelongsTo
+    {
+        return $this->belongsTo(Agent::class);
+    }
+
+    public function category(): BelongsTo
+    {
+        return $this->belongsTo(Category::class);
+    }
+
+    public function openings(): HasMany
+    {
+        return $this->hasMany(Opening::class);
+    }
+
+    public function opening(): HasOne
+    {
+        return $this->hasOne(Opening::class)
+            ->latestOfMany('created_at');
+    }
+
+    public function getPhaseAttribute(): string
+    {
+        $currentStage = $this->relationLoaded('currentStage')
+            ? $this->currentStage
+            : $this->currentStage()->first();
+
+        return $currentStage?->slug?->label() ?? 'Não Iniciado';
+    }
+
+    public function getOpeningNupAttribute()
+    {
+        return $this->opening?->opening_nup;
+    }
+
+
+    public function scopeFilterPhase(Builder $query, ?string $phase): Builder
+    {
+        if (! $phase) {
+            return $query;
         }
 
-        public function agent(): BelongsTo
-        {
-            return $this->belongsTo(Agent::class);
+        $slug = ProjectStageSlug::tryFrom($phase);
+
+        if (! $slug) {
+            return $query;
         }
 
-        public function category(): BelongsTo
-        {
-            return $this->belongsTo(Category::class);
-        }
-
-        public function openings(): HasMany
-        {
-            return $this->hasMany(Opening::class);
-        }
-
-        public function opening(): HasOne
-        {
-            return $this->hasOne(Opening::class)
-                ->latestOfMany('created_at');
-        }
-
-        public function getPhaseAttribute(): string
-        {
-            $currentStage = $this->relationLoaded('currentStage')
-                ? $this->currentStage
-                : $this->currentStage()->first();
-
-            return $currentStage?->slug?->label() ?? 'Não Iniciado';
-        }
-
-        public function getOpeningNupAttribute()
-        {
-            return $this->opening?->opening_nup;
-        }
-
-
-        public function scopeFilterPhase(Builder $query, ?string $phase): Builder
-        {
-            if (! $phase) {
-                return $query;
-            }
-
-            $slug = ProjectStageSlug::tryFrom($phase);
-
-            if (! $slug) {
-                return $query;
-            }
-
-            return $query->whereHas('stages', function ($q) use ($slug) {
-                $q->where('slug', $slug)
-                    ->where('status', ProjectStageStatus::EM_ANDAMENTO);
-            });
-        }
-
-        public function scopeSearch(Builder $query, ?string $search): Builder
-        {
-            if (! $search) {
-                return $query;
-            }
-
-            $search = strtolower($search);
-
-            return $query->where(function ($q) use ($search) {
-                $q->orWhereHas('agent', function ($q2) use ($search) {
-                    $q2->whereRaw('LOWER(name) LIKE ?', ["%{$search}%"]);
-                });
-
-                $q->orWhereHas('openings', function ($q3) use ($search) {
-                    $q3->whereRaw('LOWER(opening_nup) LIKE ?', ["%{$search}%"]);
-                });
-            });
-        }
-
-        public function formalization(): HasOne
-        {
-            return $this->hasOne(Formalization::class);
-        }
-
-        public function legalAnalysis(): HasOne
-        {
-            return $this->hasOne(LegalAnalysis::class);
-        }
-
-        public function payment(): HasOne
-        {
-            return $this->hasOne(Payment::class);
-        }
-
-        public function budget(): HasOne
-        {
-            return $this->hasOne(Budget::class);
-        }
-
-        public function monitoring(): HasOne
-        {
-            return $this->hasOne(Monitoring::class);
-        }
-
-        public function documents(): HasMany
-        {
-            return $this->hasMany(Document::class);
-        }
-
-        public function profileSnapshots(): MorphMany
-        {
-            return $this->morphMany(ProfileSnapshot::class, 'object');
-        }
-
-        public function latestSnapshot(): MorphOne
-        {
-            return $this->morphOne(ProfileSnapshot::class, 'object')->latestOfMany('recorded_at');
-        }
-
-        public function stages(): HasMany
-        {
-            return $this->hasMany(ProjectStage::class)->orderBy('order');
-        }
-
-        public function currentStage(): HasOne
-        {
-            return $this->hasOne(ProjectStage::class)
+        return $query->whereHas('stages', function ($q) use ($slug) {
+            $q->where('slug', $slug)
                 ->where('status', ProjectStageStatus::EM_ANDAMENTO);
+        });
+    }
+
+    public function scopeSearch(Builder $query, ?string $search): Builder
+    {
+        if (! $search) {
+            return $query;
         }
 
-        public function getCurrentStageName(): ?string
-        {
-            return $this->currentStage?->slug?->label();
+        $search = strtolower($search);
+
+        return $query->where(function ($q) use ($search) {
+            $q->orWhereHas('agent', function ($q2) use ($search) {
+                $q2->whereRaw('LOWER(name) LIKE ?', ["%{$search}%"]);
+            });
+
+            $q->orWhereHas('openings', function ($q3) use ($search) {
+                $q3->whereRaw('LOWER(opening_nup) LIKE ?', ["%{$search}%"]);
+            });
+        });
+    }
+
+    public function formalization(): HasOne
+    {
+        return $this->hasOne(Formalization::class);
+    }
+
+    public function legalAnalysis(): HasOne
+    {
+        return $this->hasOne(LegalAnalysis::class);
+    }
+
+    public function payment(): HasOne
+    {
+        return $this->hasOne(Payment::class);
+    }
+
+    public function budget(): HasOne
+    {
+        return $this->hasOne(Budget::class);
+    }
+
+    public function monitoring(): HasOne
+    {
+        return $this->hasOne(Monitoring::class);
+    }
+
+    public function documents(): HasMany
+    {
+        return $this->hasMany(Document::class);
+    }
+
+    public function profileSnapshots(): MorphMany
+    {
+        return $this->morphMany(ProfileSnapshot::class, 'object');
+    }
+
+    public function latestSnapshot(): MorphOne
+    {
+        return $this->morphOne(ProfileSnapshot::class, 'object')->latestOfMany('recorded_at');
+    }
+
+    public function stages(): HasMany
+    {
+        return $this->hasMany(ProjectStage::class)->orderBy('order');
+    }
+
+    public function currentStage(): HasOne
+    {
+        return $this->hasOne(ProjectStage::class)
+            ->where('status', ProjectStageStatus::EM_ANDAMENTO);
+    }
+
+    public function getCurrentStageName(): ?string
+    {
+        return $this->currentStage?->slug?->label();
+    }
+
+    public function getProgressPercentage(): int
+    {
+        $stages = $this->stages;
+        $total = $stages->count();
+
+        if ($total === 0) {
+            return 0;
         }
 
-        public function getProgressPercentage(): int
-        {
-            $stages = $this->stages;
-            $total = $stages->count();
+        $approved = $stages->where('status', ProjectStageStatus::APROVADO)->count();
 
-            if ($total === 0) {
-                return 0;
-            }
-
-            $approved = $stages->where('status', ProjectStageStatus::APROVADO)->count();
-
-            return (int) round(($approved / $total) * 100);
-        }
+        return (int) round(($approved / $total) * 100);
+    }
 }
