@@ -1,140 +1,172 @@
 import { elements as el } from './elements';
 
 class Notice {
-    accessNoticePage() {
-        cy.request({
-            method: 'GET',
-            url: '/editais',
-            failOnStatusCode: false,
-        }).then((response) => {
-            expect(response.status).to.eq(200);
+    // Navigation and Page Access
+    visitPage() {
+        cy.visit('/editais');
+    }
+
+    verifyPageLoaded() {
+        cy.get(el.noticeListTable, { timeout: 10000 }).should('be.visible');
+    }
+
+    // Dashboard
+    verifyDashboardCardsAreVisible() {
+        cy.get(el.dashboardCard).should('have.length.at.least', 1);
+    }
+
+    verifyAllDashboardMetrics() {
+        const expectedMetrics = [
+            'Todos os editais disponíveis',
+            'Editais com processos em andamento',
+            'Processos Finalizados',
+        ];
+
+        expectedMetrics.forEach((metric) => {
+            cy.get(el.dashboardCard).contains(metric).should('be.visible');
         });
     }
 
-    showTableNoticeList() {
-        cy.get(el.tableNoticeList).should('be.visible');
+    // User Info
+    verifyLoggedUserDisplayedInHeader(username) {
+        cy.get(el.userAvatarButton).should('be.visible').and('contain', username);
     }
 
-    viewDashboard() {
-        cy.get(el.dashboardCard).contains('Todos os editais disponíveis').should('be.visible');
-
-        cy.get(el.dashboardCard).contains('Editais com processos em andamento').should('be.visible');
-
-        cy.get(el.dashboardCard).contains('Processos Finalizados').should('be.visible');
+    verifyWelcomeMessageDisplaysUsername(username) {
+        cy.get(el.welcomeMessage).should('be.visible').and('contain', username);
     }
 
-    accessIdentificationDataForm() {
+    // Form Navigation
+    openIdentificationDataForm() {
         cy.get(el.identificationDataFormButton).should('be.visible').first().click();
     }
-    fillNoticeIdentificationDataForm(
-        noticeNup,
-        instrumentType,
-        totalAmountNotice,
-        noticeManagerAccompaniment,
-        managerEmail,
-        quotaNumber
-    ) {
-        cy.get(el.noticeNupIdentificationDataFormInput).type(noticeNup);
 
-        cy.get(el.instrumentTypeIdentificationDataFormSelect)
-            .should('be.visible')
+    // Form Filling
+    fillIdentificationDataForm(formData) {
+        const { noticeNup, instrumentType, totalAmount, noticeManager, managerEmail, quotaNumber } = formData;
 
-            .click();
+        // Fill NUP field
+        cy.get(el.noticeNupInput).should('be.visible').type(noticeNup);
 
-        cy.contains('.v-list-item', instrumentType).click();
+        // Select instrument type
+        cy.get(el.instrumentTypeSelect).should('be.visible').click();
 
-        cy.get(el.totalAmountNoticeIdentificationDataFormInput).type(totalAmountNotice);
+        cy.contains('.v-list-item', instrumentType).should('be.visible').click();
 
-        cy.get(el.noticeManagerAccompanimentIdentificationDataFormInput).type(noticeManagerAccompaniment);
+        // Fill amount
+        cy.get(el.totalAmountInput).should('be.visible').type(totalAmount);
 
-        cy.get(el.managerEmailIdentificationDataFormInput).type(managerEmail);
+        // Fill manager name
+        cy.get(el.noticeManagerInput).should('be.visible').type(noticeManager);
 
-        cy.get(el.quotaNumberIdentificationDataFormInput).type(quotaNumber);
+        // Fill email
+        cy.get(el.managerEmailInput).should('be.visible').type(managerEmail);
 
-        cy.get(el.addDataIdentificationDataFormButton).click();
+        // Fill quota number
+        cy.get(el.quotaNumberInput).should('be.visible').type(quotaNumber);
 
-        cy.get(el.snackAlert).contains('Número do processo salvo com sucesso').should('be.visible');
+        // Submit form
+        cy.get(el.submitFormButton).should('be.visible').click();
     }
 
-    findNoticeByTitle(noticeTitle) {
-        cy.get(el.findSpecificNoticeInput).should('be.visible').type(noticeTitle);
-        cy.get('.v-data-table__tr > .v-data-table-column--align-start').contains(noticeTitle).should('be.visible');
+    verifySuccessMessage() {
+        // Verify success message
+        cy.get('.v-snackbar', { timeout: 20000 }).contains('Número do processo salvo com sucesso').should('be.visible');
     }
 
-    findNoticeByNoticeNup(noticeNup) {
-        cy.get(el.findSpecificNoticeInput).should('be.visible').type(noticeNup);
-        cy.get(el.noticeNupNoticesList).should('contain', noticeNup).should('be.visible');
+    /**
+     * Select an option from a dropdown implemented with v-list
+     * @param {string} selector - selector for the dropdown trigger
+     * @param {string|number} value - visible text of the option to choose
+     */
+    selectDropdownOption(selector, value) {
+        const valueStr = value.toString();
+        cy.get(selector).should('be.visible').click();
+
+        cy.contains('.v-list-item', valueStr).should('be.visible').click();
     }
 
-    filterNoticeByProcessStatus(processStatus) {
-        cy.get(el.processStatusBadge).should('be.visible').type(processStatus);
-        cy.get(el.processStatusBadge).should('contain', processStatus).and('be.visible');
+    // Search and Filtering
+    searchNoticeByTitle(title) {
+        cy.get(el.findSpecificNoticeInput).should('be.visible').type(title);
+
+        cy.get(el.noticeListTable).within(() => {
+            cy.contains(title).should('be.visible');
+        });
     }
 
-    filterNoticeByInstrumentType(instrumentType) {
-        cy.get(el.instrumentTypeIdentificationDataFormSelect).should('be.visible').click();
-        cy.contains('.v-list-item', instrumentType).click();
-        cy.get(el.instrumentTypeNoticesList).should('be.visible').and('contain', instrumentType);
+    searchNoticeByNup(nup) {
+        cy.get(el.findSpecificNoticeInput).should('be.visible').type(nup);
+
+        cy.get(el.noticeNupNoticesList).should('be.visible').and('contain', nup);
     }
 
-    showLoggedUsernameOnHeader(nameLoggedUser) {
-        cy.get(el.userAvatarButton).should('be.visible').and('contain', nameLoggedUser);
+    filterByProcessStatus(status) {
+        this.selectDropdownOption(el.filterProcessStatusSelect, status);
+
+        // Verify the table shows items matching the selected status
+        cy.get(el.noticeListTable).should('be.visible').and('contain', status);
     }
 
-    showWelcomeMessageWithNameLoggedUser(nameloggedUser) {
-        cy.get(el.welcomeMessage).should('be.visible').and('contain', nameloggedUser);
+    filterByInstrumentType(instrumentType) {
+        this.selectDropdownOption(el.filterInstrumentTypeSelect, instrumentType);
+
+        // Verify the table lists the expected instrument type
+        cy.get(el.noticeListTable).should('be.visible').and('contain', instrumentType);
     }
 
-    showAllInformationAboutProcess(noticeNup) {
+    // Detail View
+    goToNoticeDetailsPage(nup) {
         cy.get(el.noticeNupNoticesList)
-            .contains(noticeNup)
+            .contains(nup)
             .closest('tr')
             .find(el.accessNoticeInformationButton)
+            .should('be.visible')
             .click();
 
-        cy.url().should('match', /\/editais\/\d+\/projetos$/);
+        cy.url({ timeout: 10000 }).should('match', /\/editais\/\d+\/projetos$/);
+    }
 
-        cy.get(el.noticeNupShowAllInformation).contains(noticeNup).should('be.visible');
-
+    clickShowAllInformationButton() {
         cy.get(el.showAllInformationButton).should('be.visible').click();
-
-        cy.get(el.noticeTitleShowAllInformation).should('be.visible');
-
-        cy.get(el.noticeNupShowAllInformation).should('be.visible');
-
-        cy.get(el.instrumentTypeShowAllInformation).should('be.visible');
-
-        cy.get(el.noticeManagerShowAllInformation).should('be.visible');
-
-        cy.get(el.budgetAllocationRequestDateShowAllInformation).should('be.visible');
-
-        cy.get(el.totalAmountShowAllInformation).should('be.visible');
-
-        cy.get(el.valueInFullShowAllInformation).should('be.visible');
-
-        cy.get(el.managerEmailShowAllInformation).should('be.visible');
-
-        cy.get(el.processNumberCreditorShowAllInformation).should('be.visible');
-
-        cy.get(el.quotaNumberShowAllInformation).should('be.visible');
-
-        cy.get(el.processNumberBudgetAlocationShowAllInformation).should('be.visible');
-
-        cy.get(el.budgetAllocationCreditorRegisterDateShowAllInformation).should('be.visible');
     }
 
-    modifyQuantityPerPageOnNoticesList(quantityPerPage) {
-        cy.get(el.quantityListNoticesSelect).should('be.visible').click();
+    verifyDetailViewElements() {
+        const detailElements = [
+            el.noticeTitleDetail,
+            el.noticeNupDetail,
+            el.instrumentTypeDetail,
+            el.noticeManagerDetail,
+            el.budgetAllocationRequestDateDetail,
+            el.totalAmountDetail,
+            el.valueInFullDetail,
+            el.managerEmailDetail,
+            el.processNumberCreditorDetail,
+            el.quotaNumberDetail,
+            el.processNumberBudgetAllocationDetail,
+            el.budgetAllocationCreditorDateDetail,
+        ];
 
-        cy.contains('.v-list-item', quantityPerPage).should('be.visible').click();
-
-        cy.get(`${el.noticeListTable} tbody tr`).should('have.length', quantityPerPage);
+        detailElements.forEach((element) => {
+            cy.get(element, { timeout: 5000 }).should('be.visible');
+        });
     }
 
-    changePageOnNoticesList() {
-        cy.get(el.pageNumberNoticesList).contains('2').should('be.visible').click();
-        cy.get(el.pageNumberNoticesList)
-            .contains('2')
+    // Pagination
+    changeItemsPerPage(quantity) {
+        const quantityStr = quantity.toString();
+        this.selectDropdownOption(el.quantityPerPageSelect, quantityStr);
+
+        cy.get(`${el.noticeListTable} tbody tr`, { timeout: 5000 }).should('have.length', quantity);
+    }
+
+    goToPage(pageNumber) {
+        const pageStr = pageNumber.toString();
+
+        cy.get(el.paginationNumber).contains(pageStr).should('be.visible').click();
+
+        cy.get(el.paginationNumber)
+            .contains(pageStr)
             .parent()
             .should('have.css', 'background-color', 'rgb(255, 193, 7)');
     }

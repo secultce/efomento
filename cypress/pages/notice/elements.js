@@ -1,43 +1,55 @@
 export const elements = {
+    // Dashboard
     dashboardCard: '[data-cy=card-dashboard]',
-    processStatusBadge: '[data-cy=process-status]',
-    noticeNupIdentificationDataFormInput: '[data-cy=notice-nup-identification-data-form]',
-    instrumentTypeIdentificationDataFormSelect: '[data-cy=instrument-type-identification-data-form-select]',
-    instrumentTypeIdentificationDataFormOption: '[data-cy=instrument-type-identification-data-form-option]',
-    totalAmountNoticeIdentificationDataFormInput: '[data-cy=total-amount-notice-identification-data-form]',
-    noticeManagerAccompanimentIdentificationDataFormInput:
-        '[data-cy=notice-manager-accompaniment-identification-data-form]',
-    managerEmailIdentificationDataFormInput: '[data-cy=manager-email-identification-data-form]',
-    quotaNumberIdentificationDataFormInput: '[data-cy=quota-number-identification-data-form]',
-    addDataIdentificationDataFormButton: '[data-cy=add-data-identification-data-form-button]',
-    snackAlert: '[data-cy=snackAlert]',
-    findSpecificNoticeInput: '[data-cy=find-specific-notice]',
-    filterProcessStatusSelect: '[data-cy=filter-notice-by-status-process]',
-    filterInstrumentTypeSelect: '[data-cy=filter-notice-by-instrument-typeumento]',
+    welcomeMessage: '[data-cy=welcome-message]',
+    userAvatarButton: '[data-cy=btnUserAvatar]',
+
+    // Tables
+    noticeListTable: '[data-cy=table-notice-list]',
+    noticeTableRow: '[data-cy=row-table-notice-list]',
     noticeNupNoticesList: '[data-cy=notice-nup-notices-list]',
     instrumentTypeNoticesList: '[data-cy=instrument-type-notices-list]',
-    userAvatarButton: '[data-cy=btnUserAvatar]',
-    welcomeMessage: '[data-cy=welcome-message',
+    processStatusBadge: '[data-cy=process-status-notices-list]',
+
+    // Search and filters
+    findSpecificNoticeInput: '[data-cy=find-specific-notice]',
+    filterProcessStatusSelect: '[data-cy=filter-notice-by-status-process]',
+    filterInstrumentTypeSelect: '[data-cy=filter-notice-by-instrument-type-notices-list]',
+
+    // Pagination
+    quantityPerPageSelect: '[data-cy=quantity-notices-per-page-notice-list]',
+    paginationNumber: '[data-cy=pagination-number-notice-list]',
+
+    // Identification Data Form
     identificationDataFormButton: '[data-cy=access-identification-data-form-button]',
+    noticeNupInput: '[data-cy=notice-nup-identification-data-form]',
+    instrumentTypeSelect: '[data-cy=instrument-type-identification-data-form-select]',
+    totalAmountInput: '[data-cy=total-amount-notice-identification-data-form]',
+    noticeManagerInput: '[data-cy=notice-manager-accompaniment-identification-data-form]',
+    managerEmailInput: '[data-cy=manager-email-identification-data-form]',
+    quotaNumberInput: '[data-cy=quota-number-identification-data-form]',
+    submitFormButton: '[data-cy=add-data-identification-data-form-button]',
+
+    // List actions
     accessNoticeInformationButton: '[data-cy=access-notice-information]',
-    noticeNupInput: '[data-cy=notice-nup-information-data-form]',
-    rowTableNoticeListTr: '[data-cy=row-table-notice-list]',
-    quantityListNoticesSelect: '[data-cy=quantity-notices-per-page-notice-list]',
-    noticeListTable: '[data-cy=table-notice-list]',
-    pageNumberNoticesList: '[data-cy=pagination-number-notice-list]',
+
+    // Detail view
     showAllInformationButton: '[data-cy=show-all-information-button]',
-    noticeTitleShowAllInformation: '[data-cy=notice-title-show-all-information]',
-    updateDataButton: '[data-cy=update-data-button]',
-    noticeNupShowAllInformation: '[data-cy=notice-nup-show-all-information]',
-    instrumentTypeShowAllInformation: '[data-cy=instrument-type-show-all-information]',
-    noticeManagerShowAllInformation: '[data-cy=notice-manager-show-all-information]',
-    budgetAllocationRequestDateShowAllInformation: '[data-cy=budget-allocation-request-date-show-all-information]',
-    totalAmountShowAllInformation: '[data-cy=total-amount-show-all-information]',
-    valueInFullShowAllInformation: '[data-cy=value-in-full-show-all-information]',
-    managerEmailShowAllInformation: '[data-cy=manager-email-show-all-information]',
-    processNumberCreditorShowAllInformation: '[data-cy=process-number-creditor-register-show-all-information]',
-    quotaNumberShowAllInformation: '[data-cy=quota-number-show-all-information]',
-    processNumberBudgetAlocationShowAllInformation: '[data-cy=process-number-budget-allocation-show-all-information]',
-    budgetAllocationCreditorRegisterDateShowAllInformation:
+    noticeTitleDetail: '[data-cy=notice-title-show-all-information]',
+    noticeNupDetail: '[data-cy=notice-nup-show-all-information]',
+    instrumentTypeDetail: '[data-cy=instrument-type-show-all-information]',
+    noticeManagerDetail: '[data-cy=notice-manager-show-all-information]',
+    budgetAllocationRequestDateDetail: '[data-cy=budget-allocation-request-date-show-all-information]',
+    totalAmountDetail: '[data-cy=total-amount-show-all-information]',
+    valueInFullDetail: '[data-cy=value-in-full-show-all-information]',
+    managerEmailDetail: '[data-cy=manager-email-show-all-information]',
+    processNumberCreditorDetail: '[data-cy=process-number-creditor-register-show-all-information]',
+    quotaNumberDetail: '[data-cy=quota-number-show-all-information]',
+    processNumberBudgetAllocationDetail: '[data-cy=process-number-budget-allocation-show-all-information]',
+    budgetAllocationCreditorDateDetail:
         '[data-cy=budget-allocation-request-creditor-register-date-show-all-information]',
+    updateDataButton: '[data-cy=update-data-button]',
+
+    // Alerts
+    successAlert: '[data-cy=snack-alert]',
 };

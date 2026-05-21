@@ -236,7 +236,7 @@ function openDialog(item) {
                     rounded="lg"
                     hide-details
                     clearable
-                    data-cy="instrument-type-identification-data-form-select"
+                    data-cy="filter-notice-by-instrument-type-notices-list"
                     @update:model-value="onFilterInstrument"
                 />
             </v-col>
