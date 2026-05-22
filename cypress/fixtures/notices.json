@@ -1,7 +1,9 @@
 {
+    "id": 43,
     "title": "14° Edital Ceará das Artes - Teatro de Bonecos",
     "processStatus":"Em abertura de processo",
-    "nup": 2700112345679813,
+    "nupMotherProcess": "03888.136970/4500-47",
+    "nup": "35667.965922/6228-02",
     "processInstrumentType":"CONVÊNIO",
     "noticeTotalValue": 13500000,
     "noticeAccompanimentManager": "Saulo Furtado",
@@ -10,3 +12,4 @@
     "quantityPerPage": 25
 
 }
+
