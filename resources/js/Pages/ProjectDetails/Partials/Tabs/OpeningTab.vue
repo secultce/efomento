@@ -95,18 +95,22 @@ onMounted(() => {
         account_type: opening.account_type ?? null,
         branch: opening.branch ?? null,
         account: opening.account ?? null,
-        supervisors: [
-            {
-                id: opening?.supervisors[0]?.user_id ?? null,
-                registration_number: opening.supervisors?.[0]?.user.registration_number ?? '',
-                type: 'principal',
-            },
-            {
-                id: opening?.supervisors[1]?.user_id ?? null,
-                registration_number: opening.supervisors?.[1]?.user.registration_number ?? '',
-                type: 'alternate',
-            },
-        ],
+        supervisors: (() => {
+            const principal = opening.supervisors?.find((s) => s.type === 'principal');
+            const alternate = opening.supervisors?.find((s) => s.type === 'alternate');
+            return [
+                {
+                    id: principal?.user_id ?? null,
+                    registration_number: principal?.user?.registration_number ?? '',
+                    type: 'principal',
+                },
+                {
+                    id: alternate?.user_id ?? null,
+                    registration_number: alternate?.user?.registration_number ?? '',
+                    type: 'alternate',
+                },
+            ];
+        })(),
     };
 
     form.formalization = {

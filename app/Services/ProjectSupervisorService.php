@@ -12,6 +12,10 @@ class ProjectSupervisorService
     {
         $types = [OpeningSupervisor::TYPE_PRINCIPAL, OpeningSupervisor::TYPE_ALTERNATE];
 
+        if (count($supervisorIds) > count($types)) {
+            throw new \InvalidArgumentException('Abertura aceita no máximo fiscal principal e suplente.');
+        }
+
         $supervisors = collect($supervisorIds)
             ->values()
             ->map(fn ($id, $index) => ['id' => $id, 'type' => $types[$index] ?? null])

@@ -12,15 +12,21 @@ use App\Models\Category;
 use App\Models\Notice;
 use App\Models\Opening;
 use App\Models\Project;
-use App\Models\User;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Carbon;
 
 class SpreadsheetImportService
 {
+    private int $userId;
+
     public function __construct(
         private readonly ProfileSnapshotService $snapshotService,
     ) {}
+
+    public function setUserId(int $userId): void
+    {
+        $this->userId = $userId;
+    }
 
     /**
      * Processa uma linha da planilha e persiste Category, Agent e Project.
@@ -92,8 +98,6 @@ class SpreadsheetImportService
 
     private function resolveOpening(array $row, int $projectId): Opening
     {
-        $user = User::find(2);
-
         return Opening::firstOrCreate(
             ['project_id' => $projectId],
             [
@@ -108,7 +112,7 @@ class SpreadsheetImportService
                 'is_draft' => true,
                 'certificate_date' => $this->parseDate(trim($row[12] ?? '')),
                 'started_at' => $this->parseDate(trim($row[15] ?? '')),
-                'user_id' => $user->id,
+                'user_id' => $this->userId,
             ]
         );
     }

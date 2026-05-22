@@ -159,15 +159,17 @@ class MassSupervisorAssignmentTest extends TestCase
         $invalidProject = Project::factory()->create();
         $user = User::factory()->create();
 
+        $exceptionThrown = false;
         try {
             $this->service->assign(
                 [$validProject->id, $invalidProject->id],
                 [$user->id]
             );
         } catch (\Exception) {
-            // esperado
+            $exceptionThrown = true;
         }
 
+        $this->assertTrue($exceptionThrown, 'Expected exception was not thrown');
         $this->assertDatabaseCount('opening_supervisor', 0);
     }
 }
