@@ -15,6 +15,7 @@ use App\Models\Project;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Auth;
 
 class SpreadsheetImportService
 {
@@ -26,7 +27,7 @@ class SpreadsheetImportService
      * Processa uma linha da planilha e persiste Category, Agent e Project.
      * Retorna o Project criado, ou null se a linha não tiver os dados mínimos.
      */
-    public function processRow(array $row): ?Model
+    public function processRow(array $row, ?int $fallbackNoticeId = null): ?Model
     {
         $registrationUrl = trim($row[44] ?? '');
         $registrationId = $this->extractRegistrationId($registrationUrl);
@@ -37,7 +38,12 @@ class SpreadsheetImportService
 
         $category = $this->resolveCategory(trim($row[4] ?? ''));
         $agent = $this->resolveAgent($row);
-        $notice = Notice::where('external_id', $row[0])->first();
+        $notice = Notice::where('external_id', $row[0])->first()
+            ?? ($fallbackNoticeId ? Notice::find($fallbackNoticeId) : null);
+
+        if (! $notice) {
+            return null;
+        }
 
         $this->snapshotService->recordIfChanged(
             $agent,
@@ -92,7 +98,7 @@ class SpreadsheetImportService
 
     private function resolveOpening(array $row, int $projectId): Opening
     {
-        $user = User::find(Auth::user()->id);
+        $user = User::find(10);
 
         return Opening::firstOrCreate(
             ['project_id' => $projectId],
@@ -109,6 +115,46 @@ class SpreadsheetImportService
                 'certificate_date' => $this->parseDate(trim($row[12] ?? '')),
                 'started_at' => $this->parseDate(trim($row[15] ?? '')),
                 'user_id' => $user->id,
+            ]
+        );
+    }
+
+    /**
+     * Cria ou retorna uma Opening mapeando por label de coluna (retorno do GoogleSheetsService).
+     * Retorna null se o projeto correspondente não for encontrado.
+     */
+    public function resolveOpeningByLabels(array $row): ?Opening
+    {
+        $registrationUrl = trim($row['LINK DE INSCRIÇÃO'] ?? '');
+        $registrationId = $this->extractRegistrationId($registrationUrl);
+
+        if (! $registrationId) {
+            return null;
+        }
+
+        $project = Project::where('registration_id', $registrationId)->first();
+
+        if (! $project) {
+            return null;
+        }
+
+        return Opening::firstOrCreate(
+            ['project_id' => $project->id],
+            [
+                'opening_nup' => trim($row['N° DO PROCESSO (NUP)'] ?? ''),
+                'opening_date' => $this->parseDate(trim($row['DATA ABERTURA DE PROCESSO'] ?? '')),
+                'agent_status' => $this->mapAgentStatus(trim($row['STATUS'] ?? '')),
+                'opened_by' => trim($row['RESPONSÁVEL POR ABRIR PROCESSO'] ?? ''),
+                'created_by' => Auth::id(),
+                'bank' => trim($row['BANCO'] ?? ''),
+                'account_type' => $this->mapAccountType(trim($row['TIPO DE CONTA'] ?? '')),
+                'branch' => trim($row['AGÊNCIA'] ?? ''),
+                'account' => trim($row['CONTA'] ?? ''),
+                'is_draft' => true,
+                'user_id' => Auth::id(),
+                'certificate_date' => $this->parseDate(trim($row['DATA DE CERTIDÃO GERADA'] ?? '')),
+                'started_at' => $this->parseDate(trim($row['DATA ABERTURA DE PROCESSO'] ?? '')),
+                'title_project' => trim($row['TITULO DO PROJETO'] ?? ''),
             ]
         );
     }
