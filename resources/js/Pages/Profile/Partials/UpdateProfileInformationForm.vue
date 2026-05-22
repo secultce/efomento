@@ -44,6 +44,7 @@ const form = useForm({
                     required
                     autofocus
                     autocomplete="name"
+                    data-cy="name-input"
                 />
 
                 <InputError class="mt-2" :message="form.errors.name" />
@@ -59,6 +60,7 @@ const form = useForm({
                     class="mt-1 block w-full"
                     required
                     autocomplete="username"
+                    data-cy="email-input"
                 />
 
                 <InputError class="mt-2" :message="form.errors.email" />
@@ -83,7 +85,9 @@ const form = useForm({
             </div>
 
             <div class="flex items-center gap-4">
-                <PrimaryButton :disabled="form.processing" data-cy="btnSaveProfileInformation">Save</PrimaryButton>
+                <PrimaryButton :disabled="form.processing" data-cy="save-profile-information-button"
+                    >Save</PrimaryButton
+                >
 
                 <Transition
                     enter-active-class="transition ease-in-out"
