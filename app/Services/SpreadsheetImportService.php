@@ -4,120 +4,143 @@ namespace App\Services;
 
 use App\Enums\AccountType;
 use App\Enums\AgentStatus;
-use App\Enums\CategoryType;
 use App\Enums\DisabilityType;
 use App\Enums\ProfileSnapshotSource;
-use App\Models\Agent;
-use App\Models\Category;
+use App\Jobs\LoadSpreadsheetProjectFilesJob;
 use App\Models\Notice;
 use App\Models\Opening;
 use App\Models\Project;
-use App\Models\User;
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
 class SpreadsheetImportService
 {
     public function __construct(
         private readonly ProfileSnapshotService $snapshotService,
+        private readonly CategoryService $categoryService,
+        private readonly AgentService $agentService
     ) {}
 
     /**
      * Processa uma linha da planilha e persiste Category, Agent e Project.
      * Retorna o Project criado, ou null se a linha não tiver os dados mínimos.
      */
-    public function processRow(array $row): ?Model
-    {
-        $registrationUrl = trim($row[44] ?? '');
-        $registrationId = $this->extractRegistrationId($registrationUrl);
+    public function processRow(
+        array $row,
+        bool $withFiles,
+        int $userId,
+    ): ?Project {
+        return DB::transaction(function () use ($row, $withFiles, $userId) {
+            $registrationUrl = trim((string) ($row[44] ?? ''));
+            $registrationId = $this->extractRegistrationId($registrationUrl);
 
-        if (! $registrationId) {
-            return null;
-        }
+            if (! $registrationId) {
+                return null;
+            }
 
-        $category = $this->resolveCategory(trim($row[4] ?? ''));
-        $agent = $this->resolveAgent($row);
-        $notice = Notice::where('external_id', $row[0])->first();
+            $agent = $this->agentService->updateOrCreateByCpf(
+                cpf: $row[33] ?? null,
+                name: $row[2] ?? null,
+            );
 
-        $this->snapshotService->recordIfChanged(
-            $agent,
-            $this->buildSnapshotData($row),
-            ProfileSnapshotSource::AGENT_UPDATE,
-        );
+            if (! $agent) {
+                Log::warning('spreadsheet.import.agent_cpf_missing', [
+                    'registration_id' => $registrationId,
+                    'cpf_column' => $row[33] ?? null,
+                ]);
 
-        $project = Project::firstOrCreate(
-            ['registration_id' => $registrationId],
-            [
-                'number' => 'on-'.$registrationId,
-                'category_id' => $category->id,
-                'agent_id' => $agent->id,
-                'notice_id' => $notice->id,
-                'title_project' => $row[6],
-            ]
-        );
+                return null;
+            }
 
-        $this->snapshotService->recordIfChanged(
-            $project,
-            $this->buildSnapshotData($row),
-            ProfileSnapshotSource::PROJECT_REGISTRATION,
-        );
+            $noticeExternalId = trim((string) ($row[0] ?? ''));
 
-        $this->resolveOpening($row, $project->id);
+            $notice = Notice::where('external_id', $noticeExternalId)->first();
 
-        return $project;
-    }
+            if (! $notice) {
+                Log::warning('spreadsheet.import.notice_missing', [
+                    'notice_external_id' => $noticeExternalId,
+                    'registration_id' => $registrationId,
+                ]);
 
-    private function resolveAgent(array $row): Agent
-    {
-        $cpf = trim($row[33] ?? '');
+                return null;
+            }
 
-        return Agent::updateOrCreate(
-            ['cpf' => $cpf],
-            ['name' => trim($row[2] ?? '')]
-        );
+            $category = $this->categoryService->findOrCreateProject(
+                $row[4] ?? null
+            );
+
+            $snapshotData = $this->buildSnapshotData($row);
+
+            $this->snapshotService->recordIfChanged(
+                $agent,
+                $snapshotData,
+                ProfileSnapshotSource::AGENT_UPDATE,
+            );
+
+            $project = Project::firstOrCreate(
+                ['registration_id' => $registrationId],
+                [
+                    'number' => 'on-'.$registrationId,
+                    'category_id' => $category?->id,
+                    'agent_id' => $agent->id,
+                    'notice_id' => $notice->id,
+                    'title_project' => trim((string) ($row[6] ?? '')) ?: null,
+                ]
+            );
+
+            $this->snapshotService->recordIfChanged(
+                $project,
+                $snapshotData,
+                ProfileSnapshotSource::PROJECT_REGISTRATION,
+            );
+
+            $this->resolveOpening($row, $project->id, $userId);
+
+            if ($withFiles) {
+                LoadSpreadsheetProjectFilesJob::dispatch(
+                    projectId: $project->id,
+                    registrationId: (int) $registrationId,
+                )
+                    ->afterCommit()
+                    ->onQueue('details');
+            }
+
+            return $project;
+        }, 3);
     }
 
     private function buildSnapshotData(array $row): array
     {
         return [
-            'gender' => trim($row[40] ?? '') ?: null,
-            'has_disability' => $this->mapDisability(trim($row[42] ?? '')),
-            'email' => trim($row[36] ?? '') ?: null,
-            'phone' => trim($row[38] ?? '') ?: null,
-            'birth_date' => $this->parseDate(trim($row[41] ?? '')),
-            'street' => trim($row[34] ?? '') ?: null,
-            'city' => trim($row[35] ?? '') ?: null,
+            'gender' => trim((string) ($row[40] ?? '')) ?: null,
+            'has_disability' => $this->mapDisability(trim((string) ($row[42] ?? ''))),
+            'email' => trim((string) ($row[36] ?? '')) ?: null,
+            'phone' => trim((string) ($row[38] ?? '')) ?: null,
+            'birth_date' => $this->parseDate(trim((string) ($row[41] ?? ''))),
+            'street' => trim((string) ($row[34] ?? '')) ?: null,
+            'city' => trim((string) ($row[35] ?? '')) ?: null,
         ];
     }
 
-    private function resolveOpening(array $row, int $projectId): Opening
+    private function resolveOpening(array $row, int $projectId, int $userId): Opening
     {
-        $user = User::find(Auth::user()->id);
-
         return Opening::firstOrCreate(
             ['project_id' => $projectId],
             [
-                'opening_nup' => trim($row[14] ?? ''),
-                'opening_date' => $this->parseDate(trim($row[15] ?? '')),
-                'agent_status' => $this->mapAgentStatus(trim($row[1] ?? '')),
-                'opened_by' => trim($row[13] ?? ''),
-                'bank' => trim($row[16] ?? ''),
-                'account_type' => $this->mapAccountType(trim($row[17] ?? '')),
-                'branch' => trim($row[18] ?? ''),
-                'account' => trim($row[19] ?? ''),
+                'opening_nup' => trim((string) ($row[14] ?? '')),
+                'opening_date' => $this->parseDate(trim((string) ($row[15] ?? ''))),
+                'agent_status' => $this->mapAgentStatus(trim((string) ($row[1] ?? ''))),
+                'opened_by' => trim((string) ($row[13] ?? '')),
+                'bank' => trim((string) ($row[16] ?? '')),
+                'account_type' => $this->mapAccountType(trim((string) ($row[17] ?? ''))),
+                'branch' => trim((string) ($row[18] ?? '')),
+                'account' => trim((string) ($row[19] ?? '')),
                 'is_draft' => true,
-                'certificate_date' => $this->parseDate(trim($row[12] ?? '')),
-                'started_at' => $this->parseDate(trim($row[15] ?? '')),
-                'user_id' => $user->id,
+                'certificate_date' => $this->parseDate(trim((string) ($row[12] ?? ''))),
+                'started_at' => $this->parseDate(trim((string) ($row[15] ?? ''))),
+                'user_id' => $userId,
             ]
-        );
-    }
-
-    private function resolveCategory(string $name): Category
-    {
-        return Category::firstOrCreate(
-            ['name' => $name],
-            ['type' => CategoryType::PROJETO]
         );
     }
 
@@ -127,9 +150,15 @@ class SpreadsheetImportService
             return null;
         }
 
-        $id = basename(parse_url($url, PHP_URL_PATH));
+        $path = parse_url($url, PHP_URL_PATH);
 
-        return $id ?: null;
+        if (! is_string($path)) {
+            return null;
+        }
+
+        $id = basename($path);
+
+        return ctype_digit($id) ? $id : null;
     }
 
     private function mapAgentStatus(string $value): AgentStatus
