@@ -10,7 +10,7 @@ Artisan::command('inspire', function () {
 })->purpose('Display an inspiring quote');
 
 Schedule::job(new SyncNoticesJob)
-    ->dailyAt('06:00')
+    ->dailyAt('16:08')
     ->timezone('America/Fortaleza')
     ->withoutOverlapping()
     ->onOneServer();

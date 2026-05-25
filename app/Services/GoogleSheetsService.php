@@ -33,16 +33,11 @@ class GoogleSheetsService
         } catch (RequestException $e) {
             throw new RuntimeException("Failed to fetch Google Sheet: {$e->getMessage()}", previous: $e);
         }
-
         $json = $this->stripSecurityPrefix($raw);
-        //        dd(\Safe\json_decode($json, true));
+
         $table = $this->decodeTable($json);
 
         $columns = $this->extractColumns($table);
-        $columValues = [
-            'columns' => $columns,
-            'rows' => $this->extractRows($table, $columns),
-        ];
 
         return [
             'columns' => $columns,
@@ -84,6 +79,91 @@ class GoogleSheetsService
         }
 
         return $count;
+    }
+
+    /**
+     * Importa linhas de uma aba para qualquer model Eloquent usando um mapa de colunas declarativo.
+     *
+     * @param  class-string  $modelClass
+     * @param  array<string, string>  $columnMap  chave = label ou id da coluna na planilha; valor = campo fillable do model
+     * @param  string|string[]  $uniqueBy  campo(s) usados como chave no upsert; vazio = insert simples
+     * @param  array<string, mixed>  $defaults  campos com valor fixo mesclados em cada registro (ex: created_by, process_supervisor_id)
+     * @return int número de linhas gravadas
+     */
+    public function importToModel(
+        string $spreadsheetId,
+        string $sheetName,
+        string $modelClass,
+        array $columnMap,
+        string|array $uniqueBy = [],
+        array $defaults = [],
+    ): int {
+        ['rows' => $rows, 'lookup' => $lookup] = $this->fetchSheetWithLookup($spreadsheetId, $sheetName);
+
+        $records = [];
+        foreach ($rows as $row) {
+            $record = $defaults;
+            foreach ($columnMap as $sheetColumn => $modelField) {
+                $rowKey = $lookup[$sheetColumn] ?? null;
+                $record[$modelField] = $rowKey !== null ? ($row[$rowKey] ?? null) : null;
+            }
+            $records[] = $record;
+        }
+
+        if (empty($records)) {
+            return 0;
+        }
+
+        $updateColumns = array_unique(array_merge(array_values($columnMap), array_keys($defaults)));
+
+        if (empty($uniqueBy)) {
+            $modelClass::insert($records);
+        } else {
+            $modelClass::upsert($records, (array) $uniqueBy, $updateColumns);
+        }
+
+        return count($records);
+    }
+
+    /**
+     * Igual a fetchSheet() mas também devolve um lookup label/id → rowKey,
+     * permitindo que o columnMap aceite tanto o label quanto o id da coluna.
+     *
+     * @return array{columns: string[], rows: array<int, array<string, mixed>>, lookup: array<string, string>}
+     */
+    private function fetchSheetWithLookup(string $spreadsheetId, string $sheetName): array
+    {
+        $url = sprintf(self::GVIZ_ENDPOINT, $spreadsheetId);
+
+        try {
+            $raw = Http::timeout(30)
+                ->get($url, ['tqx' => 'out:json', 'sheet' => $sheetName])
+                ->throw()
+                ->body();
+        } catch (RequestException $e) {
+            throw new RuntimeException("Failed to fetch Google Sheet: {$e->getMessage()}", previous: $e);
+        }
+
+        $table = $this->decodeTable($this->stripSecurityPrefix($raw));
+        $columns = $this->extractColumns($table);
+        $rows = $this->extractRows($table, $columns);
+
+        // Monta lookup: label → rowKey e id → rowKey (rowKey = label ?: id)
+        $lookup = [];
+        foreach ($table['cols'] ?? [] as $index => $col) {
+            $rowKey = $columns[$index];
+            $label = (string) ($col['label'] ?? '');
+            $id = (string) ($col['id'] ?? '');
+
+            if ($label !== '') {
+                $lookup[$label] = $rowKey;
+            }
+            if ($id !== '') {
+                $lookup[$id] = $rowKey;
+            }
+        }
+
+        return ['columns' => $columns, 'rows' => $rows, 'lookup' => $lookup];
     }
 
     /**

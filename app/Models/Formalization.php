@@ -37,6 +37,7 @@ class Formalization extends Model implements Auditable
         'sent_to_chief_of_staff_at',
         'official_gazette_published_at',
         'legal_opinion_date',
+        'data_sign_gabinete',
         'created_by',
     ];
 
@@ -54,6 +55,7 @@ class Formalization extends Model implements Auditable
         'sent_to_chief_of_staff_at' => 'date',
         'official_gazette_published_at' => 'date',
         'legal_opinion_date' => 'date',
+        'data_sign_gabinete' => 'date',
         'deleted_at' => 'datetime',
         'report_status' => ReportStatus::class,
         'deliberation' => DeliberationType::class,
