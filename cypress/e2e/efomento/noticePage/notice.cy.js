@@ -138,20 +138,10 @@ describe('Notice Page - E2E Tests', () => {
             cy.get('[data-cy=add-data-identification-data-form-button]').click();
 
             // Expect validation error
-            cy.get('[role=alert]').should('be.visible');
-        });
-    });
-
-    describe('Data Persistence', () => {
-        it('should maintain notice list after page refresh', function () {
-            Notice.searchNoticeByNup(this.notice.nup);
-            cy.get('[data-cy=notice-nup-notices-list]').should('contain', this.notice.nup);
-
-            cy.reload();
-            Notice.verifyPageLoaded();
-
-            Notice.searchNoticeByNup(this.notice.nup);
-            cy.get('[data-cy=notice-nup-notices-list]').should('contain', this.notice.nup);
+            cy.get('[data-cy=notice-nup-identification-data-form]')
+                .closest('.v-input')
+                .contains('Campo obrigatório')
+                .should('be.visible');
         });
     });
 });

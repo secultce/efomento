@@ -71,7 +71,9 @@ class Notice {
 
     verifySuccessMessage() {
         // Verify success message
-        cy.get('.v-snackbar', { timeout: 20000 }).contains('Número do processo salvo com sucesso').should('be.visible');
+        cy.get(el.successAlert, { timeout: 20000 })
+            .contains('Número do processo salvo com sucesso')
+            .should('be.visible');
     }
 
     /**
@@ -91,14 +93,23 @@ class Notice {
         cy.get(el.findSpecificNoticeInput).should('be.visible').type(title);
 
         cy.get(el.noticeListTable).within(() => {
-            cy.contains(title).should('be.visible');
+            cy.get(el.noticeTitleNoticesList).contains(title).should('be.visible');
         });
     }
 
     searchNoticeByNup(nup) {
         cy.get(el.findSpecificNoticeInput).should('be.visible').type(nup);
 
-        cy.get(el.noticeNupNoticesList).should('be.visible').and('contain', nup);
+        cy.get(el.noticeListTable).within(() => {
+            cy.get(el.noticeNupNoticesList)
+                .invoke('text')
+                .then((text) => {
+                    const formattedNup = this.normalizeNup(text);
+                    const expectedNup = this.normalizeNup(nup);
+
+                    expect(formattedNup).to.equal(expectedNup);
+                });
+        });
     }
 
     filterByProcessStatus(status) {
@@ -117,12 +128,15 @@ class Notice {
 
     // Detail View
     goToNoticeDetailsPage(nup) {
-        cy.get(el.noticeNupNoticesList)
-            .contains(nup)
-            .closest('tr')
-            .find(el.accessNoticeInformationButton)
-            .should('be.visible')
-            .click();
+        const expectedNup = this.normalizeNup(nup);
+
+        cy.get(el.noticeNupNoticesList).each(($element) => {
+            const currentNup = this.normalizeNup($element.text());
+
+            if (currentNup === expectedNup) {
+                cy.wrap($element).closest('tr').find(el.accessNoticeInformationButton).click();
+            }
+        });
 
         cy.url({ timeout: 10000 }).should('match', /\/editais\/\d+\/projetos$/);
     }
@@ -169,6 +183,10 @@ class Notice {
             .contains(pageStr)
             .parent()
             .should('have.css', 'background-color', 'rgb(255, 193, 7)');
+    }
+
+    normalizeNup(value) {
+        return value.replace(/\D/g, '');
     }
 }
 

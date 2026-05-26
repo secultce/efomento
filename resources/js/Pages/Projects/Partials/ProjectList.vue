@@ -51,6 +51,7 @@ function clear() {
                 hide-details
                 rounded="xl"
                 class="mb-2"
+                data-cy="inputFindProjectPage"
                 @update:model-value="onSearch"
             />
 

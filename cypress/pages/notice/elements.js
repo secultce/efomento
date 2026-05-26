@@ -8,6 +8,7 @@ export const elements = {
     noticeListTable: '[data-cy=table-notice-list]',
     noticeTableRow: '[data-cy=row-table-notice-list]',
     noticeNupNoticesList: '[data-cy=notice-nup-notices-list]',
+    noticeTitleNoticesList: '[data-cy=notice-title-notices-list]',
     instrumentTypeNoticesList: '[data-cy=instrument-type-notices-list]',
     processStatusBadge: '[data-cy=process-status-notices-list]',
 
@@ -51,5 +52,5 @@ export const elements = {
     updateDataButton: '[data-cy=update-data-button]',
 
     // Alerts
-    successAlert: '[data-cy=snack-alert]',
+    successAlert: '.v-snackbar',
 };

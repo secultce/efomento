@@ -253,7 +253,7 @@ function openDialog(item) {
         >
             <!-- Título truncado -->
             <template #item.titulo="{ item }">
-                <span class="titulo-truncado">{{ item.titulo }}</span>
+                <span class="titulo-truncado" data-cy="notice-title-notices-list">{{ item.titulo }}</span>
             </template>
 
             <!-- Badge de status -->

@@ -2,7 +2,7 @@
 
 namespace App\Models;
 
-use App\Enums\ProjectPhase;
+use App\Enums\ProjectStageSlug;
 use App\Enums\ProjectStageStatus;
 use App\Traits\HasFiles;
 use Illuminate\Database\Eloquent\Builder;
@@ -69,17 +69,13 @@ class Project extends Model implements Auditable
             ->latestOfMany('created_at');
     }
 
-    public function getPhaseAttribute()
+    public function getPhaseAttribute(): string
     {
-        if (array_key_exists('openings_count', $this->attributes)) {
-            return $this->openings_count > 0
-                ? 'Abertura'
-                : 'Não Iniciado';
-        }
+        $currentStage = $this->relationLoaded('currentStage')
+            ? $this->currentStage
+            : $this->currentStage()->first();
 
-        return $this->openings()->exists()
-            ? 'Abertura'
-            : 'Não Iniciado';
+        return $currentStage?->slug?->label() ?? 'Não Iniciado';
     }
 
     public function getOpeningNupAttribute()
@@ -93,13 +89,16 @@ class Project extends Model implements Auditable
             return $query;
         }
 
-        $phaseEnum = ProjectPhase::fromRequest($phase);
+        $slug = ProjectStageSlug::tryFrom($phase);
 
-        if ($phaseEnum) {
-            $phaseEnum->applyFilter($query);
+        if (! $slug) {
+            return $query;
         }
 
-        return $query;
+        return $query->whereHas('stages', function ($q) use ($slug) {
+            $q->where('slug', $slug)
+                ->where('status', ProjectStageStatus::EM_ANDAMENTO);
+        });
     }
 
     public function scopeSearch(Builder $query, ?string $search): Builder
