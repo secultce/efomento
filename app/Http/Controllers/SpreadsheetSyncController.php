@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Budget;
 use App\Models\Formalization;
 use App\Models\Project;
 use App\Services\GoogleSheetsService;
@@ -61,5 +62,53 @@ class SpreadsheetSyncController extends Controller
         }
 
         return back()->with('success', "{$count} registros de formalização sincronizados.");
+    }
+
+    public function syncOrcamento(Request $request): RedirectResponse
+    {
+        $request->validate([
+            'spreadsheet_id' => ['required', 'string'],
+            'sheet_name' => ['sometimes', 'string'],
+        ]);
+
+        $config = config('spreadsheet_mappings.orcamento');
+        $columnMap = $config['column_map'];
+        $projectLookupColumn = $config['column_for_project_lookup'];
+
+        ['rows' => $rows] = $this->sheets->fetchSheet(
+            spreadsheetId: $request->string('spreadsheet_id')->toString(),
+            sheetName: $request->string('sheet_name', 'Orçamento')->toString(),
+        );
+
+        $count = 0;
+
+        foreach ($rows as $row) {
+            $projectNumber = $row[$projectLookupColumn] ?? null;
+
+            if (! $projectNumber) {
+                continue;
+            }
+
+            $project = Project::where('number', $projectNumber)->first();
+
+            if (! $project) {
+                continue;
+            }
+
+            $record = ['created_by' => Auth::id()];
+
+            foreach ($columnMap as $sheetColumn => $modelField) {
+                $record[$modelField] = $row[$sheetColumn] ?? null;
+            }
+
+            Budget::updateOrCreate(
+                ['project_id' => $project->id],
+                $record,
+            );
+
+            $count++;
+        }
+
+        return back()->with('success', "{$count} registros de orçamento sincronizados.");
     }
 }

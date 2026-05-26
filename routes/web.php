@@ -96,6 +96,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::prefix('sync')->name('sync.')->group(function () {
         Route::post('/formalizacao', [SpreadsheetSyncController::class, 'syncFormalizacao'])
             ->name('formalizacao');
+        Route::post('/orcamento', [SpreadsheetSyncController::class, 'syncOrcamento'])
+            ->name('orcamento');
     });
 });
 
