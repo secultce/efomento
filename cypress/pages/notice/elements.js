@@ -1,41 +1,56 @@
 export const elements = {
-    appContainer: '[id=app]',
-    buttonIdentificationData: '[data-cy=btnIdentificationData]',
-    badgeProcessStatus: '[data-cy=statusDoProcesso]',
-    inputProcessNumber: '[data-cy=inputNumeroProcessoSuite]',
-    selectInstrumentTypeIdentificationData: '[data-cy=selectTipoDeInstrumentoDadosIdentificacao]',
-    optionInstrumentType: '[data-cy=opcaoTipoInstrumento]',
-    inputTotalValueNotice: '[data-cy=inputValorTotalDoEdital]',
-    inputNoticeManagerAccompaniment: '[data-cy=inputNomeDoGestor]',
-    inputManagerEmail: '[data-cy=inputEmailDoGestor]',
-    inputQuotaNumber: '[data-cy=inputNumeroDeParcelas]',
-    buttonAddData: '[data-cy=btnAdiconarDados]',
-    snackAlert: '[data-cy=snackAlert]',
-    inputFindEspecificNotice: '[data-cy=inputBuscaEditalEspecifica]',
-    selectFilterProcessStatus: '[data-cy=selectFiltrarPorStatusDoProcesso]',
-    selectFilterInstrumentType: '[data-cy=selectFiltrarPorTipoDeInstrumento]',
-    tbodyInstrumentTypeNoticesList: '[data-cy=tipoDeInstrumentoListaDeEditais]',
-    buttonUserAvatar: '[data-cy=btnUserAvatar]',
-    welcomeMessage: '[data-cy=mensagemDeBoasVindas]',
-    buttonAccessIdentificationdata: '[data-cy=btnAcessarDadosDeIdentificacao]',
-    motherProcessNumber: '[data-cy=numeroProcessoMae]',
-    tableNoticeListRow: '[data-cy=linhaTabelaEditais]',
-    selectQuantityListNotices: '[data-cy=quantidadeDeEditaisExibidos]',
-    tableNoticeList: '[data-cy=tabelaListaDeEditais]',
-    pageNumberNoticesList: '[data-cy=numeroPaginacaoListaEditais]',
-    btnShowAllInformation: '[data-cy=botaoMostrarTodasAsInformacoes]',
-    noticeNameProcessInformation: '[data-cy=nomeDoEditalInformacoesDoProcesso]',
-    buttonUpdateData: '[data-cy=botaoAtualizarDados]',
-    buttonShowAllInformation: '[data-cy=botaoMostrarTodasAsInformacoes]',
-    motherProcessNumberProcessInformation: '[data-cy=numeroDeProcessoInformacoesDoProcesso]',
-    intrumentTypeProccessInformation: '[data-cy=tipoDeInstrumentoInformacoesDoProcesso]',
-    noticeManagerProcessInformation: '[data-cy=nomeDoGestorInformacoesDoProcesso]',
-    budgetAlocationDateProcessInformation: '[data-cy=nomeDoGestorInformacoesDoProcesso]',
-    totalAmountProcessInformation: '[data-cy=valorTotalDoProcessoInformacoesDoProcesso]',
-    valueInFullProcessInformation: '[data-cy=valorPorExtensoInformacoesDoProcesso]',
-    managerEmailProcessInformation: '[data-cy=emailGestorInformacoesDoProcesso]',
-    processNumberCreditorProcessInformation: '[data-cy=numeroProcessoCredorInformacoesDoProcesso]',
-    quotaNumberProcessInformation: '[data-cy=numeroParcelasInformacoesDoProcesso]',
-    processNumberBudgetAlocationProcessInformation: '[data-cy=numeroProcessoDotacaoInformacoesDoProcesso]',
-    budgetAlocationCreditorRegister: '[data-cy=dataSolicitacaoCadastroCredorInformacoesDoProcesso]',
+    // Dashboard
+    dashboardCard: '[data-cy=card-dashboard]',
+    welcomeMessage: '[data-cy=welcome-message]',
+    userAvatarButton: '[data-cy=btnUserAvatar]',
+
+    // Tables
+    noticeListTable: '[data-cy=table-notice-list]',
+    noticeTableRow: '[data-cy=row-table-notice-list]',
+    noticeNupNoticesList: '[data-cy=notice-nup-notices-list]',
+    noticeTitleNoticesList: '[data-cy=notice-title-notices-list]',
+    instrumentTypeNoticesList: '[data-cy=instrument-type-notices-list]',
+    processStatusBadge: '[data-cy=process-status-notices-list]',
+
+    // Search and filters
+    findSpecificNoticeInput: '[data-cy=find-specific-notice]',
+    filterProcessStatusSelect: '[data-cy=filter-notice-by-status-process]',
+    filterInstrumentTypeSelect: '[data-cy=filter-notice-by-instrument-type-notices-list]',
+
+    // Pagination
+    quantityPerPageSelect: '[data-cy=quantity-notices-per-page-notice-list]',
+    paginationNumber: '[data-cy=pagination-number-notice-list]',
+
+    // Identification Data Form
+    identificationDataFormButton: '[data-cy=access-identification-data-form-button]',
+    noticeNupInput: '[data-cy=notice-nup-identification-data-form]',
+    instrumentTypeSelect: '[data-cy=instrument-type-identification-data-form-select]',
+    totalAmountInput: '[data-cy=total-amount-notice-identification-data-form]',
+    noticeManagerInput: '[data-cy=notice-manager-accompaniment-identification-data-form]',
+    managerEmailInput: '[data-cy=manager-email-identification-data-form]',
+    quotaNumberInput: '[data-cy=quota-number-identification-data-form]',
+    submitFormButton: '[data-cy=add-data-identification-data-form-button]',
+
+    // List actions
+    accessNoticeInformationButton: '[data-cy=access-notice-information]',
+
+    // Detail view
+    showAllInformationButton: '[data-cy=show-all-information-button]',
+    noticeTitleDetail: '[data-cy=notice-title-show-all-information]',
+    noticeNupDetail: '[data-cy=notice-nup-show-all-information]',
+    instrumentTypeDetail: '[data-cy=instrument-type-show-all-information]',
+    noticeManagerDetail: '[data-cy=notice-manager-show-all-information]',
+    budgetAllocationRequestDateDetail: '[data-cy=budget-allocation-request-date-show-all-information]',
+    totalAmountDetail: '[data-cy=total-amount-show-all-information]',
+    valueInFullDetail: '[data-cy=value-in-full-show-all-information]',
+    managerEmailDetail: '[data-cy=manager-email-show-all-information]',
+    processNumberCreditorDetail: '[data-cy=process-number-creditor-register-show-all-information]',
+    quotaNumberDetail: '[data-cy=quota-number-show-all-information]',
+    processNumberBudgetAllocationDetail: '[data-cy=process-number-budget-allocation-show-all-information]',
+    budgetAllocationCreditorDateDetail:
+        '[data-cy=budget-allocation-request-creditor-register-date-show-all-information]',
+    updateDataButton: '[data-cy=update-data-button]',
+
+    // Alerts
+    successAlert: '.v-snackbar',
 };

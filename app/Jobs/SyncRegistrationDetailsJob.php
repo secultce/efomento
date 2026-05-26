@@ -2,14 +2,14 @@
 
 namespace App\Jobs;
 
-use App\Enums\CategoryType;
-use App\Models\Agent;
-use App\Models\Category;
 use App\Models\Notice;
 use App\Models\Opening;
+use App\Services\AgentService;
+use App\Services\CategoryService;
 use App\Services\MapasClient;
 use App\Services\ProfileSnapshotService;
 use App\Services\ProjectService;
+use App\Support\Cpf;
 use DateTimeInterface;
 use Illuminate\Bus\Batchable;
 use Illuminate\Bus\Queueable;
@@ -60,7 +60,9 @@ class SyncRegistrationDetailsJob implements ShouldQueue
     public function handle(
         MapasClient $mapasClient,
         ProfileSnapshotService $snapshotService,
-        ProjectService $projectService
+        ProjectService $projectService,
+        CategoryService $categoryService,
+        AgentService $agentService
     ): void {
         if ($this->batch()?->cancelled()) {
             return;
@@ -84,13 +86,11 @@ class SyncRegistrationDetailsJob implements ShouldQueue
 
         $agentData = $mapasClient->agentById((int) $ownerId);
 
-        $cpf = preg_replace(
-            '/\D+/',
-            '',
-            (string) data_get($agentData, 'cpf', '')
+        $agentCpf = Cpf::normalize(
+            data_get($agentData, 'cpf')
         );
 
-        if (blank($cpf)) {
+        if (! $agentCpf) {
             Log::warning('sync.registration.agent_cpf_missing', [
                 'registration_id' => $this->registrationId,
                 'owner_id' => $ownerId,
@@ -111,17 +111,17 @@ class SyncRegistrationDetailsJob implements ShouldQueue
 
         DB::transaction(function () use (
             $details,
+            $agentCpf,
             $agentData,
-            $cpf,
             $noticeExternalId,
             $snapshotService,
-            $projectService
+            $projectService,
+            $categoryService,
+            $agentService
         ) {
-            $agent = Agent::updateOrCreate(
-                ['cpf' => $cpf],
-                [
-                    'name' => data_get($agentData, 'name') ?: 'Nome não informado',
-                ]
+            $agent = $agentService->updateOrCreateByCpf(
+                cpf: $agentCpf,
+                name: data_get($agentData, 'name'),
             );
 
             $notice = Notice::firstWhere('external_id', $noticeExternalId);
@@ -130,7 +130,11 @@ class SyncRegistrationDetailsJob implements ShouldQueue
                 throw new RuntimeException("Edital local não encontrado para external_id {$noticeExternalId} na inscrição {$this->registrationId}.");
             }
 
-            $categoryId = $this->resolveCategory($details);
+            $category = $categoryService->findOrCreateProject(
+                data_get($details, 'registration.category')
+            );
+
+            $categoryId = $category?->id;
 
             $project = $projectService->createFromRegistrationIfMissing(
                 registrationId: $this->registrationId,
@@ -170,20 +174,6 @@ class SyncRegistrationDetailsJob implements ShouldQueue
         Log::info('sync.registration.details.done', [
             'registration_id' => $this->registrationId,
         ]);
-    }
-
-    private function resolveCategory(array $details): ?int
-    {
-        $name = trim((string) data_get($details, 'registration.category', ''));
-
-        if ($name === '') {
-            return null;
-        }
-
-        return Category::firstOrCreate([
-            'name' => $name,
-            'type' => CategoryType::PROJETO->value,
-        ])->id;
     }
 
     public function backoff(): array
