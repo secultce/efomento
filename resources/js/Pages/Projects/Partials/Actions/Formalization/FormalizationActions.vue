@@ -1,7 +1,7 @@
 <script setup>
 import { ref } from 'vue';
 import NoticeHistoryDialog from '@/Pages/Projects/Partials/Actions/NoticeHistoryDialog.vue';
-import HandleTCDialog from './HandleTCDialog.vue';
+import HandleTCDialog from '@/Pages/Projects/Partials/Actions/Formalization/HandleTCDialog.vue';
 
 const props = defineProps({
     selectedProjects: { type: Array, default: () => [] },

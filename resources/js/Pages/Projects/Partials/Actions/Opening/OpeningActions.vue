@@ -2,7 +2,7 @@
 import { computed, ref } from 'vue';
 import SupervisorDialog from '@/Pages/Projects/Partials/Actions/Opening/SupervisorDialog.vue';
 import { useAuth } from '@/Composables/useAuth';
-import HandleCIDialog from './HandleCIDialog.vue';
+import HandleCIDialog from '@/Pages/Projects/Partials/Actions/Opening/HandleCIDialog.vue';
 import DocumentListDialog from '@/Pages/Projects/Partials/Actions/Opening/DocumentListDialog.vue';
 import { downloadDocumentsZip } from '@/Services/documentService';
 import NoticeHistoryDialog from '@/Pages/Projects/Partials/Actions/NoticeHistoryDialog.vue';
