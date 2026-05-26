@@ -1,140 +1,192 @@
 import { elements as el } from './elements';
 
 class Notice {
-    acessarPaginaDeEditais() {
-        cy.visit('/editais'); //
-        cy.request({
-            method: 'GET',
-            url: '/editais',
-            failOnStatusCode: false,
-        }).then((response) => {
-            expect(response.status).to.eq(200);
+    // Navigation and Page Access
+    visitPage() {
+        cy.visit('/editais');
+    }
+
+    verifyPageLoaded() {
+        cy.get(el.noticeListTable, { timeout: 10000 }).should('be.visible');
+    }
+
+    // Dashboard
+    verifyDashboardCardsAreVisible() {
+        cy.get(el.dashboardCard).should('have.length.at.least', 1);
+    }
+
+    verifyAllDashboardMetrics() {
+        const expectedMetrics = [
+            'Todos os editais disponíveis',
+            'Editais com processos em andamento',
+            'Processos Finalizados',
+        ];
+
+        expectedMetrics.forEach((metric) => {
+            cy.get(el.dashboardCard).contains(metric).should('be.visible');
         });
     }
 
-    showTableNoticeList() {
-        cy.get(el.tableNoticeList).should('be.visible');
+    // User Info
+    verifyLoggedUserDisplayedInHeader(username) {
+        cy.get(el.userAvatarButton).should('be.visible').and('contain', username);
     }
 
-    visualizarDashboard() {
-        cy.get('[data-cy=cardDashboard]').contains('Todos os editais disponíveis').should('be.visible');
-
-        cy.get('[data-cy=cardDashboard]').contains('Editais com processos em andamento').should('be.visible');
-
-        cy.get('[data-cy=cardDashboard]').contains('Processos Finalizados').should('be.visible');
+    verifyWelcomeMessageDisplaysUsername(username) {
+        cy.get(el.welcomeMessage).should('be.visible').and('contain', username);
     }
 
-    acessarFomularioDadosDeIdentificacao() {
-        cy.get(el.buttonIdentificationData).should('be.visible').first().click();
-    }
-    preencherDadosDeIdentificacaoDoEdital(
-        nup,
-        tipoDeInstrumento,
-        valorTotalEdital,
-        nomeGestorEdital,
-        emailGestorEdital,
-        numeroDeParcelas
-    ) {
-        cy.get(el.inputProcessNumber).type(nup);
-
-        cy.get(el.selectInstrumentTypeIdentificationData)
-            .should('be.visible')
-
-            .click();
-
-        cy.contains('.v-list-item', tipoDeInstrumento).click();
-
-        cy.get(el.inputTotalValueNotice).type(valorTotalEdital);
-
-        cy.get(el.inputNoticeManagerAccompaniment).type(nomeGestorEdital);
-
-        cy.get(el.inputManagerEmail).type(emailGestorEdital);
-
-        cy.get(el.inputQuotaNumber).type(numeroDeParcelas);
-
-        cy.get(el.buttonAddData).click();
-
-        cy.get(el.snackAlert).contains('Número do processo salvo com sucesso').should('be.visible');
+    // Form Navigation
+    openIdentificationDataForm() {
+        cy.get(el.identificationDataFormButton).should('be.visible').first().click();
     }
 
-    buscarEditalPorTítulo(tituloDoEdital) {
-        cy.get(el.inputFindEspecificNotice).should('be.visible').type(tituloDoEdital);
-        cy.get('.v-data-table__tr > .v-data-table-column--align-start').contains(tituloDoEdital).should('be.visible');
+    // Form Filling
+    fillIdentificationDataForm(formData) {
+        const { noticeNup, instrumentType, totalAmount, noticeManager, managerEmail, quotaNumber } = formData;
+
+        // Fill NUP field
+        cy.get(el.noticeNupInput).should('be.visible').type(noticeNup);
+
+        // Select instrument type
+        cy.get(el.instrumentTypeSelect).should('be.visible').click();
+
+        cy.contains('.v-list-item', instrumentType).should('be.visible').click();
+
+        // Fill amount
+        cy.get(el.totalAmountInput).should('be.visible').type(totalAmount);
+
+        // Fill manager name
+        cy.get(el.noticeManagerInput).should('be.visible').type(noticeManager);
+
+        // Fill email
+        cy.get(el.managerEmailInput).should('be.visible').type(managerEmail);
+
+        // Fill quota number
+        cy.get(el.quotaNumberInput).should('be.visible').type(quotaNumber);
+
+        // Submit form
+        cy.get(el.submitFormButton).should('be.visible').click();
     }
 
-    buscarEditalPorNumeroDoProcessoMae(numeroProcessoMae) {
-        cy.get(el.inputFindEspecificNotice).should('be.visible').type(numeroProcessoMae);
-        cy.get(el.motherProcessNumber).should('contain', numeroProcessoMae).should('be.visible');
+    verifySuccessMessage() {
+        // Verify success message
+        cy.get(el.successAlert, { timeout: 20000 })
+            .contains('Número do processo salvo com sucesso')
+            .should('be.visible');
     }
 
-    filtrarEditalPorStatusDoProcesso(statusDoProcesso) {
-        cy.get(el.selectFilterProcessStatus).should('be.visible').type(statusDoProcesso);
-        cy.get(el.badgeProcessStatus).should('contain', statusDoProcesso).and('be.visible');
+    /**
+     * Select an option from a dropdown implemented with v-list
+     * @param {string} selector - selector for the dropdown trigger
+     * @param {string|number} value - visible text of the option to choose
+     */
+    selectDropdownOption(selector, value) {
+        const valueStr = value.toString();
+        cy.get(selector).should('be.visible').click();
+
+        cy.contains('.v-list-item', valueStr).should('be.visible').click();
     }
 
-    filtrarEditalPorTipoDeInstrumento(tipoDeInstrumento) {
-        cy.get(el.selectFilterInstrumentType).should('be.visible').click();
+    // Search and Filtering
+    searchNoticeByTitle(title) {
+        cy.get(el.findSpecificNoticeInput).should('be.visible').type(title);
 
-        cy.contains('.v-list-item', tipoDeInstrumento).click();
-
-        cy.get(el.tbodyInstrumentTypeNoticesList);
+        cy.get(el.noticeListTable).within(() => {
+            cy.get(el.noticeTitleNoticesList).contains(title).should('be.visible');
+        });
     }
 
-    visualizarNomeDoUsuarioLogadoNoHeader(nomeDoUsuarioLogado) {
-        cy.get(el.buttonUserAvatar).should('be.visible').and('contain', nomeDoUsuarioLogado);
+    searchNoticeByNup(nup) {
+        cy.get(el.findSpecificNoticeInput).should('be.visible').type(nup);
+
+        cy.get(el.noticeListTable).within(() => {
+            cy.get(el.noticeNupNoticesList)
+                .invoke('text')
+                .then((text) => {
+                    const formattedNup = this.normalizeNup(text);
+                    const expectedNup = this.normalizeNup(nup);
+
+                    expect(formattedNup).to.equal(expectedNup);
+                });
+        });
     }
 
-    visualizarMensagemDeBoasVindasComNomeDoUsuario(nomeDoUsuarioLogado, numeroProcessoMae) {
-        cy.get(el.welcomeMessage).should('be.visible').and('contain', nomeDoUsuarioLogado);
+    filterByProcessStatus(status) {
+        this.selectDropdownOption(el.filterProcessStatusSelect, status);
+
+        // Verify the table shows items matching the selected status
+        cy.get(el.noticeListTable).should('be.visible').and('contain', status);
     }
 
-    visualizarInformaçõesDoProcesso(numeroProcessoMae) {
-        cy.get(el.buttonAccessIdentificationdata).should('be.visible').first().click();
+    filterByInstrumentType(instrumentType) {
+        this.selectDropdownOption(el.filterInstrumentTypeSelect, instrumentType);
 
-        cy.url().should('match', /\/editais\/\d+\/projetos$/);
-
-        cy.get(el.motherProcessNumberProcessInformation).contains(numeroProcessoMae).should('be.visible');
-
-        cy.get(el.btnShowAllInformation).should('be.visible').click();
-
-        cy.get(el.noticeNameProcessInformation).should('be.visible');
-
-        cy.get(el.motherProcessNumberProcessInformation).should('be.visible');
-
-        cy.get(el.intrumentTypeProccessInformation).should('be.visible');
-
-        cy.get(el.budgetAlocationDateProcessInformation).should('be.visible');
-
-        cy.get(el.totalAmountProcessInformation).should('be.visible');
-
-        cy.get(el.valueInFullProcessInformation).should('be.visible');
-
-        cy.get(el.managerEmailProcessInformation).should('be.visible');
-
-        cy.get(el.processNumberCreditorProcessInformation).should('be.visible');
-
-        cy.get(el.quotaNumberProcessInformation).should('be.visible');
-
-        cy.get(el.processNumberBudgetAlocationProcessInformation).should('be.visible');
-
-        cy.get(el.budgetAlocationCreditorRegister).should('be.visible');
+        // Verify the table lists the expected instrument type
+        cy.get(el.noticeListTable).should('be.visible').and('contain', instrumentType);
     }
 
-    alterarQuantidadeDeExibicaoListaDeEditais(quantidadePorPágina) {
-        cy.get(el.selectQuantityListNotices).should('be.visible').click();
+    // Detail View
+    goToNoticeDetailsPage(nup) {
+        const expectedNup = this.normalizeNup(nup);
 
-        cy.contains('.v-list-item', quantidadePorPágina).should('be.visible').click();
+        cy.get(el.noticeNupNoticesList).each(($element) => {
+            const currentNup = this.normalizeNup($element.text());
 
-        cy.get(`${el.tableNoticeList} tbody tr`).should('have.length', quantidadePorPágina);
+            if (currentNup === expectedNup) {
+                cy.wrap($element).closest('tr').find(el.accessNoticeInformationButton).click();
+            }
+        });
+
+        cy.url({ timeout: 10000 }).should('match', /\/editais\/\d+\/projetos$/);
     }
 
-    alterarPaginaDaListaDeEditais() {
-        cy.get(el.pageNumberNoticesList).contains('2').should('be.visible').click();
+    clickShowAllInformationButton() {
+        cy.get(el.showAllInformationButton).should('be.visible').click();
+    }
 
-        cy.get(el.pageNumberNoticesList)
-            .contains('2')
+    verifyDetailViewElements() {
+        const detailElements = [
+            el.noticeTitleDetail,
+            el.noticeNupDetail,
+            el.instrumentTypeDetail,
+            el.noticeManagerDetail,
+            el.budgetAllocationRequestDateDetail,
+            el.totalAmountDetail,
+            el.valueInFullDetail,
+            el.managerEmailDetail,
+            el.processNumberCreditorDetail,
+            el.quotaNumberDetail,
+            el.processNumberBudgetAllocationDetail,
+            el.budgetAllocationCreditorDateDetail,
+        ];
+
+        detailElements.forEach((element) => {
+            cy.get(element, { timeout: 5000 }).should('be.visible');
+        });
+    }
+
+    // Pagination
+    changeItemsPerPage(quantity) {
+        const quantityStr = quantity.toString();
+        this.selectDropdownOption(el.quantityPerPageSelect, quantityStr);
+
+        cy.get(`${el.noticeListTable} tbody tr`, { timeout: 5000 }).should('have.length', quantity);
+    }
+
+    goToPage(pageNumber) {
+        const pageStr = pageNumber.toString();
+
+        cy.get(el.paginationNumber).contains(pageStr).should('be.visible').click();
+
+        cy.get(el.paginationNumber)
+            .contains(pageStr)
             .parent()
             .should('have.css', 'background-color', 'rgb(255, 193, 7)');
+    }
+
+    normalizeNup(value) {
+        return value.replace(/\D/g, '');
     }
 }
 

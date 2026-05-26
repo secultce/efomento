@@ -40,7 +40,7 @@ const saveAll = () => {
 <template>
     <div class="grid grid-cols-[1fr_1fr_1fr_auto] items-start lg:mx-[8em] lg:w-10/12 gap-x-4 gap-y-2">
         <div class="col-span-3 col-start-1">
-            <h1 data-cy="nomeDoEditalInformacoesDoProcesso">
+            <h1 data-cy="notice-title-show-all-information">
                 {{ notice.name }}
             </h1>
         </div>
@@ -51,14 +51,14 @@ const saveAll = () => {
                 rounded="lg"
                 :disabled="!form.isDirty"
                 :loading="form.processing"
-                data-cy="botaoAtualizarDados"
+                data-cy="update-data-button"
                 @click="saveAll"
             >
                 Atualizar Dados
             </v-btn>
         </div>
         <div class="col-start-1 row-start-2 flex flex-col justify-start">
-            <p data-cy="numeroDeProcessoInformacoesDoProcesso">
+            <p data-cy="notice-nup-show-all-information">
                 <span class="font-bold">Nº do processo mãe: </span>{{ notice.nup }}
             </p>
             <div v-show="showAll" class="mt-2 space-y-1 transition-all duration-200 ease-in-out">
@@ -68,18 +68,18 @@ const saveAll = () => {
                     type="select"
                     :items="instrumentTypes"
                     :error="form.errors.instrument_type"
-                    data-cy="tipoDeInstrumentoInformacoesDoProcesso"
+                    data-cy="instrument-type-show-all-information"
                 />
                 <EditableField
                     v-model="form.process_manager"
                     label="Gestor do processo do sistema:"
-                    data-cy="nomeDoGestorInformacoesDoProcesso"
+                    data-cy="notice-manager-show-all-information"
                 />
                 <EditableField
                     v-model="form.budget_allocation_request_date"
                     label="Data da Solicitação da Dotação Orçamentária:"
                     type="date"
-                    data-cy="dataSolicitacaoDotOrcamentariaInformacoesDoProcesso"
+                    data-cy="budget-allocation-request-date-show-all-information"
                 />
             </div>
         </div>
@@ -96,11 +96,11 @@ const saveAll = () => {
                         }).format(value)
                 "
                 :error="form.errors.total_notice_amount"
-                data-cy="valorTotalDoProcessoInformacoesDoProcesso"
+                data-cy="total-amount-show-all-information"
             />
 
             <div v-show="showAll" class="mt-2 space-y-1 transition-all duration-200 ease-in-out">
-                <p data-cy="valorPorExtensoInformacoesDoProcesso">
+                <p data-cy="value-in-full-show-all-information">
                     <span class="font-bold">Valor por extenso: </span
                     >{{ extenso(Number(form.total_notice_amount), { mode: 'currency' }) }}
                 </p>
@@ -108,40 +108,42 @@ const saveAll = () => {
                     v-model="form.process_manager_email"
                     label="Email do gestor:"
                     type="email"
-                    data-cy="emailGestorInformacoesDoProcesso"
+                    data-cy="manager-email-show-all-information"
                 />
                 <EditableField
                     v-model="form.creditor_registration_nup"
                     label="N° Processo Cadastro do Credor:"
-                    data-cy="numeroProcessoCredorInformacoesDoProcesso"
+                    data-cy="process-number-creditor-register-show-all-information"
                 />
             </div>
         </div>
         <div class="col-start-3 row-start-2">
-            <p class="text-[#ffcc05FF] cursor-pointer" @click="showAll = !showAll">
+            <p
+                class="text-[#ffcc05FF] cursor-pointer"
+                data-cy="show-all-information-button"
+                @click="showAll = !showAll"
+            >
                 Mostrar todas as informações
-                <v-icon size="18" :class="{ 'rotate-180': showAll }" data-cy="botaoMostrarTodasAsInformacoes"
-                    >mdi-chevron-down</v-icon
-                >
+                <v-icon size="18" :class="{ 'rotate-180': showAll }"> >mdi-chevron-down</v-icon>
             </p>
             <div v-show="showAll" class="mt-2 space-y-1 transition-all duration-200 ease-in-out">
                 <EditableField
                     v-model="form.installments"
                     label="N° Parcelas:"
                     type="number"
-                    data-cy="numeroParcelasInformacoesDoProcesso"
+                    data-cy="quota-number-show-all-information"
                 />
                 <EditableField
                     v-model="form.budget_allocation_nup"
                     label="N° Processo Dotação Orçamentária:"
                     mask="#####.######/####-##"
-                    data-cy="numeroProcessoDotacaoInformacoesDoProcesso"
+                    data-cy="process-number-budget-allocation-show-all-information"
                 />
                 <EditableField
                     v-model="form.creditor_registration_request_date"
                     label="Data da Solicitação do Cadastro do Credor:"
                     type="date"
-                    data-cy="dataSolicitacaoCadastroCredorInformacoesDoProcesso"
+                    data-cy="budget-allocation-request-creditor-register-date-show-all-information"
                 />
             </div>
         </div>

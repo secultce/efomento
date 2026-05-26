@@ -1,81 +1,147 @@
 import Login from '../../../pages/auth';
 import Notice from '../../../pages/notice';
 
-describe('Página de Editais', () => {
-    let user;
-    let notice;
+describe('Notice Page - E2E Tests', () => {
     beforeEach(() => {
         cy.fixture('users').as('user');
         cy.fixture('notices').as('notice');
 
         cy.get('@user').then((user) => {
-            Login.acessarPaginaDeLogin();
-            Login.loginComSucesso(user.valid_email, user.password, user.name);
+            Login.accessLoginPage();
+            Login.successLogin(user.valid_email, user.password, user.name);
         });
 
-        cy.get('@notice').then((notice) => {
-            Notice.acessarPaginaDeEditais();
+        Notice.visitPage();
+        Notice.verifyPageLoaded();
+    });
+
+    describe('Page Access and Navigation', () => {
+        it('should access the notice list page', function () {
+            cy.url().should('include', '/editais');
+        });
+
+        it('should display the notice list table', function () {
+            cy.get('[data-cy=table-notice-list]').should('be.visible');
         });
     });
 
-    it('Garante que é possível acessar a página de editais', function () {
-        cy.get('[data-cy=tabelaListaDeEditais]').should('be.visible');
+    describe('Dashboard Visibility', () => {
+        it('should display all dashboard cards', function () {
+            Notice.verifyDashboardCardsAreVisible();
+        });
+
+        it('should display all dashboard metric cards', function () {
+            Notice.verifyAllDashboardMetrics();
+        });
     });
 
-    it('Garante que é possível visualizar o nome do usuário no Header da página', function () {
-        Notice.visualizarNomeDoUsuarioLogadoNoHeader(this.user.name);
+    describe('User Information Display', () => {
+        it('should display logged user name in header avatar', function () {
+            Notice.verifyLoggedUserDisplayedInHeader(this.user.name);
+        });
+
+        it('should display welcome message with user name', function () {
+            Notice.verifyWelcomeMessageDisplaysUsername(this.user.name);
+        });
     });
 
-    it('Garante que é possível visualizar o dashboard de editais', function () {
-        Notice.visualizarDashboard();
+    describe('Identification Data Form', () => {
+        it('should open the identification data form', function () {
+            Notice.openIdentificationDataForm();
+            cy.get('[data-cy=notice-nup-identification-data-form]').should('be.visible');
+        });
+
+        it('should fill and submit the identification data form', function () {
+            Notice.openIdentificationDataForm();
+
+            const formData = {
+                noticeNup: this.notice.nup,
+                instrumentType: this.notice.processInstrumentType,
+                totalAmount: this.notice.noticeTotalValue,
+                noticeManager: this.notice.noticeAccompanimentManager,
+                managerEmail: this.notice.noticeManagerEmail,
+                quotaNumber: this.notice.quotaNumber,
+            };
+
+            Notice.fillIdentificationDataForm(formData);
+            Notice.verifySuccessMessage();
+        });
     });
 
-    it('Garante que é possível visualizar a mensagem de boas vindas contendo o nomde do usuário logado', function () {
-        Notice.visualizarMensagemDeBoasVindasComNomeDoUsuario(this.user.name);
+    describe('Search Functionality', () => {
+        it('should find a notice by title', function () {
+            Notice.searchNoticeByTitle(this.notice.title);
+        });
+
+        it('should find a notice by NUP number', function () {
+            Notice.searchNoticeByNup(this.notice.nup);
+        });
+
+        it('should clear search and display all notices', function () {
+            Notice.searchNoticeByNup(this.notice.nup);
+            cy.get('[data-cy=find-specific-notice] input').clear();
+            cy.get('[data-cy=table-notice-list] tbody tr').should('have.length.greaterThan', 1);
+        });
     });
 
-    it('Garante que é possível acessar o formulário dados de identificação e processos', function () {
-        Notice.acessarFomularioDadosDeIdentificacao();
+    describe('Filtering', () => {
+        it('should filter notices by process status', function () {
+            Notice.filterByProcessStatus(this.notice.processsStatus);
+        });
+
+        it('should filter notices by instrument type', function () {
+            Notice.filterByInstrumentType(this.notice.processInstrumentType);
+        });
     });
 
-    it('Garante que é possível preencher o formulário dados de identificação e processos', function () {
-        Notice.acessarFomularioDadosDeIdentificacao();
-        Notice.preencherDadosDeIdentificacaoDoEdital(
-            this.notice.nup,
-            this.notice.processInstrumentType,
-            this.notice.noticeTotalValue,
-            this.notice.noticeAccompanimentManager,
-            this.notice.noticeManagerEmail,
-            this.notice.quotaNumber
-        );
+    describe('Notice Details View', () => {
+        it('should open notice details page', function () {
+            Notice.searchNoticeByNup(this.notice.nup);
+            Notice.goToNoticeDetailsPage(this.notice.nup);
+            cy.url().should('match', /\/editais\/\d+\/projetos$/);
+        });
+
+        it('should display all information in detail view', function () {
+            Notice.searchNoticeByNup(this.notice.nup);
+            Notice.goToNoticeDetailsPage(this.notice.nup);
+            Notice.clickShowAllInformationButton();
+            Notice.verifyDetailViewElements();
+        });
+
+        it('should display correct NUP in detail view', function () {
+            Notice.searchNoticeByNup(this.notice.nup);
+            Notice.goToNoticeDetailsPage(this.notice.nup);
+            cy.get('[data-cy=notice-nup-show-all-information]').should('be.visible').and('contain', this.notice.nup);
+        });
     });
 
-    it('Garante que é possível buscar editais pelo Título', function () {
-        Notice.buscarEditalPorTítulo(this.notice.title);
+    describe('Pagination', () => {
+        it('should change the number of items displayed per page', function () {
+            const itemsPerPage = this.notice.quantityPerPage;
+            Notice.changeItemsPerPage(itemsPerPage);
+        });
+
+        it('should navigate to next page and highlight current page number', function () {
+            Notice.goToPage(2);
+            cy.get('[data-cy=pagination-number-notice-list]')
+                .contains('2')
+                .parent()
+                .should('have.css', 'background-color', 'rgb(255, 193, 7)');
+        });
     });
 
-    it('Garante que é possível buscar editais pelo número do processo mãe', function () {
-        Notice.buscarEditalPorNumeroDoProcessoMae(this.notice.nup);
-    });
+    describe('Form Error Handling', () => {
+        it('should display error when submitting form with invalid data', function () {
+            Notice.openIdentificationDataForm();
 
-    it('Garante que é possível filtrar editais Status do processo', function () {
-        Notice.filtrarEditalPorStatusDoProcesso(this.notice.processsStatus);
-    });
+            // Try to submit with empty required fields
+            cy.get('[data-cy=add-data-identification-data-form-button]').click();
 
-    it('Garante que é possível filtrar editais pelo Tipo de Instrumento', function () {
-        Notice.filtrarEditalPorTipoDeInstrumento(this.notice.processInstrumentType);
-    });
-
-    it('Garante que é possível acessar as informações do processo', function () {
-        Notice.buscarEditalPorNumeroDoProcessoMae(this.notice.nup);
-        Notice.visualizarInformaçõesDoProcesso(this.notice.nup);
-    });
-
-    it('Garante que é possível alterar a quantidade de itens exibidos na lista de editais', function () {
-        Notice.alterarQuantidadeDeExibicaoListaDeEditais(this.notice.quantityPerPage);
-    });
-
-    it('Garante que é possível mudar a página na listagem de editais', function () {
-        Notice.alterarPaginaDaListaDeEditais();
+            // Expect validation error
+            cy.get('[data-cy=notice-nup-identification-data-form]')
+                .closest('.v-input')
+                .contains('Campo obrigatório')
+                .should('be.visible');
+        });
     });
 });
