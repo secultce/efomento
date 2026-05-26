@@ -1,14 +1,11 @@
 <script setup>
 import { computed, ref } from 'vue';
-import axios from 'axios';
 import SupervisorDialog from '@/Pages/Projects/Partials/Actions/Opening/SupervisorDialog.vue';
 import { useAuth } from '@/Composables/useAuth';
 import HandleCIDialog from './HandleCIDialog.vue';
-import Modal from '@/Components/Modal.vue';
 import DocumentListDialog from '@/Pages/Projects/Partials/Actions/Opening/DocumentListDialog.vue';
-import NoticeHistory from '@/Pages/Projects/Partials/Actions/Opening/NoticeHistory.vue';
-import { formatAudits } from '@/Composables/useAuditFormatter';
 import { downloadDocumentsZip } from '@/Services/documentService';
+import NoticeHistoryDialog from '@/Pages/Projects/Partials/Actions/NoticeHistoryDialog.vue';
 
 const { canPerform, hasRole } = useAuth();
 
@@ -93,29 +90,11 @@ async function downloadZip() {
     }
 }
 
-const audits = ref([]);
-const loadingAudits = ref(false);
 const viewHistory = ref(false);
 
-const openNoticeHistory = async () => {
-    loadingAudits.value = true;
-
-    try {
-        const { data } = await axios.get(`/editais/${props.notice.id}/audits`);
-        audits.value = formatAudits(data.data);
-        viewHistory.value = true;
-    } catch (e) {
-        console.error(e);
-        errorMessage.value = 'Erro ao carregar o histórico. Tente novamente.';
-        showError.value = true;
-    } finally {
-        loadingAudits.value = false;
-    }
-};
-
-const closeModal = () => {
-    viewHistory.value = false;
-};
+function openNoticeHistory() {
+    viewHistory.value = true;
+}
 </script>
 <template>
     <v-snackbar v-model="showError" color="error" timeout="4000" location="top">
@@ -218,35 +197,14 @@ const closeModal = () => {
             </div>
             <div class="w-full flex flex-col gap-1">
                 <v-divider class="my-4"></v-divider>
-                <p class="">Conferir histórico de alterações nos processos</p>
+
+                <p>Conferir histórico de alterações nos processos</p>
+
                 <v-btn variant="outlined" color="outlineSecondary" class="rounded-lg w-full" @click="openNoticeHistory">
                     Conferir Histórico
                 </v-btn>
 
-                <Modal :show="viewHistory" @close="closeModal">
-                    <div class="p-6 max-h-[80vh] overflow-y-auto">
-                        <h3 class="text-lg font-bold mb-4">Histórico de alterações</h3>
-
-                        <div v-if="loadingAudits" class="flex justify-center">
-                            <v-progress-circular indeterminate />
-                        </div>
-
-                        <div v-else-if="audits.length === 0">
-                            <p>Nenhuma alteração encontrada.</p>
-                        </div>
-
-                        <NoticeHistory v-else :audits="audits" />
-
-                        <div class="mt-6 flex justify-end">
-                            <v-btn
-                                class="!shadow-none !bg-[#ffcc05FF] !font-bold !text-xs rounded-lg"
-                                @click="closeModal"
-                            >
-                                Fechar
-                            </v-btn>
-                        </div>
-                    </div>
-                </Modal>
+                <NoticeHistoryDialog v-model="viewHistory" :notice-id="notice.id" />
             </div>
         </v-card-text>
     </v-card>

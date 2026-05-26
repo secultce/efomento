@@ -4,7 +4,7 @@ namespace App\Enums;
 
 enum DocumentType: string
 {
-    case TERM = 'term';
+    case TC = 'tc';
     case EXTRACT = 'extract';
     case JURIDICAL_OPINION = 'juridical_opinion';
     case DISPATCH = 'dispatch';
@@ -13,7 +13,7 @@ enum DocumentType: string
     public function label(): string
     {
         return match ($this) {
-            self::TERM => 'TC',
+            self::TC => 'TC',
             self::EXTRACT => 'EX',
             self::JURIDICAL_OPINION => 'PJ',
             self::DISPATCH => 'PO',
@@ -24,7 +24,7 @@ enum DocumentType: string
     public function fullLabel(): string
     {
         return match ($this) {
-            self::TERM => 'Termo de Execução Cultural',
+            self::TC => 'Termo de Execução Cultural',
             self::EXTRACT => 'Extrato',
             self::JURIDICAL_OPINION => 'Parecer Jurídico',
             self::DISPATCH => 'Despacho',
