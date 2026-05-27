@@ -9,7 +9,7 @@ use App\Services\CategoryService;
 use App\Services\MapasClient;
 use App\Services\ProfileSnapshotService;
 use App\Services\ProjectService;
-use App\Support\Cpf;
+use App\Support\DocumentNumber;
 use DateTimeInterface;
 use Illuminate\Bus\Batchable;
 use Illuminate\Bus\Queueable;
@@ -86,7 +86,7 @@ class SyncRegistrationDetailsJob implements ShouldQueue
 
         $agentData = $mapasClient->agentById((int) $ownerId);
 
-        $agentCpf = Cpf::normalize(
+        $agentCpf = DocumentNumber::normalize(
             data_get($agentData, 'cpf')
         );
 
@@ -119,7 +119,7 @@ class SyncRegistrationDetailsJob implements ShouldQueue
             $categoryService,
             $agentService
         ) {
-            $agent = $agentService->updateOrCreateByCpf(
+            $agent = $agentService->updateOrCreatedByDocument(
                 cpf: $agentCpf,
                 name: data_get($agentData, 'name'),
             );
