@@ -3,15 +3,15 @@
 namespace App\Services;
 
 use App\Models\Agent;
-use App\Support\Cpf;
+use App\Support\DocumentNumber;
 
 class AgentService
 {
-    public function updateOrCreateByCpf(
+    public function updateOrCreatedByDocument(
         ?string $cpf,
         ?string $name = null,
     ): ?Agent {
-        $cpf = Cpf::normalize($cpf);
+        $cpf = DocumentNumber::normalize($cpf);
 
         if (! $cpf) {
             return null;
