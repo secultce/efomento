@@ -9,7 +9,6 @@ use App\Http\Controllers\OpeningController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ProjectController;
 use App\Http\Controllers\ProjectStageController;
-use App\Http\Controllers\SpreadsheetSyncController;
 use App\Models\User;
 use Illuminate\Support\Facades\Route;
 
@@ -93,12 +92,6 @@ Route::middleware(['auth', 'verified'])->group(function () {
         ->scopeBindings()
         ->name('legal-analysis.update-status');
 
-    Route::prefix('sync')->name('sync.')->group(function () {
-        Route::post('/formalizacao', [SpreadsheetSyncController::class, 'syncFormalizacao'])
-            ->name('formalizacao');
-        Route::post('/orcamento', [SpreadsheetSyncController::class, 'syncOrcamento'])
-            ->name('orcamento');
-    });
 });
 
 Route::middleware('auth')->group(function () {

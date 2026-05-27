@@ -273,7 +273,7 @@ class GoogleSheetsService
     private function extractColumns(array $table): array
     {
         return array_map(
-            static fn (array $col): string => (string) ($col['label'] !== '' ? $col['label'] : $col['id']),
+            static fn (array $col): string => (string) (($col['label'] ?? '') !== '' ? $col['label'] : ($col['id'] ?? '')),
             $table['cols'] ?? [],
         );
     }
