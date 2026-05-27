@@ -75,25 +75,22 @@ class OpeningUpdateService
 
     protected function syncSupervisors(Project $project, array $supervisors): void
     {
-        $supervisorIds = collect($supervisors)
-            ->pluck('id')
-            ->filter()
-            ->values();
+        $typed = collect($supervisors)
+            ->filter(fn ($s) => ! empty($s['id']))
+            ->map(fn ($s) => ['id' => $s['id'], 'type' => $s['type'] ?? null])
+            ->values()
+            ->toArray();
 
-        $project->opening->assignSupervisors(
-            $supervisorIds->toArray()
-        );
+        $project->opening->assignSupervisors($typed);
+
+        $supervisorIds = collect($typed)->pluck('id');
 
         $users = User::whereIn('id', $supervisorIds)
             ->get()
             ->keyBy('id');
 
         foreach ($supervisors as $supervisor) {
-
-            if (
-                ! isset($supervisor['id']) ||
-                ! isset($supervisor['registration_number'])
-            ) {
+            if (! isset($supervisor['id'], $supervisor['registration_number'])) {
                 continue;
             }
 

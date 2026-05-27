@@ -46,7 +46,7 @@ const props = defineProps({
     },
 });
 
-const stage = props.project.stages.find((s) => s.slug === 'abertura');
+const stage = props.project.stages?.find((s) => s.slug === 'abertura');
 
 const canUserHandleOpening = computed(() => {
     return hasRole('super_admin') || hasRole('fomentation') || hasRole('coord_fomentation');
@@ -65,8 +65,8 @@ const form = useForm({
         branch: null,
         account: null,
         supervisors: [
-            { id: null, registration_number: '' },
-            { id: null, registration_number: '' },
+            { id: null, registration_number: '', type: 'principal' },
+            { id: null, registration_number: '', type: 'alternate' },
         ],
     },
 
@@ -95,16 +95,22 @@ onMounted(() => {
         account_type: opening.account_type ?? null,
         branch: opening.branch ?? null,
         account: opening.account ?? null,
-        supervisors: [
-            {
-                id: opening?.supervisors[0]?.user_id ?? null,
-                registration_number: opening.supervisors?.[0]?.user.registration_number ?? '',
-            },
-            {
-                id: opening?.supervisors[1]?.user_id ?? null,
-                registration_number: opening.supervisors?.[1]?.user.registration_number ?? '',
-            },
-        ],
+        supervisors: (() => {
+            const principal = opening.supervisors?.find((s) => s.type === 'principal');
+            const alternate = opening.supervisors?.find((s) => s.type === 'alternate');
+            return [
+                {
+                    id: principal?.user_id ?? null,
+                    registration_number: principal?.user?.registration_number ?? '',
+                    type: 'principal',
+                },
+                {
+                    id: alternate?.user_id ?? null,
+                    registration_number: alternate?.user?.registration_number ?? '',
+                    type: 'alternate',
+                },
+            ];
+        })(),
     };
 
     form.formalization = {
@@ -125,6 +131,18 @@ const syncSupervisor = (index) => {
 
     form.opening.supervisors[index].registration_number = user?.registration_number ?? '';
 };
+
+const availablePrincipal = computed(() => {
+    const excludeId = form.opening.supervisors?.[1]?.id;
+    if (!excludeId) return props.availableSupervisors;
+    return props.availableSupervisors.filter((s) => s.id !== excludeId);
+});
+
+const availableAlternate = computed(() => {
+    const excludeId = form.opening.supervisors?.[0]?.id;
+    if (!excludeId) return props.availableSupervisors;
+    return props.availableSupervisors.filter((s) => s.id !== excludeId);
+});
 
 const submit = () => {
     form.patch(
@@ -153,7 +171,7 @@ const tramit = () => {
     router.patch(
         route('projects.stages.advance', {
             project: props.project.id,
-            stage: stage.id,
+            stage: stage?.id,
         }),
         {},
         {
@@ -189,7 +207,7 @@ const permissionMessage = computed(() => {
         return 'Usuário não tem permissão para fazer alterações na Abertura';
     }
 
-    if (stage.status === 'bloqueado') {
+    if (stage?.status === 'bloqueado') {
         return 'Este projeto está bloqueado e não pode receber alterações no momento.';
     }
 
@@ -244,7 +262,7 @@ const activeEditIndex = ref('all');
                 <div
                     v-permission="{
                         condition:
-                            !canUserHandleOpening || (stage.status !== 'aprovado' && stage.status !== 'bloqueado'),
+                            !canUserHandleOpening || (stage?.status !== 'aprovado' && stage?.status !== 'bloqueado'),
                         message: permissionMessage,
                     }"
                     class="mt-4"
@@ -324,7 +342,7 @@ const activeEditIndex = ref('all');
                                         <user-autocomplete-field
                                             v-model="form.opening.supervisors[0].id"
                                             variant="outlined"
-                                            :items="availableSupervisors"
+                                            :items="availablePrincipal"
                                             @update:model-value="() => syncSupervisor(0)"
                                         />
                                     </form-field>
@@ -340,12 +358,12 @@ const activeEditIndex = ref('all');
                                         <user-autocomplete-field
                                             v-model="form.opening.supervisors[1].id"
                                             variant="outlined"
-                                            :items="availableSupervisors"
+                                            :items="availableAlternate"
                                             @update:model-value="() => syncSupervisor(1)"
                                         />
                                     </form-field>
 
-                                    <form-field label="Matrícula titular">
+                                    <form-field label="Matrícula suplente">
                                         <text-field
                                             v-model="form.opening.supervisors[1].registration_number"
                                             :disabled="!form.opening.supervisors[1].id"

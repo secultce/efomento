@@ -88,7 +88,8 @@ class ProjectController extends Controller
             'category',
             'opening',
             'opening.supervisors' => function ($q) {
-                $q->whereNull('removed_at');
+                $q->whereNull('removed_at')
+                    ->orderByRaw("CASE type WHEN 'principal' THEN 0 WHEN 'alternate' THEN 1 ELSE 2 END");
             },
             'opening.supervisors.user',
             'documents',
