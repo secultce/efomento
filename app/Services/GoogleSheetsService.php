@@ -6,6 +6,7 @@ use App\Models\Budget;
 use App\Models\Formalization;
 use App\Models\Project;
 use Illuminate\Http\Client\RequestException;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Http;
 use RuntimeException;
 
@@ -78,13 +79,15 @@ class GoogleSheetsService
 
         ['rows' => $rows] = $this->fetchSheet($spreadsheetId, $sheetName);
 
+        $projects = $this->preloadProjectsByNumber($rows, $projectLookupColumn);
+
         $count = 0;
         foreach ($rows as $row) {
             if ($row['STATUS'] === 'Desclassificado' || $row['STATUS'] === 'Desistente') {
                 continue;
             }
 
-            $project = $this->resolveProjectByNumber($row[$projectLookupColumn] ?? null);
+            $project = $projects->get($row[$projectLookupColumn] ?? null);
 
             if (! $project) {
                 continue;
@@ -114,9 +117,11 @@ class GoogleSheetsService
 
         ['rows' => $rows] = $this->fetchSheet($spreadsheetId, $sheetName);
 
+        $projects = $this->preloadProjectsByNumber($rows, $projectLookupColumn);
+
         $count = 0;
         foreach ($rows as $row) {
-            $project = $this->resolveProjectByNumber($row[$projectLookupColumn] ?? null);
+            $project = $projects->get($row[$projectLookupColumn] ?? null);
 
             if (! $project) {
                 continue;
@@ -134,13 +139,20 @@ class GoogleSheetsService
         return $count;
     }
 
-    private function resolveProjectByNumber(mixed $number): ?Project
+    /**
+     * @param  array<int, array<string, mixed>>  $rows
+     * @return Collection<string, Project>
+     */
+    private function preloadProjectsByNumber(array $rows, string $column): Collection
     {
-        if (! $number) {
-            return null;
-        }
+        $numbers = collect($rows)
+            ->pluck($column)
+            ->filter()
+            ->unique()
+            ->values()
+            ->all();
 
-        return Project::where('number', $number)->first();
+        return Project::whereIn('number', $numbers)->get()->keyBy('number');
     }
 
     /**
