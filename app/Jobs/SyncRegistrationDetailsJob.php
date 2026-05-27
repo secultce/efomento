@@ -112,6 +112,7 @@ class SyncRegistrationDetailsJob implements ShouldQueue
         DB::transaction(function () use (
             $details,
             $agentData,
+            $agentDocument,
             $noticeExternalId,
             $snapshotService,
             $projectService,

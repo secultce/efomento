@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Enums\ProfileSnapshotSource;
 use App\Models\Agent;
 use App\Models\ProfileSnapshot;
 use App\Support\DocumentNumber;
@@ -34,8 +35,16 @@ class AgentService
             }
         }
 
-        return Agent::create([
+        $agent = Agent::create([
             'name' => trim((string) $name) ?: 'Nome não informado',
         ]);
+
+        $agent->profileSnapshots()->create([
+            'cpf_cnpj' => $document,
+            'source' => ProfileSnapshotSource::AGENT_UPDATE,
+            'recorded_at' => now(),
+        ]);
+
+        return $agent;
     }
 }
