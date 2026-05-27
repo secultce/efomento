@@ -83,7 +83,7 @@ class GoogleSheetsService
 
         $count = 0;
         foreach ($rows as $row) {
-            if ($row['STATUS'] === 'Desclassificado' || $row['STATUS'] === 'Desistente') {
+            if (($row['STATUS'] ?? null) === 'Desclassificado' || ($row['STATUS'] ?? null) === 'Desistente') {
                 continue;
             }
 
