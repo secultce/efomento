@@ -86,11 +86,11 @@ class SyncRegistrationDetailsJob implements ShouldQueue
 
         $agentData = $mapasClient->agentById((int) $ownerId);
 
-        $agentCpf = DocumentNumber::normalize(
+        $agentDocument = DocumentNumber::normalize(
             data_get($agentData, 'cpf')
         );
 
-        if (! $agentCpf) {
+        if (! $agentDocument) {
             Log::warning('sync.registration.agent_cpf_missing', [
                 'registration_id' => $this->registrationId,
                 'owner_id' => $ownerId,
@@ -111,7 +111,6 @@ class SyncRegistrationDetailsJob implements ShouldQueue
 
         DB::transaction(function () use (
             $details,
-            $agentCpf,
             $agentData,
             $noticeExternalId,
             $snapshotService,
@@ -120,7 +119,7 @@ class SyncRegistrationDetailsJob implements ShouldQueue
             $agentService
         ) {
             $agent = $agentService->updateOrCreatedByDocument(
-                cpf: $agentCpf,
+                document: $agentDocument,
                 name: data_get($agentData, 'name'),
             );
 

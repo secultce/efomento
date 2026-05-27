@@ -12,6 +12,8 @@ return new class extends Migration
             $table->id();
             $table->morphs('object');
 
+            $table->string('cpf_cnpj')->nullable()->index();
+
             $table->string('gender')->nullable();
             $table->string('sexual_orientation')->nullable();
             $table->string('race')->nullable();

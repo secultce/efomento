@@ -3,25 +3,39 @@
 namespace App\Services;
 
 use App\Models\Agent;
+use App\Models\ProfileSnapshot;
 use App\Support\DocumentNumber;
 
 class AgentService
 {
     public function updateOrCreatedByDocument(
-        ?string $cpf,
+        ?string $document,
         ?string $name = null,
     ): ?Agent {
-        $cpf = DocumentNumber::normalize($cpf);
+        $document = DocumentNumber::normalize($document);
 
-        if (! $cpf) {
+        if (! $document) {
             return null;
         }
 
-        return Agent::updateOrCreate(
-            ['cpf' => $cpf],
-            [
-                'name' => trim((string) $name) ?: 'Nome não informado',
-            ]
-        );
+        $agentId = ProfileSnapshot::query()
+            ->where('cpf_cnpj', $document)
+            ->where('object_type', (new Agent)->getMorphClass())
+            ->orderByDesc('recorded_at')
+            ->value('object_id');
+
+        if ($agentId) {
+            $agent = Agent::find($agentId);
+
+            if ($agent) {
+                $agent->update(['name' => trim((string) $name) ?: 'Nome não informado']);
+
+                return $agent;
+            }
+        }
+
+        return Agent::create([
+            'name' => trim((string) $name) ?: 'Nome não informado',
+        ]);
     }
 }

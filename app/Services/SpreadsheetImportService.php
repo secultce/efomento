@@ -10,6 +10,7 @@ use App\Jobs\LoadSpreadsheetProjectFilesJob;
 use App\Models\Notice;
 use App\Models\Opening;
 use App\Models\Project;
+use App\Support\DocumentNumber;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -41,7 +42,7 @@ class SpreadsheetImportService
             }
 
             $agent = $this->agentService->updateOrCreatedByDocument(
-                cpf: $row['CPF / CNPJ DO PROPONENTE'] ?? null,
+                document: $row['CPF / CNPJ DO PROPONENTE'] ?? null,
                 name: $row['NOME COMPLETO / RAZÃO SOCIAL DO PROPONENTE'] ?? null,
             );
 
@@ -115,6 +116,7 @@ class SpreadsheetImportService
     private function buildSnapshotData(array $row): array
     {
         return [
+            'cpf_cnpj' => DocumentNumber::normalize($row['CPF / CNPJ DO PROPONENTE'] ?? null) ?: null,
             'gender' => trim((string) ($row['GÊNERO DA PESSOA FÍSICA'] ?? '')) ?: null,
             'has_disability' => $this->mapDisability(trim((string) ($row['POSSUI DEFICIENCIA (PESSOA FÍSICA)'] ?? ''))),
             'email' => trim((string) ($row['E-MAIL PRINCIPAL DO PROPONENTE'] ?? '')) ?: null,

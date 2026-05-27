@@ -12,7 +12,6 @@ return new class extends Migration
             $table->id();
 
             $table->string('name');
-            $table->string('cpf')->unique();
 
             $table->string('director_position')->nullable();
             $table->string('director_email')->nullable();
