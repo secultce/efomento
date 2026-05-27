@@ -136,7 +136,7 @@ function runAction(action, item) {
                     <div class="text-caption text-[#3b3b3cFF]">
                         {{ m.label }}
                     </div>
-                    <div class="font-weight-bold text-[#3b3b3cFF]">
+                    <div class="font-weight-bold text-[#3b3b3cFF]" data-cy="processNumberProjectList">
                         {{ m.value(item) }}
                     </div>
                 </div>

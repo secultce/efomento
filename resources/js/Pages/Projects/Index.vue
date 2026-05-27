@@ -5,7 +5,7 @@ import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
 import ProjectList from '@/Pages/Projects/Partials/ProjectList.vue';
 import PhaseFilter from '@/Pages/Projects/Partials/PhaseFilter.vue';
 import ProjectNoticeEdit from '@/Pages/Projects/Partials/ProjectNoticeEdit.vue';
-import ProjectActions from '@/Pages/Projects/Partials/ProjectActions.vue';
+import OpeningActions from '@/Pages/Projects/Partials/Actions/Opening/OpeningActions.vue';
 import { useSnackbar } from '@/Composables/useSnackbar';
 import { Head, router } from '@inertiajs/vue3';
 import { ref } from 'vue';
@@ -117,7 +117,7 @@ const tableConfig = {
     chips,
     data,
     actions,
-    isSelectable: (item) => item.openings_count > 0,
+    isSelectable: (item) => !!item.phase,
 };
 
 const selectedProjects = ref([]);
@@ -166,7 +166,8 @@ function handleAction({ action, item }) {
                     />
                 </div>
                 <div class="row-span-2 col-start-4 row-start-2">
-                    <ProjectActions
+                    <OpeningActions
+                        v-if="selectedPhase === 'abertura' || !selectedPhase"
                         :selected-projects="selectedProjects"
                         :projects="projects"
                         :supervisors-available="supervisorsAvailable"

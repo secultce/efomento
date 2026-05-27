@@ -3,16 +3,18 @@
 namespace App\Imports;
 
 use App\Services\SpreadsheetImportService;
-use Illuminate\Database\Eloquent\Model;
+use Maatwebsite\Excel\Concerns\OnEachRow;
 use Maatwebsite\Excel\Concerns\SkipsEmptyRows;
-use Maatwebsite\Excel\Concerns\ToModel;
 use Maatwebsite\Excel\Concerns\WithChunkReading;
 use Maatwebsite\Excel\Concerns\WithStartRow;
+use Maatwebsite\Excel\Row;
 
-class ProjectImport implements SkipsEmptyRows, ToModel, WithChunkReading, WithStartRow
+class ProjectImport implements OnEachRow, SkipsEmptyRows, WithChunkReading, WithStartRow
 {
     public function __construct(
-        private readonly SpreadsheetImportService $service
+        private readonly SpreadsheetImportService $service,
+        private readonly int $userId,
+        private readonly bool $withFiles = false,
     ) {}
 
     public function startRow(): int
@@ -25,8 +27,12 @@ class ProjectImport implements SkipsEmptyRows, ToModel, WithChunkReading, WithSt
         return 100;
     }
 
-    public function model(array $row): ?Model
+    public function onRow(Row $row): void
     {
-        return $this->service->processRow($row);
+        $this->service->processRow(
+            row: $row->toArray(),
+            withFiles: $this->withFiles,
+            userId: $this->userId,
+        );
     }
 }

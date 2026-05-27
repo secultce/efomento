@@ -12,7 +12,8 @@ class ImportSpreadsheetCommand extends Command
 {
     protected $signature = 'app:import-spreadsheet
                             {path : Caminho para o arquivo .csv ou .xlsx}
-                            {--user-id= : ID do usuário responsável pela importação}';
+                            {--user= : ID do usuário responsável pela importação}
+                            {--with-files : Busca e baixa os arquivos vinculados às inscrições no Mapas}';
 
     protected $description = 'Importa projetos de uma planilha para o banco de dados';
 
@@ -26,20 +27,28 @@ class ImportSpreadsheetCommand extends Command
             return self::FAILURE;
         }
 
-        $userId = $this->option('user-id');
+        $userId = (int) $this->option('user');
 
-        if (! $userId || ! User::find($userId)) {
-            $this->error('Informe um --user-id válido de um usuário existente.');
+        if (! $userId || ! User::whereKey($userId)->exists()) {
+            $this->error('Informe um usuário válido com --user=ID');
 
             return self::FAILURE;
         }
 
-        $service->setUserId((int) $userId);
+        $withFiles = (bool) $this->option('with-files');
 
         $this->info("Importando planilha: {$path}");
+
+        if ($withFiles) {
+            $this->info('Os arquivos serão enfileirados para download após a importação.');
+        }
+
         $this->newLine();
 
-        Excel::import(new ProjectImport($service), $path);
+        Excel::import(
+            new ProjectImport($service, $userId, $withFiles),
+            $path
+        );
 
         $this->info('Importação concluída.');
 
