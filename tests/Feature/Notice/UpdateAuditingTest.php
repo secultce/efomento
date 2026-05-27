@@ -32,7 +32,7 @@ class UpdateAuditingTest extends TestCase
         $notice = Notice::factory()->create();
 
         $this->assertDatabaseHas('audits', [
-            'auditable_type' => Notice::class,
+            'auditable_type' => 'notice',
             'auditable_id' => $notice->id,
             'event' => 'created',
         ]);
