@@ -169,4 +169,37 @@ class ProjectController extends Controller
             ]);
         }
     }
+
+    public function createTC(Request $request, ProjectDocumentService $service)
+    {
+        $data = $request->validate([
+            'selected_projects' => 'required|array|min:1',
+            'selected_projects.*' => 'exists:projects,id',
+
+            'content' => 'required|string',
+
+            'header_images' => 'nullable|array',
+            'header_images.*' => 'nullable|image',
+
+            'footer_images' => 'nullable|array',
+            'footer_images.*' => 'nullable|image',
+        ]);
+
+        try {
+            $service->createDocumentTC(
+                selectedProjects: $data['selected_projects'],
+                content: $data['content'],
+                headerImages: $data['header_images'] ?? [],
+                footerImages: $data['footer_images'] ?? [],
+            );
+
+            return back()->with('success', 'Termos criados com sucesso!');
+        } catch (\Throwable $e) {
+            report($e);
+
+            return back()->withErrors([
+                'message' => $e->getMessage() ?: 'Erro ao criar termos. Tente novamente.',
+            ]);
+        }
+    }
 }
