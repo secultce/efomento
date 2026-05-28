@@ -16,10 +16,6 @@ class CIDocumentTest extends TestCase
 {
     use RefreshDatabase;
 
-    // -------------------------------------------------------------------------
-    // Existe documento CI gerado
-    // -------------------------------------------------------------------------
-
     #[Test]
     public function it_persists_ci_document_after_creation_via_endpoint(): void
     {
@@ -69,10 +65,6 @@ class CIDocumentTest extends TestCase
             ->assertSessionHasErrors('content');
     }
 
-    // -------------------------------------------------------------------------
-    // Download geral de documentos criados de um determinado edital
-    // -------------------------------------------------------------------------
-
     #[Test]
     public function it_returns_zip_download_for_selected_projects(): void
     {
@@ -97,6 +89,7 @@ class CIDocumentTest extends TestCase
         $response = $this->actingAs($user)
             ->post(route('documents.download-zip'), [
                 'project_ids' => [$project->id],
+                'type' => 'ci',
             ]);
 
         $response->assertOk()
@@ -112,8 +105,22 @@ class CIDocumentTest extends TestCase
         $this->actingAs($user)
             ->post(route('documents.download-zip'), [
                 'project_ids' => [],
+                'type' => 'ci',
             ])
             ->assertSessionHasErrors('project_ids');
+    }
+
+    #[Test]
+    public function it_requires_type_for_download(): void
+    {
+        $user = User::factory()->create();
+        $project = Project::factory()->create();
+
+        $this->actingAs($user)
+            ->post(route('documents.download-zip'), [
+                'project_ids' => [$project->id],
+            ])
+            ->assertSessionHasErrors('type');
     }
 
     #[Test]
@@ -123,12 +130,9 @@ class CIDocumentTest extends TestCase
 
         $this->post(route('documents.download-zip'), [
             'project_ids' => [$project->id],
+            'type' => 'ci',
         ])->assertRedirect(route('login'));
     }
-
-    // -------------------------------------------------------------------------
-    // Edição de CI de um projeto
-    // -------------------------------------------------------------------------
 
     #[Test]
     public function it_updates_ci_body_without_creating_a_duplicate(): void
