@@ -56,19 +56,18 @@ class ProjectDocumentService
         array $headerImages = [],
         array $footerImages = []
     ): void {
-        $processedHeader = $this->uploadFilesOnce($headerImages);
-        $processedFooter = $this->uploadFilesOnce($footerImages);
-
         DB::transaction(function () use (
             $selectedProjects,
             $content,
-            $processedHeader,
-            $processedFooter
+            $headerImages,
+            $footerImages
         ) {
-
             if (empty(trim($content))) {
                 throw new \Exception('O conteúdo do termo não pode ser vazio.');
             }
+
+            $processedHeader = $this->uploadFilesOnce($headerImages);
+            $processedFooter = $this->uploadFilesOnce($footerImages);
 
             $projects = Project::whereIn('id', $selectedProjects)->get();
 
