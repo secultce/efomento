@@ -8,7 +8,7 @@ use App\Enums\DocumentType;
 class DocumentTypeRegistry
 {
     private array $map = [
-        'term+formalization' => [
+        'tc+formalization' => [
             'label' => 'Termo de Execução Cultural',
             'requires_sign' => true,
             'requires_legal' => false,

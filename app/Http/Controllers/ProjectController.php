@@ -93,6 +93,7 @@ class ProjectController extends Controller
             },
             'opening.supervisors.user',
             'documents',
+            'documents.images',
             'budget',
             'budget.installments',
             'formalization',
@@ -179,10 +180,14 @@ class ProjectController extends Controller
             'content' => 'required|string',
 
             'header_images' => 'nullable|array',
-            'header_images.*' => 'nullable|image',
+            'header_images.*.id' => 'nullable|integer',
+            'header_images.*.file' => 'nullable|image',
+            'header_images.*._delete' => 'nullable|in:1',
 
             'footer_images' => 'nullable|array',
-            'footer_images.*' => 'nullable|image',
+            'footer_images.*.id' => 'nullable|integer',
+            'footer_images.*.file' => 'nullable|image',
+            'footer_images.*._delete' => 'nullable|in:1',
         ]);
 
         try {

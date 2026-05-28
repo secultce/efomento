@@ -69,8 +69,9 @@ class DocumentController extends Controller
     public function downloadZip(Request $request): BinaryFileResponse
     {
         $projectIds = $request->validate(['project_ids' => 'required|array|min:1'])['project_ids'];
+        $type = $request->validate(['type' => 'required|string'])['type'];
 
-        return response()->download($this->documentPdfService->buildZip($projectIds), 'documentos.zip', [
+        return response()->download($this->documentPdfService->buildZip($projectIds, $type), 'documentos.zip', [
             'Content-Type' => 'application/zip',
         ])->deleteFileAfterSend();
     }
