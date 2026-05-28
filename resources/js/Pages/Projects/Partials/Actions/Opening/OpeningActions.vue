@@ -23,7 +23,9 @@ const ciDialog = ref(false);
 const docListDialog = ref(false);
 
 const selectedDocuments = computed(() =>
-    selectedProjectsList.value.flatMap((p) => (p.documents ?? []).map((d) => ({ ...d, project: p })))
+    selectedProjectsList.value.flatMap((p) =>
+        (p.documents ?? []).filter((d) => d.type?.toLowerCase() === 'ci').map((d) => ({ ...d, project: p }))
+    )
 );
 
 function openSupervisorDialog() {
@@ -81,7 +83,7 @@ async function downloadZip() {
 
     downloadingZip.value = true;
     try {
-        await downloadDocumentsZip(props.selectedProjects);
+        await downloadDocumentsZip(props.selectedProjects, 'ci');
     } catch {
         errorMessage.value = 'Erro ao baixar os documentos. Tente novamente.';
         showError.value = true;

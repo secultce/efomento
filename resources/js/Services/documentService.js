@@ -9,10 +9,10 @@ export function saveTC(payload, options = {}) {
     return router.post('/projetos/criar-tc', payload, options);
 }
 
-export async function downloadDocumentsZip(projectIds) {
+export async function downloadDocumentsZip(projectIds, type) {
     const response = await axios.post(
         '/projetos/documentos/download-zip',
-        { project_ids: projectIds },
+        { project_ids: projectIds, type: type },
         { responseType: 'blob' }
     );
 

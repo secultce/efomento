@@ -20,7 +20,12 @@ const props = defineProps({
         default: () => [
             { label: 'Nome do edital', value: '[notice_name]' },
             { label: 'Nup Mãe', value: '[nup_mother]' },
+            { label: 'Nup Projeto', value: '[project_nup]' },
             { label: 'Nome do Agente', value: '[agent_name]' },
+            { label: 'Cpf do Agente', value: '[agent_cpf]' },
+            { label: 'Endereço do Agente', value: '[agent_address]' },
+            { label: 'Email do Agente', value: '[agent_email]' },
+            { label: 'Telefone do Agente', value: '[agent_phone]' },
             { label: 'Finalidade', value: '[finality]' },
             { label: 'Matrícula do Fiscal', value: '[fiscal_matricula]' },
             { label: 'Nome do Fiscal', value: '[fiscal_name]' },
