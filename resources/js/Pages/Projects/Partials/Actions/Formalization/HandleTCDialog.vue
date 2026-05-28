@@ -43,14 +43,34 @@ const isOpen = computed({
     set: (val) => emit('update:modelValue', val),
 });
 
+function normalizeImages(images = []) {
+    const slots = [null, null, null];
+
+    images.forEach((img) => {
+        const index = img.position === 'left' ? 0 : img.position === 'center' ? 1 : img.position === 'right' ? 2 : null;
+
+        if (index === null) return;
+
+        slots[index] = {
+            id: img.id,
+            url: `/storage/${img.path}`,
+            file: null,
+            removed: false,
+        };
+    });
+
+    return slots;
+}
+
 function handleImage(event, type, index) {
     const file = event.target.files?.[0];
-
     if (!file) return;
 
     const image = {
         file,
         url: URL.createObjectURL(file),
+        id: null,
+        removed: false,
     };
 
     if (type === 'header') {
@@ -58,6 +78,41 @@ function handleImage(event, type, index) {
     } else {
         footerImages.value[index] = image;
     }
+}
+
+function removeImage(type, index) {
+    const target = type === 'header' ? headerImages : footerImages;
+
+    const current = target.value[index];
+
+    if (current?.id) {
+        current.removed = true;
+        current.file = null;
+        current.url = null;
+    } else {
+        target.value[index] = null;
+    }
+}
+
+function appendImages(payload, key, images) {
+    images.forEach((img, index) => {
+        if (!img) {
+            payload.append(`${key}[${index}][_delete]`, '1');
+            return;
+        }
+
+        if (img.file) {
+            payload.append(`${key}[${index}][file]`, img.file);
+        }
+
+        if (img.id) {
+            payload.append(`${key}[${index}][id]`, img.id);
+        }
+
+        if (img.removed) {
+            payload.append(`${key}[${index}][_delete]`, '1');
+        }
+    });
 }
 
 const handleTC = () => {
@@ -69,25 +124,14 @@ const handleTC = () => {
 
     payload.append('content', form.content);
 
-    headerImages.value.forEach((img, index) => {
-        if (img?.file) {
-            payload.append(`header_images[${index}]`, img.file);
-        }
-    });
-
-    footerImages.value.forEach((img, index) => {
-        if (img?.file) {
-            payload.append(`footer_images[${index}]`, img.file);
-        }
-    });
+    appendImages(payload, 'header_images', headerImages.value);
+    appendImages(payload, 'footer_images', footerImages.value);
 
     saveTC(payload, {
         onSuccess: () => {
-            showSnackbar('Termos criados com sucesso!', 'success');
-
+            showSnackbar('Termo salvo com sucesso!', 'success');
             closeDialog();
         },
-
         onError: (errors) => {
             showSnackbar(Object.values(errors).flat().join(', '), 'error');
         },
@@ -97,15 +141,17 @@ const handleTC = () => {
 watch(
     () => isOpen.value,
     (open) => {
-        if (open) {
-            if (props.editData?.content) {
-                form.content = props.editData.content;
-            } else {
-                form.reset();
+        if (!open) return;
 
-                headerImages.value = [null, null, null];
-                footerImages.value = [null, null, null];
-            }
+        if (props.editData) {
+            form.content = props.editData.content || '';
+
+            headerImages.value = normalizeImages(props.editData.headerImages || []);
+            footerImages.value = normalizeImages(props.editData.footerImages || []);
+        } else {
+            form.reset();
+            headerImages.value = [null, null, null];
+            footerImages.value = [null, null, null];
         }
     }
 );
@@ -129,40 +175,42 @@ const closeDialog = () => {
             </v-card-title>
 
             <v-container class="flex flex-col overflow-y-auto">
+                <!-- HEADER IMAGES -->
                 <p class="font-semibold mb-1">Imagens de cabeçalho</p>
                 <div class="border rounded-xl p-6 mb-6">
                     <div class="grid grid-cols-3 gap-6">
                         <div v-for="(_, index) in headerImages" :key="index" class="flex flex-col items-center">
-                            <label class="cursor-pointer">
-                                <input
-                                    hidden
-                                    type="file"
-                                    accept="image/*"
-                                    @change="handleImage($event, 'header', index)"
-                                />
-
-                                <div
-                                    class="w-[170px] h-[100px] border-2 border-dashed border-emerald-300 rounded-lg overflow-hidden flex items-center justify-center"
-                                >
-                                    <img
-                                        v-if="headerImages[index]"
-                                        :src="headerImages[index].url"
-                                        class="w-full h-full object-cover"
+                            <div class="relative group">
+                                <label class="cursor-pointer">
+                                    <input
+                                        hidden
+                                        type="file"
+                                        accept="image/*"
+                                        @click="$event.target.value = ''"
+                                        @change="handleImage($event, 'header', index)"
                                     />
 
-                                    <span v-else class="text-3xl"> + </span>
-                                </div>
-                            </label>
+                                    <div
+                                        class="w-[170px] h-[100px] border-2 border-dashed border-emerald-300 rounded-lg overflow-hidden flex items-center justify-center"
+                                    >
+                                        <img
+                                            v-if="headerImages[index] && !headerImages[index].removed"
+                                            :src="headerImages[index].url"
+                                            class="w-full h-full object-cover"
+                                        />
+                                        <span v-else class="text-3xl text-emerald-600"> + </span>
+                                    </div>
+                                </label>
 
-                            <span class="text-sm mt-2">
-                                {{
-                                    [
-                                        'Adicione a imagem da esquerda',
-                                        'Adicione a imagem do centro',
-                                        'Adicione a imagem da direita',
-                                    ][index]
-                                }}
-                            </span>
+                                <button
+                                    v-if="headerImages[index] && !headerImages[index].removed"
+                                    class="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-7 h-7 flex items-center justify-center shadow-md hover:bg-red-600 transition-colors z-10"
+                                    title="Remover imagem"
+                                    @click.prevent="removeImage('header', index)"
+                                >
+                                    <span class="text-sm font-bold">✕</span>
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -186,36 +234,37 @@ const closeDialog = () => {
                 <div class="border rounded-xl p-6">
                     <div class="grid grid-cols-3 gap-6">
                         <div v-for="(_, index) in footerImages" :key="index" class="flex flex-col items-center">
-                            <label class="cursor-pointer">
-                                <input
-                                    hidden
-                                    type="file"
-                                    accept="image/*"
-                                    @change="handleImage($event, 'footer', index)"
-                                />
-
-                                <div
-                                    class="w-[170px] h-[100px] border-2 border-dashed border-emerald-300 rounded-lg overflow-hidden flex items-center justify-center"
-                                >
-                                    <img
-                                        v-if="footerImages[index]"
-                                        :src="footerImages[index].url"
-                                        class="w-full h-full object-cover"
+                            <div class="relative group">
+                                <label class="cursor-pointer">
+                                    <input
+                                        hidden
+                                        type="file"
+                                        accept="image/*"
+                                        @click="$event.target.value = ''"
+                                        @change="handleImage($event, 'footer', index)"
                                     />
 
-                                    <span v-else class="text-3xl"> + </span>
-                                </div>
-                            </label>
+                                    <div
+                                        class="w-[170px] h-[100px] border-2 border-dashed border-emerald-300 rounded-lg overflow-hidden flex items-center justify-center"
+                                    >
+                                        <img
+                                            v-if="footerImages[index] && !footerImages[index].removed"
+                                            :src="footerImages[index].url"
+                                            class="w-full h-full object-cover"
+                                        />
+                                        <span v-else class="text-3xl text-emerald-600"> + </span>
+                                    </div>
+                                </label>
 
-                            <span class="text-sm mt-2">
-                                {{
-                                    [
-                                        'Adicione a imagem da esquerda',
-                                        'Adicione a imagem do centro',
-                                        'Adicione a imagem da direita',
-                                    ][index]
-                                }}
-                            </span>
+                                <button
+                                    v-if="footerImages[index] && !footerImages[index].removed"
+                                    class="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-7 h-7 flex items-center justify-center shadow-md hover:bg-red-600 transition-colors z-10"
+                                    title="Remover imagem"
+                                    @click.prevent="removeImage('footer', index)"
+                                >
+                                    <span class="text-sm font-bold">✕</span>
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </div>

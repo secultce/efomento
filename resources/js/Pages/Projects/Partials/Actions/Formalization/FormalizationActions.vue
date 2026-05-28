@@ -1,5 +1,5 @@
 <script setup>
-import { ref } from 'vue';
+import { computed, ref } from 'vue';
 import NoticeHistoryDialog from '@/Pages/Projects/Partials/Actions/NoticeHistoryDialog.vue';
 import HandleTCDialog from '@/Pages/Projects/Partials/Actions/Formalization/HandleTCDialog.vue';
 
@@ -20,22 +20,62 @@ function openTCDialog() {
 function openNoticeHistory() {
     viewHistory.value = true;
 }
+
+const selectedProjectsList = computed(() => {
+    return props.projects.filter((p) => props.selectedProjects.includes(p.id));
+});
+
+const anyProjectsHasTC = computed(() => {
+    return selectedProjectsList.value.some((p) => p.documents?.some((d) => d.type === 'tc'));
+});
+
+const selectedTC = computed(() => {
+    const projectWithTC = selectedProjectsList.value.find((p) => p.documents?.some((d) => d.type === 'tc'));
+
+    if (!projectWithTC) return null;
+
+    const tcDocument = projectWithTC.documents.find((d) => d.type === 'tc');
+
+    return {
+        content: tcDocument.body,
+        headerImages: tcDocument.images.filter((i) => i.section === 'header'),
+        footerImages: tcDocument.images.filter((i) => i.section === 'footer'),
+    };
+});
 </script>
 <template>
-    <HandleTCDialog v-model="TCDialog" :project-ids="selectedProjects" />
+    <HandleTCDialog v-model="TCDialog" :project-ids="selectedProjects" :edit-data="selectedTC" />
     <NoticeHistoryDialog v-model="viewHistory" :notice-id="notice.id" />
     <v-card class="w-full pb-4 pt-4 !shadow-none border border-gray-800 rounded-lg">
         <v-card-title class="font-weight-bold !text-lg">Ações disponíveis para você </v-card-title>
         <v-card-text class="flex flex-col gap-4">
             <div class="w-full pt-2 flex flex-col gap-1">
-                <p>Termo de execução cultural</p>
-                <v-btn
-                    class="w-full !shadow-none !font-bold !bg-[#ffcc05FF] !text-[#2d353fFF] rounded-lg px-4 py-2 text-xs"
-                    :disabled="!(props.selectedProjects?.length > 0)"
-                    @click="openTCDialog"
-                >
-                    Criar termo para assinatura
-                </v-btn>
+                <template v-if="anyProjectsHasTC">
+                    <p>Termo de execução cultural</p>
+                    <v-btn
+                        data-cy="btnCriarCI"
+                        class="w-full !shadow-none !font-bold !border-gray-300 !bg-white !text-[#2d353fFF] rounded-lg text-xs gap-6"
+                        :disabled="!(props.selectedProjects?.length > 0)"
+                        variant="outlined"
+                        @click="openTCDialog"
+                    >
+                        <span class="w-full text-left"> Editar Termo de Execução Cultural </span>
+
+                        <template #append>
+                            <v-icon size="18"> mdi-pencil </v-icon>
+                        </template>
+                    </v-btn>
+                </template>
+
+                <template v-else>
+                    <v-btn
+                        class="w-full !shadow-none !font-bold !bg-[#ffcc05FF] !text-[#2d353fFF] rounded-lg px-4 py-2 text-xs"
+                        :disabled="!(props.selectedProjects?.length > 0)"
+                        @click="openTCDialog"
+                    >
+                        Criar termo para assinatura
+                    </v-btn>
+                </template>
                 <p class="mt-4">Extrato do termo</p>
                 <v-btn
                     class="w-full !shadow-none !font-bold !bg-[#ffcc05FF] !text-[#2d353fFF] rounded-lg px-4 py-2 text-xs"

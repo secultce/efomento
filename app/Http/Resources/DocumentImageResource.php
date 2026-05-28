@@ -14,6 +14,7 @@ class DocumentImageResource extends JsonResource
             'section' => $this->section,
             'position' => $this->position,
             'path' => $this->path,
+            'deleted_at' => $this->deleted_at,
         ];
     }
 }
