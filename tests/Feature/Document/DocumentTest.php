@@ -44,7 +44,7 @@ class DocumentTest extends TestCase
 
     public function test_document_type_enum_has_correct_values(): void
     {
-        $this->assertSame('term', DocumentType::TERM->value);
+        $this->assertSame('TC', DocumentType::TC->value);
         $this->assertSame('extract', DocumentType::EXTRACT->value);
         $this->assertSame('juridical_opinion', DocumentType::JURIDICAL_OPINION->value);
         $this->assertSame('dispatch', DocumentType::DISPATCH->value);
@@ -91,9 +91,9 @@ class DocumentTest extends TestCase
     {
         $registry = new DocumentTypeRegistry;
 
-        $result = $registry->resolve(DocumentType::TERM, DocumentPhase::FORMALIZATION);
+        $result = $registry->resolve(DocumentType::TC, DocumentPhase::FORMALIZATION);
 
-        $this->assertSame('Termo de Execução Cultural', $result['label']);
+        $this->assertSame('TCo de Execução Cultural', $result['label']);
         $this->assertTrue($result['requires_sign']);
         $this->assertFalse($result['requires_legal']);
 
@@ -108,7 +108,7 @@ class DocumentTest extends TestCase
     {
         $this->expectException(\InvalidArgumentException::class);
 
-        (new DocumentTypeRegistry)->resolve(DocumentType::TERM, DocumentPhase::PAYMENT);
+        (new DocumentTypeRegistry)->resolve(DocumentType::TC, DocumentPhase::PAYMENT);
     }
 
     // -------------------------------------------------------------------------
@@ -118,16 +118,16 @@ class DocumentTest extends TestCase
     public function test_service_creates_document(): void
     {
         $document = $this->service->create([
-            'type' => 'term',
+            'type' => 'TC',
             'phase' => 'formalization',
             'notice_id' => $this->notice->id,
             'project_id' => $this->project->id,
-            'body' => 'Conteúdo do termo.',
+            'body' => 'Conteúdo do TCo.',
         ], $this->user->id);
 
         $this->assertInstanceOf(Document::class, $document);
         $this->assertDatabaseHas('documents', [
-            'type' => 'term',
+            'type' => 'TC',
             'phase' => 'formalization',
             'created_by' => $this->user->id,
         ]);
@@ -138,7 +138,7 @@ class DocumentTest extends TestCase
         $this->expectException(\InvalidArgumentException::class);
 
         $this->service->create([
-            'type' => 'term',
+            'type' => 'TC',
             'phase' => 'payment',
             'body' => 'Inválido.',
         ], $this->user->id);
@@ -147,7 +147,7 @@ class DocumentTest extends TestCase
     public function test_service_creates_document_with_images(): void
     {
         $document = $this->service->create([
-            'type' => 'term',
+            'type' => 'TC',
             'phase' => 'formalization',
             'notice_id' => $this->notice->id,
             'project_id' => $this->project->id,
@@ -269,7 +269,7 @@ class DocumentTest extends TestCase
     public function test_get_by_context_filters_by_type_and_phase(): void
     {
         Document::factory()->count(2)->create([
-            'type' => DocumentType::TERM,
+            'type' => DocumentType::TC,
             'phase' => DocumentPhase::FORMALIZATION,
         ]);
         Document::factory()->count(1)->create([
@@ -277,7 +277,7 @@ class DocumentTest extends TestCase
             'phase' => DocumentPhase::JURIDICAL,
         ]);
 
-        $result = $this->service->getByContext(type: 'term', phase: 'formalization');
+        $result = $this->service->getByContext(type: 'TC', phase: 'formalization');
 
         $this->assertCount(2, $result);
     }
@@ -313,7 +313,7 @@ class DocumentTest extends TestCase
     {
         $response = $this->actingAs($this->user)
             ->postJson('/api/documents', [
-                'type' => 'term',
+                'type' => 'TC',
                 'phase' => 'formalization',
                 'notice_id' => $this->notice->id,
                 'project_id' => $this->project->id,
@@ -321,9 +321,9 @@ class DocumentTest extends TestCase
             ]);
 
         $response->assertStatus(201)
-            ->assertJsonFragment(['type' => 'term', 'phase' => 'formalization']);
+            ->assertJsonFragment(['type' => 'TC', 'phase' => 'formalization']);
 
-        $this->assertDatabaseHas('documents', ['type' => 'term']);
+        $this->assertDatabaseHas('documents', ['type' => 'TC']);
     }
 
     public function test_store_endpoint_returns_422_for_missing_fields(): void
@@ -338,7 +338,7 @@ class DocumentTest extends TestCase
     {
         $response = $this->actingAs($this->user)
             ->postJson('/api/documents', [
-                'type' => 'term',
+                'type' => 'TC',
                 'phase' => 'payment',
                 'notice_id' => $this->notice->id,
                 'project_id' => $this->project->id,
@@ -346,7 +346,7 @@ class DocumentTest extends TestCase
             ]);
 
         $response->assertStatus(422)
-            ->assertJsonFragment(['message' => 'Combinação de tipo e fase inválida: tipo=term, fase=payment.']);
+            ->assertJsonFragment(['message' => 'Combinação de tipo e fase inválida: tipo=TC, fase=payment.']);
     }
 
     // -------------------------------------------------------------------------
