@@ -92,7 +92,6 @@ const selectedTC = computed(() => {
                 <template v-if="anyProjectsHasTC">
                     <p>Termo de execução cultural</p>
                     <v-btn
-                        data-cy="btnCriarCI"
                         class="w-full !shadow-none !font-bold !border-gray-300 !bg-white !text-[#2d353fFF] rounded-lg text-xs gap-6"
                         :disabled="!(props.selectedProjects?.length > 0)"
                         variant="outlined"
@@ -128,7 +127,6 @@ const selectedTC = computed(() => {
                         Baixar todos
                     </v-btn>
                     <v-btn
-                        data-cy="btnConferirDocumentos"
                         class="flex-1 !shadow-none !font-bold !bg-[#ffcc05FF] !text-[#2d353fFF] rounded-lg text-xs"
                         :disabled="!(selectedProjects?.length > 0)"
                         @click="openDocListDialog('tc')"
