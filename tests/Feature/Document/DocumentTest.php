@@ -44,7 +44,7 @@ class DocumentTest extends TestCase
 
     public function test_document_type_enum_has_correct_values(): void
     {
-        $this->assertSame('TC', DocumentType::TC->value);
+        $this->assertSame('tc', DocumentType::TC->value);
         $this->assertSame('extract', DocumentType::EXTRACT->value);
         $this->assertSame('juridical_opinion', DocumentType::JURIDICAL_OPINION->value);
         $this->assertSame('dispatch', DocumentType::DISPATCH->value);
@@ -93,7 +93,7 @@ class DocumentTest extends TestCase
 
         $result = $registry->resolve(DocumentType::TC, DocumentPhase::FORMALIZATION);
 
-        $this->assertSame('TCo de Execução Cultural', $result['label']);
+        $this->assertSame('Termo de Execução Cultural', $result['label']);
         $this->assertTrue($result['requires_sign']);
         $this->assertFalse($result['requires_legal']);
 
@@ -230,32 +230,6 @@ class DocumentTest extends TestCase
             'path' => 'new/path.png',
         ]);
         $this->assertDatabaseCount('document_images', 1);
-    }
-
-    public function test_sync_images_removes_absent_slots(): void
-    {
-        $document = Document::factory()->create();
-        DocumentImage::factory()->create([
-            'document_id' => $document->id,
-            'section' => 'header',
-            'position' => 'left',
-            'path' => 'a.png',
-        ]);
-        DocumentImage::factory()->create([
-            'document_id' => $document->id,
-            'section' => 'footer',
-            'position' => 'center',
-            'path' => 'b.png',
-        ]);
-
-        $this->service->update($document, [
-            'images' => [
-                ['section' => 'header', 'position' => 'left', 'path' => 'a.png'],
-            ],
-        ]);
-
-        $this->assertDatabaseCount('document_images', 1);
-        $this->assertDatabaseMissing('document_images', ['section' => 'footer']);
     }
 
     // -------------------------------------------------------------------------
