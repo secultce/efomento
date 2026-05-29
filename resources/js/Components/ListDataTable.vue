@@ -89,6 +89,7 @@ function runAction(action, item) {
             class="mb-3 pa-4 h-[4em] rounded d-flex justify-between items-center !border-[#ccccccFF]"
             rounded="lg"
             variant="outlined"
+            data-cy="project-list-row-table"
         >
             <!-- LEFT: Checkbox + Reference -->
             <div class="d-flex items-center ga-2">
@@ -105,7 +106,7 @@ function runAction(action, item) {
                     <div class="text-caption text-[#3b3b3cFF]">
                         {{ reference(item).label }}
                     </div>
-                    <div class="font-weight-bold text-[#3b3b3cFF]">
+                    <div class="font-weight-bold text-[#3b3b3cFF]" data-cy="agent-name-project-list">
                         {{ reference(item).value }}
                     </div>
                 </div>
@@ -136,7 +137,10 @@ function runAction(action, item) {
                     <div class="text-caption text-[#3b3b3cFF]">
                         {{ m.label }}
                     </div>
-                    <div class="font-weight-bold text-[#3b3b3cFF]" data-cy="processNumberProjectList">
+                    <div
+                        class="font-weight-bold text-[#3b3b3cFF]"
+                        :data-cy="m.label === 'Número do processo' ? 'project-nup-project-list' : null"
+                    >
                         {{ m.value(item) }}
                     </div>
                 </div>
@@ -151,6 +155,7 @@ function runAction(action, item) {
                     color="#004c27FF"
                     variant="ghost"
                     class="leading-normal"
+                    data-cy="open-project-opening-tab-button"
                     @click="runAction(a.name, item)"
                 >
                     {{ a.label }}
