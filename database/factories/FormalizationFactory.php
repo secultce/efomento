@@ -4,9 +4,9 @@ namespace Database\Factories;
 
 use App\Enums\DeliberationType;
 use App\Enums\ReportStatus;
+use App\Enums\TermStatus;
 use App\Models\Formalization;
 use App\Models\Project;
-use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 class FormalizationFactory extends Factory
@@ -19,22 +19,25 @@ class FormalizationFactory extends Factory
             'project_id' => Project::factory(),
             'asjur_finalistic_processing_date' => $this->faker->date(),
             'asjur_received_at' => $this->faker->date(),
-            'process_supervisor_id' => User::factory(),
+            'process_assigned_to' => $this->faker->name(),
             'report_status' => $this->faker->randomElement(ReportStatus::cases())->value,
             'eparcerias_certificate_date' => $this->faker->date(),
+            'asjur_processing_date' => $this->faker->date(),
+            'responsible_at_asjur' => $this->faker->name(),
             'term_number' => $this->faker->unique()->numerify('TERM-###'),
             'term_signature_sent_at' => $this->faker->date(),
-            'sent_to_office_at' => $this->faker->date(),
+            'term_status' => $this->faker->randomElement(TermStatus::cases())->value,
             'term_signed_at' => $this->faker->date(),
-            'asjur_processing_date' => $this->faker->date(),
+            'sent_to_office_at' => $this->faker->date(),
+            'signature_status_office' => $this->faker->randomElement(TermStatus::cases())->value,
+            'signed_by_office_at' => $this->faker->date(),
             'sacc_number' => $this->faker->bothify('SACC-#####'),
             'cge_atende_ticket' => $this->faker->bothify('TICKET-#####'),
-            'sacc_registered_at' => $this->faker->date(),
             'deliberation' => $this->faker->randomElement(DeliberationType::cases())->value,
-            'validity_start_at' => $this->faker->date(),
-            'validity_end_at' => $this->faker->date(),
             'sent_to_chief_of_staff_at' => $this->faker->date(),
             'official_gazette_published_at' => $this->faker->date(),
+            'validity_start_at' => $this->faker->date(),
+            'validity_end_at' => $this->faker->date(),
             'legal_opinion_date' => $this->faker->date(),
         ];
     }

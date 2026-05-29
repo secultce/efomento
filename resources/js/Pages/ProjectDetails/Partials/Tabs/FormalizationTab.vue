@@ -1,0 +1,674 @@
+<script setup>
+import { computed, onMounted, ref } from 'vue';
+import { router, useForm } from '@inertiajs/vue3';
+
+import SplitScreenTab from '@/Components/SplitScreenTab.vue';
+import SectionChips from '@/Components/SectionChips.vue';
+import SectionContent from '@/Components/SectionContent.vue';
+import SectionForm from '@/Components/SectionForm.vue';
+import AuxLinks from '@/Components/AuxLinks.vue';
+import ReturnProcessModal from '@/Components/ReturnProcessModal.vue';
+import FormField from '@/Components/FormField.vue';
+import TextField from '@/Components/TextField.vue';
+import SelectField from '@/Components/SelectField.vue';
+import TramitButton from '@/Pages/ProjectDetails/Partials/Tabs/Actions/TramitButton.vue';
+
+import { viewSections } from '@/Schemas/Opening';
+import { formSections } from '@/Schemas/Formalization';
+
+import { useAuth } from '@/Composables/useAuth';
+import { useDate } from '@/Composables/useDate';
+import { useSnackbar } from '@/Composables/useSnackbar';
+import { useAlert } from '@/Composables/useAlert';
+
+const props = defineProps({
+    project: { type: Object, required: true },
+    canReturn: { type: Boolean, default: false },
+    currentStage: { type: Object, default: null },
+    reportStatus: { type: Array, default: () => [] },
+    termStatus: { type: Array, default: () => [] },
+    deliberation: { type: Array, default: () => [] },
+});
+
+const { hasRole } = useAuth();
+const { normalizeDate } = useDate();
+const { showSnackbar } = useSnackbar();
+const { showAlert } = useAlert();
+
+const canUserHandleFormalization = computed(() => hasRole(['super_admin', 'legal_analysis', 'coord_legal']));
+
+const stage = computed(() => props.project.stages?.find((s) => s.slug === 'formalizacao'));
+
+const showReturnModal = ref(false);
+const activeViewIndex = ref('all');
+const activeEditIndex = ref('all');
+
+const form = useForm({
+    asjur_finalistic_processing_date: null,
+    asjur_received_at: null,
+    process_assigned_to: null,
+    report_status: null,
+    eparcerias_certificate_date: null,
+    asjur_processing_date: null,
+    responsible_at_asjur: null,
+    term_number: null,
+    term_signature_sent_at: null,
+    term_status: null,
+    term_signed_at: null,
+    sent_to_office_at: null,
+    signature_status_office: null,
+    signed_by_office_at: null,
+    sacc_number: null,
+    cge_atende_ticket: null,
+    deliberation: null,
+    sent_to_chief_of_staff_at: null,
+    official_gazette_published_at: null,
+    validity_start_at: null,
+    validity_end_at: null,
+    legal_opinion_date: null,
+    official_gazette_file: null,
+    _method: null,
+});
+
+onMounted(() => {
+    const formalization = props.project.formalization || {};
+
+    form.asjur_finalistic_processing_date = normalizeDate(formalization.asjur_finalistic_processing_date) ?? null;
+    form.asjur_received_at = normalizeDate(formalization.asjur_received_at) ?? null;
+    form.process_assigned_to = formalization.process_assigned_to ?? null;
+    form.report_status = formalization.report_status ?? null;
+    form.eparcerias_certificate_date = normalizeDate(formalization.eparcerias_certificate_date) ?? null;
+    form.asjur_processing_date = normalizeDate(formalization.asjur_processing_date) ?? null;
+    form.responsible_at_asjur = formalization.responsible_at_asjur ?? null;
+    form.term_number = formalization.term_number ?? null;
+    form.term_signature_sent_at = normalizeDate(formalization.term_signature_sent_at) ?? null;
+    form.term_status = formalization.term_status ?? null;
+    form.term_signed_at = normalizeDate(formalization.term_signed_at) ?? null;
+    form.sent_to_office_at = normalizeDate(formalization.sent_to_office_at) ?? null;
+    form.signature_status_office = formalization.signature_status_office ?? null;
+    form.signed_by_office_at = normalizeDate(formalization.signed_by_office_at) ?? null;
+    form.sacc_number = formalization.sacc_number ?? null;
+    form.cge_atende_ticket = formalization.cge_atende_ticket ?? null;
+    form.deliberation = formalization.deliberation ?? null;
+    form.sent_to_chief_of_staff_at = normalizeDate(formalization.sent_to_chief_of_staff_at) ?? null;
+    form.official_gazette_published_at = normalizeDate(formalization.official_gazette_published_at) ?? null;
+    form.validity_start_at = normalizeDate(formalization.validity_start_at) ?? null;
+    form.validity_end_at = normalizeDate(formalization.validity_end_at) ?? null;
+    form.legal_opinion_date = normalizeDate(formalization.legal_opinion_date) ?? null;
+});
+
+const requiredFields = {
+    report_status: 'Informe regularidade e inadimplência é obrigatório.',
+    term_number: 'Número do termo é obrigatório.',
+    term_status: 'Status do termo é obrigatório.',
+    signature_status_office: 'Status de assinatura pelo Gabinete é obrigatório.',
+    deliberation: 'Deliberação é obrigatória.',
+};
+
+const isBlank = (value) => value === null || value === undefined || value === '';
+
+const validateForm = () => {
+    form.clearErrors();
+
+    let hasError = false;
+
+    Object.entries(requiredFields).forEach(([field, message]) => {
+        if (isBlank(form[field])) {
+            form.setError(field, message);
+            hasError = true;
+        }
+    });
+
+    if (hasError) {
+        showSnackbar('Preencha os campos obrigatórios.', 'error');
+        return false;
+    }
+
+    return true;
+};
+
+const officialGazetteFileInput = ref(null);
+
+const officialGazetteFile = computed(() => {
+    const files = props.project.formalization?.files;
+
+    if (!files) {
+        return null;
+    }
+
+    const groupedFiles = files.official_gazette;
+
+    if (Array.isArray(groupedFiles)) {
+        return groupedFiles[0] ?? null;
+    }
+
+    if (Array.isArray(groupedFiles?.data)) {
+        return groupedFiles.data[0] ?? null;
+    }
+
+    if (Array.isArray(files)) {
+        return files.find((file) => file.grp === 'official_gazette') ?? null;
+    }
+
+    if (Array.isArray(files?.data)) {
+        return files.data.find((file) => file.grp === 'official_gazette') ?? null;
+    }
+
+    return null;
+});
+
+const officialGazetteFileLabel = computed(() => {
+    if (form.official_gazette_file?.name) {
+        return form.official_gazette_file.name;
+    }
+
+    return 'Anexe o documento';
+});
+
+const onOfficialGazetteFileSelected = (event) => {
+    form.clearErrors('official_gazette_file');
+
+    const file = event.target.files?.[0] ?? null;
+
+    if (!file) {
+        form.official_gazette_file = null;
+        return;
+    }
+
+    const maxSize = 10 * 1024 * 1024;
+
+    if (file.size > maxSize) {
+        form.setError('official_gazette_file', 'O arquivo deve ter no máximo 10MB.');
+        form.official_gazette_file = null;
+        event.target.value = null;
+        return;
+    }
+
+    form.official_gazette_file = file;
+};
+
+const removeOfficialGazetteFile = () => {
+    if (!officialGazetteFile.value?.id) {
+        return;
+    }
+
+    router.delete(
+        route('projects.formalizations.files.destroy', {
+            project: props.project.id,
+            formalization: props.project.formalization.id,
+            file: officialGazetteFile.value.id,
+        }),
+        {
+            preserveScroll: true,
+            onSuccess: () => {
+                showSnackbar('Arquivo removido com sucesso!', 'success');
+            },
+            onError: () => {
+                showSnackbar('Ocorreu um erro ao remover o arquivo.', 'error');
+            },
+        }
+    );
+};
+
+const viewOfficialGazetteFile = () => {
+    if (!officialGazetteFile.value?.id) {
+        return;
+    }
+
+    window.open(
+        route('projects.formalizations.files.show', {
+            project: props.project.id,
+            formalization: props.project.formalization.id,
+            file: officialGazetteFile.value.id,
+        }),
+        '_blank'
+    );
+};
+
+const downloadOfficialGazetteFile = () => {
+    if (!officialGazetteFile.value?.id) {
+        return;
+    }
+
+    window.open(
+        route('projects.formalizations.files.download', {
+            project: props.project.id,
+            formalization: props.project.formalization.id,
+            file: officialGazetteFile.value.id,
+        }),
+        '_blank'
+    );
+};
+
+const submit = () => {
+    if (!validateForm()) {
+        return;
+    }
+
+    const formalization = props.project.formalization;
+
+    const options = {
+        preserveScroll: true,
+        forceFormData: true,
+        onSuccess: () => {
+            form.official_gazette_file = null;
+            form._method = null;
+
+            if (officialGazetteFileInput.value) {
+                officialGazetteFileInput.value.value = null;
+            }
+
+            showSnackbar('Formalização salva com sucesso!', 'success');
+        },
+        onError: (errors) => {
+            const details = Object.values(errors).flat().filter(Boolean).join(', ');
+
+            const message = details
+                ? `Ocorreu um erro ao salvar a formalização. ${details}`
+                : 'Ocorreu um erro ao salvar a formalização.';
+
+            showSnackbar(message, 'error');
+        },
+    };
+
+    if (formalization?.id) {
+        form._method = 'patch';
+
+        form.post(
+            route('projects.formalizations.update', {
+                project: props.project.id,
+                formalization: formalization.id,
+            }),
+            options
+        );
+
+        return;
+    }
+
+    form._method = null;
+
+    form.post(
+        route('projects.formalizations.store', {
+            project: props.project.id,
+        }),
+        options
+    );
+};
+
+const tramitLoading = ref(false);
+
+const tramit = () => {
+    if (!stage.value?.id) {
+        showSnackbar('Etapa de formalização não encontrada.', 'error');
+        return;
+    }
+
+    tramitLoading.value = true;
+
+    router.patch(
+        route('projects.stages.advance', {
+            project: props.project.id,
+            stage: stage.value.id,
+        }),
+        {},
+        {
+            preserveScroll: true,
+            onSuccess: () => {
+                showAlert({
+                    alertTitle: 'Tarefa marcada como tramitada',
+                    alertMessage:
+                        'As informações foram validadas e as pessoas envolvidas nesse processo foram notificadas.',
+                    confirmText: 'Entendi',
+                    action: () => {
+                        router.visit(window.location.pathname, {
+                            preserveState: false,
+                            preserveScroll: true,
+                        });
+                    },
+                });
+            },
+            onError: (errors) => {
+                const message = Object.values(errors).flat().join(', ') || 'Erro ao tramitar projeto';
+                showSnackbar(message, 'error');
+            },
+            onFinish: () => {
+                tramitLoading.value = false;
+            },
+        }
+    );
+};
+
+const permissionMessage = computed(() => {
+    if (!canUserHandleFormalization.value) {
+        return 'Usuário não tem permissão para fazer alterações na Formalização.';
+    }
+
+    if (stage.value?.status === 'bloqueado') {
+        return 'Este projeto está bloqueado e não pode receber alterações no momento.';
+    }
+
+    return 'Projeto já foi tramitado e não está mais na fase de Formalização.';
+});
+</script>
+
+<template>
+    <SplitScreenTab value="formalization">
+        <template #left-content>
+            <div class="space-y-6">
+                <div>
+                    <p class="font-bold text-lg d-flex justify-between">
+                        Dados disponíveis para consulta
+
+                        <v-btn
+                            v-if="canReturn && currentStage"
+                            v-permission="{
+                                condition: !canUserHandleFormalization || stage?.status !== 'aprovado',
+                                message: !canUserHandleFormalization
+                                    ? 'Usuário não tem permissão para devolver processo'
+                                    : 'Formalização já foi tramitada.',
+                            }"
+                            class="!shadow-none !font-bold !bg-[#ffcc05FF] !text-[#2d353fFF] rounded-lg text-xs"
+                            @click="showReturnModal = true"
+                        >
+                            DEVOLVER PROCESSO
+                        </v-btn>
+                    </p>
+
+                    <p class="text-sm text-gray-600">Utilize os filtros abaixo para navegar entre os dados</p>
+                </div>
+
+                <SectionChips v-model="activeViewIndex" :sections="viewSections" show-all-option />
+
+                <div class="space-y-8">
+                    <template v-for="(section, index) in viewSections" :key="'view-' + section.title">
+                        <SectionContent
+                            v-if="activeViewIndex === 'all' || activeViewIndex === index"
+                            :section="section"
+                            :project="project"
+                        />
+                    </template>
+                </div>
+            </div>
+        </template>
+
+        <template #right-content>
+            <div class="space-y-6">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="font-bold text-lg">Campos para você inserir ou editar dados</p>
+
+                        <p class="font-bold text-md mt-2 text-black">Links auxiliares</p>
+                    </div>
+
+                    <v-btn
+                        variant="outlined"
+                        color="outlineSecondary"
+                        class="rounded-lg"
+                        :loading="form.processing"
+                        @click="submit"
+                    >
+                        Salvar Alterações
+                    </v-btn>
+                </div>
+
+                <AuxLinks />
+
+                <SectionChips v-model="activeEditIndex" :sections="formSections" />
+
+                <div
+                    v-permission="{
+                        condition:
+                            !canUserHandleFormalization ||
+                            (stage?.status !== 'aprovado' && stage?.status !== 'bloqueado'),
+                        message: permissionMessage,
+                    }"
+                    class="mt-4"
+                >
+                    <SectionForm :active-edit-index="activeEditIndex" :sections="formSections">
+                        <template #default="{ section }">
+                            <template v-if="section.key === 'dates_and_status_process'">
+                                <div class="grid grid-cols-2 gap-4">
+                                    <FormField label="Data de tramitação da finalística para a ASJUR">
+                                        <TextField v-model="form.asjur_finalistic_processing_date" type="date" />
+                                    </FormField>
+
+                                    <FormField label="Data de recebimento do processo pela ASJUR">
+                                        <TextField v-model="form.asjur_received_at" type="date" />
+                                    </FormField>
+
+                                    <div class="col-span-2 grid grid-cols-2 gap-4">
+                                        <FormField label="Processo distribuído para">
+                                            <TextField v-model="form.process_assigned_to" />
+                                        </FormField>
+
+                                        <div></div>
+                                    </div>
+
+                                    <FormField
+                                        label="Informe regularidade e inadimplência"
+                                        required
+                                        :error="form.errors.report_status"
+                                    >
+                                        <SelectField
+                                            v-model="form.report_status"
+                                            :items="reportStatus"
+                                            item-title="label"
+                                            item-value="value"
+                                            placeholder="Selecione um status"
+                                        />
+                                    </FormField>
+
+                                    <FormField label="Data da certidão">
+                                        <TextField v-model="form.eparcerias_certificate_date" type="date" />
+                                    </FormField>
+                                </div>
+                            </template>
+
+                            <template v-else-if="section.key === 'signature_form'">
+                                <div class="grid grid-cols-2 gap-4">
+                                    <FormField label="Data de tramitação na ASJUR">
+                                        <TextField v-model="form.asjur_processing_date" type="date" />
+                                    </FormField>
+
+                                    <FormField label="Responsável (Distribuido para)">
+                                        <TextField v-model="form.responsible_at_asjur" />
+                                    </FormField>
+
+                                    <FormField label="Número do termo" required :error="form.errors.term_number">
+                                        <TextField v-model="form.term_number" />
+                                    </FormField>
+                                </div>
+                            </template>
+
+                            <template v-else-if="section.key === 'signing_term'">
+                                <div class="grid grid-cols-2 gap-4">
+                                    <FormField label="Data do envio para assinatura do termo">
+                                        <TextField v-model="form.term_signature_sent_at" type="date" />
+                                    </FormField>
+
+                                    <FormField label="Status do termo" required :error="form.errors.term_status">
+                                        <SelectField
+                                            v-model="form.term_status"
+                                            :items="termStatus"
+                                            item-title="label"
+                                            item-value="value"
+                                            placeholder="Selecione um status"
+                                        />
+                                    </FormField>
+
+                                    <div class="col-span-2 grid grid-cols-2 gap-4">
+                                        <FormField label="Data da assinatura do termo">
+                                            <TextField v-model="form.term_signed_at" type="date" />
+                                        </FormField>
+
+                                        <div></div>
+                                    </div>
+
+                                    <FormField label="Data de envio para Gabinete">
+                                        <TextField v-model="form.sent_to_office_at" type="date" />
+                                    </FormField>
+
+                                    <FormField
+                                        label="Status de assinatura pelo Gabinete"
+                                        required
+                                        :error="form.errors.signature_status_office"
+                                    >
+                                        <SelectField
+                                            v-model="form.signature_status_office"
+                                            :items="termStatus"
+                                            item-title="label"
+                                            item-value="value"
+                                            placeholder="Selecione um status"
+                                        />
+                                    </FormField>
+
+                                    <div class="col-span-2 grid grid-cols-2 gap-4">
+                                        <FormField label="Data de assinatura do termo pelo Gabinete">
+                                            <TextField v-model="form.signed_by_office_at" type="date" />
+                                        </FormField>
+
+                                        <div></div>
+                                    </div>
+                                </div>
+                            </template>
+
+                            <template v-else-if="section.key === 'sacc'">
+                                <div class="grid grid-cols-2 gap-4">
+                                    <div class="col-span-2 grid grid-cols-2 gap-4">
+                                        <FormField label="Número do SACC">
+                                            <TextField v-model="form.sacc_number" />
+                                        </FormField>
+
+                                        <div></div>
+                                    </div>
+
+                                    <FormField label="Chamado CGE atende">
+                                        <TextField v-model="form.cge_atende_ticket" />
+                                    </FormField>
+
+                                    <FormField label="Deliberação" required :error="form.errors.deliberation">
+                                        <SelectField
+                                            v-model="form.deliberation"
+                                            :items="deliberation"
+                                            item-title="label"
+                                            item-value="value"
+                                            placeholder="Selecione um status"
+                                        />
+                                    </FormField>
+                                </div>
+                            </template>
+
+                            <template v-else-if="section.key === 'official_gazette'">
+                                <div class="grid grid-cols-2 gap-4">
+                                    <FormField label="Data de envio para Casa Civil">
+                                        <TextField v-model="form.sent_to_chief_of_staff_at" type="date" />
+                                    </FormField>
+
+                                    <div></div>
+
+                                    <FormField label="Data de Publicação do Diário Oficial do Estado">
+                                        <TextField v-model="form.official_gazette_published_at" type="date" />
+                                    </FormField>
+
+                                    <FormField
+                                        label="Anexo do documento do Diário Oficial do Estado"
+                                        :error="form.errors.official_gazette_file"
+                                    >
+                                        <div
+                                            v-if="officialGazetteFile && !form.official_gazette_file"
+                                            class="flex items-center h-[44px] border border-gray-300 rounded-lg bg-white px-4 shadow-sm"
+                                        >
+                                            <span class="flex-1 text-sm font-bold text-black truncate">
+                                                {{ officialGazetteFile.name }}
+                                            </span>
+
+                                            <div class="flex items-center gap-3 text-[#007A3D]">
+                                                <button
+                                                    type="button"
+                                                    title="Remover arquivo"
+                                                    @click="removeOfficialGazetteFile"
+                                                >
+                                                    <v-icon size="20">mdi-trash-can-outline</v-icon>
+                                                </button>
+
+                                                <button
+                                                    type="button"
+                                                    title="Visualizar arquivo"
+                                                    @click="viewOfficialGazetteFile"
+                                                >
+                                                    <v-icon size="20">mdi-eye-outline</v-icon>
+                                                </button>
+
+                                                <button
+                                                    type="button"
+                                                    title="Baixar arquivo"
+                                                    @click="downloadOfficialGazetteFile"
+                                                >
+                                                    <v-icon size="20">mdi-download-box</v-icon>
+                                                </button>
+                                            </div>
+                                        </div>
+
+                                        <div
+                                            v-else
+                                            class="flex items-center h-[44px] border border-gray-400 rounded bg-white overflow-hidden"
+                                        >
+                                            <span class="flex-1 px-4 text-sm text-gray-600 truncate">
+                                                {{ officialGazetteFileLabel }}
+                                            </span>
+
+                                            <input
+                                                ref="officialGazetteFileInput"
+                                                type="file"
+                                                class="hidden"
+                                                accept=".pdf,.doc,.docx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+                                                @change="onOfficialGazetteFileSelected"
+                                            />
+
+                                            <button
+                                                type="button"
+                                                class="mr-3 px-3 py-1 rounded-full bg-[#ffcc05FF] text-[#2d353fFF] text-xs font-bold"
+                                                @click="officialGazetteFileInput?.click()"
+                                            >
+                                                anexar
+                                            </button>
+                                        </div>
+                                    </FormField>
+                                </div>
+                            </template>
+
+                            <template v-else-if="section.key === 'validity_instrument'">
+                                <div class="grid grid-cols-2 gap-4">
+                                    <FormField label="Data de início da vigência do instrumento">
+                                        <TextField v-model="form.validity_start_at" type="date" />
+                                    </FormField>
+
+                                    <FormField label="Data de término da vigência do instrumento">
+                                        <TextField v-model="form.validity_end_at" type="date" />
+                                    </FormField>
+                                </div>
+                            </template>
+
+                            <template v-else-if="section.key === 'legal_opinion'">
+                                <div class="grid grid-cols-2 gap-4">
+                                    <FormField label="Data do parecer jurídico">
+                                        <TextField v-model="form.legal_opinion_date" type="date" />
+                                    </FormField>
+                                </div>
+                            </template>
+                        </template>
+                    </SectionForm>
+
+                    <TramitButton :action="tramit" :disabled="!canUserHandleFormalization" :loading="tramitLoading" />
+                </div>
+            </div>
+        </template>
+    </SplitScreenTab>
+
+    <ReturnProcessModal
+        v-if="canReturn && currentStage"
+        v-model="showReturnModal"
+        :project-id="project.id"
+        :stage-id="currentStage.id"
+    />
+</template>

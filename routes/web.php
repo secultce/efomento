@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\DocumentController;
+use App\Http\Controllers\FormalizationController;
 use App\Http\Controllers\GroupController;
 use App\Http\Controllers\LegalAnalysisController;
 use App\Http\Controllers\NoticeController;
@@ -91,6 +92,17 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::put('/projetos/{project}/analise-juridica/arquivos/{file}', [LegalAnalysisController::class, 'updateFileStatus'])
         ->scopeBindings()
         ->name('legal-analysis.update-status');
+
+    Route::post('/projetos/{project}/formalizacao', [FormalizationController::class, 'store'])
+        ->name('projects.formalizations.store');
+    Route::patch('/projetos/{project}/formalizacao/{formalization}/atualizar', [FormalizationController::class, 'update'])
+        ->name('projects.formalizations.update');
+    Route::get('/projetos/{project}/formalizacao/{formalization}/arquivos/{file}', [FormalizationController::class, 'showFile'])
+        ->name('projects.formalizations.files.show');
+    Route::get('/projetos/{project}/formalizacao/{formalization}/arquivos/{file}/download', [FormalizationController::class, 'downloadFile'])
+        ->name('projects.formalizations.files.download');
+    Route::delete('/projetos/{project}/formalizacao/{formalization}/arquivos/{file}', [FormalizationController::class, 'destroyFile'])
+        ->name('projects.formalizations.files.destroy');
 });
 
 Route::middleware('auth')->group(function () {
