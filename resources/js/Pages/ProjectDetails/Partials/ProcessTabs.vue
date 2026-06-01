@@ -2,7 +2,6 @@
 import { ref } from 'vue';
 import OpeningTab from './Tabs/OpeningTab.vue';
 import LegalAnalysisTab from './Tabs/LegalAnalysisTab.vue';
-import { useAuth } from '@/Composables/useAuth.js';
 
 defineProps({
     project: { type: Object, default: null },
