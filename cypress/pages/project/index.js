@@ -32,11 +32,6 @@ class Project {
         });
     }
 
-    fillProjectNup() {
-        cy.get(el.openProjectOpeningTabButton).click({ multiple: true });
-        cy.get();
-    }
-
     findProjectByProjectNup(projectNup) {
         cy.get(el.findProjectPageInput, { timeout: TIMEOUTS.DEFAULT }).should('be.visible');
 

@@ -31,7 +31,7 @@ describe('Project Page', () => {
     });
 
     describe('Search Functionality', () => {
-        it.only('should search for a project by project NUP', function () {
+        it('should search for a project by project NUP', function () {
             cy.get('@currentProject').then((project) => {
                 Project.findProjectByProjectNup(project.project_nup);
             });
