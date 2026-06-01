@@ -2,13 +2,13 @@ import Profile from '../../pages/profile';
 
 class CredentialsReset {
     resetNameAndEmail(defaultEmail, defaultName) {
-        Profile.acessarPaginaDePerfil();
-        Profile.alterarNomeEEmailESalvar(defaultName, defaultEmail);
+        Profile.accessProfilePage();
+        Profile.alterNameAndEmailAndSave(defaultName, defaultEmail);
     }
 
-    resetPassword(updatedPassword, defaultPassword) {
-        Profile.acessarPaginaDePerfil();
-        Profile.alterarSenhaESalvar(updatedPassword, defaultPassword);
+    resetPassword(newPassword, defaultPassword) {
+        Profile.accessProfilePage();
+        Profile.alterPasswordAndSave(newPassword, defaultPassword);
     }
 }
 

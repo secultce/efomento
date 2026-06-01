@@ -3,38 +3,30 @@ import Login from '../../../pages/auth';
 import CredentialsReset from '../../../pages/auth/credentialsReset.js';
 
 describe('Página de Perfil', () => {
+    beforeEach(() => {
+        cy.fixture('users').as('user');
 
-  let data;
-  beforeEach(() => {
-    cy.fixture('users').then((tData) => {
-      data = tData;
+        cy.get('@user').then((user) => {
+            Login.accessLoginPage();
+            Login.successLogin(user.valid_email, user.password, user.name);
+        });
+
+        Profile.accessProfilePage();
     });
-  })
 
+    it('should update profile information and save', function () {
+        Profile.alterNameAndEmailAndSave(this.user.updated_name, this.user.updated_email);
+        CredentialsReset.resetNameAndEmail(this.user.valid_email, this.user.name);
+    });
 
-  it('Garante que é possível atualizar nome e e-mail do perfil do usuário e salvar', () => {
-    Login.acessarPaginaDeLogin()
-    Login.loginComSucesso(data.valid_email, data.password, data.name)
-    Profile.acessarPaginaDePerfil()
-    Profile.alterarNomeEEmailESalvar(data.updated_name, data.updated_email)
-    CredentialsReset.resetarNomeEEmail(data.valid_email, data.name)
-  })
+    it('should update password and save', function () {
+        Profile.alterPasswordAndSave(this.user.password, this.user.new_password);
+        CredentialsReset.resetPassword(this.user.new_password, this.user.password);
+        Login.logout();
+    });
 
-  it('Garante que é possível alterar a senha e salvar ', () => {
-    Login.acessarPaginaDeLogin()
-    Login.loginComSucesso(data.valid_email, data.password, data.name)
-    Profile.acessarPaginaDePerfil()
-    Profile.alterarSenhaESalvar(data.updated_password, data.password)
-    Login.deslogar()
-
-  })
-
-   it('Garante que é exibida mensagem de erro quando as senha não conferem durante alteração da senha', () => {
-    Login.acessarPaginaDeLogin()
-    Login.loginComSucesso(data.valid_email, data.password, data.name)
-    Profile.acessarPaginaDePerfil()
-    Profile.retornarErroDeSenhas(data.password, data.updated_password, data.incorrect_password)
-    Login.deslogar()
-  })
-
+    it('should display error message when passwords do not match during password update', function () {
+        Profile.returnPasswordUpdateErrors(this.user.password, this.user.new_password, this.user.incorrect_password);
+        Login.logout();
+    });
 });
