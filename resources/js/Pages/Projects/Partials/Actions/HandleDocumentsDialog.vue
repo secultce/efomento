@@ -170,7 +170,6 @@ function handleSave() {
 watch(
     () => headerLayout.value,
     (layout) => {
-        console.log('Edit data:', props.editData);
         if (layout === IMAGE_LAYOUTS.NONE) {
             headerImages.value = [null, null, null];
         }

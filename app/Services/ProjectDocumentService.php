@@ -47,12 +47,16 @@ class ProjectDocumentService
             $documentType = match ($type) {
                 'ci' => DocumentType::CI,
                 'tc' => DocumentType::TC,
+                'et' => DocumentType::ET,
+                'pj' => DocumentType::PJ,
                 default => throw new \Exception('Tipo de documento inválido.')
             };
 
             $phase = match ($type) {
                 'ci' => DocumentPhase::OPENING,
                 'tc' => DocumentPhase::FORMALIZATION,
+                'et' => DocumentPhase::FORMALIZATION,
+                'pj' => DocumentPhase::FORMALIZATION,
                 default => throw new \Exception('Tipo de documento inválido.')
             };
 

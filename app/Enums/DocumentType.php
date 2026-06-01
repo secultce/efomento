@@ -5,8 +5,8 @@ namespace App\Enums;
 enum DocumentType: string
 {
     case TC = 'tc';
-    case EXTRACT = 'extract';
-    case JURIDICAL_OPINION = 'juridical_opinion';
+    case ET = 'et';
+    case PJ = 'pj';
     case DISPATCH = 'dispatch';
     case CI = 'ci';
 
@@ -14,8 +14,8 @@ enum DocumentType: string
     {
         return match ($this) {
             self::TC => 'TC',
-            self::EXTRACT => 'EX',
-            self::JURIDICAL_OPINION => 'PJ',
+            self::ET => 'ET',
+            self::PJ => 'PJ',
             self::DISPATCH => 'PO',
             self::CI => 'CI',
         };
@@ -25,8 +25,8 @@ enum DocumentType: string
     {
         return match ($this) {
             self::TC => 'Termo de Execução Cultural',
-            self::EXTRACT => 'Extrato',
-            self::JURIDICAL_OPINION => 'Parecer Jurídico',
+            self::ET => 'Extrato',
+            self::PJ => 'Parecer Jurídico',
             self::DISPATCH => 'Despacho',
             self::CI => 'Comunicação Interna',
         };

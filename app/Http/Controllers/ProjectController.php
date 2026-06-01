@@ -150,7 +150,7 @@ class ProjectController extends Controller
     public function createDocument(Request $request, ProjectDocumentService $service)
     {
         $data = $request->validate([
-            'type' => 'required|in:ci,tc',
+            'type' => 'required|in:ci,tc,pj,et',
 
             'selected_projects' => 'required|array|min:1',
             'selected_projects.*' => 'exists:projects,id',
@@ -185,9 +185,7 @@ class ProjectController extends Controller
 
             return back()->with(
                 'success',
-                $data['type'] === 'ci'
-                    ? 'Comunicações internas criadas com sucesso!'
-                    : 'Termos criados com sucesso!'
+                'Documento criado com sucesso! Você pode editá-lo ou baixá-lo na seção de documentos do projeto.'
             );
         } catch (\Throwable $e) {
             report($e);
