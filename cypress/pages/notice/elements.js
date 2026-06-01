@@ -1,4 +1,7 @@
 export const elements = {
+    //
+    appContainer: '#app',
+
     // Dashboard
     dashboardCard: '[data-cy=card-dashboard]',
     welcomeMessage: '[data-cy=welcome-message]',
