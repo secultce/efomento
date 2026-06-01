@@ -32,9 +32,7 @@ describe('Project Page', () => {
 
     describe('Search Functionality', () => {
         it('should search for a project by project NUP', function () {
-            cy.get('@currentProject').then((project) => {
-                Project.findProjectByProjectNup(project.project_nup);
-            });
+            Project.findProjectByProjectNup();
         });
 
         it('should return no results for an invalid process number', function () {
