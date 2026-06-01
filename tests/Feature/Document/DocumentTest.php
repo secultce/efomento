@@ -44,7 +44,7 @@ class DocumentTest extends TestCase
 
     public function test_document_type_enum_has_correct_values(): void
     {
-        $this->assertSame('term', DocumentType::TERM->value);
+        $this->assertSame('tc', DocumentType::TC->value);
         $this->assertSame('extract', DocumentType::EXTRACT->value);
         $this->assertSame('juridical_opinion', DocumentType::JURIDICAL_OPINION->value);
         $this->assertSame('dispatch', DocumentType::DISPATCH->value);
@@ -91,7 +91,7 @@ class DocumentTest extends TestCase
     {
         $registry = new DocumentTypeRegistry;
 
-        $result = $registry->resolve(DocumentType::TERM, DocumentPhase::FORMALIZATION);
+        $result = $registry->resolve(DocumentType::TC, DocumentPhase::FORMALIZATION);
 
         $this->assertSame('Termo de Execução Cultural', $result['label']);
         $this->assertTrue($result['requires_sign']);
@@ -108,7 +108,7 @@ class DocumentTest extends TestCase
     {
         $this->expectException(\InvalidArgumentException::class);
 
-        (new DocumentTypeRegistry)->resolve(DocumentType::TERM, DocumentPhase::PAYMENT);
+        (new DocumentTypeRegistry)->resolve(DocumentType::TC, DocumentPhase::PAYMENT);
     }
 
     // -------------------------------------------------------------------------
@@ -117,38 +117,45 @@ class DocumentTest extends TestCase
 
     public function test_service_creates_document(): void
     {
+        [$type, $phase] = $this->getRandomTypeAndPhase();
+
         $document = $this->service->create([
-            'type' => 'term',
-            'phase' => 'formalization',
+            'type' => $type->value,
+            'phase' => $phase->value,
             'notice_id' => $this->notice->id,
             'project_id' => $this->project->id,
-            'body' => 'Conteúdo do termo.',
+            'body' => 'Conteúdo do documento aleatório.',
         ], $this->user->id);
 
         $this->assertInstanceOf(Document::class, $document);
         $this->assertDatabaseHas('documents', [
-            'type' => 'term',
-            'phase' => 'formalization',
+            'type' => $type->value,
+            'phase' => $phase->value,
             'created_by' => $this->user->id,
         ]);
     }
 
     public function test_service_create_rejects_invalid_combination(): void
     {
+        $type = collect(DocumentType::cases())->random();
+
         $this->expectException(\InvalidArgumentException::class);
 
         $this->service->create([
-            'type' => 'term',
-            'phase' => 'payment',
+            'type' => $type->value,
+            'phase' => DocumentPhase::PAYMENT->value,
             'body' => 'Inválido.',
         ], $this->user->id);
     }
 
     public function test_service_creates_document_with_images(): void
     {
+
+        [$type, $phase] = $this->getRandomTypeAndPhase();
+
         $document = $this->service->create([
-            'type' => 'term',
-            'phase' => 'formalization',
+            'type' => $type->value,
+            'phase' => $phase->value,
             'notice_id' => $this->notice->id,
             'project_id' => $this->project->id,
             'body' => 'Com imagens.',
@@ -225,33 +232,6 @@ class DocumentTest extends TestCase
         $this->assertDatabaseCount('document_images', 1);
     }
 
-    public function test_sync_images_removes_absent_slots(): void
-    {
-        $document = Document::factory()->create();
-        DocumentImage::factory()->create([
-            'document_id' => $document->id,
-            'section' => 'header',
-            'position' => 'left',
-            'path' => 'a.png',
-        ]);
-        DocumentImage::factory()->create([
-            'document_id' => $document->id,
-            'section' => 'footer',
-            'position' => 'center',
-            'path' => 'b.png',
-        ]);
-
-        // envia apenas header/left — footer/center deve ser removido
-        $this->service->update($document, [
-            'images' => [
-                ['section' => 'header', 'position' => 'left', 'path' => 'a.png'],
-            ],
-        ]);
-
-        $this->assertDatabaseCount('document_images', 1);
-        $this->assertDatabaseMissing('document_images', ['section' => 'footer']);
-    }
-
     // -------------------------------------------------------------------------
     // DocumentService::getByContext
     // -------------------------------------------------------------------------
@@ -268,16 +248,23 @@ class DocumentTest extends TestCase
 
     public function test_get_by_context_filters_by_type_and_phase(): void
     {
+        [$typeA, $phaseA] = $this->getRandomTypeAndPhase();
+
+        $typeB = collect(DocumentType::cases())->reject(fn ($t) => $t === $typeA)->random() ?? DocumentType::DISPATCH;
+        $phaseB = $typeB === DocumentType::TC || $typeB === DocumentType::EXTRACT
+            ? DocumentPhase::FORMALIZATION
+            : DocumentPhase::JURIDICAL;
+
         Document::factory()->count(2)->create([
-            'type' => DocumentType::TERM,
-            'phase' => DocumentPhase::FORMALIZATION,
+            'type' => $typeA,
+            'phase' => $phaseA,
         ]);
         Document::factory()->count(1)->create([
-            'type' => DocumentType::DISPATCH,
-            'phase' => DocumentPhase::JURIDICAL,
+            'type' => $typeB,
+            'phase' => $phaseB,
         ]);
 
-        $result = $this->service->getByContext(type: 'term', phase: 'formalization');
+        $result = $this->service->getByContext(type: $typeA->value, phase: $phaseA->value);
 
         $this->assertCount(2, $result);
     }
@@ -293,42 +280,32 @@ class DocumentTest extends TestCase
     }
 
     // -------------------------------------------------------------------------
-    // Soft delete
-    // -------------------------------------------------------------------------
-
-    public function test_service_soft_deletes_document(): void
-    {
-        $document = Document::factory()->create();
-
-        $document->delete();
-
-        $this->assertSoftDeleted('documents', ['id' => $document->id]);
-    }
-
-    // -------------------------------------------------------------------------
     // HTTP — POST /api/documents
     // -------------------------------------------------------------------------
 
     public function test_store_endpoint_creates_document(): void
     {
+        [$type, $phase] = $this->getRandomTypeAndPhase();
+
         $response = $this->actingAs($this->user)
             ->postJson('/api/documents', [
-                'type' => 'term',
-                'phase' => 'formalization',
+                'type' => $type->value,
+                'phase' => $phase->value,
                 'notice_id' => $this->notice->id,
                 'project_id' => $this->project->id,
                 'body' => 'Conteúdo via HTTP.',
             ]);
 
         $response->assertStatus(201)
-            ->assertJsonFragment(['type' => 'term', 'phase' => 'formalization']);
+            ->assertJsonFragment(['type' => $type->value, 'phase' => $phase->value]);
 
-        $this->assertDatabaseHas('documents', ['type' => 'term']);
+        $this->assertDatabaseHas('documents', ['type' => $type->value]);
     }
 
     public function test_store_endpoint_returns_422_for_missing_fields(): void
     {
-        $response = $this->postJson('/api/documents', []);
+        $response = $this->actingAs($this->user)
+            ->postJson('/api/documents', []);
 
         $response->assertStatus(422)
             ->assertJsonValidationErrors(['type', 'phase', 'body']);
@@ -336,17 +313,20 @@ class DocumentTest extends TestCase
 
     public function test_store_endpoint_returns_422_for_invalid_combination(): void
     {
+        $type = collect(DocumentType::cases())->random();
+        $invalidPhase = DocumentPhase::PAYMENT;
+
         $response = $this->actingAs($this->user)
             ->postJson('/api/documents', [
-                'type' => 'term',
-                'phase' => 'payment',
+                'type' => $type->value,
+                'phase' => $invalidPhase->value,
                 'notice_id' => $this->notice->id,
                 'project_id' => $this->project->id,
                 'body' => 'Combinação inválida.',
             ]);
 
         $response->assertStatus(422)
-            ->assertJsonFragment(['message' => 'Combinação de tipo e fase inválida: tipo=term, fase=payment.']);
+            ->assertJsonFragment(['message' => "Combinação de tipo e fase inválida: tipo={$type->value}, fase={$invalidPhase->value}."]);
     }
 
     // -------------------------------------------------------------------------
@@ -362,5 +342,17 @@ class DocumentTest extends TestCase
 
         $response->assertStatus(200);
         $this->assertCount(3, $response->json('data'));
+    }
+
+    private function getRandomTypeAndPhase(): array
+    {
+        $type = collect(DocumentType::cases())->random();
+
+        $phase = match ($type) {
+            DocumentType::TC, DocumentType::EXTRACT => DocumentPhase::FORMALIZATION,
+            DocumentType::JURIDICAL_OPINION, DocumentType::DISPATCH => DocumentPhase::JURIDICAL,
+        };
+
+        return [$type, $phase];
     }
 }

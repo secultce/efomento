@@ -10,11 +10,16 @@ class OpeningSupervisor extends Model
 {
     use HasFactory;
 
+    const TYPE_PRINCIPAL = 'principal';
+
+    const TYPE_ALTERNATE = 'alternate';
+
     protected $table = 'opening_supervisor';
 
     protected $fillable = [
         'opening_id',
         'user_id',
+        'type',
         'assigned_by',
         'is_active',
         'assigned_at',

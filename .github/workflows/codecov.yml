@@ -1,0 +1,35 @@
+name: Codecov
+
+on:
+  pull_request:
+    branches: [main, develop]
+
+permissions:
+  contents: read
+
+jobs:
+  coverage:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+        with:
+          persist-credentials: false
+
+      - uses: shivammathur/setup-php@7c071dfe9dc99bdf297fa79cb49ea005b9fcadbc # v2
+        with:
+          php-version: "8.4"
+          coverage: pcov
+
+      - name: Instalar dependências PHP
+        run: composer install --no-interaction --prefer-dist
+
+      - name: Rodar testes com cobertura
+        run: ./vendor/bin/phpunit --coverage-clover coverage.xml
+
+      - name: Enviar relatório ao Codecov
+        uses: codecov/codecov-action@75cd11691c0faa626561e295848008c8a7dddffe # v5
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          files: coverage.xml
+          fail_ci_if_error: true

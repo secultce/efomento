@@ -88,10 +88,12 @@ class ProjectController extends Controller
             'category',
             'opening',
             'opening.supervisors' => function ($q) {
-                $q->whereNull('removed_at');
+                $q->whereNull('removed_at')
+                    ->orderByRaw("CASE type WHEN 'principal' THEN 0 WHEN 'alternate' THEN 1 ELSE 2 END");
             },
             'opening.supervisors.user',
             'documents',
+            'documents.images',
             'budget',
             'budget.installments',
             'formalization',
@@ -165,6 +167,43 @@ class ProjectController extends Controller
 
             return back()->withErrors([
                 'message' => $e->getMessage() ?: 'Erro ao criar comunicações internas. Tente novamente.',
+            ]);
+        }
+    }
+
+    public function createTC(Request $request, ProjectDocumentService $service)
+    {
+        $data = $request->validate([
+            'selected_projects' => 'required|array|min:1',
+            'selected_projects.*' => 'exists:projects,id',
+
+            'content' => 'required|string',
+
+            'header_images' => 'nullable|array',
+            'header_images.*.id' => 'nullable|integer',
+            'header_images.*.file' => 'nullable|image',
+            'header_images.*._delete' => 'nullable|in:1',
+
+            'footer_images' => 'nullable|array',
+            'footer_images.*.id' => 'nullable|integer',
+            'footer_images.*.file' => 'nullable|image',
+            'footer_images.*._delete' => 'nullable|in:1',
+        ]);
+
+        try {
+            $service->createDocumentTC(
+                selectedProjects: $data['selected_projects'],
+                content: $data['content'],
+                headerImages: $data['header_images'] ?? [],
+                footerImages: $data['footer_images'] ?? [],
+            );
+
+            return back()->with('success', 'Termos criados com sucesso!');
+        } catch (\Throwable $e) {
+            report($e);
+
+            return back()->withErrors([
+                'message' => $e->getMessage() ?: 'Erro ao criar termos. Tente novamente.',
             ]);
         }
     }

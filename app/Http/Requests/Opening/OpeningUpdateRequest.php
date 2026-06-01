@@ -26,6 +26,7 @@ class OpeningUpdateRequest extends FormRequest
 
             'opening.supervisors' => ['array'],
             'opening.supervisors.*.id' => ['nullable', 'exists:users,id'],
+            'opening.supervisors.*.type' => ['nullable', 'string', 'in:principal,alternate'],
             'opening.supervisors.*.registration_number' => ['nullable', 'string'],
 
             'formalization.report_status' => ['nullable', 'string'],

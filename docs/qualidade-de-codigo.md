@@ -161,3 +161,20 @@ Executado em Pull Requests direcionados às branches `main` ou `develop`.
 Os dois jobs rodam em paralelo e são independentes.
 
 > O CI não corrige automaticamente — apenas detecta problemas. A correção deve ser feita localmente antes de abrir o PR.
+
+---
+
+## Cobertura de testes — Codecov
+
+### `.github/workflows/codecov.yml`
+
+Executado em Pull Requests direcionados às branches `main` ou `develop`.
+
+**Job `coverage`** (PHP 8.4 + PCOV):
+1. Faz checkout do código
+2. Instala PHP 8.4 com a extensão **PCOV** habilitada (mais rápida que Xdebug para cobertura em CI)
+3. Instala dependências via `composer install`
+4. Executa `./vendor/bin/phpunit --coverage-clover coverage.xml`
+5. Envia o relatório `coverage.xml` ao [Codecov](https://app.codecov.io/) via `codecov/codecov-action@v5`
+
+> Requer o secret `CODECOV_TOKEN` configurado no repositório (Settings → Secrets → Actions). O token está disponível nas configurações do repositório em app.codecov.io.

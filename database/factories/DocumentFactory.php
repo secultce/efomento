@@ -18,7 +18,7 @@ class DocumentFactory extends Factory
     public function definition(): array
     {
         $combinations = [
-            [DocumentType::TERM,             DocumentPhase::FORMALIZATION],
+            [DocumentType::TC,             DocumentPhase::FORMALIZATION],
             [DocumentType::EXTRACT,          DocumentPhase::FORMALIZATION],
             [DocumentType::JURIDICAL_OPINION, DocumentPhase::JURIDICAL],
             [DocumentType::DISPATCH,          DocumentPhase::JURIDICAL],

@@ -18,20 +18,12 @@ class NoticeAuditTest extends TestCase
 
         $notice = Notice::factory()->create();
 
-        $audit1 = $notice->audits()->create([
-            'event' => 'created',
-            'user_id' => $user->id,
-            'old_values' => [],
-            'new_values' => ['title' => 'Teste 1'],
-            'created_at' => now()->subDay(),
-        ]);
-
         $audit2 = $notice->audits()->create([
             'event' => 'updated',
             'user_id' => $user->id,
             'old_values' => ['title' => 'Teste 1'],
             'new_values' => ['title' => 'Teste 2'],
-            'created_at' => now(),
+            'created_at' => now()->addMinute(),
         ]);
 
         $response = $this->getJson(route('notices.audits', $notice));

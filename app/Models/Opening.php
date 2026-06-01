@@ -77,7 +77,7 @@ class Opening extends Model implements Auditable
             ->latestOfMany('assigned_at');
     }
 
-    public function assignSupervisors(array $supervisorIds): void
+    public function assignSupervisors(array $supervisors): void
     {
         OpeningSupervisor::where('opening_id', $this->id)
             ->where('is_active', true)
@@ -86,10 +86,11 @@ class Opening extends Model implements Auditable
                 'removed_at' => now(),
             ]);
 
-        foreach ($supervisorIds as $supervisorId) {
+        foreach ($supervisors as $supervisor) {
             OpeningSupervisor::create([
                 'opening_id' => $this->id,
-                'user_id' => $supervisorId,
+                'user_id' => $supervisor['id'],
+                'type' => $supervisor['type'] ?? null,
                 'assigned_by' => Auth::id(),
                 'assigned_at' => now(),
                 'is_active' => true,

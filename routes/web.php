@@ -59,6 +59,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
         ->name('projects.assign-supervisors');
     Route::post('/projetos/criar-ci', [ProjectController::class, 'createCI'])
         ->name('projects.create-ci');
+    Route::post('/projetos/criar-tc', [ProjectController::class, 'createTC'])
+        ->name('projects.create-tc');
     Route::get('/projetos/documentos/{document}/download', [DocumentController::class, 'download'])
         ->name('documents.download');
     Route::post('/projetos/documentos/download-zip', [DocumentController::class, 'downloadZip'])
