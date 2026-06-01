@@ -2,6 +2,7 @@
 import { ref } from 'vue';
 import OpeningTab from './Tabs/OpeningTab.vue';
 import LegalAnalysisTab from './Tabs/LegalAnalysisTab.vue';
+import { useAuth } from '@/Composables/useAuth.js';
 
 defineProps({
     project: { type: Object, default: null },
@@ -13,7 +14,7 @@ defineProps({
     canReturn: { type: Boolean, default: false },
 });
 
-const tab = ref('1');
+const tab = ref('opening');
 
 const tabs = [
     { value: 'opening', label: 'Abertura' },

@@ -1,9 +1,9 @@
 <script setup>
 import { computed, ref } from 'vue';
 import NoticeHistoryDialog from '@/Pages/Projects/Partials/Actions/NoticeHistoryDialog.vue';
-import HandleTCDialog from '@/Pages/Projects/Partials/Actions/Formalization/HandleTCDialog.vue';
-import DocumentListDialog from '@/Pages/Projects/Partials/Actions/Formalization/DocumentListDialog.vue';
 import { downloadDocumentsZip } from '@/Services/documentService';
+import HandleDocumentsDialog from '../HandleDocumentsDialog.vue';
+import DocumentListDialog from '../DocumentListDialog.vue';
 
 const props = defineProps({
     selectedProjects: { type: Array, default: () => [] },
@@ -82,7 +82,7 @@ const selectedTC = computed(() => {
 </script>
 
 <template>
-    <HandleTCDialog v-model="TCDialog" :project-ids="selectedProjects" :edit-data="selectedTC" />
+    <HandleDocumentsDialog v-model="TCDialog" type="tc" :project-ids="selectedProjects" :edit-data="selectedTC" />
     <NoticeHistoryDialog v-model="viewHistory" :notice-id="notice?.id" />
     <DocumentListDialog v-model="docListDialog" :documents="selectedDocuments" />
     <v-card class="w-full pb-4 pt-4 !shadow-none border border-gray-800 rounded-lg">

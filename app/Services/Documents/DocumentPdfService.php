@@ -27,7 +27,7 @@ class DocumentPdfService
         $document->loadMissing(self::RELATIONS);
         $document->body = $this->replacePlaceholders($document);
 
-        return Pdf::loadView('pdf.'.$type, ['document' => $document])
+        return Pdf::loadView('pdf.document', ['document' => $document])
             ->setPaper('a4', 'portrait')
             ->download($this->generateFilename($document, $type));
     }
@@ -50,7 +50,7 @@ class DocumentPdfService
         foreach ($documents as $document) {
             $document->body = $this->replacePlaceholders($document);
 
-            $pdf = Pdf::loadView('pdf.'.$document->type->value, ['document' => $document])
+            $pdf = Pdf::loadView('pdf.document', ['document' => $document])
                 ->setPaper('a4', 'portrait');
 
             $zip->addFromString($this->generateFilename($document, $type), $pdf->output());
