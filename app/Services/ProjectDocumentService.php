@@ -7,7 +7,7 @@ use App\Enums\DocumentImageSection;
 use App\Enums\DocumentType;
 use App\Models\Document;
 use App\Models\Project;
-use App\Support\FileUploader;
+use App\Support\ImageSync;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 
@@ -35,23 +35,23 @@ class ProjectDocumentService
                 throw new \Exception('O conteúdo do documento não pode ser vazio.');
             }
 
-            $processedHeader = FileUploader::handle($headerImages);
-            $processedFooter = FileUploader::handle($footerImages);
-
             $projects = Project::whereIn('id', $selectedProjects)->get();
+            $phase = $type->phase();
 
             if ($projects->isEmpty()) {
                 throw new \Exception('Nenhum projeto selecionado.');
             }
 
-            $phase = $type->phase();
+            $documents = Document::whereIn('project_id', $projects->pluck('id'))
+                ->where('type', $type)
+                ->where('phase', $phase)
+                ->with('images')
+                ->get()
+                ->keyBy('project_id');
 
             foreach ($projects as $project) {
 
-                $document = $project->documents()
-                    ->where('type', $type)
-                    ->where('phase', $phase)
-                    ->first();
+                $document = $documents->get($project->id);
 
                 if ($document) {
 
@@ -59,8 +59,10 @@ class ProjectDocumentService
                         'body' => $content,
                     ]);
 
-                    $existingImages = $document->images()
-                        ->get()
+                    $processedHeader = ImageSync::handle($headerImages, fn () => $document->images);
+                    $processedFooter = ImageSync::handle($footerImages, fn () => $document->images);
+
+                    $existingImages = $document->images
                         ->groupBy(fn ($img) => $img->section->value)
                         ->map(fn ($group) => $group->keyBy('position'));
 
@@ -91,6 +93,9 @@ class ProjectDocumentService
                     'body' => $content,
                     'created_by' => auth()->id(),
                 ]);
+
+                $processedHeader = ImageSync::handle($headerImages, fn () => $document->images);
+                $processedFooter = ImageSync::handle($footerImages, fn () => $document->images);
 
                 $this->persistImages(
                     $document,

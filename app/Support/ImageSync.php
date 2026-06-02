@@ -2,14 +2,13 @@
 
 namespace App\Support;
 
-use App\Models\Document;
-use Illuminate\Http\UploadedFile;
-
-class FileUploader
+class ImageSync
 {
-    public static function handle(array $items): array
+    public static function handle(array $items, callable $resolver): array
     {
         $processed = [];
+
+        $relation = $resolver();
 
         foreach ($items as $index => $item) {
             if (! is_array($item)) {
@@ -18,16 +17,19 @@ class FileUploader
                 continue;
             }
 
-            // Upload new file
-            if (! empty($item['file']) && $item['file'] instanceof UploadedFile) {
+            // upload
+            if (! empty($item['file'])) {
                 $item['path'] = $item['file']->store('documents', 'public');
                 unset($item['file']);
             }
 
-            // Restore existing file path if needed
-            if (! empty($item['id']) && empty($item['_delete']) && empty($item['path'])) {
-                $existing = Document::query()
-                    ->find($item['id']);
+            // restore
+            if (
+                ! empty($item['id']) &&
+                empty($item['_delete']) &&
+                empty($item['path'])
+            ) {
+                $existing = $relation->firstWhere('id', $item['id']);
 
                 if ($existing) {
                     $item['path'] = $existing->path;
