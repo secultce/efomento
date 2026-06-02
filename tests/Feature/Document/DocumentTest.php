@@ -97,7 +97,7 @@ class DocumentTest extends TestCase
         $this->assertTrue($result['requires_sign']);
         $this->assertFalse($result['requires_legal']);
 
-        $result = $registry->resolve(DocumentType::PJ, DocumentPhase::JURIDICAL);
+        $result = $registry->resolve(DocumentType::PJ, DocumentPhase::FORMALIZATION);
 
         $this->assertSame('Parecer Jurídico', $result['label']);
         $this->assertTrue($result['requires_sign']);
@@ -348,10 +348,7 @@ class DocumentTest extends TestCase
     {
         $type = collect(DocumentType::cases())->random();
 
-        $phase = match ($type) {
-            DocumentType::TC, DocumentType::ET => DocumentPhase::FORMALIZATION,
-            DocumentType::PJ, DocumentType::PO => DocumentPhase::JURIDICAL,
-        };
+        $phase = $type->phase();
 
         return [$type, $phase];
     }

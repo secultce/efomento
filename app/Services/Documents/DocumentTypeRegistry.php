@@ -18,7 +18,7 @@ class DocumentTypeRegistry
             'requires_sign' => false,
             'requires_legal' => false,
         ],
-        'pj+juridical' => [
+        'pj+formalization' => [
             'label' => 'Parecer Jurídico',
             'requires_sign' => true,
             'requires_legal' => true,
