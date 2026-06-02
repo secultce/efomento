@@ -31,9 +31,10 @@ class ProjectDocumentServiceTest extends TestCase
 
         $service = new ProjectDocumentService;
 
-        $service->createDocumentCI(
+        $service->createDocument(
+            'ci',
             [$project->id],
-            'Teste CI'
+            'Teste CI',
         );
 
         $this->assertDatabaseHas('documents', [
@@ -72,7 +73,8 @@ class ProjectDocumentServiceTest extends TestCase
 
         $service = new ProjectDocumentService;
 
-        $service->createDocumentCI(
+        $service->createDocument(
+            'ci',
             [$projectWithCI->id, $projectWithoutCI->id],
             'Novo conteúdo'
         );
@@ -82,7 +84,8 @@ class ProjectDocumentServiceTest extends TestCase
             Document::whereIn('project_id', [
                 $projectWithCI->id,
                 $projectWithoutCI->id,
-            ])->count());
+            ])->count()
+        );
 
         $this->assertDatabaseHas('documents', [
             'id' => $existingDoc->id,
@@ -114,7 +117,7 @@ class ProjectDocumentServiceTest extends TestCase
 
         $project = Project::factory()->create();
 
-        $service->createDocumentCI([$project->id], '');
+        $service->createDocument('ci', [$project->id], '');
     }
 
     #[Test]
@@ -126,6 +129,6 @@ class ProjectDocumentServiceTest extends TestCase
 
         $project = Project::factory()->create();
 
-        $service->createDocumentCI([], 'Teste CI');
+        $service->createDocument('ci', [], 'Teste CI');
     }
 }

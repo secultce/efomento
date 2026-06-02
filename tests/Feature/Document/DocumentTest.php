@@ -45,9 +45,9 @@ class DocumentTest extends TestCase
     public function test_document_type_enum_has_correct_values(): void
     {
         $this->assertSame('tc', DocumentType::TC->value);
-        $this->assertSame('extract', DocumentType::EXTRACT->value);
-        $this->assertSame('juridical_opinion', DocumentType::JURIDICAL_OPINION->value);
-        $this->assertSame('dispatch', DocumentType::DISPATCH->value);
+        $this->assertSame('et', DocumentType::ET->value);
+        $this->assertSame('pj', DocumentType::PJ->value);
+        $this->assertSame('po', DocumentType::PO->value);
 
         $this->assertSame('draft', DocumentStatus::DRAFT->value);
         $this->assertSame('pending_signature', DocumentStatus::PENDING_SIGNATURE->value);
@@ -97,7 +97,7 @@ class DocumentTest extends TestCase
         $this->assertTrue($result['requires_sign']);
         $this->assertFalse($result['requires_legal']);
 
-        $result = $registry->resolve(DocumentType::JURIDICAL_OPINION, DocumentPhase::JURIDICAL);
+        $result = $registry->resolve(DocumentType::PJ, DocumentPhase::JURIDICAL);
 
         $this->assertSame('Parecer Jurídico', $result['label']);
         $this->assertTrue($result['requires_sign']);
@@ -250,8 +250,8 @@ class DocumentTest extends TestCase
     {
         [$typeA, $phaseA] = $this->getRandomTypeAndPhase();
 
-        $typeB = collect(DocumentType::cases())->reject(fn ($t) => $t === $typeA)->random() ?? DocumentType::DISPATCH;
-        $phaseB = $typeB === DocumentType::TC || $typeB === DocumentType::EXTRACT
+        $typeB = collect(DocumentType::cases())->reject(fn ($t) => $t === $typeA)->random() ?? DocumentType::PO;
+        $phaseB = $typeB === DocumentType::TC || $typeB === DocumentType::ET
             ? DocumentPhase::FORMALIZATION
             : DocumentPhase::JURIDICAL;
 
@@ -349,8 +349,8 @@ class DocumentTest extends TestCase
         $type = collect(DocumentType::cases())->random();
 
         $phase = match ($type) {
-            DocumentType::TC, DocumentType::EXTRACT => DocumentPhase::FORMALIZATION,
-            DocumentType::JURIDICAL_OPINION, DocumentType::DISPATCH => DocumentPhase::JURIDICAL,
+            DocumentType::TC, DocumentType::ET => DocumentPhase::FORMALIZATION,
+            DocumentType::PJ, DocumentType::PO => DocumentPhase::JURIDICAL,
         };
 
         return [$type, $phase];
