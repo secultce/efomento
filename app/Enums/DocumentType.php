@@ -7,7 +7,7 @@ enum DocumentType: string
     case TC = 'tc';
     case ET = 'et';
     case PJ = 'pj';
-    case DISPATCH = 'dispatch';
+    case PO = 'po';
     case CI = 'ci';
 
     public function label(): string
@@ -16,7 +16,7 @@ enum DocumentType: string
             self::TC => 'TC',
             self::ET => 'ET',
             self::PJ => 'PJ',
-            self::DISPATCH => 'PO',
+            self::PO => 'PO',
             self::CI => 'CI',
         };
     }
@@ -27,7 +27,7 @@ enum DocumentType: string
             self::TC => 'Termo de Execução Cultural',
             self::ET => 'Extrato',
             self::PJ => 'Parecer Jurídico',
-            self::DISPATCH => 'Despacho',
+            self::PO => 'Despacho',
             self::CI => 'Comunicação Interna',
         };
     }

@@ -18,10 +18,10 @@ class DocumentFactory extends Factory
     public function definition(): array
     {
         $combinations = [
-            [DocumentType::TC,             DocumentPhase::FORMALIZATION],
-            [DocumentType::EXTRACT,          DocumentPhase::FORMALIZATION],
-            [DocumentType::JURIDICAL_OPINION, DocumentPhase::JURIDICAL],
-            [DocumentType::DISPATCH,          DocumentPhase::JURIDICAL],
+            [DocumentType::TC, DocumentPhase::FORMALIZATION],
+            [DocumentType::ET, DocumentPhase::FORMALIZATION],
+            [DocumentType::PJ, DocumentPhase::JURIDICAL],
+            [DocumentType::PO, DocumentPhase::JURIDICAL],
         ];
 
         [$type, $phase] = $this->faker->randomElement($combinations);
