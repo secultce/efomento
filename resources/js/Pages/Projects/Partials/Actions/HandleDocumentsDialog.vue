@@ -207,9 +207,12 @@ watch(
 
             if (props.editData.header_layout) {
                 headerLayout.value = props.editData.header_layout;
-            } else if (existingHeaderImages.length === 1) {
+            } else if (existingHeaderImages.length === 1 && existingHeaderImages[0]?.is_full_width) {
                 headerLayout.value = IMAGE_LAYOUTS.FULL;
-            } else if (existingHeaderImages.length > 1) {
+            } else if (
+                existingHeaderImages.length > 1 ||
+                (existingHeaderImages.length === 1 && !existingHeaderImages[0]?.is_full_width)
+            ) {
                 headerLayout.value = IMAGE_LAYOUTS.THREE;
             } else {
                 headerLayout.value = IMAGE_LAYOUTS.NONE;
@@ -217,9 +220,12 @@ watch(
 
             if (props.editData.footer_layout) {
                 footerLayout.value = props.editData.footer_layout;
-            } else if (existingFooterImages.length === 1) {
+            } else if (existingFooterImages.length === 1 && existingFooterImages[0]?.is_full_width) {
                 footerLayout.value = IMAGE_LAYOUTS.FULL;
-            } else if (existingFooterImages.length > 1) {
+            } else if (
+                existingFooterImages.length > 1 ||
+                (existingFooterImages.length === 1 && !existingFooterImages[0]?.is_full_width)
+            ) {
                 footerLayout.value = IMAGE_LAYOUTS.THREE;
             } else {
                 footerLayout.value = IMAGE_LAYOUTS.NONE;

@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Enums\DocumentType;
 use App\Models\Document;
 use App\Models\Opening;
 use App\Models\Project;
@@ -32,7 +33,7 @@ class ProjectDocumentServiceTest extends TestCase
         $service = new ProjectDocumentService;
 
         $service->createDocument(
-            'ci',
+            DocumentType::from('ci'),
             [$project->id],
             'Teste CI',
         );
@@ -74,7 +75,7 @@ class ProjectDocumentServiceTest extends TestCase
         $service = new ProjectDocumentService;
 
         $service->createDocument(
-            'ci',
+            DocumentType::from('ci'),
             [$projectWithCI->id, $projectWithoutCI->id],
             'Novo conteúdo'
         );
@@ -117,7 +118,7 @@ class ProjectDocumentServiceTest extends TestCase
 
         $project = Project::factory()->create();
 
-        $service->createDocument('ci', [$project->id], '');
+        $service->createDocument(DocumentType::from('ci'), [$project->id], '');
     }
 
     #[Test]
@@ -129,6 +130,6 @@ class ProjectDocumentServiceTest extends TestCase
 
         $project = Project::factory()->create();
 
-        $service->createDocument('ci', [], 'Teste CI');
+        $service->createDocument(DocumentType::from('ci'), [], 'Teste CI');
     }
 }

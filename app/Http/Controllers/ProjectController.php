@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Enums\AccountType;
 use App\Enums\AgentStatus;
+use App\Enums\DocumentType;
 use App\Enums\InstrumentType;
 use App\Enums\OpeningStatus;
 use App\Enums\ProjectStageSlug;
@@ -178,7 +179,7 @@ class ProjectController extends Controller
                 content: $data['content'],
                 headerImages: $data['header_images'] ?? [],
                 footerImages: $data['footer_images'] ?? [],
-                type: $data['type'],
+                type: DocumentType::from($data['type']),
                 headerLayout: $data['header_layout'] ?? 'none',
                 footerLayout: $data['footer_layout'] ?? 'none',
             );

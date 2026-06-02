@@ -31,4 +31,15 @@ enum DocumentType: string
             self::CI => 'Comunicação Interna',
         };
     }
+
+    public function phase(): DocumentPhase
+    {
+        return match ($this) {
+            self::CI => DocumentPhase::OPENING,
+            self::TC,
+            self::ET,
+            self::PJ => DocumentPhase::FORMALIZATION,
+            self::PO => DocumentPhase::JURIDICAL,
+        };
+    }
 }
