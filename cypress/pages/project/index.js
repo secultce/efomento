@@ -22,7 +22,7 @@ class Project {
 
                 projects.push({
                     agentName,
-                    projectNup,
+                    projectNup: projectNup && projectNup !== '-' ? projectNup : null,
                 });
             });
 
@@ -32,24 +32,22 @@ class Project {
         });
     }
 
-    findProjectByProjectNup(projectNup) {
-        cy.get(el.findProjectPageInput, { timeout: TIMEOUTS.DEFAULT }).should('be.visible');
+    findProjectByProjectNup() {
+        this.getProjectData().then((data) => {
+            const projectNup = data.projectNup;
 
-        cy.get(el.findProjectPageInput).type(projectNup, { delay: 50 });
+            cy.log('projectNup', projectNup);
 
-        cy.get(el.projectList).within(() => {
-            cy.get(el.projectNupProjectList, { timeout: TIMEOUTS.SEARCH })
-                .closest(el.projectNupProjectList)
-                .contains(projectNup)
-                .should('be.visible')
-                .first();
+            cy.get(`${el.findProjectPageInput} input`, { timeout: TIMEOUTS.DEFAULT }).should('be.visible').clear();
+
+            cy.get(`${el.findProjectPageInput} input`).type(projectNup);
+
+            cy.get(el.projectList).within(() => {
+                cy.get(el.projectNupProjectList, { timeout: TIMEOUTS.SEARCH })
+                    .contains(projectNup)
+                    .should('be.visible');
+            });
         });
-        cy.get(el.projectNupProjectList, { timeout: TIMEOUTS.SEARCH })
-            .closest(el.projectNupProjectList)
-            .should('be.visible')
-            .contains(projectNup)
-            .should('be.visible')
-            .first();
     }
 
     findProjectByNonExistentProjectNup() {
