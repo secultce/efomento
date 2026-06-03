@@ -13,7 +13,7 @@ defineProps({
     canReturn: { type: Boolean, default: false },
 });
 
-const tab = ref('1');
+const tab = ref('opening');
 
 const tabs = [
     { value: 'opening', label: 'Abertura' },

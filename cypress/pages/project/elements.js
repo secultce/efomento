@@ -1,7 +1,12 @@
 export const elements = {
-    inputFindProjectPage: '[data-cy=inputFindProjectPage]',
-    processNumberProjectList: '[data-cy=processNumberProjectList]',
-    messageNoDataAvailable: '[data-cy=messageNoDataAvailable]',
+    projectList: '[data-cy=project-list-table]',
+    openProjectOpeningTabButton: '[data-cy=open-project-opening-tab-button]',
+    findProjectPageInput: '[data-cy=find-project-input]',
+    projectNupProjectList: '[data-cy=project-nup-project-list]',
+    rowTableProjectList: '[data-cy=project-list-row-table]',
+    agentNameProjectList: '[data-cy=agent-name-project-list]',
+    noDataAvailableMessage: '[data-cy=no-data-available-message]',
+    phaseProjectList: '[data-cy=phase-project-list]',
 };
 
 // Constantes de timeout para melhor manutenibilidade

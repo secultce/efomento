@@ -7,32 +7,79 @@ class Project {
         cy.get(noticeEl.appContainer, { timeout: TIMEOUTS.LONG }).should('be.visible');
     }
 
-    findByProcessNumber(processNumber) {
-        cy.get(el.inputFindProjectPage, { timeout: TIMEOUTS.DEFAULT }).should('be.visible').clear();
-
-        cy.get(el.inputFindProjectPage).type(processNumber, { delay: 50 });
-
-        cy.get(el.processNumberProjectList, { timeout: TIMEOUTS.SEARCH })
-            .should('be.visible')
-            .contains(processNumber)
-            .should('be.visible')
-            .first();
+    displayProjectList() {
+        cy.get(el.projectList, { timeout: TIMEOUTS.DEFAULT }).should('be.visible');
     }
 
-    findByNonExistentProcessNumber() {
-        cy.get(`${el.inputFindProjectPage} input`, {
+    getProjectData() {
+        const projects = [];
+
+        return cy.get(el.rowTableProjectList).then(($rows) => {
+            Cypress.$($rows).each((_, row) => {
+                const agentName = Cypress.$(row).find(el.agentNameProjectList).text().trim();
+
+                const projectNup = Cypress.$(row).find(el.projectNupProjectList).text().trim();
+
+                projects.push({
+                    agentName,
+                    projectNup: projectNup && projectNup !== '-' ? projectNup : null,
+                });
+            });
+
+            const project = Math.floor(Math.random() * projects.length);
+
+            return projects[project];
+        });
+    }
+
+    findProjectByProjectNup() {
+        this.getProjectData().then((data) => {
+            const projectNup = data.projectNup;
+
+            cy.log('projectNup', projectNup);
+
+            cy.get(`${el.findProjectPageInput} input`, { timeout: TIMEOUTS.DEFAULT }).should('be.visible').clear();
+
+            cy.get(`${el.findProjectPageInput} input`).type(projectNup);
+
+            cy.get(el.projectList).within(() => {
+                cy.get(el.projectNupProjectList, { timeout: TIMEOUTS.SEARCH })
+                    .contains(projectNup)
+                    .should('be.visible');
+            });
+        });
+    }
+
+    findProjectByNonExistentProjectNup() {
+        cy.get(`${el.findProjectPageInput} input`, {
             timeout: TIMEOUTS.DEFAULT,
         })
             .should('be.visible')
             .clear();
 
-        cy.get(`${el.inputFindProjectPage} input`).type('123456789012345678901', {
+        cy.get(`${el.findProjectPageInput} input`).type('123456789012345678901', {
             delay: 50,
         });
 
         cy.get(el.messageNoDataAvailable, { timeout: TIMEOUTS.SEARCH })
             .should('be.visible')
             .should('contain', 'No data available');
+    }
+
+    findProjectByAgentName() {
+        this.getProjectData().then((data) => {
+            const agentName = data.agentName;
+
+            cy.log('agentName', agentName);
+
+            cy.get(`${el.findProjectPageInput} input`, { timeout: TIMEOUTS.DEFAULT }).should('be.visible').clear();
+
+            cy.get(`${el.findProjectPageInput} input`).type(agentName);
+
+            cy.get(el.projectList).within(() => {
+                cy.get(el.agentNameProjectList, { timeout: TIMEOUTS.SEARCH }).contains(agentName).should('be.visible');
+            });
+        });
     }
 }
 

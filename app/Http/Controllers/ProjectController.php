@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Enums\AccountType;
 use App\Enums\AgentStatus;
+use App\Enums\DocumentType;
 use App\Enums\InstrumentType;
 use App\Enums\OpeningStatus;
 use App\Enums\ProjectStageSlug;
@@ -147,33 +148,11 @@ class ProjectController extends Controller
         }
     }
 
-    public function createCI(Request $request, ProjectDocumentService $service)
+    public function createDocument(Request $request, ProjectDocumentService $service)
     {
         $data = $request->validate([
-            'selected_projects' => 'required|array',
-            'selected_projects.*' => 'exists:projects,id',
-            'content' => 'required|string',
-        ]);
+            'type' => 'required|in:ci,tc,pj,et',
 
-        try {
-            $service->createDocumentCI(
-                $data['selected_projects'],
-                $data['content']
-            );
-
-            return back()->with('success', 'Comunicações internas criadas com sucesso!');
-        } catch (\Throwable $e) {
-            report($e);
-
-            return back()->withErrors([
-                'message' => $e->getMessage() ?: 'Erro ao criar comunicações internas. Tente novamente.',
-            ]);
-        }
-    }
-
-    public function createTC(Request $request, ProjectDocumentService $service)
-    {
-        $data = $request->validate([
             'selected_projects' => 'required|array|min:1',
             'selected_projects.*' => 'exists:projects,id',
 
@@ -188,22 +167,32 @@ class ProjectController extends Controller
             'footer_images.*.id' => 'nullable|integer',
             'footer_images.*.file' => 'nullable|image',
             'footer_images.*._delete' => 'nullable|in:1',
+
+            'header_layout' => 'nullable|in:none,three,full',
+            'footer_layout' => 'nullable|in:none,three,full',
         ]);
 
         try {
-            $service->createDocumentTC(
+
+            $service->createDocument(
                 selectedProjects: $data['selected_projects'],
                 content: $data['content'],
                 headerImages: $data['header_images'] ?? [],
                 footerImages: $data['footer_images'] ?? [],
+                type: DocumentType::from($data['type']),
+                headerLayout: $data['header_layout'] ?? 'none',
+                footerLayout: $data['footer_layout'] ?? 'none',
             );
 
-            return back()->with('success', 'Termos criados com sucesso!');
+            return back()->with(
+                'success',
+                'Documento criado com sucesso! Você pode editá-lo ou baixá-lo na seção de documentos do projeto.'
+            );
         } catch (\Throwable $e) {
             report($e);
 
             return back()->withErrors([
-                'message' => $e->getMessage() ?: 'Erro ao criar termos. Tente novamente.',
+                'message' => $e->getMessage() ?: 'Erro ao criar documento. Tente novamente.',
             ]);
         }
     }

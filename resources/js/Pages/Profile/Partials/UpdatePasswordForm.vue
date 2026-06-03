@@ -54,6 +54,7 @@ const updatePassword = () => {
                     type="password"
                     class="mt-1 block w-full"
                     autocomplete="current-password"
+                    data-cy="current-password-input"
                 />
 
                 <InputError :message="form.errors.current_password" class="mt-2" />
@@ -69,6 +70,7 @@ const updatePassword = () => {
                     type="password"
                     class="mt-1 block w-full"
                     autocomplete="new-password"
+                    data-cy="password-input"
                 />
 
                 <InputError :message="form.errors.password" class="mt-2" />
@@ -83,13 +85,14 @@ const updatePassword = () => {
                     type="password"
                     class="mt-1 block w-full"
                     autocomplete="new-password"
+                    data-cy="password-confirmation-input"
                 />
 
                 <InputError :message="form.errors.password_confirmation" class="mt-2" />
             </div>
 
             <div class="flex items-center gap-4">
-                <PrimaryButton :disabled="form.processing" data-cy="btnSaveUpdatePassword">Save</PrimaryButton>
+                <PrimaryButton :disabled="form.processing" data-cy="save-update-password-button">Save</PrimaryButton>
 
                 <Transition
                     enter-active-class="transition ease-in-out"

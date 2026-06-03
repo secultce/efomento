@@ -18,6 +18,7 @@ class DocumentImage extends Model
         'section',
         'position',
         'path',
+        'is_full_width',
     ];
 
     protected $casts = [

@@ -60,7 +60,7 @@ const Ziggy = {
         'projects.update': { uri: 'projetos\/{project}', methods: ['PUT', 'PATCH'], parameters: ['project'] },
         'projects.destroy': { uri: 'projetos\/{project}', methods: ['DELETE'], parameters: ['project'] },
         'projects.assign-supervisors': { uri: 'projetos\/atribuir-fiscal', methods: ['POST'] },
-        'projects.create-ci': { uri: 'projetos\/criar-ci', methods: ['POST'] },
+        'projects.create-document': { uri: 'projetos\/criar-documento', methods: ['POST'] },
         'documents.download': {
             uri: 'projetos\/documentos\/{document}\/download',
             methods: ['GET', 'HEAD'],

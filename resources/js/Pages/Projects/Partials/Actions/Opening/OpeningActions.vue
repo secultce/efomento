@@ -1,11 +1,11 @@
 <script setup>
 import { computed, ref } from 'vue';
-import SupervisorDialog from '@/Pages/Projects/Partials/Actions/Opening/SupervisorDialog.vue';
+import SupervisorDialog from '@/Pages/Projects/Partials/Actions/SupervisorDialog.vue';
 import { useAuth } from '@/Composables/useAuth';
-import HandleCIDialog from '@/Pages/Projects/Partials/Actions/Opening/HandleCIDialog.vue';
-import DocumentListDialog from '@/Pages/Projects/Partials/Actions/Opening/DocumentListDialog.vue';
 import { downloadDocumentsZip } from '@/Services/documentService';
 import NoticeHistoryDialog from '@/Pages/Projects/Partials/Actions/NoticeHistoryDialog.vue';
+import HandleDocumentsDialog from '../HandleDocumentsDialog.vue';
+import DocumentListDialog from '../DocumentListDialog.vue';
 
 const { canPerform, hasRole } = useAuth();
 
@@ -63,6 +63,8 @@ const selectedCI = computed(() => {
 
     return {
         content: ciDocument.body,
+        headerImages: (ciDocument.images ?? []).filter((i) => i.section === 'header' || i.section?.value === 'header'),
+        footerImages: (ciDocument.images ?? []).filter((i) => i.section === 'footer' || i.section?.value === 'footer'),
     };
 });
 
@@ -102,8 +104,10 @@ function openNoticeHistory() {
     <v-snackbar v-model="showError" color="error" timeout="4000" location="top">
         {{ errorMessage }}
     </v-snackbar>
-    <handle-c-i-dialog
+
+    <HandleDocumentsDialog
         v-model="ciDialog"
+        type="ci"
         :project-ids="selectedProjects"
         :edit-data="selectedCI"
         @saved="$emit('saved')"
@@ -114,7 +118,7 @@ function openNoticeHistory() {
         :supervisors="supervisorsAvailable"
         @saved="$emit('saved')"
     />
-    <document-list-dialog v-model="docListDialog" :documents="selectedDocuments" />
+    <DocumentListDialog v-model="docListDialog" :documents="selectedDocuments" />
     <v-card class="w-full pb-4 pt-4 !shadow-none border border-gray-800 rounded-lg">
         <v-card-title class="font-weight-bold !text-lg">Ações disponíveis para você </v-card-title>
         <v-card-text class="flex flex-col gap-4">

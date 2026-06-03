@@ -272,7 +272,11 @@ const activeEditIndex = ref('all');
                             <template v-if="section.key === 'opening'">
                                 <div class="grid grid-cols-2 gap-4">
                                     <form-field label="Número do processo*" required>
-                                        <text-field v-model="form.opening.opening_nup" mask="####.######/####-##" />
+                                        <text-field
+                                            v-model="form.opening.opening_nup"
+                                            mask="####.######/####-##"
+                                            data-cy="project-nup-opening-tab"
+                                        />
                                     </form-field>
 
                                     <form-field label="Data de abertura do processo" required>

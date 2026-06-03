@@ -24,9 +24,10 @@ class CIDocumentTest extends TestCase
         Opening::factory()->create(['project_id' => $project->id]);
 
         $this->actingAs($user)
-            ->post(route('projects.create-ci'), [
+            ->post(route('projects.create-document'), [
                 'selected_projects' => [$project->id],
                 'content' => 'Comunicação interna de teste',
+                'type' => 'ci',
             ])
             ->assertRedirect()
             ->assertSessionHas('success');
@@ -45,7 +46,7 @@ class CIDocumentTest extends TestCase
     {
         $project = Project::factory()->create();
 
-        $this->post(route('projects.create-ci'), [
+        $this->post(route('projects.create-document'), [
             'selected_projects' => [$project->id],
             'content' => 'Conteúdo',
         ])->assertRedirect(route('login'));
@@ -58,7 +59,7 @@ class CIDocumentTest extends TestCase
         $project = Project::factory()->create();
 
         $this->actingAs($user)
-            ->post(route('projects.create-ci'), [
+            ->post(route('projects.create-document'), [
                 'selected_projects' => [$project->id],
                 'content' => '',
             ])
@@ -71,6 +72,7 @@ class CIDocumentTest extends TestCase
         $user = User::factory()->create();
         $project = Project::factory()->create();
         Opening::factory()->create(['project_id' => $project->id]);
+
         Document::factory()->create([
             'project_id' => $project->id,
             'notice_id' => $project->notice_id,
@@ -142,15 +144,17 @@ class CIDocumentTest extends TestCase
         Opening::factory()->create(['project_id' => $project->id]);
 
         $this->actingAs($user)
-            ->post(route('projects.create-ci'), [
+            ->post(route('projects.create-document'), [
                 'selected_projects' => [$project->id],
                 'content' => 'Conteúdo original',
+                'type' => 'ci',
             ]);
 
         $this->actingAs($user)
-            ->post(route('projects.create-ci'), [
+            ->post(route('projects.create-document'), [
                 'selected_projects' => [$project->id],
                 'content' => 'Conteúdo atualizado',
+                'type' => 'ci',
             ])
             ->assertRedirect()
             ->assertSessionHas('success');
@@ -180,15 +184,17 @@ class CIDocumentTest extends TestCase
         Opening::factory()->create(['project_id' => $projectNew->id]);
 
         $this->actingAs($user)
-            ->post(route('projects.create-ci'), [
+            ->post(route('projects.create-document'), [
                 'selected_projects' => [$projectWithCI->id],
                 'content' => 'CI do projeto A',
+                'type' => 'ci',
             ]);
 
         $this->actingAs($user)
-            ->post(route('projects.create-ci'), [
+            ->post(route('projects.create-document'), [
                 'selected_projects' => [$projectWithCI->id],
                 'content' => 'CI do projeto A atualizado',
+                'type' => 'ci',
             ]);
 
         $this->assertDatabaseHas('documents', [

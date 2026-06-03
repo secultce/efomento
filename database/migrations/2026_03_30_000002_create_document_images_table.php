@@ -17,6 +17,7 @@ return new class extends Migration
 
             $table->string('section');
             $table->string('position');
+            $table->boolean('is_full_width')->default(false);
             $table->string('path', 1024);
 
             $table->timestamps();

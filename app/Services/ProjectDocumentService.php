@@ -4,106 +4,82 @@ namespace App\Services;
 
 use App\Enums\DocumentImagePosition;
 use App\Enums\DocumentImageSection;
-use App\Enums\DocumentPhase;
 use App\Enums\DocumentType;
 use App\Models\Document;
 use App\Models\Project;
+use App\Support\ImageSync;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 
 class ProjectDocumentService
 {
-    public function createDocumentCI(array $selectedProjects, string $content)
-    {
-        DB::transaction(function () use ($selectedProjects, $content) {
-            $projects = Project::with('opening')
-                ->whereIn('id', $selectedProjects)
-                ->get();
-
-            if (empty($content)) {
-                throw new \Exception(
-                    'O conteúdo da comunicação interna não pode ser vazio.'
-                );
-            }
-
-            if ($projects->isEmpty()) {
-                throw new \Exception(
-                    'Nenhum projeto selecionado.'
-                );
-            }
-
-            foreach ($projects as $project) {
-
-                if (
-                    $project->documents()
-                        ->where('type', 'ci')
-                        ->where('phase', 'opening')
-                        ->exists()
-                ) {
-                    $project->opening->updateCI($content);
-
-                    continue;
-                }
-
-                $project->opening->createCI($content);
-            }
-        });
-    }
-
-    public function createDocumentTC(
+    public function createDocument(
+        DocumentType $type,
         array $selectedProjects,
         string $content,
         array $headerImages = [],
-        array $footerImages = []
+        array $footerImages = [],
+        string $headerLayout = 'none',
+        string $footerLayout = 'none',
     ): void {
         DB::transaction(function () use (
+            $type,
             $selectedProjects,
             $content,
             $headerImages,
-            $footerImages
+            $footerImages,
+            $headerLayout,
+            $footerLayout
         ) {
             if (empty(trim($content))) {
-                throw new \Exception('O conteúdo do termo não pode ser vazio.');
+                throw new \Exception('O conteúdo do documento não pode ser vazio.');
             }
 
-            $processedHeader = $this->uploadFilesOnce($headerImages);
-            $processedFooter = $this->uploadFilesOnce($footerImages);
-
             $projects = Project::whereIn('id', $selectedProjects)->get();
+            $phase = $type->phase();
 
             if ($projects->isEmpty()) {
                 throw new \Exception('Nenhum projeto selecionado.');
             }
 
+            $documents = Document::whereIn('project_id', $projects->pluck('id'))
+                ->where('type', $type)
+                ->where('phase', $phase)
+                ->with('images')
+                ->get()
+                ->keyBy('project_id');
+
             foreach ($projects as $project) {
 
-                $document = $project->documents()
-                    ->where('type', DocumentType::TC)
-                    ->where('phase', DocumentPhase::FORMALIZATION)
-                    ->first();
+                $document = $documents->get($project->id);
 
                 if ($document) {
+
                     $document->update([
                         'body' => $content,
                     ]);
 
-                    $existingImages = $document->images()
-                        ->get()
+                    $processedHeader = ImageSync::handle($headerImages, fn () => $document->images);
+                    $processedFooter = ImageSync::handle($footerImages, fn () => $document->images);
+
+                    $existingImages = $document->images
                         ->groupBy(fn ($img) => $img->section->value)
                         ->map(fn ($group) => $group->keyBy('position'));
 
-                    $this->syncImages(
+                    $this->persistImages(
                         $document,
                         $processedHeader,
                         DocumentImageSection::HEADER,
-                        $existingImages
+                        $existingImages,
+                        $headerLayout === 'full'
                     );
 
-                    $this->syncImages(
+                    $this->persistImages(
                         $document,
                         $processedFooter,
                         DocumentImageSection::FOOTER,
-                        $existingImages
+                        $existingImages,
+                        $footerLayout === 'full'
                     );
 
                     continue;
@@ -112,130 +88,98 @@ class ProjectDocumentService
                 $document = Document::create([
                     'notice_id' => $project->notice_id,
                     'project_id' => $project->id,
-                    'type' => DocumentType::TC,
-                    'phase' => DocumentPhase::FORMALIZATION,
+                    'type' => $type,
+                    'phase' => $phase,
                     'body' => $content,
                     'created_by' => auth()->id(),
                 ]);
 
-                $this->storeImages($document, $processedHeader, DocumentImageSection::HEADER);
-                $this->storeImages($document, $processedFooter, DocumentImageSection::FOOTER);
+                $processedHeader = ImageSync::handle($headerImages, fn () => $document->images);
+                $processedFooter = ImageSync::handle($footerImages, fn () => $document->images);
+
+                $this->persistImages(
+                    $document,
+                    $processedHeader,
+                    DocumentImageSection::HEADER,
+                    null,
+                    $headerLayout === 'full'
+                );
+
+                $this->persistImages(
+                    $document,
+                    $processedFooter,
+                    DocumentImageSection::FOOTER,
+                    null,
+                    $footerLayout === 'full'
+                );
             }
         });
     }
 
-    private function uploadFilesOnce(array $items): array
-    {
-        $processed = [];
+    private function persistImages(
+        Document $document,
+        array $items,
+        DocumentImageSection $section,
+        ?Collection $existingGrouped = null,
+        bool $isFullWidth = false
+    ): void {
+        $isSync = $existingGrouped !== null;
 
         foreach ($items as $index => $item) {
             if (! is_array($item)) {
-                $processed[$index] = $item;
-
                 continue;
             }
 
-            if (! empty($item['file'])) {
-                $item['path'] = $item['file']->store('documents', 'public');
-                unset($item['file']);
-            }
-
-            if (! empty($item['id']) && empty($item['_delete']) && empty($item['path'])) {
-                $imageModel = (new Document)->images()->getRelated();
-                $existingImgRecord = $imageModel->find($item['id']);
-
-                if ($existingImgRecord) {
-                    $item['path'] = $existingImgRecord->path;
-                }
-            }
-
-            $processed[$index] = $item;
-        }
-
-        return $processed;
-    }
-
-    private function storeImages(
-        Document $document,
-        array $items,
-        DocumentImageSection $section
-    ): void {
-        $positions = [
-            0 => DocumentImagePosition::LEFT,
-            1 => DocumentImagePosition::CENTER,
-            2 => DocumentImagePosition::RIGHT,
-        ];
-
-        foreach ($items as $index => $item) {
-            if (! is_array($item) || empty($item['path'])) {
-                continue;
-            }
-
-            $position = $positions[$index] ?? null;
+            $position = DocumentImagePosition::fromIndex($index);
 
             if (! $position) {
+                continue;
+            }
+
+            $path = $item['path'] ?? null;
+            $delete = ! empty($item['_delete']);
+
+            if ($isSync) {
+                $existing = $existingGrouped[$section->value][$position->value] ?? null;
+
+                if ($delete) {
+                    $existing?->delete();
+
+                    continue;
+                }
+
+                if ($path) {
+                    if ($existing && $existing->path === $path) {
+                        $existing->update(['is_full_width' => $isFullWidth]);
+
+                        continue;
+                    }
+
+                    if ($existing) {
+                        $existing->delete();
+                    }
+
+                    $document->images()->create([
+                        'section' => $section,
+                        'position' => $position,
+                        'path' => $path,
+                        'is_full_width' => $isFullWidth,
+                    ]);
+                }
+
+                continue;
+            }
+
+            if (! $path) {
                 continue;
             }
 
             $document->images()->create([
                 'section' => $section,
                 'position' => $position,
-                'path' => $item['path'],
+                'path' => $path,
+                'is_full_width' => $isFullWidth,
             ]);
-        }
-    }
-
-    private function syncImages(
-        Document $document,
-        array $items,
-        DocumentImageSection $section,
-        Collection $existingGrouped
-    ): void {
-        $positions = [
-            0 => DocumentImagePosition::LEFT,
-            1 => DocumentImagePosition::CENTER,
-            2 => DocumentImagePosition::RIGHT,
-        ];
-
-        foreach ($items as $index => $item) {
-            if (! is_array($item)) {
-                continue;
-            }
-
-            $path = $item['path'] ?? null;
-            $delete = ! empty($item['_delete']);
-            $position = $positions[$index] ?? null;
-
-            if (! $position) {
-                continue;
-            }
-
-            $existing = $existingGrouped[$section->value][$position->value] ?? null;
-
-            if ($delete) {
-                if ($existing) {
-                    $existing->delete();
-                }
-
-                continue;
-            }
-
-            if ($path) {
-                if ($existing) {
-                    if ($existing->path === $path) {
-                        continue;
-                    }
-                    $existing->delete();
-                }
-
-                $document->images()->create([
-                    'section' => $section,
-                    'position' => $position,
-                    'path' => $path,
-                ]);
-
-                continue;
-            }
         }
     }
 }
