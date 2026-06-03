@@ -96,12 +96,16 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('/projetos/{project}/formalizacao', [FormalizationController::class, 'store'])
         ->name('projects.formalizations.store');
     Route::patch('/projetos/{project}/formalizacao/{formalization}/atualizar', [FormalizationController::class, 'update'])
+        ->scopeBindings()
         ->name('projects.formalizations.update');
     Route::get('/projetos/{project}/formalizacao/{formalization}/arquivos/{file}', [FormalizationController::class, 'showFile'])
+        ->scopeBindings()
         ->name('projects.formalizations.files.show');
     Route::get('/projetos/{project}/formalizacao/{formalization}/arquivos/{file}/download', [FormalizationController::class, 'downloadFile'])
+        ->scopeBindings()
         ->name('projects.formalizations.files.download');
     Route::delete('/projetos/{project}/formalizacao/{formalization}/arquivos/{file}', [FormalizationController::class, 'destroyFile'])
+        ->scopeBindings()
         ->name('projects.formalizations.files.destroy');
 });
 

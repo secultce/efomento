@@ -99,8 +99,8 @@ class ProjectController extends Controller
             'documents.images',
             'budget',
             'budget.installments',
-            'formalization',
-            'formalization.files',
+            'formalizations',
+            'formalizations.files',
             'agent.latestSnapshot',
             'stages',
         ]);

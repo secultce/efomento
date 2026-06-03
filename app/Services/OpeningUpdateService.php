@@ -43,11 +43,11 @@ class OpeningUpdateService
 
     protected function updateFormalization(Project $project, array $data): void
     {
-        if (! $project->formalization || empty($data)) {
+        if (! $project->formalizations || empty($data)) {
             return;
         }
 
-        $project->formalization->update($data);
+        $project->formalizations->update($data);
     }
 
     protected function updateAgentSnapshot(Project $project, array $agentData): void

@@ -10,6 +10,16 @@ use Illuminate\Validation\Rule;
 
 class FormalizationStoreRequest extends FormRequest
 {
+    public const REQUIRED_FIELDS = [
+        'report_status' => 'Informe regularidade e inadimplência',
+        'term_number' => 'Número do termo',
+        'term_status' => 'Status do termo',
+        'signature_status_office' => 'Status de assinatura pelo Gabinete',
+        'deliberation' => 'Deliberação',
+    ];
+
+    private const OFFICIAL_GAZETTE_FILE_MAX_SIZE = 10240;
+
     public function authorize(): bool
     {
         return true;
@@ -47,7 +57,7 @@ class FormalizationStoreRequest extends FormRequest
 
             'legal_opinion_date' => ['nullable', 'date'],
 
-            'official_gazette_file' => ['nullable', 'file', 'mimes:pdf,doc,docx', 'max:10240'],
+            'official_gazette_file' => ['nullable', 'file', 'mimes:pdf,doc,docx', 'max:'.self::OFFICIAL_GAZETTE_FILE_MAX_SIZE],
         ];
     }
 

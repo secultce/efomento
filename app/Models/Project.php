@@ -121,7 +121,7 @@ class Project extends Model implements Auditable
         });
     }
 
-    public function formalization(): HasOne
+    public function formalizations(): HasOne
     {
         return $this->hasOne(Formalization::class);
     }

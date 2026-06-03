@@ -71,7 +71,7 @@ const form = useForm({
 });
 
 onMounted(() => {
-    const formalization = props.project.formalization || {};
+    const formalization = props.project.formalizations || {};
 
     form.asjur_finalistic_processing_date = normalizeDate(formalization.asjur_finalistic_processing_date) ?? null;
     form.asjur_received_at = normalizeDate(formalization.asjur_received_at) ?? null;
@@ -127,10 +127,91 @@ const validateForm = () => {
     return true;
 };
 
+const requiredFormalizationDocuments = {
+    tc: 'Termo de execução cultural',
+    et: 'Extrato do termo',
+    pj: 'Parecer jurídico',
+};
+
+const projectDocuments = computed(() => {
+    const documents = props.project.documents ?? [];
+
+    if (Array.isArray(documents)) {
+        return documents;
+    }
+
+    if (Array.isArray(documents?.data)) {
+        return documents.data;
+    }
+
+    return [];
+});
+
+const getValue = (value) => {
+    if (value && typeof value === 'object') {
+        return value.value ?? value.id ?? value.name ?? null;
+    }
+
+    return value;
+};
+
+const generatedFormalizationDocumentTypes = computed(() => {
+    return new Set(
+        projectDocuments.value
+            .filter((document) => getValue(document.phase) === 'formalization')
+            .filter((document) => !document.deleted_at)
+            .map((document) => getValue(document.type))
+    );
+});
+
+const missingGeneratedDocuments = computed(() => {
+    return Object.entries(requiredFormalizationDocuments)
+        .filter(([type]) => !generatedFormalizationDocumentTypes.value.has(type))
+        .map(([, label]) => label);
+});
+
+const hasGeneratedRequiredDocuments = computed(() => missingGeneratedDocuments.value.length === 0);
+
+const missingRequiredFields = computed(() => {
+    return Object.entries(requiredFields)
+        .filter(([field]) => isBlank(form[field]))
+        .map(([, message]) => message.replace(' é obrigatório.', ''));
+});
+
+const hasRequiredFieldsFilled = computed(() => missingRequiredFields.value.length === 0);
+
+const canTramitFormalization = computed(() => {
+    return canUserHandleFormalization.value && hasRequiredFieldsFilled.value && hasGeneratedRequiredDocuments.value;
+});
+
+const tramitBlockedMessage = computed(() => {
+    if (!canUserHandleFormalization.value) {
+        return 'Usuário não tem permissão para tramitar a Formalização.';
+    }
+
+    if (!hasRequiredFieldsFilled.value) {
+        return `Preencha os campos obrigatórios antes de tramitar: ${missingRequiredFields.value.join(', ')}.`;
+    }
+
+    if (!hasGeneratedRequiredDocuments.value) {
+        return `Gere os documentos obrigatórios antes de tramitar: ${missingGeneratedDocuments.value.join(', ')}.`;
+    }
+
+    return '';
+});
+
+const showTramitBlockedMessage = () => {
+    if (canTramitFormalization.value || tramitLoading.value) {
+        return;
+    }
+
+    showSnackbar(tramitBlockedMessage.value, 'warning');
+};
+
 const officialGazetteFileInput = ref(null);
 
 const officialGazetteFile = computed(() => {
-    const files = props.project.formalization?.files;
+    const files = props.project.formalizations?.files;
 
     if (!files) {
         return null;
@@ -195,7 +276,7 @@ const removeOfficialGazetteFile = () => {
     router.delete(
         route('projects.formalizations.files.destroy', {
             project: props.project.id,
-            formalization: props.project.formalization.id,
+            formalization: props.project.formalizations.id,
             file: officialGazetteFile.value.id,
         }),
         {
@@ -218,7 +299,7 @@ const viewOfficialGazetteFile = () => {
     window.open(
         route('projects.formalizations.files.show', {
             project: props.project.id,
-            formalization: props.project.formalization.id,
+            formalization: props.project.formalizations.id,
             file: officialGazetteFile.value.id,
         }),
         '_blank'
@@ -233,77 +314,102 @@ const downloadOfficialGazetteFile = () => {
     window.open(
         route('projects.formalizations.files.download', {
             project: props.project.id,
-            formalization: props.project.formalization.id,
+            formalization: props.project.formalizations.id,
             file: officialGazetteFile.value.id,
         }),
         '_blank'
     );
 };
 
-const submit = () => {
-    if (!validateForm()) {
-        return;
-    }
+const saveFormalization = ({ showSuccess = true } = {}) => {
+    return new Promise((resolve) => {
+        if (!validateForm()) {
+            resolve(false);
+            return;
+        }
 
-    const formalization = props.project.formalization;
+        const formalization = props.project.formalizations;
 
-    const options = {
-        preserveScroll: true,
-        forceFormData: true,
-        onSuccess: () => {
-            form.official_gazette_file = null;
-            form._method = null;
+        const options = {
+            preserveScroll: true,
+            forceFormData: true,
+            onSuccess: () => {
+                form.official_gazette_file = null;
+                form._method = null;
 
-            if (officialGazetteFileInput.value) {
-                officialGazetteFileInput.value.value = null;
-            }
+                if (officialGazetteFileInput.value) {
+                    officialGazetteFileInput.value.value = null;
+                }
 
-            showSnackbar('Formalização salva com sucesso!', 'success');
-        },
-        onError: (errors) => {
-            const details = Object.values(errors).flat().filter(Boolean).join(', ');
+                if (showSuccess) {
+                    showSnackbar('Formalização salva com sucesso!', 'success');
+                }
 
-            const message = details
-                ? `Ocorreu um erro ao salvar a formalização. ${details}`
-                : 'Ocorreu um erro ao salvar a formalização.';
+                resolve(true);
+            },
+            onError: (errors) => {
+                const details = Object.values(errors).flat().filter(Boolean).join(', ');
 
-            showSnackbar(message, 'error');
-        },
-    };
+                const message = details
+                    ? `Ocorreu um erro ao salvar a formalização. ${details}`
+                    : 'Ocorreu um erro ao salvar a formalização.';
 
-    if (formalization?.id) {
-        form._method = 'patch';
+                showSnackbar(message, 'error');
+
+                resolve(false);
+            },
+        };
+
+        if (formalization?.id) {
+            form._method = 'patch';
+
+            form.post(
+                route('projects.formalizations.update', {
+                    project: props.project.id,
+                    formalization: formalization.id,
+                }),
+                options
+            );
+
+            return;
+        }
+
+        form._method = null;
 
         form.post(
-            route('projects.formalizations.update', {
+            route('projects.formalizations.store', {
                 project: props.project.id,
-                formalization: formalization.id,
             }),
             options
         );
+    });
+};
 
-        return;
-    }
-
-    form._method = null;
-
-    form.post(
-        route('projects.formalizations.store', {
-            project: props.project.id,
-        }),
-        options
-    );
+const submit = () => {
+    saveFormalization();
 };
 
 const tramitLoading = ref(false);
 
-const tramit = () => {
+const tramit = async () => {
     if (!stage.value?.id) {
         showSnackbar('Etapa de formalização não encontrada.', 'error');
         return;
     }
 
+    if (!canTramitFormalization.value) {
+        showSnackbar(tramitBlockedMessage.value, 'warning');
+        return;
+    }
+
     tramitLoading.value = true;
+
+    const saved = await saveFormalization({ showSuccess: false });
+
+    if (!saved) {
+        tramitLoading.value = false;
+        return;
+    }
 
     router.patch(
         route('projects.stages.advance', {
@@ -564,8 +670,6 @@ const permissionMessage = computed(() => {
                                         <TextField v-model="form.sent_to_chief_of_staff_at" type="date" />
                                     </FormField>
 
-                                    <div></div>
-
                                     <FormField label="Data de Publicação do Diário Oficial do Estado">
                                         <TextField v-model="form.official_gazette_published_at" type="date" />
                                     </FormField>
@@ -659,7 +763,14 @@ const permissionMessage = computed(() => {
                         </template>
                     </SectionForm>
 
-                    <TramitButton :action="tramit" :disabled="!canUserHandleFormalization" :loading="tramitLoading" />
+                    <div :class="{ 'cursor-not-allowed': !canTramitFormalization }" @click="showTramitBlockedMessage">
+                        <TramitButton
+                            :action="tramit"
+                            :disabled="!canTramitFormalization"
+                            :loading="tramitLoading"
+                            :class="{ 'pointer-events-none': !canTramitFormalization }"
+                        />
+                    </div>
                 </div>
             </div>
         </template>
