@@ -1,32 +1,32 @@
 import { elements as el } from './elements';
 
 class Profile {
-    acessarPaginaDePerfil() {
+    accessProfilePage() {
         cy.intercept('GET', '/profile').as('getProfile');
         cy.visit('/profile').wait('@getProfile');
     }
-    alterarNomeEEmailESalvar(name, email) {
-        cy.get(el.inputProfileName).clear();
-        cy.get(el.inputProfileName).type(name);
-        cy.get(el.inputProfileEmail).clear();
-        cy.get(el.inputProfileEmail).type(email);
-        cy.get(el.saveButtonProfileInformation).click();
+    alterNameAndEmailAndSave(name, email) {
+        cy.get(el.profileNameInput).clear();
+        cy.get(el.profileNameInput).type(name);
+        cy.get(el.profileEmailInput).clear();
+        cy.get(el.profileEmailInput).type(email);
+        cy.get(el.saveProfileInformationButton).click();
         cy.get(el.savedMessageProfileInformation).should('be.visible');
     }
 
-    alterarSenhaESalvar(currentPassword, newPassword) {
-        cy.get(el.inputCurrentPassword).type(currentPassword);
-        cy.get(el.inputPassword).type(newPassword);
-        cy.get(el.inputPasswordConfirmation).type(currentPassword);
-        cy.get(el.saveButtonProfileInformation).click();
+    alterPasswordAndSave(defaultPassword, newPassword) {
+        cy.get(el.currentPasswordInput).type(defaultPassword);
+        cy.get(el.passwordInput).type(newPassword);
+        cy.get(el.passwordConfirmationInput).type(newPassword);
+        cy.get(el.saveUpdatePasswordButton).click();
         cy.get(el.savedMessageProfileInformation).should('be.visible');
     }
 
-    retornarErroDeSenhas(currentPassord, newPassword, passwordConfirmation) {
-        cy.get(el.inputCurrentPassword).type(currentPassord);
-        cy.get(el.inputPassword).type(newPassword);
-        cy.get(el.inputPasswordConfirmation).type(passwordConfirmation);
-        cy.get(el.saveButtonUpdatePassword).click();
+    returnPasswordUpdateErrors(currentPassword, newPassword, passwordConfirmation) {
+        cy.get(el.currentPasswordInput).type(currentPassword);
+        cy.get(el.passwordInput).type(newPassword);
+        cy.get(el.passwordConfirmationInput).type(passwordConfirmation);
+        cy.get(el.saveUpdatePasswordButton).click();
         cy.get(el.errorMessagePasswordConfirmation).should('be.visible');
     }
 }

@@ -23,6 +23,7 @@ return new class extends Migration
                 ->constrained('users')
                 ->nullOnDelete();
 
+            $table->enum('type', ['principal', 'alternate'])->nullable();
             $table->boolean('is_active')->default(true);
             $table->timestamp('assigned_at')->useCurrent();
             $table->timestamp('removed_at')->nullable();

@@ -10,13 +10,25 @@ return new class extends Migration
     {
         Schema::create('document_images', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('document_id')->constrained()->cascadeOnDelete();
+
+            $table->foreignId('document_id')
+                ->constrained()
+                ->cascadeOnDelete();
+
             $table->string('section');
             $table->string('position');
+            $table->boolean('is_full_width')->default(false);
             $table->string('path', 1024);
-            $table->timestamps();
 
-            $table->unique(['document_id', 'section', 'position']);
+            $table->timestamps();
+            $table->softDeletes();
+
+            $table->unique([
+                'document_id',
+                'section',
+                'position',
+                'deleted_at',
+            ]);
         });
     }
 

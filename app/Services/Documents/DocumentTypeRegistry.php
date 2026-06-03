@@ -8,22 +8,22 @@ use App\Enums\DocumentType;
 class DocumentTypeRegistry
 {
     private array $map = [
-        'term+formalization' => [
+        'tc+formalization' => [
             'label' => 'Termo de Execução Cultural',
             'requires_sign' => true,
             'requires_legal' => false,
         ],
-        'extract+formalization' => [
+        'et+formalization' => [
             'label' => 'Extrato do Termo',
             'requires_sign' => false,
             'requires_legal' => false,
         ],
-        'juridical_opinion+juridical' => [
+        'pj+formalization' => [
             'label' => 'Parecer Jurídico',
             'requires_sign' => true,
             'requires_legal' => true,
         ],
-        'dispatch+juridical' => [
+        'po+juridical' => [
             'label' => 'Despacho para Parecer Jurídico',
             'requires_sign' => false,
             'requires_legal' => false,

@@ -93,7 +93,7 @@ const valorExtenso = computed(() => {
                                     placeholder="Insira o número do processo aqui"
                                     clearable
                                     mask="#####.######/####-##"
-                                    data-cy="inputNumeroProcessoSuite"
+                                    data-cy="notice-nup-identification-data-form"
                                 />
                             </FormField>
                         </v-col>
@@ -109,7 +109,7 @@ const valorExtenso = computed(() => {
                                     v-model="form.instrument_type"
                                     :items="instrumentTypes"
                                     placeholder="Selecione um tipo"
-                                    data-cy="selectTipoDeInstrumentoDadosIdentificacao"
+                                    data-cy="instrument-type-identification-data-form-select"
                                 />
                             </FormField>
                         </v-col>
@@ -120,7 +120,7 @@ const valorExtenso = computed(() => {
                                     v-model="form.total_notice_amount"
                                     placeholder="Insira o valor total do edital aqui"
                                     money
-                                    data-cy="inputValorTotalDoEdital"
+                                    data-cy="total-amount-notice-identification-data-form"
                                 />
                             </FormField>
                         </v-col>
@@ -141,7 +141,7 @@ const valorExtenso = computed(() => {
                                     v-model="form.process_manager"
                                     placeholder="Insira o nome do gestor aqui"
                                     capitalize
-                                    data-cy="inputNomeDoGestor"
+                                    data-cy="notice-manager-accompaniment-identification-data-form"
                                 />
                             </FormField>
                         </v-col>
@@ -151,7 +151,7 @@ const valorExtenso = computed(() => {
                                 <TextField
                                     v-model="form.process_manager_email"
                                     placeholder="Insira o email do gestor aqui"
-                                    data-cy="inputEmailDoGestor"
+                                    data-cy="manager-email-identification-data-form"
                                 />
                             </FormField>
                         </v-col>
@@ -162,7 +162,7 @@ const valorExtenso = computed(() => {
                                     v-model="form.installments"
                                     placeholder="Insira o número de parcelas"
                                     type="number"
-                                    data-cy="inputNumeroDeParcelas"
+                                    data-cy="quota-number-identification-data-form"
                                     min="0"
                                 />
                             </FormField>
@@ -237,7 +237,7 @@ const valorExtenso = computed(() => {
                         class="!inline-flex !bg-[#ffcc05FF] !items-center !justify-center !rounded-md !px-4 !py-2 !text-xs !font-semibold !tracking-widest !transition !duration-150 !ease-in-out !focus:outline-none !focus:ring-2 !focus:ring-gray-800 !focus:ring-offset-2 !text-black"
                         :loading="form.processing"
                         :disabled="form.processing"
-                        data-cy="btnAdiconarDados"
+                        data-cy="add-data-identification-data-form-button"
                         @click="submit"
                     >
                         Adicionar dados

@@ -51,7 +51,7 @@ function clear() {
                 hide-details
                 rounded="xl"
                 class="mb-2"
-                data-cy="inputFindProjectPage"
+                data-cy="find-project-input"
                 @update:model-value="onSearch"
             />
 
@@ -60,6 +60,7 @@ function clear() {
                 class="!text-[#008344] !font-bold !border-[#008344] flex-[1_1_0%] !h-[3em] mb-2 !px-2 !py-1"
                 density="compact"
                 rounded="lg"
+                data-cy="show-all-agents"
                 @click="clear"
             >
                 Exibir todos os proponentes
@@ -77,6 +78,7 @@ function clear() {
                     density="compact"
                     hide-details
                     class="mr-1 pointer-events-none"
+                    data-cy="select-all-checkbox"
                 />
                 Marcar todos
             </v-btn>
@@ -87,6 +89,7 @@ function clear() {
             v-model="selected"
             :items="projects"
             selectable
+            data-cy="project-list-table"
             @action="(payload) => emit('action', payload)"
         />
     </div>

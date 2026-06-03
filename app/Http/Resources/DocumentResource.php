@@ -20,7 +20,7 @@ class DocumentResource extends JsonResource
             'body' => $this->body,
             'status' => $this->status,
             'created_by' => $this->created_by,
-            'images' => DocumentImageResource::collection($this->whenLoaded('images')),
+            'images' => DocumentImageResource::collection($this->images)->resolve(),
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
         ];

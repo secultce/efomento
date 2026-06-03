@@ -14,6 +14,8 @@ class DocumentImageResource extends JsonResource
             'section' => $this->section,
             'position' => $this->position,
             'path' => $this->path,
+            'is_full_width' => $this->is_full_width,
+            'deleted_at' => $this->deleted_at,
         ];
     }
 }

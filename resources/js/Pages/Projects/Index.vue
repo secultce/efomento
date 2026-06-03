@@ -9,6 +9,7 @@ import OpeningActions from '@/Pages/Projects/Partials/Actions/Opening/OpeningAct
 import { useSnackbar } from '@/Composables/useSnackbar';
 import { Head, router } from '@inertiajs/vue3';
 import { ref } from 'vue';
+import FormalizationActions from './Partials/Actions/Formalization/FormalizationActions.vue';
 
 const props = defineProps({
     notice: { type: Object, default: null },
@@ -173,6 +174,12 @@ function handleAction({ action, item }) {
                         :supervisors-available="supervisorsAvailable"
                         :notice="notice"
                         @saved="handleSaved"
+                    />
+                    <FormalizationActions
+                        v-else-if="selectedPhase === 'formalizacao' || !selectedPhase"
+                        :selected-projects="selectedProjects"
+                        :projects="projects"
+                        :notice="notice"
                     />
                 </div>
             </div>
