@@ -15,6 +15,7 @@ defineProps({
     openingStatus: { type: Array, default: () => [] },
     currentStage: { type: Object, default: null },
     canReturn: { type: Boolean, default: false },
+    initialTab: { type: String, default: 'opening' },
 });
 </script>
 
@@ -41,6 +42,7 @@ defineProps({
                     :account-type="accountType"
                     :current-stage="currentStage"
                     :can-return="canReturn"
+                    :initial-tab="initialTab"
                 />
             </div>
         </AppContainer>

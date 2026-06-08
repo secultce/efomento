@@ -2,8 +2,9 @@
 import { ref } from 'vue';
 import OpeningTab from './Tabs/OpeningTab.vue';
 import LegalAnalysisTab from './Tabs/LegalAnalysisTab.vue';
+import MonitoringTab from './Tabs/MonitoringTab.vue';
 
-defineProps({
+const props = defineProps({
     project: { type: Object, default: null },
     supervisorsAvailable: { type: Array, default: () => [] },
     agentStatus: { type: Array, default: () => [] },
@@ -11,9 +12,10 @@ defineProps({
     accountType: { type: Array, default: () => [] },
     currentStage: { type: Object, default: null },
     canReturn: { type: Boolean, default: false },
+    initialTab: { type: String, default: 'opening' },
 });
 
-const tab = ref('opening');
+const tab = ref(props.initialTab);
 
 const tabs = [
     { value: 'opening', label: 'Abertura' },
@@ -21,7 +23,7 @@ const tabs = [
     { value: '3', label: 'Formalização de processos' },
     { value: '4', label: 'Orçamento e parcela' },
     { value: '5', label: 'Pagamentos' },
-    { value: '6', label: 'Monitoramento' },
+    { value: 'monitoramento', label: 'Monitoramento' },
 ];
 </script>
 
@@ -63,9 +65,7 @@ const tabs = [
                     <v-sheet class="pa-5 h-[35em]" color="blue" />
                 </v-tabs-window-item>
 
-                <v-tabs-window-item value="6">
-                    <v-sheet class="pa-5 h-[35em]" color="red" />
-                </v-tabs-window-item>
+                <MonitoringTab :project="project" />
             </v-tabs-window>
         </v-sheet>
     </v-card>

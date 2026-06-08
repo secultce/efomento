@@ -138,7 +138,8 @@ function handleAction({ action, item }) {
             route('notices.projects.show', {
                 notice: props.notice.id,
                 project: item.id,
-            })
+            }),
+            selectedPhase.value ? { tab: selectedPhase.value } : {}
         );
     }
 }
