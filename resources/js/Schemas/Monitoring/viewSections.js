@@ -1,12 +1,22 @@
+import { addDaysTo } from '@/Utils/dateHelpers';
+
 export const viewSections = [
     {
         title: 'Prazos e datas',
         fields: [
-            { label: 'Início de vigência do instrumento', key: 'monitoring.effective_date_of_the_instrument' },
-            { label: 'Término de vigência do instrumento', key: 'monitoring.expiration_date_of_the_instrument' },
+            {
+                label: 'Data de solicitação do relatório de monitoramento',
+                compute: addDaysTo('sent_timestamp', 120),
+                format: 'datetime',
+            },
+            {
+                label: 'Data prevista para envio do relatório de monitoramento',
+                compute: addDaysTo('sent_timestamp', 365),
+                format: 'datetime',
+            },
             { label: 'Prazo para preenchimento do relatório', key: 'monitoring.deadline_for_completing_report' },
             {
-                label: 'Prazo para análise e emissão do parecer',
+                label: 'Prazo para análise e emissão do parepcer',
                 key: 'monitoring.deadline_for_analysis_and_issuance_of_the_opinion',
             },
             { label: 'Tramitação do parecer via Suite', key: 'monitoring.date_of_processing_of_the_opinion_via_suite' },
