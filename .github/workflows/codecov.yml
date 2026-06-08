@@ -28,7 +28,7 @@ jobs:
         run: ./vendor/bin/phpunit --coverage-clover coverage.xml
 
       - name: Enviar relatório ao Codecov
-        uses: codecov/codecov-action@75cd11691c0faa626561e295848008c8a7dddffe # v5
+        uses: codecov/codecov-action@v5 # v5
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
           files: coverage.xml
