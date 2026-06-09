@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\DiligenceMessageController;
 use App\Http\Controllers\DocumentController;
 use App\Http\Controllers\GroupController;
 use App\Http\Controllers\LegalAnalysisController;
@@ -91,6 +92,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::put('/projetos/{project}/analise-juridica/arquivos/{file}', [LegalAnalysisController::class, 'updateFileStatus'])
         ->scopeBindings()
         ->name('legal-analysis.update-status');
+    Route::get('/projetos/{project}/diligencias/{stage}', [DiligenceMessageController::class, 'index'])
+        ->name('diligences.index');
+    Route::post('/projetos/{project}/diligencias/{stage}', [DiligenceMessageController::class, 'store'])
+        ->name('diligences.store');
 });
 
 Route::middleware('auth')->group(function () {
