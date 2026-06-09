@@ -31,6 +31,7 @@ class ProjectController extends Controller
                 'opening.supervisors',
                 'documents',
                 'currentStage',
+                'monitoring',
             ])
             ->search($request->search);
 

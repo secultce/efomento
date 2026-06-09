@@ -15,6 +15,10 @@ class ProjectResource extends JsonResource
             $data['documents'] = DocumentResource::collection($this->documents)->resolve();
         }
 
+        if ($this->relationLoaded('monitoring')) {
+            $data['monitoring'] = $this->monitoring;
+        }
+
         return $data;
     }
 }
