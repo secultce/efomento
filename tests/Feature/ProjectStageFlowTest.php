@@ -37,12 +37,12 @@ class ProjectStageFlowTest extends TestCase
         return $user;
     }
 
-    public function test_observer_creates_6_stages_on_project_creation(): void
+    public function test_observer_creates_7_stages_on_project_creation(): void
     {
         $project = Project::factory()->create();
 
-        $this->assertCount(6, $project->stages);
-        $this->assertDatabaseCount('project_stages', 6);
+        $this->assertCount(7, $project->stages);
+        $this->assertDatabaseCount('project_stages', 7);
     }
 
     public function test_stages_are_created_in_correct_order(): void
@@ -58,6 +58,7 @@ class ProjectStageFlowTest extends TestCase
             ProjectStageSlug::ORCAMENTO,
             ProjectStageSlug::PAGAMENTO,
             ProjectStageSlug::MONITORAMENTO,
+            ProjectStageSlug::PRESTACAO_DE_CONTAS,
         ], $slugs);
     }
 
@@ -96,9 +97,10 @@ class ProjectStageFlowTest extends TestCase
             4 => $this->createUserWithRoles('budgetary'),
             5 => $this->createUserWithRoles('coord_financial'),
             6 => $this->createUserWithRoles('monitoring'),
+            7 => $this->createUserWithRoles('monitoring'),
         ];
 
-        foreach (range(1, 6) as $order) {
+        foreach (range(1, 7) as $order) {
             $stage = $project->stages()->where('order', $order)->first();
             $this->service->advance($stage, $userByOrder[$order]);
         }
@@ -109,7 +111,7 @@ class ProjectStageFlowTest extends TestCase
             ->where('status', ProjectStageStatus::APROVADO)
             ->count();
 
-        $this->assertEquals(6, $approvedCount);
+        $this->assertEquals(7, $approvedCount);
         $this->assertEquals(100, $project->getProgressPercentage());
     }
 
@@ -214,7 +216,7 @@ class ProjectStageFlowTest extends TestCase
         $this->service->advance($first, $this->createUserWithRoles('fomentation'));
 
         $project->refresh();
-        $this->assertEquals(17, $project->getProgressPercentage());
+        $this->assertEquals(14, $project->getProgressPercentage());
     }
 
     public function test_unique_constraint_prevents_duplicate_slug_per_project(): void
@@ -236,7 +238,7 @@ class ProjectStageFlowTest extends TestCase
     {
         $project = Project::factory()->create();
 
-        $this->assertDatabaseCount('project_stages', 6);
+        $this->assertDatabaseCount('project_stages', 7);
 
         $project->forceDelete();
 
@@ -249,6 +251,6 @@ class ProjectStageFlowTest extends TestCase
 
         $orders = $project->stages->pluck('order')->all();
 
-        $this->assertEquals([1, 2, 3, 4, 5, 6], $orders);
+        $this->assertEquals([1, 2, 3, 4, 5, 6, 7], $orders);
     }
 }

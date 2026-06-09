@@ -3,6 +3,7 @@
 namespace App\Providers;
 
 use App\Models\Agent;
+use App\Models\Monitoring;
 use App\Models\Notice;
 use App\Models\Opening;
 use App\Models\Project;
@@ -38,6 +39,7 @@ class AppServiceProvider extends ServiceProvider
             'notice' => Notice::class,
             'project' => Project::class,
             'opening' => Opening::class,
+            'monitoring' => Monitoring::class,
         ]);
 
         Notice::observe(NoticeObserver::class);

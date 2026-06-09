@@ -15,6 +15,7 @@ enum ProjectStageSlug: string implements HasLabel
     case ORCAMENTO = 'orcamento';
     case PAGAMENTO = 'pagamento';
     case MONITORAMENTO = 'monitoramento';
+    case PRESTACAO_DE_CONTAS = 'prestacao_de_contas';
 
     public function label(): string
     {
@@ -25,6 +26,7 @@ enum ProjectStageSlug: string implements HasLabel
             self::ORCAMENTO => 'Orçamento',
             self::PAGAMENTO => 'Pagamento',
             self::MONITORAMENTO => 'Monitoramento',
+            self::PRESTACAO_DE_CONTAS => 'Prestação de Contas',
         };
     }
 }
