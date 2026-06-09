@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\DocumentController;
 use App\Http\Controllers\GroupController;
+use App\Http\Controllers\InstallmentController;
 use App\Http\Controllers\LegalAnalysisController;
 use App\Http\Controllers\NoticeController;
 use App\Http\Controllers\NotificationController;
@@ -83,6 +84,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::patch('/{id}/ler', [NotificationController::class, 'markAsRead'])->name('notifications.mark-read');
         Route::patch('/ler-todas', [NotificationController::class, 'markAllAsRead'])->name('notifications.mark-all-read');
     });
+    Route::post('/editais/{notice}/projetos/pagamento/import', [InstallmentController::class, 'import'])
+        ->name('installments.import');
     Route::get('/projetos/{project}/analise-juridica', [LegalAnalysisController::class, 'index'])
         ->name('legal-analysis.index');
     Route::get('/projetos/{project}/analise-juridica/arquivos/{file}', [LegalAnalysisController::class, 'serveFile'])

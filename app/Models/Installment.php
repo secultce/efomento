@@ -21,16 +21,40 @@ class Installment extends Model implements Auditable
         'justification',
         'observations',
         'installment_number',
+
+        'commitment_number',
+        'commitment_date',
+        'settlement_number',
+        'payment_order_number',
+        'payment_amount',
+        'payment_date',
+        'remarks',
+
         'created_by',
+        'updated_by',
     ];
 
     protected $casts = [
         'amount' => 'decimal:2',
+        'payment_amount' => 'decimal:2',
+
         'request_date' => 'date',
+        'commitment_date' => 'date',
+        'payment_date' => 'date',
     ];
 
     public function budget(): BelongsTo
     {
         return $this->belongsTo(Budget::class);
+    }
+
+    public function creator(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'created_by');
+    }
+
+    public function updater(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'updated_by');
     }
 }
