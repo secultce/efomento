@@ -7,6 +7,7 @@ use App\Mail\DiligenceMail;
 use App\Models\DiligenceMessage;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 use Webklex\IMAP\Facades\Client;
 
@@ -47,6 +48,7 @@ class DiligenceMessageService
 
             foreach ($messages as $imapMessage) {
                 $messageId = (string) $imapMessage->message_id;
+                Log::info('Processando mensagem IMAP', ['message_id' => $messageId]);
 
                 if (DiligenceMessage::where('imap_message_id', $messageId)->exists()) {
                     continue;
