@@ -15,7 +15,7 @@ class DiligenceMessageService
 {
     public function send(Model $diligenceable, string $subject, string $body, string $toEmail, User $sender): DiligenceMessage
     {
-        $messageId = sprintf('<%s@efomento>', uniqid('diligence_', true));
+        $messageId = sprintf('<%s@%s>', uniqid('diligence_', true), $this->messageIdDomain());
         $replyTo = $diligenceable->diligenceMessages()->latest('sent_at')->value('imap_message_id');
 
         $message = $diligenceable->diligenceMessages()->create([
@@ -33,6 +33,15 @@ class DiligenceMessageService
         Mail::to($toEmail)->send(new DiligenceMail($message));
 
         return $message;
+    }
+
+    private function messageIdDomain(): string
+    {
+        $replyTo = (string) config('efomento.diligence_reply_to');
+
+        return str_contains($replyTo, '@')
+            ? substr(strrchr($replyTo, '@'), 1)
+            : 'efomento.ce.gov.br';
     }
 
     public function syncIncoming(): int

@@ -7,5 +7,5 @@ use Illuminate\Database\Eloquent\Model;
 
 interface DiligenceableResolver
 {
-    public function resolve(Project $project): Model;
+    public function resolve(Project $project): ?Model;
 }

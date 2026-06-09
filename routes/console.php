@@ -15,6 +15,11 @@ Schedule::job(new SyncNoticesJob)
     ->withoutOverlapping()
     ->onOneServer();
 
+Schedule::command('app:sync-diligence-emails')
+    ->everyFiveMinutes()
+    ->withoutOverlapping()
+    ->onOneServer();
+
 Schedule::command('queue:prune-batches --hours=72 --unfinished=168 --cancelled=168')
     ->dailyAt('03:30')
     ->timezone('America/Fortaleza')

@@ -35,8 +35,10 @@ class DiligenceMail extends Mailable
 
     public function headers(): Headers
     {
+        // Symfony valida o Message-ID como addr-spec e adiciona os "<>" sozinho;
+        // no banco o valor fica com "<>" para casar com o header lido via IMAP.
         return new Headers(
-            messageId: $this->diligenceMessage->imap_message_id,
+            messageId: trim($this->diligenceMessage->imap_message_id, '<>'),
             references: $this->diligenceMessage->in_reply_to
                 ? [$this->diligenceMessage->in_reply_to]
                 : [],

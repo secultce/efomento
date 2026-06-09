@@ -16,9 +16,14 @@ class DiligenceableResolverRegistry
     public function resolve(Project $project, ProjectStageSlug $slug): Model
     {
         $resolver = $this->resolvers[$slug->value] ?? null;
-
+        dump($project);
+        dump($resolver);
         abort_unless($resolver !== null, Response::HTTP_NOT_FOUND);
 
-        return $resolver->resolve($project);
+        $diligenceable = $resolver->resolve($project);
+        dd($diligenceable);
+        //        abort_unless($diligenceable !== null, Response::HTTP_NOT_FOUND);
+
+        return $diligenceable;
     }
 }
