@@ -27,8 +27,8 @@ class FormalizationRelationshipTest extends TestCase
         $project = Project::factory()->create();
         $formalization = Formalization::factory()->create(['project_id' => $project->id]);
 
-        $this->assertInstanceOf(Formalization::class, $project->formalization);
-        $this->assertEquals($formalization->id, $project->formalization->id);
+        $this->assertInstanceOf(Formalization::class, $project->formalizations);
+        $this->assertEquals($formalization->id, $project->formalizations->id);
     }
 
     public function test_formalization_casts_enums()

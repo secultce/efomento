@@ -2,12 +2,15 @@
 import { ref } from 'vue';
 import OpeningTab from './Tabs/OpeningTab.vue';
 import LegalAnalysisTab from './Tabs/LegalAnalysisTab.vue';
+import FormalizationTab from './Tabs/FormalizationTab.vue';
 
 defineProps({
     project: { type: Object, default: null },
     supervisorsAvailable: { type: Array, default: () => [] },
     agentStatus: { type: Array, default: () => [] },
     reportStatus: { type: Array, default: () => [] },
+    termStatus: { type: Array, default: () => [] },
+    deliberation: { type: Array, default: () => [] },
     accountType: { type: Array, default: () => [] },
     currentStage: { type: Object, default: null },
     canReturn: { type: Boolean, default: false },
@@ -18,7 +21,7 @@ const tab = ref('opening');
 const tabs = [
     { value: 'opening', label: 'Abertura' },
     { value: 'legal-analysis', label: 'Análise jurídica' },
-    { value: '3', label: 'Formalização de processos' },
+    { value: 'formalization', label: 'Formalização de processos' },
     { value: '4', label: 'Orçamento e parcela' },
     { value: '5', label: 'Pagamentos' },
     { value: '6', label: 'Monitoramento' },
@@ -51,9 +54,14 @@ const tabs = [
 
                 <LegalAnalysisTab :project="project" :can-return="canReturn" :current-stage="currentStage" />
 
-                <v-tabs-window-item value="3">
-                    <v-sheet class="pa-5 h-[35em]" color="brown" />
-                </v-tabs-window-item>
+                <FormalizationTab
+                    :project="project"
+                    :can-return="canReturn"
+                    :current-stage="currentStage"
+                    :report-status="reportStatus"
+                    :term-status="termStatus"
+                    :deliberation="deliberation"
+                />
 
                 <v-tabs-window-item value="4">
                     <v-sheet class="pa-5 h-[35em]" color="green" />
