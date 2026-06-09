@@ -2,6 +2,7 @@
 
 namespace App\Providers;
 
+use App\Enums\ProjectStageSlug;
 use App\Models\Agent;
 use App\Models\Monitoring;
 use App\Models\Notice;
@@ -9,6 +10,8 @@ use App\Models\Opening;
 use App\Models\Project;
 use App\Observers\NoticeObserver;
 use App\Observers\ProjectObserver;
+use App\Services\Diligenceable\MonitoringDiligenceableResolver;
+use App\Services\DiligenceableResolverRegistry;
 use App\Support\Notify;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Database\Eloquent\Relations\Relation;
@@ -23,8 +26,11 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        //
         $this->app->bind(Notify::class);
+
+        $this->app->singleton(DiligenceableResolverRegistry::class, fn () => new DiligenceableResolverRegistry([
+            ProjectStageSlug::MONITORAMENTO->value => new MonitoringDiligenceableResolver,
+        ]));
     }
 
     /**

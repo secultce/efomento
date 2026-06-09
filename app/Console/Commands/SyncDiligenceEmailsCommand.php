@@ -13,10 +13,16 @@ class SyncDiligenceEmailsCommand extends Command
 
     public function handle(DiligenceMessageService $service): int
     {
-        $count = $service->syncIncoming();
+        try {
+            $count = $service->syncIncoming();
+            $this->info("Sincronizadas {$count} mensagem(ns) de diligência.");
 
-        $this->info("Sincronizadas {$count} mensagem(ns) de diligência.");
+            return Command::SUCCESS;
+        } catch (\Throwable $e) {
+            report($e);
+            $this->error("Falha ao sincronizar diligências via IMAP: {$e->getMessage()}");
 
-        return Command::SUCCESS;
+            return Command::FAILURE;
+        }
     }
 }

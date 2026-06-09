@@ -39,42 +39,44 @@ class DiligenceMessageService
         $client = Client::account('default');
         $client->connect();
 
-        $folder = $client->getFolderByName('INBOX');
-        $messages = $folder->messages()->unseen()->get();
+        try {
+            $folder = $client->getFolderByName('INBOX');
+            $messages = $folder->messages()->unseen()->get();
 
-        $count = 0;
+            $count = 0;
 
-        foreach ($messages as $imapMessage) {
-            $messageId = (string) $imapMessage->message_id;
+            foreach ($messages as $imapMessage) {
+                $messageId = (string) $imapMessage->message_id;
 
-            if (DiligenceMessage::where('imap_message_id', $messageId)->exists()) {
-                continue;
+                if (DiligenceMessage::where('imap_message_id', $messageId)->exists()) {
+                    continue;
+                }
+
+                $inReplyTo = (string) $imapMessage->in_reply_to;
+                $diligenceMessage = DiligenceMessage::where('imap_message_id', $inReplyTo)->first();
+
+                if (! $diligenceMessage) {
+                    continue; // Não deve existir mensagem de resposta sem existir uma mensagem de diligência
+                }
+
+                $diligenceMessage->diligenceable->diligenceMessages()->create([
+                    'direction' => DiligenceDirection::INBOUND,
+                    'from_email' => (string) $imapMessage->from,
+                    'to_email' => config('mail.from.address'),
+                    'subject' => (string) $imapMessage->subject,
+                    'body' => $imapMessage->hasTextBody()
+                        ? $imapMessage->bodies['text']->content
+                        : strip_tags($imapMessage->bodies['html']->content),
+                    'imap_message_id' => $messageId,
+                    'in_reply_to' => $inReplyTo,
+                    'sent_at' => $imapMessage->date->toDateTime(),
+                ]);
+
+                $count++;
             }
-
-            $inReplyTo = (string) $imapMessage->in_reply_to;
-            $diligenceMessage = DiligenceMessage::where('imap_message_id', $inReplyTo)->first();
-
-            if (! $diligenceMessage) {
-                continue;
-            }
-
-            $diligenceMessage->diligenceable->diligenceMessages()->create([
-                'direction' => DiligenceDirection::INBOUND,
-                'from_email' => (string) $imapMessage->from,
-                'to_email' => config('mail.from.address'),
-                'subject' => (string) $imapMessage->subject,
-                'body' => $imapMessage->hasTextBody()
-                    ? $imapMessage->bodies['text']->content
-                    : strip_tags($imapMessage->bodies['html']->content),
-                'imap_message_id' => $messageId,
-                'in_reply_to' => $inReplyTo,
-                'sent_at' => $imapMessage->date->toDateTime(),
-            ]);
-
-            $count++;
+        } finally {
+            $client->disconnect();
         }
-
-        $client->disconnect();
 
         return $count;
     }
