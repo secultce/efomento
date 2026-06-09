@@ -7,6 +7,7 @@ use App\Traits\HasFiles;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use OwenIt\Auditing\Auditable as AuditableTrait;
 use OwenIt\Auditing\Contracts\Auditable;
@@ -41,5 +42,10 @@ class Monitoring extends Model implements Auditable
     public function project(): BelongsTo
     {
         return $this->belongsTo(Project::class);
+    }
+
+    public function diligenceMessages(): MorphMany
+    {
+        return $this->morphMany(DiligenceMessage::class, 'diligenceable')->orderBy('sent_at');
     }
 }
