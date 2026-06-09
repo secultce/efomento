@@ -10,6 +10,7 @@ import { useSnackbar } from '@/Composables/useSnackbar';
 import { Head, router } from '@inertiajs/vue3';
 import { ref } from 'vue';
 import FormalizationActions from './Partials/Actions/Formalization/FormalizationActions.vue';
+import MonitoringActions from './Partials/Actions/Monitoring/MonitoringActions.vue';
 
 const props = defineProps({
     notice: { type: Object, default: null },
@@ -177,7 +178,13 @@ function handleAction({ action, item }) {
                         @saved="handleSaved"
                     />
                     <FormalizationActions
-                        v-else-if="selectedPhase === 'formalizacao' || !selectedPhase"
+                        v-else-if="selectedPhase === 'formalizacao'"
+                        :selected-projects="selectedProjects"
+                        :projects="projects"
+                        :notice="notice"
+                    />
+                    <MonitoringActions
+                        v-else-if="selectedPhase === 'monitoramento'"
                         :selected-projects="selectedProjects"
                         :projects="projects"
                         :notice="notice"
