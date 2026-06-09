@@ -5,18 +5,21 @@ namespace App\Http\Controllers;
 use App\Enums\ProjectStageSlug;
 use App\Http\Requests\Diligence\StoreDiligenceMessageRequest;
 use App\Models\Project;
+use App\Services\DiligenceableResolverRegistry;
 use App\Services\DiligenceMessageService;
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\JsonResponse;
 use Symfony\Component\HttpFoundation\Response;
 
 class DiligenceMessageController extends Controller
 {
-    public function __construct(private readonly DiligenceMessageService $service) {}
+    public function __construct(
+        private readonly DiligenceMessageService $service,
+        private readonly DiligenceableResolverRegistry $registry,
+    ) {}
 
     public function index(Project $project, string $stage): JsonResponse
     {
-        $diligenceable = $this->resolveDiligenceable($project, $stage);
+        $diligenceable = $this->registry->resolve($project, ProjectStageSlug::from($stage));
 
         $messages = $diligenceable->diligenceMessages()
             ->with('creator:id,name')
@@ -38,7 +41,7 @@ class DiligenceMessageController extends Controller
 
     public function store(StoreDiligenceMessageRequest $request, Project $project, string $stage): JsonResponse
     {
-        $diligenceable = $this->resolveDiligenceable($project, $stage);
+        $diligenceable = $this->registry->resolve($project, ProjectStageSlug::from($stage));
 
         $message = $this->service->send(
             diligenceable: $diligenceable,
@@ -49,15 +52,5 @@ class DiligenceMessageController extends Controller
         );
 
         return response()->json(['message' => $message], Response::HTTP_CREATED);
-    }
-
-    private function resolveDiligenceable(Project $project, string $stage): Model
-    {
-        $slug = ProjectStageSlug::from($stage);
-
-        return match ($slug) {
-            ProjectStageSlug::MONITORAMENTO => $project->monitoring,
-            default => abort(Response::HTTP_NOT_FOUND),
-        };
     }
 }
