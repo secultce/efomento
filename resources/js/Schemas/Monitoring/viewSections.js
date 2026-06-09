@@ -1,4 +1,4 @@
-import { addDaysTo } from '@/Utils/dateHelpers';
+import { addDaysTo, getDate } from '@/Utils/dateHelpers';
 
 export const viewSections = [
     {
@@ -14,13 +14,36 @@ export const viewSections = [
                 compute: addDaysTo('sent_timestamp', 365),
                 format: 'datetime',
             },
-            { label: 'Prazo para preenchimento do relatório', key: 'monitoring.deadline_for_completing_report' },
             {
-                label: 'Prazo para análise e emissão do parepcer',
+                label: 'Prazo final para análise e emissão do parecer do monitoramento',
+                compute: addDaysTo('sent_timestamp', 30),
+                format: 'datetime',
+            },
+            {
+                label: 'Data de pagamento',
                 key: 'monitoring.deadline_for_analysis_and_issuance_of_the_opinion',
             },
-            { label: 'Tramitação do parecer via Suite', key: 'monitoring.date_of_processing_of_the_opinion_via_suite' },
-            { label: 'Notificação ao agente', key: 'monitoring.date_of_notification_to_the_agent' },
+
+            {
+                label: 'Data de início de vigência do instrumento',
+                compute: getDate('formalization.validity_start_at'),
+            },
+            {
+                label: 'Data de término de vigência do instrumento',
+                compute: getDate('formalization.validity_end_at'),
+            },
+            {
+                label: 'Quantidade de dias da vigência inicial',
+                key: 'monitoring.date_of_notification_to_the_agent',
+            },
+            {
+                label: 'Período entre publica entre publicação e pagamento',
+                key: 'monitoring.date_of_processing_of_the_opinion_via_suite',
+            },
+            {
+                label: 'Data da publicação do DOE',
+                compute: getDate('formalization.official_gazette_published_at'),
+            },
         ],
     },
     {
