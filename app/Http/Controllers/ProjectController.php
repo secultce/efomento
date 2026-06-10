@@ -84,7 +84,7 @@ class ProjectController extends Controller
         ]);
     }
 
-    public function projectDetail(Notice $notice, Project $project)
+    public function projectDetail(Request $request, Notice $notice, Project $project)
     {
         $project->load([
             'notice',
@@ -100,6 +100,7 @@ class ProjectController extends Controller
             'documents.images',
             'budget',
             'budget.installments',
+            'monitoring',
             'formalizations',
             'formalizations.files',
             'agent.latestSnapshot',
@@ -125,6 +126,7 @@ class ProjectController extends Controller
             'canReturn' => $currentStage
                 ? ($currentStage->order > 1 && auth()->user()->hasAnyRole($currentStage->responsible_sector))
                 : false,
+            'initialTab' => $request->get('tab', 'opening'),
         ]);
     }
 
