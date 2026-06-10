@@ -41,6 +41,7 @@ class Formalization extends Model implements Auditable
         'validity_start_at',
         'validity_end_at',
         'legal_opinion_date',
+        'data_sign_gabinete',
         'created_by',
     ];
 
@@ -62,6 +63,7 @@ class Formalization extends Model implements Auditable
         'validity_start_at' => 'date',
         'validity_end_at' => 'date',
         'legal_opinion_date' => 'date',
+        'data_sign_gabinete' => 'date',
         'deleted_at' => 'datetime',
     ];
 

@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\DiligenceMessageController;
 use App\Http\Controllers\DocumentController;
 use App\Http\Controllers\FormalizationController;
 use App\Http\Controllers\GroupController;
@@ -107,6 +108,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::delete('/projetos/{project}/formalizacao/{formalization}/arquivos/{file}', [FormalizationController::class, 'destroyFile'])
         ->scopeBindings()
         ->name('projects.formalizations.files.destroy');
+    Route::get('/projetos/{project}/diligencias/{stage}', [DiligenceMessageController::class, 'index'])
+        ->name('diligences.index');
+    Route::post('/projetos/{project}/diligencias/{stage}', [DiligenceMessageController::class, 'store'])
+        ->name('diligences.store');
 });
 
 Route::middleware('auth')->group(function () {

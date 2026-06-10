@@ -4,12 +4,14 @@ namespace App\Services;
 
 use App\Enums\ProfileSnapshotSource;
 use App\Models\ProfileSnapshot;
+use App\Support\DocumentNumber;
 use BackedEnum;
 use Illuminate\Database\Eloquent\Model;
 
 class ProfileSnapshotService
 {
     private const FIELDS = [
+        'cpf_cnpj',
         'gender',
         'sexual_orientation',
         'race',
@@ -30,6 +32,7 @@ class ProfileSnapshotService
     ];
 
     private const MAPAS_AGENT_FIELD_MAP = [
+        'cpf' => 'cpf_cnpj',
         'genero' => 'gender',
         'orientacaoSexual' => 'sexual_orientation',
         'raca' => 'race',
@@ -136,6 +139,7 @@ class ProfileSnapshotService
 
             $normalized[$snapshotField] = match ($snapshotField) {
                 'birth_date' => $this->normalizeDate($value),
+                'cpf_cnpj' => DocumentNumber::normalize($value) ?: null,
                 default => $this->normalizeString($value),
             };
         }

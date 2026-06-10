@@ -9,7 +9,7 @@ use App\Services\CategoryService;
 use App\Services\MapasClient;
 use App\Services\ProfileSnapshotService;
 use App\Services\ProjectService;
-use App\Support\Cpf;
+use App\Support\DocumentNumber;
 use DateTimeInterface;
 use Illuminate\Bus\Batchable;
 use Illuminate\Bus\Queueable;
@@ -86,11 +86,11 @@ class SyncRegistrationDetailsJob implements ShouldQueue
 
         $agentData = $mapasClient->agentById((int) $ownerId);
 
-        $agentCpf = Cpf::normalize(
+        $agentDocument = DocumentNumber::normalize(
             data_get($agentData, 'cpf')
         );
 
-        if (! $agentCpf) {
+        if (! $agentDocument) {
             Log::warning('sync.registration.agent_cpf_missing', [
                 'registration_id' => $this->registrationId,
                 'owner_id' => $ownerId,
@@ -111,16 +111,16 @@ class SyncRegistrationDetailsJob implements ShouldQueue
 
         DB::transaction(function () use (
             $details,
-            $agentCpf,
             $agentData,
+            $agentDocument,
             $noticeExternalId,
             $snapshotService,
             $projectService,
             $categoryService,
             $agentService
         ) {
-            $agent = $agentService->updateOrCreateByCpf(
-                cpf: $agentCpf,
+            $agent = $agentService->updateOrCreatedByDocument(
+                document: $agentDocument,
                 name: data_get($agentData, 'name'),
             );
 
