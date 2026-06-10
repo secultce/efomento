@@ -25,7 +25,7 @@ class FormalizationServiceTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-
+        // teste formalização
         $this->service = app(FormalizationService::class);
         $this->disk = config('filesystems.default', 'local');
         Storage::fake($this->disk);
