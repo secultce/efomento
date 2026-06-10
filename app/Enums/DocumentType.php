@@ -42,4 +42,13 @@ enum DocumentType: string
             self::PO => DocumentPhase::JURIDICAL,
         };
     }
+
+    public static function requiredForFormalizationAdvance(): array
+    {
+        return [
+            self::TC,
+            self::ET,
+            self::PJ,
+        ];
+    }
 }
