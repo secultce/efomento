@@ -21,6 +21,26 @@ const { getFieldValue } = useFormHelper({
     project: props.project,
 });
 
+const formatters = {
+    datetime: (value) => {
+        if (!value) return null;
+        return new Intl.DateTimeFormat('pt-BR', {
+            day: '2-digit',
+            month: '2-digit',
+            year: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit',
+            second: '2-digit',
+            hour12: false,
+        }).format(new Date(value));
+    },
+};
+
+const displayValue = (field) => {
+    const raw = field.compute ? field.compute(props.project) : getFieldValue(field.key);
+    return field.format && formatters[field.format] ? formatters[field.format](raw) : raw;
+};
+
 const copyValue = async (value) => {
     if (!value) return;
 
@@ -65,7 +85,7 @@ const copyValue = async (value) => {
                 </div>
 
                 <span class="font-bold break-words">
-                    {{ getFieldValue(field.key) }}
+                    {{ displayValue(field) }}
                 </span>
             </div>
         </div>

@@ -23,3 +23,5 @@ Homestead.json
 Homestead.yaml
 Thumbs.db
 cypress.env.json
+coverage.xml
+docs/spreadsheet-sync.md

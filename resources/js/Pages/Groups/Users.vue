@@ -20,7 +20,7 @@ defineProps({
                     </v-avatar>
                 </v-col>
                 <v-col cols="8">
-                    <h4 class="font-weight-bold">{{ user.name }}</h4>
+                    <h4 class="font-weight-bold">{{ user.id }} - {{ user.name }}</h4>
                 </v-col>
                 <v-col cols="2">
                     <v-btn variant="outlined" color="primary" rounded="lg" height="25">atribuir função</v-btn>

@@ -45,4 +45,12 @@ return [
 
     'file_download_timeout' => env('MAPAS_FILE_DOWNLOAD_TIMEOUT', 60),
 
+    /*
+    |--------------------------------------------------------------------------
+    | Diligências
+    |--------------------------------------------------------------------------
+    */
+
+    'diligence_reply_to' => env('DILIGENCE_REPLY_TO', 'diligencias@efomento.ce.gov.br'),
+
 ];
