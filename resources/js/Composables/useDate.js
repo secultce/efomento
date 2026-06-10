@@ -38,9 +38,28 @@ export function useDate() {
     const formatRelativeDate = (date) => {
         return dayjs(date).fromNow();
     };
+
+    const resolveKey = (key, obj) => key.split('.').reduce((acc, part) => acc?.[part], obj);
+
+    const addDaysTo = (key, days) => (project) => {
+        const ts = resolveKey(key, project);
+        if (!ts) return null;
+        const date = new Date(ts);
+        date.setDate(date.getDate() + days);
+        return date;
+    };
+
+    const getDate = (key) => (project) => {
+        const ts = resolveKey(key, project);
+        if (!ts) return null;
+        return formatDate(ts);
+    };
+
     return {
         formatDate,
         normalizeDate,
         formatRelativeDate,
+        addDaysTo,
+        getDate,
     };
 }

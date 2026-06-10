@@ -1,4 +1,6 @@
-import { addDaysTo, getDate } from '@/Utils/dateHelpers';
+import { useDate } from '@/Composables/useDate';
+
+const { addDaysTo, getDate } = useDate();
 
 export const viewSections = [
     {
