@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\BudgetController;
 use App\Http\Controllers\DiligenceMessageController;
 use App\Http\Controllers\DocumentController;
 use App\Http\Controllers\FormalizationController;
@@ -108,6 +109,13 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::delete('/projetos/{project}/formalizacao/{formalization}/arquivos/{file}', [FormalizationController::class, 'destroyFile'])
         ->scopeBindings()
         ->name('projects.formalizations.files.destroy');
+
+    Route::post('/projetos/{project}/orcamento', [BudgetController::class, 'store'])
+        ->name('projects.budgets.store');
+    Route::patch('/projetos/{project}/orcamento/{budget}/atualizar', [BudgetController::class, 'update'])
+        ->scopeBindings()
+        ->name('projects.budgets.update');
+
     Route::get('/projetos/{project}/diligencias/{stage}', [DiligenceMessageController::class, 'index'])
         ->name('diligences.index');
     Route::post('/projetos/{project}/diligencias/{stage}', [DiligenceMessageController::class, 'store'])

@@ -4,31 +4,31 @@ namespace App\Enums;
 
 enum DocumentType: string
 {
+    case CI = 'ci';
     case TC = 'tc';
     case ET = 'et';
     case PJ = 'pj';
     case PO = 'po';
-    case CI = 'ci';
 
     public function label(): string
     {
         return match ($this) {
+            self::CI => 'CI',
             self::TC => 'TC',
             self::ET => 'ET',
             self::PJ => 'PJ',
             self::PO => 'PO',
-            self::CI => 'CI',
         };
     }
 
     public function fullLabel(): string
     {
         return match ($this) {
+            self::CI => 'Comunicação Interna',
             self::TC => 'Termo de Execução Cultural',
             self::ET => 'Extrato',
             self::PJ => 'Parecer Jurídico',
-            self::PO => 'Despacho',
-            self::CI => 'Comunicação Interna',
+            self::PO => 'Parecer Orçamentário',
         };
     }
 
@@ -39,7 +39,7 @@ enum DocumentType: string
             self::TC,
             self::ET,
             self::PJ => DocumentPhase::FORMALIZATION,
-            self::PO => DocumentPhase::JURIDICAL,
+            self::PO => DocumentPhase::BUDGET,
         };
     }
 
