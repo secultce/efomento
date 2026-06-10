@@ -35,15 +35,16 @@ const { showSnackbar } = useSnackbar();
 
 const body = ref('');
 const threadEl = ref(null);
+const stageUnavailable = ref(false);
+
+const stageLabel = computed(() => stageLabels[props.stage] ?? props.stage);
 
 const toEmail = computed(() => props.project.agent?.latest_snapshot?.email ?? null);
 
 const computedSubject = computed(() => {
     if (props.subject) return props.subject;
 
-    const stageLabel = stageLabels[props.stage] ?? props.stage;
-
-    return `Diligência — ${stageLabel} — ${props.project.title_project ?? ''}`.trim();
+    return `Diligência — ${stageLabel.value} — ${props.project.title_project ?? ''}`.trim();
 });
 
 const canSend = computed(() => Boolean(toEmail.value) && body.value.trim().length >= MIN_BODY_LENGTH);
@@ -84,14 +85,26 @@ onMounted(async () => {
     try {
         await fetchMessages();
         scrollToBottom();
-    } catch {
-        showSnackbar('Não foi possível carregar as mensagens da diligência.', 'error');
+    } catch (error) {
+        if (error.response?.status === 404) {
+            stageUnavailable.value = true;
+        } else {
+            showSnackbar('Não foi possível carregar as mensagens da diligência.', 'error');
+        }
     }
 });
 </script>
 
 <template>
-    <div class="space-y-3">
+    <div v-if="stageUnavailable" class="space-y-3">
+        <p class="text-sm text-gray-700">{{ description }}</p>
+        <div class="bg-amber-50 border border-amber-200 rounded-lg p-4 text-sm text-amber-800">
+            Os dados de {{ stageLabel }} deste projeto ainda não foram cadastrados. O envio de mensagens estará
+            disponível assim que essa etapa for registrada.
+        </div>
+    </div>
+
+    <div v-else class="space-y-3">
         <p class="text-sm text-gray-700">{{ description }}</p>
 
         <div ref="threadEl" class="bg-gray-100 rounded-lg p-4 max-h-96 overflow-y-auto space-y-3">

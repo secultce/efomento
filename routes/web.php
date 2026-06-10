@@ -112,10 +112,6 @@ Route::middleware(['auth', 'verified'])->group(function () {
         ->name('diligences.index');
     Route::post('/projetos/{project}/diligencias/{stage}', [DiligenceMessageController::class, 'store'])
         ->name('diligences.store');
-    Route::get('/projetos/{project}/diligencias/{stage}', [DiligenceMessageController::class, 'index'])
-        ->name('diligences.index');
-    Route::post('/projetos/{project}/diligencias/{stage}', [DiligenceMessageController::class, 'store'])
-        ->name('diligences.store');
 });
 
 Route::middleware('auth')->group(function () {

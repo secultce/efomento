@@ -9,6 +9,7 @@ use App\Models\User;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Str;
 use Webklex\IMAP\Facades\Client;
 
 class DiligenceMessageService
@@ -16,6 +17,8 @@ class DiligenceMessageService
     public function send(Model $diligenceable, string $subject, string $body, string $toEmail, User $sender): DiligenceMessage
     {
         $replyTo = $diligenceable->diligenceMessages()->latest('sent_at')->value('imap_message_id');
+
+        $messageId = sprintf('<diligence_%s@%s>', Str::uuid(), $this->messageIdDomain());
 
         $message = $diligenceable->diligenceMessages()->create([
             'direction' => DiligenceDirection::OUTBOUND,
