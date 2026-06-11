@@ -4,6 +4,7 @@ import SplitScreenTab from '@/Components/SplitScreenTab.vue';
 import SectionChips from '@/Components/SectionChips.vue';
 import SectionContent from '@/Components/SectionContent.vue';
 import AuxLinks from '@/Components/AuxLinks.vue';
+import DiligenceChat from '@/Components/DiligenceChat.vue';
 import { viewSections, formSections } from '@/Schemas/Monitoring';
 
 defineProps({
@@ -45,6 +46,11 @@ const activeFormIndex = ref(0);
                     <p class="font-bold text-md mt-2 text-black">Links auxiliares</p>
                 </div>
                 <aux-links />
+                <diligence-chat
+                    :project="project"
+                    stage="monitoramento"
+                    description="Envie mensagem ao agente cultural sobre o relatório de monitoramento (não vale para notificações, comunicados, solicitações etc.)"
+                />
                 <section-chips v-model="activeFormIndex" :sections="formSections" />
                 <div class="mt-4 text-sm text-gray-500 italic">Formulário de edição disponível em breve.</div>
             </div>

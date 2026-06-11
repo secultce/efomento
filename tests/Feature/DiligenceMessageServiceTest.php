@@ -6,10 +6,10 @@ use App\Enums\DiligenceDirection;
 use App\Mail\DiligenceMail;
 use App\Models\DiligenceMessage;
 use App\Models\Monitoring;
+use App\Models\Project;
 use App\Models\User;
 use App\Services\DiligenceMessageService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Mail;
 use Mockery;
 use Tests\TestCase;
@@ -25,56 +25,261 @@ class DiligenceMessageServiceTest extends TestCase
 
     private DiligenceMessageService $service;
 
+    private User $user;
+
+    private Monitoring $monitoring;
+
     protected function setUp(): void
     {
         parent::setUp();
 
+        $this->user = User::factory()->create();
+        $this->monitoring = Monitoring::factory()->for(Project::factory())->create();
         $this->service = app(DiligenceMessageService::class);
     }
 
-    private function fakeImapMessage(array $attributes = []): object
+    public function test_send_persists_outbound_message_with_sender_data(): void
     {
-        return new class($attributes)
-        {
-            public string $message_id;
+        Mail::fake();
 
-            public string $in_reply_to;
+        $message = $this->service->send(
+            diligenceable: $this->monitoring,
+            subject: 'Diligência — Monitoramento',
+            body: 'Favor enviar o relatório de monitoramento atualizado.',
+            toEmail: 'agente@example.com',
+            sender: $this->user,
+        );
 
-            public string $from;
+        $this->assertDatabaseHas('diligence_messages', [
+            'id' => $message->id,
+            'diligenceable_type' => 'monitoring',
+            'diligenceable_id' => $this->monitoring->id,
+            'direction' => DiligenceDirection::OUTBOUND->value,
+            'from_email' => config('mail.from.address'),
+            'to_email' => 'agente@example.com',
+            'created_by' => $this->user->id,
+        ]);
 
-            public string $subject;
-
-            public array $bodies;
-
-            public Carbon $date;
-
-            private bool $hasText;
-
-            public function __construct(array $attributes)
-            {
-                $this->message_id = $attributes['message_id'] ?? '<resposta@example.com>';
-                $this->in_reply_to = $attributes['in_reply_to'] ?? '';
-                $this->from = $attributes['from'] ?? 'agente@example.com';
-                $this->subject = $attributes['subject'] ?? 'Re: Diligência';
-                $this->bodies = $attributes['bodies'] ?? [
-                    'text' => (object) ['content' => 'Resposta do agente cultural.'],
-                ];
-                $this->date = $attributes['date'] ?? now();
-                $this->hasText = $attributes['hasText'] ?? true;
-            }
-
-            public function hasTextBody(): bool
-            {
-                return $this->hasText;
-            }
-        };
+        $this->assertTrue($message->diligenceable->is($this->monitoring));
+        $this->assertNotNull($message->sent_at);
     }
 
-    private function mockImapInbox(array $messages): void
+    public function test_send_generates_unique_message_ids_with_diligence_prefix(): void
+    {
+        Mail::fake();
+
+        $first = $this->sendMessage();
+        $second = $this->sendMessage();
+
+        $this->assertMatchesRegularExpression('/^<diligence_[^@]+@[^>]+\.[^>]+>$/', $first->imap_message_id);
+        $this->assertStringEndsWith('@efomento.ce.gov.br>', $first->imap_message_id);
+        $this->assertNotSame($first->imap_message_id, $second->imap_message_id);
+    }
+
+    public function test_send_threads_the_reply_to_the_latest_message(): void
+    {
+        Mail::fake();
+
+        $this->monitoring->diligenceMessages()->create([
+            'direction' => DiligenceDirection::OUTBOUND,
+            'from_email' => 'efomento@example.com',
+            'to_email' => 'agente@example.com',
+            'subject' => 'Diligência — Monitoramento',
+            'body' => 'Primeira mensagem da diligência.',
+            'imap_message_id' => '<diligence_antiga@efomento.ce.gov.br>',
+            'sent_at' => now()->subDays(2),
+            'created_by' => $this->user->id,
+        ]);
+
+        $this->monitoring->diligenceMessages()->create([
+            'direction' => DiligenceDirection::OUTBOUND,
+            'from_email' => 'efomento@example.com',
+            'to_email' => 'agente@example.com',
+            'subject' => 'Diligência — Monitoramento',
+            'body' => 'Mensagem mais recente da diligência.',
+            'imap_message_id' => '<diligence_recente@efomento.ce.gov.br>',
+            'sent_at' => now()->subDay(),
+            'created_by' => $this->user->id,
+        ]);
+
+        $message = $this->sendMessage();
+
+        $this->assertSame('<diligence_recente@efomento.ce.gov.br>', $message->in_reply_to);
+    }
+
+    public function test_send_first_message_of_the_thread_has_no_in_reply_to(): void
+    {
+        Mail::fake();
+
+        $this->assertNull($this->sendMessage()->in_reply_to);
+    }
+
+    public function test_send_dispatches_mail_to_the_recipient(): void
+    {
+        Mail::fake();
+
+        $message = $this->sendMessage();
+
+        Mail::assertSent(DiligenceMail::class, function (DiligenceMail $mail) use ($message) {
+            return $mail->hasTo('agente@example.com') && $mail->diligenceMessage->is($message);
+        });
+    }
+
+    public function test_message_id_domain_falls_back_when_reply_to_has_no_domain(): void
+    {
+        Mail::fake();
+
+        config(['efomento.diligence_reply_to' => 'endereco-invalido']);
+
+        $message = $this->sendMessage();
+
+        $this->assertStringEndsWith('@efomento.ce.gov.br>', $message->imap_message_id);
+    }
+
+    public function test_sync_incoming_creates_inbound_reply_on_the_same_thread(): void
+    {
+        $this->monitoring->diligenceMessages()->create([
+            'direction' => DiligenceDirection::OUTBOUND,
+            'from_email' => 'efomento@example.com',
+            'to_email' => 'agente@example.com',
+            'subject' => 'Diligência — Monitoramento',
+            'body' => 'Favor enviar o relatório de monitoramento atualizado.',
+            'imap_message_id' => '<diligence_origem@efomento.ce.gov.br>',
+            'sent_at' => now()->subDay(),
+            'created_by' => $this->user->id,
+        ]);
+
+        $sentAt = now()->subHour()->startOfSecond();
+
+        $this->fakeImapInbox([
+            $this->fakeImapMessage([
+                'message_id' => '<resposta@example.com>',
+                'in_reply_to' => '<diligence_origem@efomento.ce.gov.br>',
+                'from' => 'agente@example.com',
+                'subject' => 'Re: Diligência — Monitoramento',
+                'bodies' => ['text' => (object) ['content' => 'Segue em anexo o relatório solicitado.']],
+                'date' => $sentAt,
+            ]),
+        ]);
+
+        $count = $this->service->syncIncoming();
+
+        $this->assertSame(1, $count);
+
+        $this->assertDatabaseHas('diligence_messages', [
+            'diligenceable_type' => 'monitoring',
+            'diligenceable_id' => $this->monitoring->id,
+            'direction' => DiligenceDirection::INBOUND->value,
+            'from_email' => 'agente@example.com',
+            'to_email' => config('mail.from.address'),
+            'imap_message_id' => '<resposta@example.com>',
+            'in_reply_to' => '<diligence_origem@efomento.ce.gov.br>',
+            'body' => 'Segue em anexo o relatório solicitado.',
+        ]);
+
+        $inbound = DiligenceMessage::where('imap_message_id', '<resposta@example.com>')->first();
+        $this->assertTrue($inbound->sent_at->equalTo($sentAt));
+    }
+
+    public function test_sync_incoming_skips_messages_already_imported(): void
+    {
+        $this->monitoring->diligenceMessages()->create([
+            'direction' => DiligenceDirection::INBOUND,
+            'from_email' => 'agente@example.com',
+            'to_email' => 'efomento@example.com',
+            'subject' => 'Re: Diligência — Monitoramento',
+            'body' => 'Resposta já importada.',
+            'imap_message_id' => '<resposta@example.com>',
+            'sent_at' => now()->subDay(),
+        ]);
+
+        $this->fakeImapInbox([
+            $this->fakeImapMessage([
+                'message_id' => '<resposta@example.com>',
+                'in_reply_to' => '<diligence_origem@efomento.ce.gov.br>',
+                'from' => 'agente@example.com',
+                'subject' => 'Re: Diligência — Monitoramento',
+                'bodies' => ['text' => (object) ['content' => 'Resposta já importada.']],
+                'date' => now(),
+            ]),
+        ]);
+
+        $this->assertSame(0, $this->service->syncIncoming());
+        $this->assertSame(1, $this->monitoring->diligenceMessages()->count());
+    }
+
+    public function test_sync_incoming_ignores_replies_without_matching_diligence(): void
+    {
+        $this->fakeImapInbox([
+            $this->fakeImapMessage([
+                'message_id' => '<spam@example.com>',
+                'in_reply_to' => '<desconhecido@example.com>',
+                'from' => 'desconhecido@example.com',
+                'subject' => 'Mensagem sem diligência',
+                'bodies' => ['text' => (object) ['content' => 'Não deveria ser importada.']],
+                'date' => now(),
+            ]),
+        ]);
+
+        $this->assertSame(0, $this->service->syncIncoming());
+        $this->assertSame(0, $this->monitoring->diligenceMessages()->count());
+    }
+
+    public function test_sync_incoming_strips_tags_from_html_body_when_there_is_no_text_body(): void
+    {
+        $this->monitoring->diligenceMessages()->create([
+            'direction' => DiligenceDirection::OUTBOUND,
+            'from_email' => 'efomento@example.com',
+            'to_email' => 'agente@example.com',
+            'subject' => 'Diligência — Monitoramento',
+            'body' => 'Favor enviar o relatório de monitoramento atualizado.',
+            'imap_message_id' => '<diligence_origem@efomento.ce.gov.br>',
+            'sent_at' => now()->subDay(),
+            'created_by' => $this->user->id,
+        ]);
+
+        $this->fakeImapInbox([
+            $this->fakeImapMessage([
+                'message_id' => '<resposta_html@example.com>',
+                'in_reply_to' => '<diligence_origem@efomento.ce.gov.br>',
+                'from' => 'agente@example.com',
+                'subject' => 'Re: Diligência — Monitoramento',
+                'bodies' => ['html' => (object) ['content' => '<p>Segue o <strong>relatório</strong>.</p>']],
+                'date' => now(),
+            ]),
+        ]);
+
+        $this->assertSame(1, $this->service->syncIncoming());
+
+        $this->assertDatabaseHas('diligence_messages', [
+            'imap_message_id' => '<resposta_html@example.com>',
+            'body' => 'Segue o relatório.',
+        ]);
+    }
+
+    public function test_sync_incoming_returns_zero_when_inbox_is_empty(): void
+    {
+        $this->fakeImapInbox([]);
+
+        $this->assertSame(0, $this->service->syncIncoming());
+    }
+
+    private function sendMessage(): DiligenceMessage
+    {
+        return $this->service->send(
+            diligenceable: $this->monitoring,
+            subject: 'Diligência — Monitoramento',
+            body: 'Favor enviar o relatório de monitoramento atualizado.',
+            toEmail: 'agente@example.com',
+            sender: $this->user,
+        );
+    }
+
+    private function fakeImapInbox(array $messages): void
     {
         $query = Mockery::mock(WhereQuery::class);
         $query->shouldReceive('unseen')->andReturnSelf();
-        $query->shouldReceive('get')->andReturn(new MessageCollection($messages));
+        $query->shouldReceive('get')->andReturn(MessageCollection::make($messages));
 
         $folder = Mockery::mock(Folder::class);
         $folder->shouldReceive('messages')->andReturn($query);
@@ -87,176 +292,21 @@ class DiligenceMessageServiceTest extends TestCase
         Client::shouldReceive('account')->with('default')->andReturn($client);
     }
 
-    public function test_send_creates_outbound_message_and_sends_mail(): void
+    private function fakeImapMessage(array $attributes): object
     {
-        Mail::fake();
+        return new class($attributes)
+        {
+            public function __construct(private readonly array $attributes) {}
 
-        $monitoring = Monitoring::factory()->create();
-        $sender = User::factory()->create();
+            public function __get(string $key): mixed
+            {
+                return $this->attributes[$key] ?? null;
+            }
 
-        $message = $this->service->send(
-            $monitoring,
-            'Diligência: pendências',
-            'Há pendências na prestação de contas.',
-            'agente@example.com',
-            $sender
-        );
-
-        $this->assertTrue($message->exists);
-        $this->assertEquals(DiligenceDirection::OUTBOUND, $message->direction);
-        $this->assertSame(config('mail.from.address'), $message->from_email);
-        $this->assertSame('agente@example.com', $message->to_email);
-        $this->assertSame($sender->id, $message->created_by);
-        $this->assertNull($message->in_reply_to);
-        $this->assertMatchesRegularExpression('/^<diligence_.+@efomento>$/', $message->imap_message_id);
-        $this->assertNotNull($message->sent_at);
-        $this->assertTrue($message->diligenceable->is($monitoring));
-
-        Mail::assertSent(
-            DiligenceMail::class,
-            fn (DiligenceMail $mail) => $mail->diligenceMessage->is($message)
-                && $mail->hasTo('agente@example.com')
-        );
-    }
-
-    public function test_send_threads_reply_to_latest_previous_message(): void
-    {
-        Mail::fake();
-
-        $monitoring = Monitoring::factory()->create();
-        $sender = User::factory()->create();
-
-        DiligenceMessage::factory()->create([
-            'diligenceable_type' => 'monitoring',
-            'diligenceable_id' => $monitoring->id,
-            'imap_message_id' => '<antiga@efomento>',
-            'sent_at' => now()->subDays(2),
-        ]);
-
-        DiligenceMessage::factory()->create([
-            'diligenceable_type' => 'monitoring',
-            'diligenceable_id' => $monitoring->id,
-            'imap_message_id' => '<recente@efomento>',
-            'sent_at' => now()->subDay(),
-        ]);
-
-        $message = $this->service->send(
-            $monitoring,
-            'Diligência: lembrete',
-            'Reforçando a solicitação anterior.',
-            'agente@example.com',
-            $sender
-        );
-
-        $this->assertSame('<recente@efomento>', $message->in_reply_to);
-    }
-
-    public function test_sync_incoming_creates_inbound_reply(): void
-    {
-        $monitoring = Monitoring::factory()->create();
-
-        $outbound = DiligenceMessage::factory()->create([
-            'diligenceable_type' => 'monitoring',
-            'diligenceable_id' => $monitoring->id,
-            'imap_message_id' => '<diligencia@efomento>',
-        ]);
-
-        $sentAt = now()->subHour()->startOfSecond();
-
-        $this->mockImapInbox([
-            $this->fakeImapMessage([
-                'message_id' => '<resposta@example.com>',
-                'in_reply_to' => '<diligencia@efomento>',
-                'from' => 'agente@example.com',
-                'subject' => 'Re: Diligência',
-                'date' => $sentAt,
-            ]),
-        ]);
-
-        $count = $this->service->syncIncoming();
-
-        $this->assertSame(1, $count);
-
-        $inbound = DiligenceMessage::where('imap_message_id', '<resposta@example.com>')->first();
-
-        $this->assertNotNull($inbound);
-        $this->assertEquals(DiligenceDirection::INBOUND, $inbound->direction);
-        $this->assertSame('agente@example.com', $inbound->from_email);
-        $this->assertSame(config('mail.from.address'), $inbound->to_email);
-        $this->assertSame('Resposta do agente cultural.', $inbound->body);
-        $this->assertSame('<diligencia@efomento>', $inbound->in_reply_to);
-        $this->assertTrue($inbound->diligenceable->is($monitoring));
-        $this->assertTrue($inbound->sent_at->equalTo($sentAt));
-        $this->assertNotNull($outbound->fresh());
-    }
-
-    public function test_sync_incoming_skips_already_imported_messages(): void
-    {
-        DiligenceMessage::factory()->inbound()->create([
-            'imap_message_id' => '<ja-importada@example.com>',
-        ]);
-
-        $this->mockImapInbox([
-            $this->fakeImapMessage(['message_id' => '<ja-importada@example.com>']),
-        ]);
-
-        $count = $this->service->syncIncoming();
-
-        $this->assertSame(0, $count);
-        $this->assertSame(1, DiligenceMessage::where('imap_message_id', '<ja-importada@example.com>')->count());
-    }
-
-    public function test_sync_incoming_skips_messages_without_known_thread(): void
-    {
-        $this->mockImapInbox([
-            $this->fakeImapMessage([
-                'message_id' => '<avulsa@example.com>',
-                'in_reply_to' => '<desconhecida@example.com>',
-            ]),
-        ]);
-
-        $count = $this->service->syncIncoming();
-
-        $this->assertSame(0, $count);
-        $this->assertDatabaseMissing('diligence_messages', [
-            'imap_message_id' => '<avulsa@example.com>',
-        ]);
-    }
-
-    public function test_sync_incoming_falls_back_to_html_body(): void
-    {
-        $monitoring = Monitoring::factory()->create();
-
-        DiligenceMessage::factory()->create([
-            'diligenceable_type' => 'monitoring',
-            'diligenceable_id' => $monitoring->id,
-            'imap_message_id' => '<diligencia@efomento>',
-        ]);
-
-        $this->mockImapInbox([
-            $this->fakeImapMessage([
-                'message_id' => '<resposta-html@example.com>',
-                'in_reply_to' => '<diligencia@efomento>',
-                'hasText' => false,
-                'bodies' => [
-                    'html' => (object) ['content' => '<p>Resposta em <strong>HTML</strong>.</p>'],
-                ],
-            ]),
-        ]);
-
-        $count = $this->service->syncIncoming();
-
-        $this->assertSame(1, $count);
-
-        $inbound = DiligenceMessage::where('imap_message_id', '<resposta-html@example.com>')->first();
-
-        $this->assertSame('Resposta em HTML.', $inbound->body);
-    }
-
-    public function test_sync_incoming_returns_zero_when_inbox_is_empty(): void
-    {
-        $this->mockImapInbox([]);
-
-        $this->assertSame(0, $this->service->syncIncoming());
+            public function hasTextBody(): bool
+            {
+                return isset($this->attributes['bodies']['text']);
+            }
+        };
     }
 }

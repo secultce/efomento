@@ -9,15 +9,16 @@ use App\Models\User;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Str;
 use Webklex\IMAP\Facades\Client;
 
 class DiligenceMessageService
 {
     public function send(Model $diligenceable, string $subject, string $body, string $toEmail, User $sender): DiligenceMessage
     {
-        // Prefixo será diligence_
-        $messageId = sprintf('<%s@efomento>', uniqid('diligence_', true));
         $replyTo = $diligenceable->diligenceMessages()->reorder()->latest('sent_at')->value('imap_message_id');
+
+        $messageId = sprintf('<diligence_%s@%s>', Str::uuid(), $this->messageIdDomain());
 
         $message = $diligenceable->diligenceMessages()->create([
             'direction' => DiligenceDirection::OUTBOUND,
@@ -34,6 +35,15 @@ class DiligenceMessageService
         Mail::to($toEmail)->send(new DiligenceMail($message));
 
         return $message;
+    }
+
+    private function messageIdDomain(): string
+    {
+        $replyTo = (string) config('efomento.diligence_reply_to');
+
+        return str_contains($replyTo, '@')
+            ? substr(strrchr($replyTo, '@'), 1)
+            : 'efomento.ce.gov.br';
     }
 
     public function syncIncoming(): int

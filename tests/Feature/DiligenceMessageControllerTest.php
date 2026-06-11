@@ -3,7 +3,6 @@
 namespace Tests\Feature;
 
 use App\Enums\DiligenceDirection;
-use App\Enums\ProjectStageSlug;
 use App\Mail\DiligenceMail;
 use App\Models\DiligenceMessage;
 use App\Models\Monitoring;
@@ -29,38 +28,43 @@ class DiligenceMessageControllerTest extends TestCase
 
         $this->user = User::factory()->create();
         $this->project = Project::factory()->create();
-        $this->monitoring = Monitoring::factory()->create([
-            'project_id' => $this->project->id,
-            'created_by' => $this->user->id,
-        ]);
+        $this->monitoring = Monitoring::factory()->for($this->project)->create();
     }
 
-    private function validPayload(array $overrides = []): array
+    public function test_guest_cannot_access_diligences(): void
     {
-        return array_merge([
-            'subject' => 'Diligência: documentação pendente',
-            'body' => 'Favor encaminhar os documentos pendentes da prestação de contas.',
-            'to_email' => 'agente@example.com',
-        ], $overrides);
-    }
-
-    public function test_guest_cannot_access_diligence_messages(): void
-    {
-        $this->getJson(route('diligences.index', [$this->project, ProjectStageSlug::MONITORAMENTO->value]))
+        $this->getJson(route('diligences.index', ['project' => $this->project, 'stage' => 'monitoramento']))
             ->assertUnauthorized();
     }
 
-    public function test_index_returns_messages_for_the_stage(): void
+    public function test_index_returns_thread_messages(): void
     {
-        DiligenceMessage::factory()->count(2)->create([
-            'diligenceable_type' => 'monitoring',
-            'diligenceable_id' => $this->monitoring->id,
+        $this->monitoring->diligenceMessages()->create([
+            'direction' => DiligenceDirection::OUTBOUND,
+            'from_email' => 'efomento@example.com',
+            'to_email' => 'agente@example.com',
+            'subject' => 'Diligência — Monitoramento',
+            'body' => 'Favor enviar o relatório de monitoramento atualizado.',
+            'imap_message_id' => '<diligence_test_1@efomento>',
+            'sent_at' => now()->subDay(),
             'created_by' => $this->user->id,
         ]);
 
-        $this->actingAs($this->user)
-            ->getJson(route('diligences.index', [$this->project, ProjectStageSlug::MONITORAMENTO->value]))
-            ->assertOk()
+        $this->monitoring->diligenceMessages()->create([
+            'direction' => DiligenceDirection::INBOUND,
+            'from_email' => 'agente@example.com',
+            'to_email' => 'efomento@example.com',
+            'subject' => 'Re: Diligência — Monitoramento',
+            'body' => 'Segue em anexo o relatório solicitado.',
+            'imap_message_id' => '<resposta_test_1@example.com>',
+            'in_reply_to' => '<diligence_test_1@efomento>',
+            'sent_at' => now(),
+        ]);
+
+        $response = $this->actingAs($this->user)
+            ->getJson(route('diligences.index', ['project' => $this->project, 'stage' => 'monitoramento']));
+
+        $response->assertOk()
             ->assertJsonCount(2, 'messages')
             ->assertJsonStructure([
                 'messages' => [
@@ -77,7 +81,9 @@ class DiligenceMessageControllerTest extends TestCase
                     ],
                 ],
             ])
-            ->assertJsonPath('messages.0.creator', $this->user->name);
+            ->assertJsonPath('messages.0.direction', 'OUTBOUND')
+            ->assertJsonPath('messages.0.creator', $this->user->name)
+            ->assertJsonPath('messages.1.direction', 'INBOUND');
     }
 
     public function test_index_does_not_leak_messages_from_other_projects(): void
@@ -90,29 +96,43 @@ class DiligenceMessageControllerTest extends TestCase
         DiligenceMessage::factory()->create();
 
         $this->actingAs($this->user)
-            ->getJson(route('diligences.index', [$this->project, ProjectStageSlug::MONITORAMENTO->value]))
+            ->getJson(route('diligences.index', ['project' => $this->project, 'stage' => 'monitoramento']))
             ->assertOk()
             ->assertJsonCount(1, 'messages');
     }
 
-    public function test_index_returns_404_for_stage_without_diligence_support(): void
+    public function test_index_returns_404_when_project_has_no_monitoring_yet(): void
     {
+        $projectWithoutMonitoring = Project::factory()->create();
+
         $this->actingAs($this->user)
-            ->getJson(route('diligences.index', [$this->project, ProjectStageSlug::ABERTURA->value]))
+            ->getJson(route('diligences.index', ['project' => $projectWithoutMonitoring, 'stage' => 'monitoramento']))
             ->assertNotFound();
     }
 
-    public function test_store_creates_message_and_sends_mail(): void
+    public function test_index_returns_404_for_stage_without_resolver(): void
+    {
+        $this->actingAs($this->user)
+            ->getJson(route('diligences.index', ['project' => $this->project, 'stage' => 'abertura']))
+            ->assertNotFound();
+    }
+
+    public function test_store_creates_outbound_message_and_sends_mail(): void
     {
         Mail::fake();
 
-        $this->actingAs($this->user)
-            ->postJson(
-                route('diligences.store', [$this->project, ProjectStageSlug::MONITORAMENTO->value]),
-                $this->validPayload()
-            )
-            ->assertCreated()
-            ->assertJsonPath('message.subject', 'Diligência: documentação pendente');
+        $payload = [
+            'subject' => 'Diligência — Monitoramento — Projeto Teste',
+            'body' => 'Favor enviar o relatório de monitoramento atualizado.',
+            'to_email' => 'agente@example.com',
+        ];
+
+        $response = $this->actingAs($this->user)
+            ->postJson(route('diligences.store', ['project' => $this->project, 'stage' => 'monitoramento']), $payload);
+
+        $response->assertCreated()
+            ->assertJsonPath('message.direction', DiligenceDirection::OUTBOUND->value)
+            ->assertJsonPath('message.to_email', 'agente@example.com');
 
         $this->assertDatabaseHas('diligence_messages', [
             'diligenceable_type' => 'monitoring',
@@ -122,10 +142,25 @@ class DiligenceMessageControllerTest extends TestCase
             'created_by' => $this->user->id,
         ]);
 
-        Mail::assertSent(
-            DiligenceMail::class,
-            fn (DiligenceMail $mail) => $mail->hasTo('agente@example.com')
-        );
+        Mail::assertSent(DiligenceMail::class, function (DiligenceMail $mail) {
+            return $mail->hasTo('agente@example.com');
+        });
+    }
+
+    public function test_store_builds_rfc_compliant_email_headers(): void
+    {
+        // Sem Mail::fake(): o mailer de teste constrói o e-mail real e o Symfony
+        // valida o Message-ID contra o RFC 2822 (regressão do header inválido).
+        $this->actingAs($this->user)
+            ->postJson(route('diligences.store', ['project' => $this->project, 'stage' => 'monitoramento']), [
+                'subject' => 'Diligência — Monitoramento',
+                'body' => 'Favor enviar o relatório de monitoramento atualizado.',
+                'to_email' => 'agente@example.com',
+            ])
+            ->assertCreated();
+
+        $messageId = $this->monitoring->diligenceMessages()->first()->imap_message_id;
+        $this->assertMatchesRegularExpression('/^<diligence_[^@]+@[^>]+\.[^>]+>$/', $messageId);
     }
 
     public function test_store_validates_payload(): void
@@ -133,29 +168,27 @@ class DiligenceMessageControllerTest extends TestCase
         Mail::fake();
 
         $this->actingAs($this->user)
-            ->postJson(
-                route('diligences.store', [$this->project, ProjectStageSlug::MONITORAMENTO->value]),
-                [
-                    'subject' => '',
-                    'body' => 'curta',
-                    'to_email' => 'nao-eh-email',
-                ]
-            )
+            ->postJson(route('diligences.store', ['project' => $this->project, 'stage' => 'monitoramento']), [
+                'subject' => '',
+                'body' => 'curta',
+                'to_email' => 'nao-eh-email',
+            ])
             ->assertUnprocessable()
             ->assertJsonValidationErrors(['subject', 'body', 'to_email']);
 
         Mail::assertNothingSent();
     }
 
-    public function test_store_returns_404_for_stage_without_diligence_support(): void
+    public function test_store_returns_404_for_stage_without_resolver(): void
     {
         Mail::fake();
 
         $this->actingAs($this->user)
-            ->postJson(
-                route('diligences.store', [$this->project, ProjectStageSlug::ABERTURA->value]),
-                $this->validPayload()
-            )
+            ->postJson(route('diligences.store', ['project' => $this->project, 'stage' => 'abertura']), [
+                'subject' => 'Diligência — Abertura',
+                'body' => 'Favor enviar a documentação pendente da abertura.',
+                'to_email' => 'agente@example.com',
+            ])
             ->assertNotFound();
 
         Mail::assertNothingSent();
