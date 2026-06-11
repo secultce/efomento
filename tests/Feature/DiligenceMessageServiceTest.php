@@ -60,6 +60,7 @@ class DiligenceMessageServiceTest extends TestCase
             'created_by' => $this->user->id,
         ]);
 
+        $this->assertTrue($message->diligenceable->is($this->monitoring));
         $this->assertNotNull($message->sent_at);
     }
 
@@ -85,14 +86,25 @@ class DiligenceMessageServiceTest extends TestCase
             'to_email' => 'agente@example.com',
             'subject' => 'Diligência — Monitoramento',
             'body' => 'Primeira mensagem da diligência.',
-            'imap_message_id' => '<diligence_anterior@efomento.ce.gov.br>',
+            'imap_message_id' => '<diligence_antiga@efomento.ce.gov.br>',
+            'sent_at' => now()->subDays(2),
+            'created_by' => $this->user->id,
+        ]);
+
+        $this->monitoring->diligenceMessages()->create([
+            'direction' => DiligenceDirection::OUTBOUND,
+            'from_email' => 'efomento@example.com',
+            'to_email' => 'agente@example.com',
+            'subject' => 'Diligência — Monitoramento',
+            'body' => 'Mensagem mais recente da diligência.',
+            'imap_message_id' => '<diligence_recente@efomento.ce.gov.br>',
             'sent_at' => now()->subDay(),
             'created_by' => $this->user->id,
         ]);
 
         $message = $this->sendMessage();
 
-        $this->assertSame('<diligence_anterior@efomento.ce.gov.br>', $message->in_reply_to);
+        $this->assertSame('<diligence_recente@efomento.ce.gov.br>', $message->in_reply_to);
     }
 
     public function test_send_first_message_of_the_thread_has_no_in_reply_to(): void
@@ -137,6 +149,8 @@ class DiligenceMessageServiceTest extends TestCase
             'created_by' => $this->user->id,
         ]);
 
+        $sentAt = now()->subHour()->startOfSecond();
+
         $this->fakeImapInbox([
             $this->fakeImapMessage([
                 'message_id' => '<resposta@example.com>',
@@ -144,7 +158,7 @@ class DiligenceMessageServiceTest extends TestCase
                 'from' => 'agente@example.com',
                 'subject' => 'Re: Diligência — Monitoramento',
                 'bodies' => ['text' => (object) ['content' => 'Segue em anexo o relatório solicitado.']],
-                'date' => now(),
+                'date' => $sentAt,
             ]),
         ]);
 
@@ -157,10 +171,14 @@ class DiligenceMessageServiceTest extends TestCase
             'diligenceable_id' => $this->monitoring->id,
             'direction' => DiligenceDirection::INBOUND->value,
             'from_email' => 'agente@example.com',
+            'to_email' => config('mail.from.address'),
             'imap_message_id' => '<resposta@example.com>',
             'in_reply_to' => '<diligence_origem@efomento.ce.gov.br>',
             'body' => 'Segue em anexo o relatório solicitado.',
         ]);
+
+        $inbound = DiligenceMessage::where('imap_message_id', '<resposta@example.com>')->first();
+        $this->assertTrue($inbound->sent_at->equalTo($sentAt));
     }
 
     public function test_sync_incoming_skips_messages_already_imported(): void
@@ -237,6 +255,13 @@ class DiligenceMessageServiceTest extends TestCase
             'imap_message_id' => '<resposta_html@example.com>',
             'body' => 'Segue o relatório.',
         ]);
+    }
+
+    public function test_sync_incoming_returns_zero_when_inbox_is_empty(): void
+    {
+        $this->fakeImapInbox([]);
+
+        $this->assertSame(0, $this->service->syncIncoming());
     }
 
     private function sendMessage(): DiligenceMessage

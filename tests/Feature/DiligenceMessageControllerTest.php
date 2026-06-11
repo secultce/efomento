@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use App\Enums\DiligenceDirection;
 use App\Mail\DiligenceMail;
+use App\Models\DiligenceMessage;
 use App\Models\Monitoring;
 use App\Models\Project;
 use App\Models\User;
@@ -28,6 +29,12 @@ class DiligenceMessageControllerTest extends TestCase
         $this->user = User::factory()->create();
         $this->project = Project::factory()->create();
         $this->monitoring = Monitoring::factory()->for($this->project)->create();
+    }
+
+    public function test_guest_cannot_access_diligences(): void
+    {
+        $this->getJson(route('diligences.index', ['project' => $this->project, 'stage' => 'monitoramento']))
+            ->assertUnauthorized();
     }
 
     public function test_index_returns_thread_messages(): void
@@ -59,9 +66,39 @@ class DiligenceMessageControllerTest extends TestCase
 
         $response->assertOk()
             ->assertJsonCount(2, 'messages')
+            ->assertJsonStructure([
+                'messages' => [
+                    '*' => [
+                        'id',
+                        'direction',
+                        'from_email',
+                        'to_email',
+                        'subject',
+                        'body',
+                        'sent_at',
+                        'read_at',
+                        'creator',
+                    ],
+                ],
+            ])
             ->assertJsonPath('messages.0.direction', 'OUTBOUND')
             ->assertJsonPath('messages.0.creator', $this->user->name)
             ->assertJsonPath('messages.1.direction', 'INBOUND');
+    }
+
+    public function test_index_does_not_leak_messages_from_other_projects(): void
+    {
+        DiligenceMessage::factory()->create([
+            'diligenceable_type' => 'monitoring',
+            'diligenceable_id' => $this->monitoring->id,
+        ]);
+
+        DiligenceMessage::factory()->create();
+
+        $this->actingAs($this->user)
+            ->getJson(route('diligences.index', ['project' => $this->project, 'stage' => 'monitoramento']))
+            ->assertOk()
+            ->assertJsonCount(1, 'messages');
     }
 
     public function test_index_returns_404_when_project_has_no_monitoring_yet(): void
@@ -126,25 +163,34 @@ class DiligenceMessageControllerTest extends TestCase
         $this->assertMatchesRegularExpression('/^<diligence_[^@]+@[^>]+\.[^>]+>$/', $messageId);
     }
 
-    public function test_store_rejects_body_shorter_than_minimum(): void
+    public function test_store_validates_payload(): void
     {
         Mail::fake();
 
         $this->actingAs($this->user)
             ->postJson(route('diligences.store', ['project' => $this->project, 'stage' => 'monitoramento']), [
-                'subject' => 'Diligência',
-                'body' => 'Curta demais.',
-                'to_email' => 'agente@example.com',
+                'subject' => '',
+                'body' => 'curta',
+                'to_email' => 'nao-eh-email',
             ])
             ->assertUnprocessable()
-            ->assertJsonValidationErrors(['body']);
+            ->assertJsonValidationErrors(['subject', 'body', 'to_email']);
 
         Mail::assertNothingSent();
     }
 
-    public function test_guest_cannot_access_diligences(): void
+    public function test_store_returns_404_for_stage_without_resolver(): void
     {
-        $this->getJson(route('diligences.index', ['project' => $this->project, 'stage' => 'monitoramento']))
-            ->assertUnauthorized();
+        Mail::fake();
+
+        $this->actingAs($this->user)
+            ->postJson(route('diligences.store', ['project' => $this->project, 'stage' => 'abertura']), [
+                'subject' => 'Diligência — Abertura',
+                'body' => 'Favor enviar a documentação pendente da abertura.',
+                'to_email' => 'agente@example.com',
+            ])
+            ->assertNotFound();
+
+        Mail::assertNothingSent();
     }
 }

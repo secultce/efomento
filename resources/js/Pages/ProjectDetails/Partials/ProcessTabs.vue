@@ -2,8 +2,8 @@
 import { ref } from 'vue';
 import OpeningTab from './Tabs/OpeningTab.vue';
 import LegalAnalysisTab from './Tabs/LegalAnalysisTab.vue';
-import MonitoringTab from './Tabs/MonitoringTab.vue';
 import FormalizationTab from './Tabs/FormalizationTab.vue';
+import MonitoringTab from './Tabs/MonitoringTab.vue';
 
 const props = defineProps({
     project: { type: Object, default: null },
