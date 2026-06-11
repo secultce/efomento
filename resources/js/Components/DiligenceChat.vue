@@ -3,7 +3,7 @@ import { computed, nextTick, onMounted, ref, watch } from 'vue';
 import dayjs from 'dayjs';
 import { useDiligenceMessages } from '@/Composables/useDiligenceMessages';
 import { useSnackbar } from '@/Composables/useSnackbar';
-
+// Add posteriormente o componente Tinymce
 const props = defineProps({
     project: {
         type: Object,
