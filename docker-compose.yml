@@ -108,6 +108,33 @@ services:
     networks:
       - efomento
 
+  greenmail:
+    image: greenmail/standalone:latest
+    container_name: efomento-greenmail
+    environment:
+      GREENMAIL_OPTS: >-
+        -Dgreenmail.setup.test.all
+        -Dgreenmail.hostname=0.0.0.0
+        -Dgreenmail.auth.disabled
+        -Dgreenmail.verbose
+    networks:
+      - efomento
+
+  roundcube:
+    image: roundcube/roundcubemail:latest
+    container_name: efomento-roundcube
+    ports:
+      - "8025:80"
+    environment:
+      ROUNDCUBEMAIL_DEFAULT_HOST: greenmail
+      ROUNDCUBEMAIL_DEFAULT_PORT: 3143
+      ROUNDCUBEMAIL_SMTP_SERVER: greenmail
+      ROUNDCUBEMAIL_SMTP_PORT: 3025
+    depends_on:
+      - greenmail
+    networks:
+      - efomento
+
   scheduler:
     build:
       context: ./docker/php
