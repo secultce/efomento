@@ -25,3 +25,5 @@ Thumbs.db
 cypress.env.json
 coverage.xml
 docs/spreadsheet-sync.md
+.claude/skills/
+.claude/settings.local.json

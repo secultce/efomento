@@ -83,7 +83,7 @@ const form = useForm({
 
 onMounted(() => {
     const opening = props.project.opening || {};
-    const formalization = props.project.formalization || {};
+    const formalization = props.project.formalizations || {};
     const agent = props.project.agent || {};
 
     form.opening = {
