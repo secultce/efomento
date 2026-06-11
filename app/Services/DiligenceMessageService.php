@@ -15,6 +15,7 @@ class DiligenceMessageService
 {
     public function send(Model $diligenceable, string $subject, string $body, string $toEmail, User $sender): DiligenceMessage
     {
+        // Prefixo será diligence_
         $messageId = sprintf('<%s@efomento>', uniqid('diligence_', true));
         $replyTo = $diligenceable->diligenceMessages()->reorder()->latest('sent_at')->value('imap_message_id');
 
