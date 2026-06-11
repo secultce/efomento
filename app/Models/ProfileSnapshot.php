@@ -15,6 +15,7 @@ class ProfileSnapshot extends Model
     protected $fillable = [
         'object_id',
         'object_type',
+        'cpf_cnpj',
         'gender',
         'sexual_orientation',
         'race',
