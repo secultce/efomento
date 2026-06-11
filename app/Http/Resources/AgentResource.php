@@ -13,7 +13,7 @@ class AgentResource extends JsonResource
             'id' => $this->id,
 
             'name' => $this->name,
-            'cpf' => $this->cpf,
+            'cpf_cnpj' => $this->latestSnapshot?->cpf_cnpj,
 
             'director_position' => $this->director_position,
             'director_email' => $this->director_email,

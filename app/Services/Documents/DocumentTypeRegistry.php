@@ -33,6 +33,11 @@ class DocumentTypeRegistry
             'requires_sign' => false,
             'requires_legal' => false,
         ],
+        'ci+opening' => [
+            'label' => 'Comunicação Interna',
+            'requires_sign' => false,
+            'requires_legal' => false,
+        ],
     ];
 
     public function resolve(DocumentType $type, DocumentPhase $phase): array

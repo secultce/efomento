@@ -10,6 +10,7 @@ use App\Jobs\LoadSpreadsheetProjectFilesJob;
 use App\Models\Notice;
 use App\Models\Opening;
 use App\Models\Project;
+use App\Support\DocumentNumber;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -30,32 +31,34 @@ class SpreadsheetImportService
         array $row,
         bool $withFiles,
         int $userId,
+        ?int $fallbackNoticeId = null,
     ): ?Project {
-        return DB::transaction(function () use ($row, $withFiles, $userId) {
-            $registrationUrl = trim((string) ($row[44] ?? ''));
+        return DB::transaction(function () use ($row, $withFiles, $userId, $fallbackNoticeId) {
+            $registrationUrl = trim((string) ($row['LINK FICHA DE INSCRIÇÃO'] ?? ''));
             $registrationId = $this->extractRegistrationId($registrationUrl);
 
             if (! $registrationId) {
                 return null;
             }
 
-            $agent = $this->agentService->updateOrCreateByCpf(
-                cpf: $row[33] ?? null,
-                name: $row[2] ?? null,
+            $agent = $this->agentService->updateOrCreatedByDocument(
+                document: $row['CPF / CNPJ DO PROPONENTE'] ?? null,
+                name: $row['NOME COMPLETO / RAZÃO SOCIAL DO PROPONENTE'] ?? null,
             );
 
             if (! $agent) {
                 Log::warning('spreadsheet.import.agent_cpf_missing', [
                     'registration_id' => $registrationId,
-                    'cpf_column' => $row[33] ?? null,
+                    'cpf_column' => $row['CPF / CNPJ DO PROPONENTE'] ?? null,
                 ]);
 
                 return null;
             }
 
-            $noticeExternalId = trim((string) ($row[0] ?? ''));
+            $noticeExternalId = trim((string) ($row['Nº DA INSCRIÇÃO NO MAPA DA CULTURA'] ?? ''));
 
-            $notice = Notice::where('external_id', $noticeExternalId)->first();
+            $notice = Notice::where('external_id', $noticeExternalId)->first()
+                ?? ($fallbackNoticeId ? Notice::find($fallbackNoticeId) : null);
 
             if (! $notice) {
                 Log::warning('spreadsheet.import.notice_missing', [
@@ -67,7 +70,7 @@ class SpreadsheetImportService
             }
 
             $category = $this->categoryService->findOrCreateProject(
-                $row[4] ?? null
+                $row['CATEGORIA'] ?? null
             );
 
             $snapshotData = $this->buildSnapshotData($row);
@@ -85,7 +88,7 @@ class SpreadsheetImportService
                     'category_id' => $category?->id,
                     'agent_id' => $agent->id,
                     'notice_id' => $notice->id,
-                    'title_project' => trim((string) ($row[6] ?? '')) ?: null,
+                    'title_project' => trim((string) ($row['TITULO DO PROJETO'] ?? '')) ?: null,
                 ]
             );
 
@@ -113,13 +116,14 @@ class SpreadsheetImportService
     private function buildSnapshotData(array $row): array
     {
         return [
-            'gender' => trim((string) ($row[40] ?? '')) ?: null,
-            'has_disability' => $this->mapDisability(trim((string) ($row[42] ?? ''))),
-            'email' => trim((string) ($row[36] ?? '')) ?: null,
-            'phone' => trim((string) ($row[38] ?? '')) ?: null,
-            'birth_date' => $this->parseDate(trim((string) ($row[41] ?? ''))),
-            'street' => trim((string) ($row[34] ?? '')) ?: null,
-            'city' => trim((string) ($row[35] ?? '')) ?: null,
+            'cpf_cnpj' => DocumentNumber::normalize($row['CPF / CNPJ DO PROPONENTE'] ?? null) ?: null,
+            'gender' => trim((string) ($row['GÊNERO DA PESSOA FÍSICA'] ?? '')) ?: null,
+            'has_disability' => $this->mapDisability(trim((string) ($row['POSSUI DEFICIENCIA (PESSOA FÍSICA)'] ?? ''))),
+            'email' => trim((string) ($row['E-MAIL PRINCIPAL DO PROPONENTE'] ?? '')) ?: null,
+            'phone' => trim((string) ($row['TELEFONE PRINCIPAL DO PROPONENTE'] ?? '')) ?: null,
+            'birth_date' => $this->parseDate(trim((string) ($row['DATA DE NASCIMENTO DA PESSOA FÍSICA'] ?? ''))),
+            'street' => trim((string) ($row['ENDEREÇO COMPLETO DO PROPONENTE'] ?? '')) ?: null,
+            'city' => trim((string) ($row['CIDADE DO PROPONENTE'] ?? '')) ?: null,
         ];
     }
 
@@ -128,17 +132,17 @@ class SpreadsheetImportService
         return Opening::firstOrCreate(
             ['project_id' => $projectId],
             [
-                'opening_nup' => trim((string) ($row[14] ?? '')),
-                'opening_date' => $this->parseDate(trim((string) ($row[15] ?? ''))),
-                'agent_status' => $this->mapAgentStatus(trim((string) ($row[1] ?? ''))),
-                'opened_by' => trim((string) ($row[13] ?? '')),
-                'bank' => trim((string) ($row[16] ?? '')),
-                'account_type' => $this->mapAccountType(trim((string) ($row[17] ?? ''))),
-                'branch' => trim((string) ($row[18] ?? '')),
-                'account' => trim((string) ($row[19] ?? '')),
+                'opening_nup' => trim((string) ($row['N° DO PROCESSO (NUP)'] ?? '')),
+                'opening_date' => $this->parseDate(trim((string) ($row['DATA ABERTURA DE PROCESSO'] ?? ''))),
+                'agent_status' => $this->mapAgentStatus(trim((string) ($row['STATUS'] ?? ''))),
+                'opened_by' => trim((string) ($row['RESPONSÁVEL POR ABRIR PROCESSO'] ?? '')),
+                'bank' => trim((string) ($row['BANCO'] ?? '')),
+                'account_type' => $this->mapAccountType(trim((string) ($row['TIPO DE CONTA'] ?? ''))),
+                'branch' => trim((string) ($row['AGÊNCIA'] ?? '')),
+                'account' => trim((string) ($row['CONTA'] ?? '')),
                 'is_draft' => true,
-                'certificate_date' => $this->parseDate(trim((string) ($row[12] ?? ''))),
-                'started_at' => $this->parseDate(trim((string) ($row[15] ?? ''))),
+                'certificate_date' => $this->parseDate(trim((string) ($row['DATA DE CERTIDÃO GERADA'] ?? ''))),
+                'started_at' => $this->parseDate(trim((string) ($row['DATA ABERTURA DE PROCESSO'] ?? ''))),
                 'user_id' => $userId,
             ]
         );
