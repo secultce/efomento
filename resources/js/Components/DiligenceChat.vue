@@ -1,9 +1,10 @@
 <script setup>
 import { computed, nextTick, onMounted, ref, watch } from 'vue';
 import dayjs from 'dayjs';
+import AppTextEditor from '@/Components/AppTextEditor.vue';
 import { useDiligenceMessages } from '@/Composables/useDiligenceMessages';
 import { useSnackbar } from '@/Composables/useSnackbar';
-// Add posteriormente o componente Tinymce
+
 const props = defineProps({
     project: {
         type: Object,
@@ -47,7 +48,16 @@ const computedSubject = computed(() => {
     return `Diligência — ${stageLabel.value} — ${props.project.title_project ?? ''}`.trim();
 });
 
-const canSend = computed(() => Boolean(toEmail.value) && body.value.trim().length >= MIN_BODY_LENGTH);
+const plainBody = computed(() =>
+    body.value
+        .replace(/<[^>]*>/g, ' ')
+        .replace(/&nbsp;/g, ' ')
+        .trim()
+);
+
+const canSend = computed(() => Boolean(toEmail.value) && plainBody.value.length >= MIN_BODY_LENGTH);
+
+const isHtml = (value) => /<[a-z][\s\S]*>/i.test(value ?? '');
 
 const formatSentAt = (value) => (value ? dayjs(value).format('DD/MM/YYYY [às] HH:mm') : '');
 
@@ -64,7 +74,7 @@ async function submit() {
     try {
         await send({
             subject: computedSubject.value,
-            body: body.value.trim(),
+            body: body.value,
             to_email: toEmail.value,
         });
         body.value = '';
@@ -125,8 +135,15 @@ onMounted(async () => {
                         class="max-w-[85%] rounded-lg p-3 text-sm shadow-sm"
                         :class="message.direction === 'OUTBOUND' ? 'bg-white' : 'bg-amber-50'"
                     >
-                        <p class="whitespace-pre-line text-gray-800">{{ message.body }}</p>
-                        <p class="text-xs text-gray-500 text-right mt-2">
+                        <!-- eslint-disable vue/no-v-html -->
+                        <div
+                            v-if="message.direction === 'OUTBOUND' && isHtml(message.body)"
+                            class="text-gray-800 message-body"
+                            v-html="message.body"
+                        />
+                        <!-- eslint-enable vue/no-v-html -->
+                        <p v-else class="whitespace-pre-line text-gray-800">{{ message.body }}</p>
+                        <p class="text-xs text-gray-500 text-right mt-2 font-semibold">
                             {{ message.direction === 'OUTBOUND' ? 'Enviada em' : 'Recebida em' }}
                             {{ formatSentAt(message.sent_at) }}
                         </p>
@@ -135,19 +152,20 @@ onMounted(async () => {
             </template>
         </div>
 
-        <v-textarea
+        <AppTextEditor
             v-model="body"
             placeholder="Escreva uma mensagem aqui..."
-            variant="outlined"
-            density="comfortable"
-            rows="3"
-            auto-grow
-            hide-details
+            :height="220"
+            :menubar="false"
+            :statusbar="false"
+            toolbar-location="bottom"
+            :plugins="['link', 'lists', 'image', 'autolink']"
+            toolbar="undo redo | bold italic underline strikethrough | forecolor | link image"
         />
 
         <div class="flex items-center justify-between">
             <p v-if="!toEmail" class="text-xs text-red-600">O agente cultural não possui e-mail cadastrado.</p>
-            <p v-else-if="body.trim().length > 0 && body.trim().length < MIN_BODY_LENGTH" class="text-xs text-gray-500">
+            <p v-else-if="plainBody.length > 0 && plainBody.length < MIN_BODY_LENGTH" class="text-xs text-gray-500">
                 A mensagem deve ter pelo menos {{ MIN_BODY_LENGTH }} caracteres.
             </p>
             <span v-else />
@@ -165,3 +183,13 @@ onMounted(async () => {
         </div>
     </div>
 </template>
+
+<style scoped>
+.message-body :deep(p) {
+    margin-bottom: 0.5rem;
+}
+
+.message-body :deep(p:last-child) {
+    margin-bottom: 0;
+}
+</style>
