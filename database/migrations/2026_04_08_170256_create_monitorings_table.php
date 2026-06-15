@@ -21,7 +21,7 @@ return new class extends Migration
             $table->date('expiration_date_of_the_instrument'); // Data de término de vigência do instrumento
             $table->date('deadline_for_completing_report'); // Prazo de preenchimento de relatório de monitoramento
             $table->date('deadline_for_analysis_and_issuance_of_the_opinion'); // Prazo para análise e emissão do parecer de monitoramento
-            $table->date('date_of_processing_of_the_opinion_via_suite'); // Data da tramitação do parecer via Suite
+            $table->jsonb('technical_opinions')->default('[]'); // Pareceres técnicos: [{suite_number, processing_date}]
             $table->date('date_of_notification_to_the_agent'); // Data da notificação ao agente
             $table->text('observations')->nullable();
 
