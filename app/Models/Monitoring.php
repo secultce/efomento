@@ -23,7 +23,7 @@ class Monitoring extends Model implements Auditable
         'expiration_date_of_the_instrument',
         'deadline_for_completing_report',
         'deadline_for_analysis_and_issuance_of_the_opinion',
-        'date_of_processing_of_the_opinion_via_suite',
+        'technical_opinions',
         'date_of_notification_to_the_agent',
         'observations',
         'processed_at',
@@ -34,7 +34,7 @@ class Monitoring extends Model implements Auditable
         'expiration_date_of_the_instrument' => 'date',
         'deadline_for_completing_report' => 'date',
         'deadline_for_analysis_and_issuance_of_the_opinion' => 'date',
-        'date_of_processing_of_the_opinion_via_suite' => 'date',
+        'technical_opinions' => 'array',
         'date_of_notification_to_the_agent' => 'date',
         'processed_at' => 'datetime',
     ];
