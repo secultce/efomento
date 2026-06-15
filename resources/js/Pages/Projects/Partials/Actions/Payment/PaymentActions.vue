@@ -4,6 +4,7 @@ import { router } from '@inertiajs/vue3';
 import NoticeHistoryDialog from '@/Pages/Projects/Partials/Actions/NoticeHistoryDialog.vue';
 import HandleDocumentsDialog from '../HandleDocumentsDialog.vue';
 import DocumentListDialog from '../DocumentListDialog.vue';
+import { useSnackbar } from '@/Composables/useSnackbar.js';
 
 const props = defineProps({
     selectedProjects: { type: Array, default: () => [] },
@@ -11,9 +12,13 @@ const props = defineProps({
     notice: { type: Object, default: null },
 });
 
+defineEmits(['saved']);
+
 const viewHistory = ref(false);
 const poDialog = ref(false);
 const docListDialog = ref(false);
+
+const { showSnackbar } = useSnackbar();
 
 function openNoticeHistory() {
     viewHistory.value = true;
@@ -55,22 +60,50 @@ function openPODialog() {
 }
 
 const uploadInput = ref(null);
+const selectedInstallment = ref(null);
 
-function openUpload() {
+function openUpload(installment) {
+    selectedInstallment.value = installment;
     uploadInput.value?.click();
 }
 
-async function handleFileUpload(event, installmentNumber) {
+async function handleFileUpload(event) {
     const file = event.target.files?.[0];
 
-    if (!file) return;
+    if (!file || !selectedInstallment.value) {
+        return;
+    }
 
     const formData = new FormData();
     formData.append('file', file);
-    formData.append('installment', installmentNumber);
-
+    formData.append('installment', selectedInstallment.value);
+    props.selectedProjects.forEach((projectId) => {
+        formData.append('selectedProjects[]', projectId);
+    });
     router.post(route('installments.import', props.notice.id), formData, {
         forceFormData: true,
+        preserveScroll: true,
+
+        onStart: () => {
+            showSnackbar('Importando planilha, aguarde...', 'warning', -1);
+        },
+
+        onSuccess: (page) => {
+            if (page.props.flash?.error) {
+                showSnackbar(page.props.flash.error, 'error');
+                return;
+            }
+
+            if (page.props.flash?.success) {
+                showSnackbar(page.props.flash.success, 'success');
+            }
+        },
+
+        onError: (errors) => {
+            const message = Object.values(errors).flat().join(', ') || 'Ocorreu um erro ao importar a planilha';
+
+            showSnackbar(message, 'error');
+        },
     });
 
     event.target.value = '';
@@ -79,6 +112,7 @@ async function handleFileUpload(event, installmentNumber) {
 
 <template>
     <NoticeHistoryDialog v-model="viewHistory" :notice-id="notice?.id" />
+
     <HandleDocumentsDialog
         v-model="poDialog"
         type="po"
@@ -86,30 +120,34 @@ async function handleFileUpload(event, installmentNumber) {
         :edit-data="selectedPO"
         @saved="$emit('saved')"
     />
+
     <DocumentListDialog v-model="docListDialog" :documents="selectedDocuments" />
+
     <v-card class="w-full pb-4 pt-4 !shadow-none border border-gray-800 rounded-lg">
         <v-card-title class="font-weight-bold !text-lg"> Ações disponíveis para você </v-card-title>
 
         <v-card-text class="flex flex-col gap-4">
             <div class="w-full pt-2">
                 <p>Fazer upload de planilha de pagamentos</p>
+
+                <!-- Single hidden input -->
+                <input
+                    ref="uploadInput"
+                    type="file"
+                    accept=".xlsx,.xls,.csv"
+                    class="hidden"
+                    @change="handleFileUpload"
+                />
+
                 <div class="w-full pt-2">
                     <div class="flex flex-wrap gap-2">
                         <template v-for="n in props.notice?.installments || 0" :key="n">
-                            <input
-                                :ref="(el) => (uploadInput = el)"
-                                type="file"
-                                accept=".xlsx,.xls,.csv"
-                                class="hidden"
-                                @change="(e) => handleFileUpload(e, n)"
-                            />
-
                             <v-btn
                                 :class="[
                                     '!shadow-none !font-bold !bg-[#ffcc05FF] !text-[#2d353fFF] rounded-lg px-2 py-2 text-[11px]',
                                     props.notice?.installments == 1 ? 'w-full' : 'flex-1',
                                 ]"
-                                @click="openUpload"
+                                @click="openUpload(n)"
                             >
                                 {{
                                     props.notice?.installments == 1
@@ -120,9 +158,11 @@ async function handleFileUpload(event, installmentNumber) {
                         </template>
                     </div>
                 </div>
+
                 <div class="w-full pt-2 flex flex-col gap-1">
                     <template v-if="anyProjectsHasPO">
                         <p>Editar Despacho (PO)</p>
+
                         <v-btn
                             class="w-full !shadow-none !font-bold !border-gray-300 !bg-white !text-[#2d353fFF] rounded-lg text-xs gap-6"
                             :disabled="!(props.selectedProjects?.length > 0)"
@@ -139,6 +179,7 @@ async function handleFileUpload(event, installmentNumber) {
 
                     <template v-else>
                         <p>Criar Despacho</p>
+
                         <v-btn
                             class="w-full !shadow-none !font-bold !bg-[#ffcc05FF] !text-[#2d353fFF] rounded-lg px-4 py-2 text-xs"
                             :disabled="!(props.selectedProjects?.length > 0)"
@@ -148,6 +189,7 @@ async function handleFileUpload(event, installmentNumber) {
                         </v-btn>
                     </template>
                 </div>
+
                 <div class="w-full flex flex-col gap-1">
                     <v-divider class="my-4" />
 
