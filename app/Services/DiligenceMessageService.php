@@ -37,6 +37,17 @@ class DiligenceMessageService
         return $message;
     }
 
+    /**
+     * O webklex/laravel-imap remove os colchetes angulares dos headers
+     * Message-ID/In-Reply-To; o banco guarda no formato canônico <id@domínio>.
+     */
+    private function normalizeMessageId(string $value): ?string
+    {
+        $value = trim($value, " \t<>");
+
+        return $value === '' ? null : '<'.$value.'>';
+    }
+
     private function messageIdDomain(): string
     {
         $replyTo = (string) config('efomento.diligence_reply_to');
@@ -58,15 +69,17 @@ class DiligenceMessageService
             $count = 0;
 
             foreach ($messages as $imapMessage) {
-                $messageId = (string) $imapMessage->message_id;
+                $messageId = $this->normalizeMessageId((string) $imapMessage->message_id);
                 Log::info('Processando mensagem IMAP', ['message_id' => $messageId]);
 
                 if (DiligenceMessage::where('imap_message_id', $messageId)->exists()) {
                     continue;
                 }
 
-                $inReplyTo = (string) $imapMessage->in_reply_to;
-                $diligenceMessage = DiligenceMessage::where('imap_message_id', $inReplyTo)->first();
+                $inReplyTo = $this->normalizeMessageId((string) $imapMessage->in_reply_to);
+                $diligenceMessage = $inReplyTo
+                    ? DiligenceMessage::where('imap_message_id', $inReplyTo)->first()
+                    : null;
 
                 if (! $diligenceMessage) {
                     continue; // Não deve existir mensagem de resposta sem existir uma mensagem de diligência
@@ -78,11 +91,11 @@ class DiligenceMessageService
                     'to_email' => config('mail.from.address'),
                     'subject' => (string) $imapMessage->subject,
                     'body' => $imapMessage->hasTextBody()
-                        ? $imapMessage->bodies['text']->content
-                        : strip_tags($imapMessage->bodies['html']->content),
+                        ? $imapMessage->getTextBody()
+                        : strip_tags($imapMessage->getHTMLBody()),
                     'imap_message_id' => $messageId,
                     'in_reply_to' => $inReplyTo,
-                    'sent_at' => $imapMessage->date->toDateTime(),
+                    'sent_at' => $imapMessage->date->toDate(),
                 ]);
 
                 $count++;
