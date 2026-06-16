@@ -158,12 +158,12 @@ async function handleFileUpload(event) {
                 />
 
                 <div class="w-full pt-2">
-                    <div class="flex flex-wrap gap-2">
+                    <div class="grid grid-cols-2 gap-2">
                         <template v-for="n in props.notice?.installments || 0" :key="n">
                             <v-btn
                                 :class="[
                                     '!shadow-none !font-bold !bg-[#ffcc05FF] !text-[#2d353fFF] rounded-lg px-2 py-2 text-[11px]',
-                                    props.notice?.installments == 1 ? 'w-full' : 'flex-1',
+                                    props.notice?.installments == 1 ? 'col-span-2 w-full' : 'w-full',
                                 ]"
                                 :loading="uploadingInstallment === n"
                                 :disabled="!hasSelectedProjects || uploadingInstallment !== null"
