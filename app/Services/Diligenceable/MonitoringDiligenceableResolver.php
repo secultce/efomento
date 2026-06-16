@@ -10,8 +10,6 @@ class MonitoringDiligenceableResolver implements DiligenceableResolver
 {
     public function resolve(Project $project): ?Model
     {
-        return $project->monitoring ?? $project->monitoring()->create([
-            'created_by' => auth()->id(),
-        ]);
+        return $project->monitoring;
     }
 }
