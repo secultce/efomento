@@ -15,6 +15,7 @@ class DocumentTypeTest extends TestCase
             DocumentType::ET->value => 'ET',
             DocumentType::PJ->value => 'PJ',
             DocumentType::D->value => 'D',
+            DocumentType::PO->value => 'PO',
             DocumentType::CI->value => 'CI',
         ];
 
@@ -30,6 +31,7 @@ class DocumentTypeTest extends TestCase
             DocumentType::ET->value => 'Extrato',
             DocumentType::PJ->value => 'Parecer Jurídico',
             DocumentType::D->value => 'Despacho',
+            DocumentType::PO->value => 'Parecer Orçamentário',
             DocumentType::CI->value => 'Comunicação Interna',
         ];
 
