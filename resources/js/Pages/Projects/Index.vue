@@ -186,6 +186,10 @@ function handleAction({ action, item }) {
                     />
                     <PaymentActions
                         v-else-if="selectedPhase === 'pagamento'"
+                        :selected-projects="selectedProjects"
+                        :projects="projects"
+                        :notice="notice"
+                    />
                     <MonitoringActions
                         v-else-if="selectedPhase === 'monitoramento'"
                         :selected-projects="selectedProjects"
