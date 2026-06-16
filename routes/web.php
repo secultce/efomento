@@ -75,6 +75,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::patch('/projetos/{project}/etapas/{stage}/tramitar', [ProjectStageController::class, 'advance'])
         ->scopeBindings()
         ->name('projects.stages.advance');
+    Route::patch('/projetos/{project}/solicitar-proxima-parcela', [ProjectStageController::class, 'requestNextInstallment'])
+        ->name('projects.stages.request-next-installment');
     Route::get('editais/{notice}/projetos', [ProjectController::class, 'index'])
         ->name('notices.projects');
     Route::get('editais/{notice}/projetos/{project}', [ProjectController::class, 'projectDetail'])

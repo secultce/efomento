@@ -9,6 +9,7 @@ import FormField from '@/Components/FormField.vue';
 import TextField from '@/Components/TextField.vue';
 import AuxLinks from '@/Components/AuxLinks.vue';
 import DiligenceChat from '@/Components/DiligenceChat.vue';
+import TramitButton from '@/Pages/ProjectDetails/Partials/Tabs/Actions/TramitButton.vue';
 import { viewSections, formSections } from '@/Schemas/Monitoring';
 import { useSnackbar } from '@/Composables/useSnackbar';
 import { useAlert } from '@/Composables/useAlert';
@@ -48,6 +49,49 @@ function removeOpinion(index) {
     form.technical_opinions.splice(index, 1);
 }
 
+const tramitLoading = ref(false);
+
+const tramit = () => {
+    if (!monitoringStage.value?.id) {
+        showSnackbar('Etapa de monitoramento não encontrada.', 'error');
+        return;
+    }
+
+    tramitLoading.value = true;
+
+    router.patch(
+        route('projects.stages.advance', {
+            project: props.project.id,
+            stage: monitoringStage.value.id,
+        }),
+        {},
+        {
+            preserveScroll: true,
+            onSuccess: () => {
+                showAlert({
+                    alertTitle: 'Tarefa marcada como tramitada',
+                    alertMessage:
+                        'As informações foram validadas e as pessoas envolvidas nesse processo foram notificadas.',
+                    confirmText: 'Entendi',
+                    action: () => {
+                        router.visit(window.location.pathname, {
+                            preserveState: false,
+                            preserveScroll: true,
+                        });
+                    },
+                });
+            },
+            onError: (errors) => {
+                const message = Object.values(errors).flat().join(', ') || 'Erro ao tramitar monitoramento';
+                showSnackbar(message, 'error');
+            },
+            onFinish: () => {
+                tramitLoading.value = false;
+            },
+        }
+    );
+};
+
 const requestingNextInstallment = ref(false);
 
 function requestNextInstallment() {
@@ -56,6 +100,7 @@ function requestNextInstallment() {
         alertMessage:
             'Ao confirmar, o ciclo de Orçamento, Pagamento e Monitoramento será reiniciado para a próxima parcela.',
         confirmText: 'Confirmar',
+        cancelButtonText: 'Cancelar',
         action: () => {
             requestingNextInstallment.value = true;
             router.patch(
@@ -189,16 +234,18 @@ function submit() {
                         </template>
                     </template>
                 </section-form>
-                <div v-if="canRequestNextInstallment" class="d-flex gap-2">
+                <div v-if="monitoringStage?.status === 'em_andamento'" class="flex gap-2">
                     <v-btn
+                        v-if="canRequestNextInstallment"
                         variant="outlined"
                         color="primary"
-                        class="rounded-lg"
+                        class="rounded-lg mt-4"
                         :loading="requestingNextInstallment"
                         @click="requestNextInstallment"
                     >
                         Solicitar próxima parcela
                     </v-btn>
+                    <tramit-button :action="tramit" :loading="tramitLoading" />
                 </div>
             </div>
         </template>

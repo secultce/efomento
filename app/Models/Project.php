@@ -28,6 +28,7 @@ class Project extends Model implements Auditable
         'category_id',
         'agent_id',
         'notice_id',
+        'current_installment_cycle',
         'create_timestamp',
         'sent_timestamp',
         'consolidated_result',
@@ -40,6 +41,7 @@ class Project extends Model implements Auditable
         'create_timestamp' => 'datetime',
         'sent_timestamp' => 'datetime',
         'data_registration' => 'array',
+        'current_installment_cycle' => 'integer',
     ];
 
     protected $appends = ['phase', 'opening_nup'];

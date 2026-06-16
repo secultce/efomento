@@ -2,7 +2,9 @@
 
 namespace App\Services;
 
+use App\Enums\ProjectStageSlug;
 use App\Enums\ProjectStageStatus;
+use App\Models\Project;
 use App\Models\ProjectStage;
 use App\Models\User;
 use App\Support\Notify;
@@ -71,6 +73,59 @@ class ProjectStageService
         $stage->project->stages()
             ->where('order', '>', $stage->order)
             ->update(['status' => ProjectStageStatus::BLOQUEADO->value]);
+    }
+
+    public function requestNextInstallment(Project $project, User $user): void
+    {
+        $notice = $project->notice;
+
+        abort_if(
+            ! $notice || $notice->installments <= 1,
+            403,
+            'Projeto não possui múltiplas parcelas.'
+        );
+
+        abort_if(
+            $project->current_installment_cycle >= $notice->installments,
+            403,
+            'Todos os ciclos de parcelas já foram concluídos.'
+        );
+
+        $monitoringStage = $project->stages()
+            ->where('slug', ProjectStageSlug::MONITORAMENTO)
+            ->firstOrFail();
+
+        abort_if(
+            $monitoringStage->status !== ProjectStageStatus::EM_ANDAMENTO,
+            403,
+            'A etapa de Monitoramento precisa estar em andamento.'
+        );
+
+        DB::transaction(function () use ($project, $monitoringStage) {
+            $monitoringStage->markApproved();
+
+            $project->increment('current_installment_cycle');
+
+            $project->stages()
+                ->whereIn('slug', [
+                    ProjectStageSlug::ORCAMENTO,
+                    ProjectStageSlug::PAGAMENTO,
+                    ProjectStageSlug::MONITORAMENTO,
+                ])
+                ->update([
+                    'status' => ProjectStageStatus::BLOQUEADO,
+                    'started_at' => null,
+                    'concluded_at' => null,
+                    'rejection_reason' => null,
+                ]);
+
+            $project->stages()
+                ->where('slug', ProjectStageSlug::ORCAMENTO)
+                ->update([
+                    'status' => ProjectStageStatus::EM_ANDAMENTO,
+                    'started_at' => now(),
+                ]);
+        });
     }
 
     public function returnStage(ProjectStage $stage, string $reason, User $user): ProjectStage

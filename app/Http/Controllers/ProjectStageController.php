@@ -49,6 +49,19 @@ class ProjectStageController extends Controller
         }
     }
 
+    public function requestNextInstallment(Request $request, Project $project)
+    {
+        try {
+            $this->stageService->requestNextInstallment($project, $request->user());
+
+            return back();
+        } catch (\Throwable $e) {
+            report($e);
+
+            return back()->withErrors(['message' => $e->getMessage()]);
+        }
+    }
+
     public function return(
         ReturnStageRequest $request,
         Project $project,
