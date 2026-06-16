@@ -1,6 +1,6 @@
 <script setup>
-import { ref } from 'vue';
-import { useForm } from '@inertiajs/vue3';
+import { ref, computed } from 'vue';
+import { useForm, router } from '@inertiajs/vue3';
 import SplitScreenTab from '@/Components/SplitScreenTab.vue';
 import SectionChips from '@/Components/SectionChips.vue';
 import SectionContent from '@/Components/SectionContent.vue';
@@ -11,6 +11,7 @@ import AuxLinks from '@/Components/AuxLinks.vue';
 import DiligenceChat from '@/Components/DiligenceChat.vue';
 import { viewSections, formSections } from '@/Schemas/Monitoring';
 import { useSnackbar } from '@/Composables/useSnackbar';
+import { useAlert } from '@/Composables/useAlert';
 
 const props = defineProps({
     project: {
@@ -20,8 +21,17 @@ const props = defineProps({
 });
 
 const { showSnackbar } = useSnackbar();
+const { showAlert } = useAlert();
 
 const activeViewIndex = ref('all');
+
+const monitoringStage = computed(() => props.project.stages?.find((s) => s.slug === 'monitoramento') ?? null);
+
+const canRequestNextInstallment = computed(() => {
+    const installments = props.project.notice?.installments ?? 1;
+    const currentCycle = props.project.current_installment_cycle ?? 1;
+    return installments > 1 && currentCycle < installments && monitoringStage.value?.status === 'em_andamento';
+});
 
 const form = useForm({
     technical_opinions: props.project.monitoring?.technical_opinions?.length
@@ -36,6 +46,36 @@ function addOpinion() {
 
 function removeOpinion(index) {
     form.technical_opinions.splice(index, 1);
+}
+
+const requestingNextInstallment = ref(false);
+
+function requestNextInstallment() {
+    showAlert({
+        alertTitle: 'Solicitar próxima parcela',
+        alertMessage:
+            'Ao confirmar, o ciclo de Orçamento, Pagamento e Monitoramento será reiniciado para a próxima parcela.',
+        confirmText: 'Confirmar',
+        action: () => {
+            requestingNextInstallment.value = true;
+            router.patch(
+                route('projects.stages.request-next-installment', { project: props.project.id }),
+                {},
+                {
+                    preserveScroll: true,
+                    onSuccess: () =>
+                        router.visit(window.location.pathname, { preserveState: false, preserveScroll: true }),
+                    onError: (errors) => {
+                        const msg = Object.values(errors).flat().join(', ') || 'Erro ao solicitar próxima parcela';
+                        showSnackbar(msg, 'error');
+                    },
+                    onFinish: () => {
+                        requestingNextInstallment.value = false;
+                    },
+                }
+            );
+        },
+    });
 }
 
 function submit() {
@@ -91,15 +131,17 @@ function submit() {
                         <p class="font-bold text-lg">Campos para você inserir ou editar dados</p>
                         <p class="font-bold text-md mt-2 text-black">Links auxiliares</p>
                     </div>
-                    <v-btn
-                        variant="outlined"
-                        color="outlineSecondary"
-                        class="rounded-lg"
-                        :loading="form.processing"
-                        @click="submit"
-                    >
-                        Salvar Alterações
-                    </v-btn>
+                    <div class="flex gap-2">
+                        <v-btn
+                            variant="outlined"
+                            color="outlineSecondary"
+                            class="rounded-lg"
+                            :loading="form.processing"
+                            @click="submit"
+                        >
+                            Salvar Alterações
+                        </v-btn>
+                    </div>
                 </div>
                 <aux-links />
                 <diligence-chat
@@ -147,6 +189,17 @@ function submit() {
                         </template>
                     </template>
                 </section-form>
+                <div v-if="canRequestNextInstallment" class="d-flex gap-2">
+                    <v-btn
+                        variant="outlined"
+                        color="primary"
+                        class="rounded-lg"
+                        :loading="requestingNextInstallment"
+                        @click="requestNextInstallment"
+                    >
+                        Solicitar próxima parcela
+                    </v-btn>
+                </div>
             </div>
         </template>
     </split-screen-tab>

@@ -253,4 +253,14 @@ class MonitoringTest extends TestCase
 
         $this->assertTrue($project->monitoring->is($monitoring));
     }
+
+    #[Test]
+    public function project_monitorings_has_many_relation_is_accessible_from_project(): void
+    {
+        $project = Project::factory()->create();
+        $monitoring = Monitoring::factory()->for($project)->create();
+
+        $this->assertCount(1, $project->monitorings);
+        $this->assertTrue($project->monitorings->first()->is($monitoring));
+    }
 }

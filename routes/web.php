@@ -110,8 +110,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
         ->scopeBindings()
         ->name('projects.formalizations.files.destroy');
     Route::post('/projetos/{project}/monitoramento', [MonitoringController::class, 'store'])
+        ->scopeBindings()
         ->name('projects.monitorings.store');
     Route::patch('/projetos/{project}/monitoramento/{monitoring}/atualizar', [MonitoringController::class, 'update'])
+        ->scopeBindings()
         ->name('projects.monitorings.update');
 
     Route::get('/projetos/{project}/diligencias/{stage}', [DiligenceMessageController::class, 'index'])

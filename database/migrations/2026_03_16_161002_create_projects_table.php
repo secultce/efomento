@@ -19,6 +19,7 @@ return new class extends Migration
             $table->foreignId('category_id')->nullable()->constrained();
             $table->foreignId('agent_id')->constrained();
             $table->foreignId('notice_id')->constrained();
+            $table->unsignedTinyInteger('current_installment_cycle')->default(1);
 
             $table->timestamp('create_timestamp')->nullable();
             $table->timestamp('sent_timestamp')->nullable();
