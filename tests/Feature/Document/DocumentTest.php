@@ -314,7 +314,10 @@ class DocumentTest extends TestCase
     public function test_store_endpoint_returns_422_for_invalid_combination(): void
     {
         $type = collect(DocumentType::cases())->random();
-        $invalidPhase = DocumentPhase::PAYMENT;
+
+        $invalidPhase = collect(DocumentPhase::cases())
+            ->reject(fn (DocumentPhase $phase) => $phase === DocumentPhase::PAYMENT)
+            ->random();
 
         $response = $this->actingAs($this->user)
             ->postJson('/api/documents', [
