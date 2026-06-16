@@ -55,7 +55,7 @@ describe('Notice Page - E2E Tests', () => {
             Notice.openIdentificationDataForm();
 
             const formData = {
-                noticeNup: this.notice.nup,
+                noticeNup: this.notice.noticeNup,
                 instrumentType: this.notice.processInstrumentType,
                 totalAmount: this.notice.noticeTotalValue,
                 noticeManager: this.notice.noticeAccompanimentManager,
@@ -74,11 +74,11 @@ describe('Notice Page - E2E Tests', () => {
         });
 
         it('should find a notice by NUP number', function () {
-            Notice.searchNoticeByNup(this.notice.nup);
+            Notice.searchNoticeByNup(this.notice.noticeNup);
         });
 
         it('should clear search and display all notices', function () {
-            Notice.searchNoticeByNup(this.notice.nup);
+            Notice.searchNoticeByNup(this.notice.noticeNup);
             cy.get('[data-cy=find-specific-notice] input').clear();
             cy.get('[data-cy=table-notice-list] tbody tr').should('have.length.greaterThan', 1);
         });
@@ -96,22 +96,24 @@ describe('Notice Page - E2E Tests', () => {
 
     describe('Notice Details View', () => {
         it('should open notice details page', function () {
-            Notice.searchNoticeByNup(this.notice.nup);
-            Notice.goToNoticeDetailsPage(this.notice.nup);
+            Notice.searchNoticeByNup(this.notice.noticeNup);
+            Notice.goToNoticeDetailsPage(this.notice.noticeNup);
             cy.url().should('match', /\/editais\/\d+\/projetos$/);
         });
 
         it('should display all information in detail view', function () {
-            Notice.searchNoticeByNup(this.notice.nup);
-            Notice.goToNoticeDetailsPage(this.notice.nup);
+            Notice.searchNoticeByNup(this.notice.noticeNup);
+            Notice.goToNoticeDetailsPage(this.notice.noticeNup);
             Notice.clickShowAllInformationButton();
             Notice.verifyDetailViewElements();
         });
 
         it('should display correct NUP in detail view', function () {
-            Notice.searchNoticeByNup(this.notice.nup);
-            Notice.goToNoticeDetailsPage(this.notice.nup);
-            cy.get('[data-cy=notice-nup-show-all-information]').should('be.visible').and('contain', this.notice.nup);
+            Notice.searchNoticeByNup(this.notice.noticeNup);
+            Notice.goToNoticeDetailsPage(this.notice.noticeNup);
+            cy.get('[data-cy=notice-nup-show-all-information]')
+                .should('be.visible')
+                .and('contain', this.notice.noticeNup);
         });
     });
 

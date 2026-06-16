@@ -1,6 +1,7 @@
 import Login from '../../../pages/auth';
 import Notice from '../../../pages/notice';
 import Project from '../../../pages/project';
+import FormalizationTab from '../../../pages/project/formalizationTab';
 
 describe('Project Page', () => {
     beforeEach(() => {
@@ -41,6 +42,16 @@ describe('Project Page', () => {
 
         it('should search for a project by agent name', function () {
             Project.findProjectByAgentName();
+        });
+    });
+
+    describe('Formalization Tab', () => {
+        it('should access formalization tab', function () {
+            const projectNup = this.project.project_nup;
+
+            Project.findProjectByProjectNup(projectNup);
+            Project.goToProjectDetailsPage(projectNup);
+            FormalizationTab.goToFormalizationTab();
         });
     });
 });

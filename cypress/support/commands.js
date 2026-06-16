@@ -23,3 +23,20 @@
 //
 // -- This will overwrite an existing command --
 // Cypress.Commands.overwrite('visit', (originalFn, url, options) => { ... })
+
+Cypress.Commands.add('setRoles', () => {
+    cy.visit('/grupos');
+
+    cy.get('#app').then(async ($app) => {
+        const dataPage = $app.attr('data-page');
+        const pageJson = JSON.parse(dataPage);
+
+        // Evaluate the number of users
+        const userCount = pageJson.props.users.find((user) => user.name === 'Lara Pimentel');
+
+        cy.log(userCount.id);
+        cy.visit(`/add-user/${userCount.id}/super_admin`);
+
+        return pageJson.props.roles;
+    });
+});
