@@ -28,6 +28,11 @@ class DocumentTypeRegistry
             'requires_sign' => true,
             'requires_legal' => true,
         ],
+        'po+budget' => [
+            'label' => 'Parecer Jurídico',
+            'requires_sign' => true,
+            'requires_legal' => true,
+        ],
         'd+payment' => [
             'label' => 'Despacho',
             'requires_sign' => false,

@@ -8,6 +8,7 @@ enum DocumentType: string
     case TC = 'tc';
     case ET = 'et';
     case PJ = 'pj';
+    case PO = 'po';
     case D = 'd';
 
     public function label(): string
@@ -17,6 +18,7 @@ enum DocumentType: string
             self::TC => 'TC',
             self::ET => 'ET',
             self::PJ => 'PJ',
+            self::PO => 'PO',
             self::D => 'D',
         };
     }
@@ -28,6 +30,7 @@ enum DocumentType: string
             self::TC => 'Termo de Execução Cultural',
             self::ET => 'Extrato',
             self::PJ => 'Parecer Jurídico',
+            self::PO => 'Parecer Orçamentário',
             self::D => 'Despacho',
         };
     }
@@ -39,6 +42,7 @@ enum DocumentType: string
             self::TC,
             self::ET,
             self::PJ => DocumentPhase::FORMALIZATION,
+            self::PO => DocumentPhase::BUDGET,
             self::D => DocumentPhase::PAYMENT,
         };
     }
