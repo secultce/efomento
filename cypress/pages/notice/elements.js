@@ -1,3 +1,5 @@
+import project from '../project';
+
 export const elements = {
     //
     appContainer: '#app',
@@ -42,6 +44,7 @@ export const elements = {
     noticeTitleDetail: '[data-cy=notice-title-show-all-information]',
     noticeNupDetail: '[data-cy=notice-nup-show-all-information]',
     instrumentTypeDetail: '[data-cy=instrument-type-show-all-information]',
+    allInformationSelect: 'data-cy=all-information-select',
     noticeManagerDetail: '[data-cy=notice-manager-show-all-information]',
     budgetAllocationRequestDateDetail: '[data-cy=budget-allocation-request-date-show-all-information]',
     totalAmountDetail: '[data-cy=total-amount-show-all-information]',
@@ -53,6 +56,9 @@ export const elements = {
     budgetAllocationCreditorDateDetail:
         '[data-cy=budget-allocation-request-creditor-register-date-show-all-information]',
     updateDataButton: '[data-cy=update-data-button]',
+    noticeEditTextField: '[data-cy=notice-edit-textfield]',
+    noticeEditTextArea: '[data-cy=notice-edit-textarea]',
+    noticeEditTextSelect: '[data-cy=notice-edit-select]',
 
     // Alerts
     successAlert: '.v-snackbar',

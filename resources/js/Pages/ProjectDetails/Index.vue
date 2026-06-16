@@ -11,10 +11,13 @@ defineProps({
     supervisorsAvailable: { type: Array, default: () => [] },
     agentStatus: { type: Array, default: () => [] },
     reportStatus: { type: Array, default: () => [] },
+    termStatus: { type: Array, default: () => [] },
+    deliberation: { type: Array, default: () => [] },
     accountType: { type: Array, default: () => [] },
     openingStatus: { type: Array, default: () => [] },
     currentStage: { type: Object, default: null },
     canReturn: { type: Boolean, default: false },
+    initialTab: { type: String, default: 'opening' },
 });
 </script>
 
@@ -38,9 +41,12 @@ defineProps({
                     :supervisors-available="supervisorsAvailable"
                     :agent-status="agentStatus"
                     :report-status="reportStatus"
+                    :term-status="termStatus"
+                    :deliberation="deliberation"
                     :account-type="accountType"
                     :current-stage="currentStage"
                     :can-return="canReturn"
+                    :initial-tab="initialTab"
                 />
             </div>
         </AppContainer>

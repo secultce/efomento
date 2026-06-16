@@ -11,6 +11,7 @@ import { Head, router } from '@inertiajs/vue3';
 import { ref } from 'vue';
 import FormalizationActions from './Partials/Actions/Formalization/FormalizationActions.vue';
 import PaymentActions from './Partials/Actions/Payment/PaymentActions.vue';
+import MonitoringActions from './Partials/Actions/Monitoring/MonitoringActions.vue';
 
 const props = defineProps({
     notice: { type: Object, default: null },
@@ -139,7 +140,8 @@ function handleAction({ action, item }) {
             route('notices.projects.show', {
                 notice: props.notice.id,
                 project: item.id,
-            })
+            }),
+            selectedPhase.value ? { tab: selectedPhase.value } : {}
         );
     }
 }
@@ -184,6 +186,8 @@ function handleAction({ action, item }) {
                     />
                     <PaymentActions
                         v-else-if="selectedPhase === 'pagamento'"
+                    <MonitoringActions
+                        v-else-if="selectedPhase === 'monitoramento'"
                         :selected-projects="selectedProjects"
                         :projects="projects"
                         :notice="notice"

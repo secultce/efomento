@@ -2,7 +2,7 @@ name: Codecov
 
 on:
   pull_request:
-    branches: [main, develop]
+    branches: [ main, develop ]
 
 permissions:
   contents: read
@@ -27,8 +27,14 @@ jobs:
       - name: Rodar testes com cobertura
         run: ./vendor/bin/phpunit --coverage-clover coverage.xml
 
+      - name: Importar chave GPG do Codecov
+        run: |
+          gpg --keyserver hkps://keyserver.ubuntu.com --recv-keys 27034E7FDB850E0BBC2C62FF806BB28AED779869 ||
+          gpg --keyserver hkps://keys.openpgp.org --recv-keys 27034E7FDB850E0BBC2C62FF806BB28AED779869 ||
+          curl -fsSL https://keybase.io/codecovsecurity/pgp_keys.asc | gpg --import
+
       - name: Enviar relatório ao Codecov
-        uses: codecov/codecov-action@75cd11691c0faa626561e295848008c8a7dddffe # v5
+        uses: codecov/codecov-action@v5 # v5
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
           files: coverage.xml

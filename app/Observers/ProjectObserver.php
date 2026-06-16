@@ -48,6 +48,12 @@ class ProjectObserver
                 'responsible_sector' => ['super_admin', 'monitoring', 'coord_monitoring'],
                 'status' => ProjectStageStatus::PENDENTE,
             ],
+            [
+                'slug' => ProjectStageSlug::PRESTACAO_DE_CONTAS,
+                'order' => 7,
+                'responsible_sector' => ['super_admin', 'monitoring', 'coord_monitoring'],
+                'status' => ProjectStageStatus::PENDENTE,
+            ],
         ];
 
         foreach ($stages as $stage) {

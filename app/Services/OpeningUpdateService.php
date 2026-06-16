@@ -43,11 +43,11 @@ class OpeningUpdateService
 
     protected function updateFormalization(Project $project, array $data): void
     {
-        if (! $project->formalization || empty($data)) {
+        if (! $project->formalizations || empty($data)) {
             return;
         }
 
-        $project->formalization->update($data);
+        $project->formalizations->update($data);
     }
 
     protected function updateAgentSnapshot(Project $project, array $agentData): void
@@ -64,7 +64,7 @@ class OpeningUpdateService
             ],
             [
                 'name' => $agentData['name'] ?? $agent->name,
-                'cpf' => $agentData['cpf'] ?? $agent->cpf,
+                'cpf_cnpj' => $agentData['cpf_cnpj'] ?? null,
                 'director_position' => $agentData['director_position'] ?? $agent->director_position,
                 'director_email' => $agentData['director_email'] ?? $agent->director_email,
                 ...$agentData,

@@ -12,31 +12,34 @@ class FormalizationResource extends JsonResource
         return [
             'id' => $this->id,
             'project_id' => $this->project_id,
+
             'asjur_finalistic_processing_date' => $this->asjur_finalistic_processing_date,
             'asjur_received_at' => $this->asjur_received_at,
-            'process_supervisor_id' => $this->process_supervisor_id,
-
-            'report_status' => $this->report_status,
+            'process_assigned_to' => $this->process_assigned_to,
+            'report_status' => $this->report_status?->value,
             'eparcerias_certificate_date' => $this->eparcerias_certificate_date,
 
-            'term_number' => $this->term_number,
-            'term_signature_sent_at' => $this->term_signature_sent_at,
-            'sent_to_office_at' => $this->sent_to_office_at,
-            'term_signed_at' => $this->term_signed_at,
-
             'asjur_processing_date' => $this->asjur_processing_date,
+            'responsible_at_asjur' => $this->responsible_at_asjur,
+            'term_number' => $this->term_number,
+
+            'term_signature_sent_at' => $this->term_signature_sent_at,
+            'term_status' => $this->term_status?->value,
+            'term_signed_at' => $this->term_signed_at,
+            'sent_to_office_at' => $this->sent_to_office_at,
+            'signature_status_office' => $this->signature_status_office?->value,
+            'signed_by_office_at' => $this->signed_by_office_at,
 
             'sacc_number' => $this->sacc_number,
             'cge_atende_ticket' => $this->cge_atende_ticket,
-            'sacc_registered_at' => $this->sacc_registered_at,
+            'deliberation' => $this->deliberation?->value,
 
-            'deliberation' => $this->deliberation,
+            'sent_to_chief_of_staff_at' => $this->sent_to_chief_of_staff_at,
+            'official_gazette_published_at' => $this->official_gazette_published_at,
 
             'validity_start_at' => $this->validity_start_at,
             'validity_end_at' => $this->validity_end_at,
 
-            'sent_to_chief_of_staff_at' => $this->sent_to_chief_of_staff_at,
-            'official_gazette_published_at' => $this->official_gazette_published_at,
             'legal_opinion_date' => $this->legal_opinion_date,
 
             'files' => $this->whenLoaded('files', function () {
@@ -47,7 +50,6 @@ class FormalizationResource extends JsonResource
 
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
-
         ];
     }
 }

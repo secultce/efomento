@@ -2,26 +2,49 @@
 
 namespace App\Services;
 
+use App\Enums\ProfileSnapshotSource;
 use App\Models\Agent;
-use App\Support\Cpf;
+use App\Models\ProfileSnapshot;
+use App\Support\DocumentNumber;
 
 class AgentService
 {
-    public function updateOrCreateByCpf(
-        ?string $cpf,
+    public function updateOrCreatedByDocument(
+        ?string $document,
         ?string $name = null,
     ): ?Agent {
-        $cpf = Cpf::normalize($cpf);
+        $document = DocumentNumber::normalize($document);
 
-        if (! $cpf) {
+        if (! $document) {
             return null;
         }
 
-        return Agent::updateOrCreate(
-            ['cpf' => $cpf],
-            [
-                'name' => trim((string) $name) ?: 'Nome não informado',
-            ]
-        );
+        $agentId = ProfileSnapshot::query()
+            ->where('cpf_cnpj', $document)
+            ->where('object_type', (new Agent)->getMorphClass())
+            ->orderByDesc('recorded_at')
+            ->value('object_id');
+
+        if ($agentId) {
+            $agent = Agent::find($agentId);
+
+            if ($agent) {
+                $agent->update(['name' => trim((string) $name) ?: 'Nome não informado']);
+
+                return $agent;
+            }
+        }
+
+        $agent = Agent::create([
+            'name' => trim((string) $name) ?: 'Nome não informado',
+        ]);
+
+        $agent->profileSnapshots()->create([
+            'cpf_cnpj' => $document,
+            'source' => ProfileSnapshotSource::AGENT_UPDATE,
+            'recorded_at' => now(),
+        ]);
+
+        return $agent;
     }
 }

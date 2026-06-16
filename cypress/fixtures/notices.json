@@ -1,13 +1,26 @@
-{
-    "id": 43,
-    "title": "14° Edital Ceará das Artes - Teatro de Bonecos",
-    "processStatus": "Em abertura de processo",
-    "nupMotherProcess": "03888.136970/4500-47",
-    "nup": "35667965922622802",
-    "processInstrumentType": "CONVÊNIO",
-    "noticeTotalValue": 13500000,
-    "noticeAccompanimentManager": "Saulo Furtado",
-    "noticeManagerEmail": "saulo.furtado@example.com",
-    "quotaNumber": 5,
-    "quantityPerPage": 25
-}
+[
+    {
+        "id": 43,
+        "title": "14° Edital Ceará das Artes - Teatro de Bonecos",
+        "processStatus": "Em abertura de processo",
+        "noticeNup": "03888.136970/4500-47",
+        "noticeInstrumentType": "CONVÊNIO",
+        "noticeTotalValue": 13500000,
+        "noticeAccompanimentManager": "Saulo Furtado",
+        "noticeManagerEmail": "saulo.furtado@example.com",
+        "quotaNumber": 5,
+        "quantityPerPage": 25
+    },
+    {
+        "id": 10,
+        "title": "3º Edital Prêmio Cidadania e Diversidade - Cultura Indígena",
+        "processStatus": "Não iniciado",
+        "noticeNup": "91575.793352/6190-54",
+        "noticeInstrumentType": "TERMO DE COLABORAÇÃO",
+        "noticeTotalValue": 13500000,
+        "noticeAccompanimentManager": "Adriano Tavares",
+        "noticeManagerEmail": "adriano.tavares@example.com",
+        "quotaNumber": 2,
+        "quantityPerPage": 50
+    }
+]

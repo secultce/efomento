@@ -25,7 +25,9 @@ RUN apt-get update && apt-get install -y \
         zip \
         opcache \
     && apt-get clean \
-    && rm -rf /var/lib/apt/lists/*
+    && rm -rf /var/lib/apt/lists/* \
+    && pecl install pcov \
+    && docker-php-ext-enable pcov
 
 COPY opcache.ini /usr/local/etc/php/conf.d/opcache.ini
 

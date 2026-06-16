@@ -8,6 +8,11 @@ use App\Enums\DocumentType;
 class DocumentTypeRegistry
 {
     private array $map = [
+        'ci+opening' => [
+            'label' => 'Comunicação Interna',
+            'requires_sign' => true,
+            'requires_legal' => false,
+        ],
         'tc+formalization' => [
             'label' => 'Termo de Execução Cultural',
             'requires_sign' => true,
@@ -25,6 +30,11 @@ class DocumentTypeRegistry
         ],
         'po+juridical' => [
             'label' => 'Despacho para Parecer Jurídico',
+            'requires_sign' => false,
+            'requires_legal' => false,
+        ],
+        'ci+opening' => [
+            'label' => 'Comunicação Interna',
             'requires_sign' => false,
             'requires_legal' => false,
         ],

@@ -2,19 +2,23 @@
 
 namespace App\Http\Controllers;
 
+use App\Enums\ProjectStageSlug;
 use App\Http\Requests\Stages\ReturnStageRequest;
 use App\Models\Project;
 use App\Models\ProjectStage;
+use App\Services\FormalizationService;
 use App\Services\NotificationService;
 use App\Services\ProjectStageService;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Http\Request;
+use Illuminate\Validation\ValidationException;
 
 class ProjectStageController extends Controller
 {
     public function __construct(
         private ProjectStageService $stageService,
-        private NotificationService $notificationService
+        private NotificationService $notificationService,
+        private FormalizationService $formalizationService,
     ) {}
 
     public function advance(
@@ -25,15 +29,23 @@ class ProjectStageController extends Controller
         try {
             $stage->load('project');
 
+            if ($stage->slug === ProjectStageSlug::FORMALIZACAO) {
+                $this->formalizationService->ensureCanAdvance($project);
+            }
+
             $nextStage = $this->stageService->advance($stage, $request->user());
 
             $this->notificationService->notifyStageAdvanced($stage, $nextStage, $request->user());
 
             return back()->with('success', 'Processo tramitado com sucesso!');
+        } catch (ValidationException $e) {
+            throw $e;
         } catch (\Throwable $e) {
             report($e);
 
-            return back()->with('error', 'Erro ao tramitar processo: '.$e->getMessage());
+            return back()->withErrors([
+                'message' => 'Erro ao tramitar processo: '.$e->getMessage(),
+            ]);
         }
     }
 
