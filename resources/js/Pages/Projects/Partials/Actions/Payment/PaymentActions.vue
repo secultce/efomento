@@ -68,16 +68,28 @@ const selectedDispatch = computed(() => {
     };
 });
 
+const canImportPayments = computed(() => {
+    return hasRole('super_admin') || hasRole('coord_financial') || hasRole('payment');
+});
+
+const canCreateDispatch = computed(() => {
+    return hasRole('super_admin') || hasRole('coord_financial') || hasRole('payment') || canPerform('dispatch.create');
+});
+
 function openNoticeHistory() {
     viewHistory.value = true;
 }
 
 function openDispatchDialog() {
+    if (!hasSelectedProjects.value || !canCreateDispatch.value) {
+        return;
+    }
+
     dispatchDialog.value = true;
 }
 
 function openUpload(installment) {
-    if (!hasSelectedProjects.value || uploadingInstallment.value !== null) {
+    if (!hasSelectedProjects.value || uploadingInstallment.value !== null || !canImportPayments.value) {
         return;
     }
 
@@ -88,7 +100,7 @@ function openUpload(installment) {
 async function handleFileUpload(event) {
     const file = event.target.files?.[0];
 
-    if (!file || !selectedInstallment.value) {
+    if (!file || !selectedInstallment.value || !canImportPayments.value) {
         event.target.value = '';
         return;
     }
@@ -137,18 +149,11 @@ async function handleFileUpload(event) {
         },
     });
 }
-
-const canImportPayments = computed(() => {
-    return hasRole('super_admin') || hasRole('coord_financial') || hasRole('payment');
-});
-
-const canCreateDispatch = computed(() => {
-    return hasRole('super_admin') || hasRole('coord_financial') || hasRole('payment') || canPerform('dispatch.create');
-});
 </script>
 
 <template>
     <NoticeHistoryDialog v-model="viewHistory" :notice-id="notice?.id" />
+
     <HandleDocumentsDialog
         v-model="dispatchDialog"
         type="d"
@@ -156,12 +161,20 @@ const canCreateDispatch = computed(() => {
         :edit-data="selectedDispatch"
         @saved="$emit('saved')"
     />
+
     <DocumentListDialog v-model="docListDialog" :documents="selectedDocuments" />
+
     <v-card class="w-full pb-4 pt-4 !shadow-none border border-gray-800 rounded-lg">
         <v-card-title class="font-weight-bold !text-lg"> Ações disponíveis para você </v-card-title>
 
         <v-card-text class="flex flex-col gap-4">
-            <div class="w-full pt-2">
+            <div
+                v-permission="{
+                    condition: canImportPayments,
+                    message: 'Você não tem permissão para importar pagamentos, contate o administrador do sistema.',
+                }"
+                class="w-full pt-2"
+            >
                 <p>Fazer upload de planilha de pagamentos</p>
 
                 <input
@@ -181,7 +194,7 @@ const canCreateDispatch = computed(() => {
                                     props.notice?.installments == 1 ? 'col-span-2 w-full' : 'w-full',
                                 ]"
                                 :loading="uploadingInstallment === n"
-                                :disabled="!hasSelectedProjects || uploadingInstallment !== null"
+                                :disabled="!hasSelectedProjects || uploadingInstallment !== null || !canImportPayments"
                                 @click="openUpload(n)"
                             >
                                 {{
@@ -193,52 +206,54 @@ const canCreateDispatch = computed(() => {
                         </template>
                     </div>
                 </div>
+            </div>
 
-                <div class="w-full pt-2 flex flex-col gap-1">
-                    <template v-if="anyProjectsHasDispatch">
-                        <p>Editar Despacho (D)</p>
-
-                        <v-btn
-                            class="w-full !shadow-none !font-bold !border-gray-300 !bg-white !text-[#2d353fFF] rounded-lg text-xs gap-6"
-                            :disabled="!hasSelectedProjects"
-                            variant="outlined"
-                            @click="openDispatchDialog"
-                        >
-                            <span class="w-full text-left"> Editar Despacho (D) </span>
-
-                            <template #append>
-                                <v-icon size="18"> mdi-pencil </v-icon>
-                            </template>
-                        </v-btn>
-                    </template>
-
-                    <template v-else>
-                        <p>Criar Despacho</p>
-
-                        <v-btn
-                            class="w-full !shadow-none !font-bold !bg-[#ffcc05FF] !text-[#2d353fFF] rounded-lg px-4 py-2 text-xs"
-                            :disabled="!hasSelectedProjects"
-                            @click="openDispatchDialog"
-                        >
-                            Criar
-                        </v-btn>
-                    </template>
-                </div>
-
-                <div class="w-full flex flex-col gap-1">
-                    <v-divider class="my-4" />
-
-                    <p>Conferir histórico de alterações nos processos</p>
+            <div
+                v-permission="{
+                    condition: canCreateDispatch,
+                    message:
+                        'Você não tem permissão para criar ou editar despacho, contate o administrador do sistema.',
+                }"
+                class="w-full pt-2 flex flex-col gap-1"
+            >
+                <template v-if="anyProjectsHasDispatch">
+                    <p>Editar Despacho (D)</p>
 
                     <v-btn
+                        class="w-full !shadow-none !font-bold !border-gray-300 !bg-white !text-[#2d353fFF] rounded-lg text-xs gap-6"
+                        :disabled="!hasSelectedProjects || !canCreateDispatch"
                         variant="outlined"
-                        color="outlineSecondary"
-                        class="rounded-lg w-full"
-                        @click="openNoticeHistory"
+                        @click="openDispatchDialog"
                     >
-                        Conferir Histórico
+                        <span class="w-full text-left">Editar Despacho (D)</span>
+
+                        <template #append>
+                            <v-icon size="18">mdi-pencil</v-icon>
+                        </template>
                     </v-btn>
-                </div>
+                </template>
+
+                <template v-else>
+                    <p>Criar Despacho</p>
+
+                    <v-btn
+                        class="w-full !shadow-none !font-bold !bg-[#ffcc05FF] !text-[#2d353fFF] rounded-lg px-4 py-2 text-xs"
+                        :disabled="!hasSelectedProjects || !canCreateDispatch"
+                        @click="openDispatchDialog"
+                    >
+                        Criar
+                    </v-btn>
+                </template>
+            </div>
+
+            <div class="w-full flex flex-col gap-1">
+                <v-divider class="my-4" />
+
+                <p>Conferir histórico de alterações nos processos</p>
+
+                <v-btn variant="outlined" color="outlineSecondary" class="rounded-lg w-full" @click="openNoticeHistory">
+                    Conferir Histórico
+                </v-btn>
             </div>
         </v-card-text>
     </v-card>
