@@ -134,7 +134,6 @@ async function handleFileUpload(event) {
 
 <template>
     <NoticeHistoryDialog v-model="viewHistory" :notice-id="notice?.id" />
-
     <HandleDocumentsDialog
         v-model="poDialog"
         type="po"
@@ -142,9 +141,7 @@ async function handleFileUpload(event) {
         :edit-data="selectedPO"
         @saved="$emit('saved')"
     />
-
     <DocumentListDialog v-model="docListDialog" :documents="selectedDocuments" />
-
     <v-card class="w-full pb-4 pt-4 !shadow-none border border-gray-800 rounded-lg">
         <v-card-title class="font-weight-bold !text-lg"> Ações disponíveis para você </v-card-title>
 
