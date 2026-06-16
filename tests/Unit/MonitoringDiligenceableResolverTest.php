@@ -14,6 +14,7 @@ class MonitoringDiligenceableResolverTest extends TestCase
 
     public function test_resolve_returns_the_project_monitoring(): void
     {
+        // CRIANDO PROJETOS PARA TESTES
         $project = Project::factory()->create();
         $monitoring = Monitoring::factory()->for($project)->create();
 
