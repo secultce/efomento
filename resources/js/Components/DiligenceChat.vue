@@ -1,9 +1,10 @@
 <script setup>
 import { computed, nextTick, onMounted, ref, watch } from 'vue';
 import dayjs from 'dayjs';
+import AppTextEditor from '@/Components/AppTextEditor.vue';
 import { useDiligenceMessages } from '@/Composables/useDiligenceMessages';
 import { useSnackbar } from '@/Composables/useSnackbar';
-// Add posteriormente o componente Tinymce
+
 const props = defineProps({
     project: {
         type: Object,
@@ -47,14 +48,58 @@ const computedSubject = computed(() => {
     return `Diligência — ${stageLabel.value} — ${props.project.title_project ?? ''}`.trim();
 });
 
-const canSend = computed(() => Boolean(toEmail.value) && body.value.trim().length >= MIN_BODY_LENGTH);
+const plainBody = computed(() =>
+    body.value
+        .replace(/<[^>]*>/g, ' ')
+        .replace(/&nbsp;/g, ' ')
+        .trim()
+);
+
+const canSend = computed(() => Boolean(toEmail.value) && plainBody.value.length >= MIN_BODY_LENGTH);
+
+const isHtml = (value) => /<[a-z][\s\S]*>/i.test(value ?? '');
+
+// Agrupa cada mensagem enviada com as respostas dela (via in_reply_to);
+// os grupos ficam do mais recente para o mais antigo, mas dentro do grupo
+// a mensagem original vem antes das respostas.
+const threads = computed(() => {
+    const ascending = [...messages.value].sort(
+        (a, b) => dayjs(a.sent_at ?? 0).valueOf() - dayjs(b.sent_at ?? 0).valueOf()
+    );
+    const byImapId = new Map(ascending.filter((m) => m.imap_message_id).map((m) => [m.imap_message_id, m]));
+
+    const rootOf = (message) => {
+        let current = message;
+        const visited = new Set([current.id]);
+        while (current.direction === 'INBOUND' && current.in_reply_to) {
+            const parent = byImapId.get(current.in_reply_to);
+            if (!parent || visited.has(parent.id)) break;
+            visited.add(parent.id);
+            current = parent;
+        }
+        return current;
+    };
+
+    const groups = new Map();
+    for (const message of ascending) {
+        const root = rootOf(message);
+        if (!groups.has(root.id)) {
+            groups.set(root.id, { id: root.id, messages: [] });
+        }
+        groups.get(root.id).messages.push(message);
+    }
+
+    return [...groups.values()].sort(
+        (a, b) => dayjs(b.messages.at(-1).sent_at ?? 0).valueOf() - dayjs(a.messages.at(-1).sent_at ?? 0).valueOf()
+    );
+});
 
 const formatSentAt = (value) => (value ? dayjs(value).format('DD/MM/YYYY [às] HH:mm') : '');
 
-async function scrollToBottom() {
+async function scrollToTop() {
     await nextTick();
     if (threadEl.value) {
-        threadEl.value.scrollTop = threadEl.value.scrollHeight;
+        threadEl.value.scrollTop = 0;
     }
 }
 
@@ -64,12 +109,12 @@ async function submit() {
     try {
         await send({
             subject: computedSubject.value,
-            body: body.value.trim(),
+            body: body.value,
             to_email: toEmail.value,
         });
         body.value = '';
         showSnackbar('Mensagem enviada ao agente cultural.', 'success');
-        scrollToBottom();
+        scrollToTop();
     } catch (error) {
         const errors = error.response?.data?.errors;
         const message = errors
@@ -79,12 +124,12 @@ async function submit() {
     }
 }
 
-watch(messages, scrollToBottom, { deep: true });
+watch(messages, scrollToTop, { deep: true });
 
 onMounted(async () => {
     try {
         await fetchMessages();
-        scrollToBottom();
+        scrollToTop();
     } catch (error) {
         if (error.response?.status === 404) {
             stageUnavailable.value = true;
@@ -116,38 +161,53 @@ onMounted(async () => {
 
             <template v-else>
                 <div
-                    v-for="message in messages"
-                    :key="message.id"
-                    class="flex"
-                    :class="message.direction === 'OUTBOUND' ? 'justify-end' : 'justify-start'"
+                    v-for="(thread, threadIndex) in threads"
+                    :key="thread.id"
+                    class="space-y-3"
+                    :class="threadIndex > 0 ? 'pt-3 border-t border-gray-300' : ''"
                 >
                     <div
-                        class="max-w-[85%] rounded-lg p-3 text-sm shadow-sm"
-                        :class="message.direction === 'OUTBOUND' ? 'bg-white' : 'bg-amber-50'"
+                        v-for="message in thread.messages"
+                        :key="message.id"
+                        class="flex"
+                        :class="message.direction === 'OUTBOUND' ? 'justify-end' : 'justify-start'"
                     >
-                        <p class="whitespace-pre-line text-gray-800">{{ message.body }}</p>
-                        <p class="text-xs text-gray-500 text-right mt-2">
-                            {{ message.direction === 'OUTBOUND' ? 'Enviada em' : 'Recebida em' }}
-                            {{ formatSentAt(message.sent_at) }}
-                        </p>
+                        <div
+                            class="max-w-[85%] rounded-lg p-3 text-sm shadow-sm"
+                            :class="message.direction === 'OUTBOUND' ? 'bg-white' : 'bg-amber-50'"
+                        >
+                            <!-- eslint-disable vue/no-v-html -->
+                            <div
+                                v-if="message.direction === 'OUTBOUND' && isHtml(message.body)"
+                                class="text-gray-800 message-body"
+                                v-html="message.body"
+                            />
+                            <!-- eslint-enable vue/no-v-html -->
+                            <p v-else class="whitespace-pre-line text-gray-800">{{ message.body }}</p>
+                            <p class="text-xs text-gray-500 text-right mt-2 font-semibold">
+                                {{ message.direction === 'OUTBOUND' ? 'Enviada em' : 'Recebida em' }}
+                                {{ formatSentAt(message.sent_at) }}
+                            </p>
+                        </div>
                     </div>
                 </div>
             </template>
         </div>
 
-        <v-textarea
+        <AppTextEditor
             v-model="body"
             placeholder="Escreva uma mensagem aqui..."
-            variant="outlined"
-            density="comfortable"
-            rows="3"
-            auto-grow
-            hide-details
+            :height="220"
+            :menubar="false"
+            :statusbar="false"
+            toolbar-location="bottom"
+            :plugins="['link', 'lists', 'image', 'autolink']"
+            toolbar="undo redo | bold italic underline strikethrough | forecolor | link image"
         />
 
         <div class="flex items-center justify-between">
             <p v-if="!toEmail" class="text-xs text-red-600">O agente cultural não possui e-mail cadastrado.</p>
-            <p v-else-if="body.trim().length > 0 && body.trim().length < MIN_BODY_LENGTH" class="text-xs text-gray-500">
+            <p v-else-if="plainBody.length > 0 && plainBody.length < MIN_BODY_LENGTH" class="text-xs text-gray-500">
                 A mensagem deve ter pelo menos {{ MIN_BODY_LENGTH }} caracteres.
             </p>
             <span v-else />
@@ -165,3 +225,13 @@ onMounted(async () => {
         </div>
     </div>
 </template>
+
+<style scoped>
+.message-body :deep(p) {
+    margin-bottom: 0.5rem;
+}
+
+.message-body :deep(p:last-child) {
+    margin-bottom: 0;
+}
+</style>
