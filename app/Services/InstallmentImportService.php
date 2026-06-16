@@ -94,10 +94,28 @@ class InstallmentImportService
             &$updated,
             &$skipped
         ) {
+            $projectIds = $matchedRows
+                ->pluck('project_id')
+                ->unique()
+                ->values();
+
+            $budgetsByProjectId = Budget::query()
+                ->whereIn('project_id', $projectIds)
+                ->get()
+                ->keyBy('project_id');
+
+            $budgetIds = $budgetsByProjectId
+                ->pluck('id')
+                ->values();
+
+            $installmentsByBudgetId = Installment::query()
+                ->whereIn('budget_id', $budgetIds)
+                ->where('installment_number', $installment)
+                ->get()
+                ->keyBy('budget_id');
+
             foreach ($matchedRows as $row) {
-                $budget = Budget::query()
-                    ->where('project_id', $row['project_id'])
-                    ->first();
+                $budget = $budgetsByProjectId->get($row['project_id']);
 
                 if (! $budget) {
                     $skipped++;
@@ -105,10 +123,7 @@ class InstallmentImportService
                     continue;
                 }
 
-                $installmentModel = Installment::query()
-                    ->where('budget_id', $budget->id)
-                    ->where('installment_number', $installment)
-                    ->first();
+                $installmentModel = $installmentsByBudgetId->get($budget->id);
 
                 if (! $installmentModel) {
                     $skipped++;

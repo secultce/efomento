@@ -44,7 +44,7 @@ export const documentConfigs = {
     },
 
     [DOCUMENT_TYPES.D]: {
-        name: 'Criar documento de despacho',
+        name: 'Despacho',
         titleCreate: 'Criar Despacho (D)',
         titleEdit: 'Editar Despacho (D)',
         save: 'd',

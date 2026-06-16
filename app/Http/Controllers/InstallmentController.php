@@ -16,7 +16,7 @@ class InstallmentController extends Controller
     ): RedirectResponse {
         $request->validate([
             'file' => ['required', 'file', 'mimes:xlsx,xls,csv'],
-            'installment' => ['required', 'integer'],
+            'installment' => ['required', 'integer', 'min:1', 'max:'.$notice->installments],
             'selectedProjects' => ['required', 'array'],
             'selectedProjects.*' => ['integer'],
         ]);
