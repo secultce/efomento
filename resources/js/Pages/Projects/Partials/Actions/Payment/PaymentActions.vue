@@ -5,6 +5,7 @@ import NoticeHistoryDialog from '@/Pages/Projects/Partials/Actions/NoticeHistory
 import HandleDocumentsDialog from '../HandleDocumentsDialog.vue';
 import DocumentListDialog from '../DocumentListDialog.vue';
 import { useSnackbar } from '@/Composables/useSnackbar.js';
+import { useAuth } from '@/Composables/useAuth.js';
 
 const props = defineProps({
     selectedProjects: { type: Array, default: () => [] },
@@ -14,8 +15,10 @@ const props = defineProps({
 
 defineEmits(['saved']);
 
+const { canPerform, hasRole } = useAuth();
+
 const viewHistory = ref(false);
-const poDialog = ref(false);
+const dispatchDialog = ref(false);
 const docListDialog = ref(false);
 
 const uploadInput = ref(null);
@@ -37,27 +40,31 @@ const selectedProjectsList = computed(() => {
 
 const selectedDocuments = computed(() =>
     selectedProjectsList.value.flatMap((p) =>
-        (p.documents ?? []).filter((d) => d.type?.toLowerCase() === 'po').map((d) => ({ ...d, project: p }))
+        (p.documents ?? []).filter((d) => d.type?.toLowerCase() === 'd').map((d) => ({ ...d, project: p }))
     )
 );
 
-const anyProjectsHasPO = computed(() => {
-    return selectedProjectsList.value.some((p) => p.documents?.some((d) => d.type?.toLowerCase() === 'po'));
+const anyProjectsHasDispatch = computed(() => {
+    return selectedProjectsList.value.some((p) => p.documents?.some((d) => d.type?.toLowerCase() === 'd'));
 });
 
-const selectedPO = computed(() => {
-    const projectWithPO = selectedProjectsList.value.find((p) =>
-        p.documents?.some((d) => d.type?.toLowerCase() === 'po')
+const selectedDispatch = computed(() => {
+    const projectWithDispatch = selectedProjectsList.value.find((p) =>
+        p.documents?.some((d) => d.type?.toLowerCase() === 'd')
     );
 
-    if (!projectWithPO) return null;
+    if (!projectWithDispatch) return null;
 
-    const poDocument = projectWithPO.documents.find((d) => d.type?.toLowerCase() === 'po');
+    const dispatchDocument = projectWithDispatch.documents.find((d) => d.type?.toLowerCase() === 'd');
 
     return {
-        content: poDocument.body,
-        headerImages: (poDocument.images ?? []).filter((i) => i.section === 'header' || i.section?.value === 'header'),
-        footerImages: (poDocument.images ?? []).filter((i) => i.section === 'footer' || i.section?.value === 'footer'),
+        content: dispatchDocument.body,
+        headerImages: (dispatchDocument.images ?? []).filter(
+            (i) => i.section === 'header' || i.section?.value === 'header'
+        ),
+        footerImages: (dispatchDocument.images ?? []).filter(
+            (i) => i.section === 'footer' || i.section?.value === 'footer'
+        ),
     };
 });
 
@@ -65,8 +72,8 @@ function openNoticeHistory() {
     viewHistory.value = true;
 }
 
-function openPODialog() {
-    poDialog.value = true;
+function openDispatchDialog() {
+    dispatchDialog.value = true;
 }
 
 function openUpload(installment) {
@@ -130,15 +137,23 @@ async function handleFileUpload(event) {
         },
     });
 }
+
+const canImportPayments = computed(() => {
+    return hasRole('super_admin') || hasRole('coord_financial') || hasRole('payment');
+});
+
+const canCreateDispatch = computed(() => {
+    return hasRole('super_admin') || hasRole('coord_financial') || hasRole('payment') || canPerform('dispatch.create');
+});
 </script>
 
 <template>
     <NoticeHistoryDialog v-model="viewHistory" :notice-id="notice?.id" />
     <HandleDocumentsDialog
-        v-model="poDialog"
-        type="po"
+        v-model="dispatchDialog"
+        type="d"
         :project-ids="selectedProjects"
-        :edit-data="selectedPO"
+        :edit-data="selectedDispatch"
         @saved="$emit('saved')"
     />
     <DocumentListDialog v-model="docListDialog" :documents="selectedDocuments" />
@@ -180,16 +195,16 @@ async function handleFileUpload(event) {
                 </div>
 
                 <div class="w-full pt-2 flex flex-col gap-1">
-                    <template v-if="anyProjectsHasPO">
-                        <p>Editar Despacho (PO)</p>
+                    <template v-if="anyProjectsHasDispatch">
+                        <p>Editar Despacho (D)</p>
 
                         <v-btn
                             class="w-full !shadow-none !font-bold !border-gray-300 !bg-white !text-[#2d353fFF] rounded-lg text-xs gap-6"
                             :disabled="!hasSelectedProjects"
                             variant="outlined"
-                            @click="openPODialog"
+                            @click="openDispatchDialog"
                         >
-                            <span class="w-full text-left"> Editar Despacho (PO) </span>
+                            <span class="w-full text-left"> Editar Despacho (D) </span>
 
                             <template #append>
                                 <v-icon size="18"> mdi-pencil </v-icon>
@@ -203,7 +218,7 @@ async function handleFileUpload(event) {
                         <v-btn
                             class="w-full !shadow-none !font-bold !bg-[#ffcc05FF] !text-[#2d353fFF] rounded-lg px-4 py-2 text-xs"
                             :disabled="!hasSelectedProjects"
-                            @click="openPODialog"
+                            @click="openDispatchDialog"
                         >
                             Criar
                         </v-btn>

@@ -159,7 +159,7 @@ class ProjectController extends Controller
     public function createDocument(Request $request, ProjectDocumentService $service)
     {
         $data = $request->validate([
-            'type' => 'required|in:ci,tc,pj,et,po',
+            'type' => 'required|in:ci,tc,pj,et,po,d',
 
             'selected_projects' => 'required|array|min:1',
             'selected_projects.*' => 'exists:projects,id',

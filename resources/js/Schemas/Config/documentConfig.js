@@ -3,7 +3,7 @@ export const DOCUMENT_TYPES = {
     TC: 'tc',
     PJ: 'pj',
     ET: 'et',
-    PO: 'po',
+    D: 'd',
 };
 
 export const documentConfigs = {
@@ -35,10 +35,10 @@ export const documentConfigs = {
         save: 'pj',
     },
 
-    [DOCUMENT_TYPES.PO]: {
+    [DOCUMENT_TYPES.D]: {
         name: 'Criar documento de despacho',
-        titleCreate: 'Criar Despacho (PO)',
-        titleEdit: 'Editar Despacho (PO)',
-        save: 'po',
+        titleCreate: 'Criar Despacho (D)',
+        titleEdit: 'Editar Despacho (D)',
+        save: 'd',
     },
 };

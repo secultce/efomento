@@ -21,7 +21,7 @@ class DocumentFactory extends Factory
             [DocumentType::TC, DocumentPhase::FORMALIZATION],
             [DocumentType::ET, DocumentPhase::FORMALIZATION],
             [DocumentType::PJ, DocumentPhase::JURIDICAL],
-            [DocumentType::PO, DocumentPhase::JURIDICAL],
+            [DocumentType::D, DocumentPhase::JURIDICAL],
         ];
 
         [$type, $phase] = $this->faker->randomElement($combinations);

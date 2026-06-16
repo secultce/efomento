@@ -28,13 +28,8 @@ class DocumentTypeRegistry
             'requires_sign' => true,
             'requires_legal' => true,
         ],
-        'po+juridical' => [
+        'd+juridical' => [
             'label' => 'Despacho para Parecer Jurídico',
-            'requires_sign' => false,
-            'requires_legal' => false,
-        ],
-        'ci+opening' => [
-            'label' => 'Comunicação Interna',
             'requires_sign' => false,
             'requires_legal' => false,
         ],

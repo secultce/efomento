@@ -14,7 +14,7 @@ class DocumentTypeTest extends TestCase
             DocumentType::TC->value => 'TC',
             DocumentType::ET->value => 'ET',
             DocumentType::PJ->value => 'PJ',
-            DocumentType::PO->value => 'PO',
+            DocumentType::DI->value => 'D',
             DocumentType::CI->value => 'CI',
         ];
 
@@ -29,7 +29,7 @@ class DocumentTypeTest extends TestCase
             DocumentType::TC->value => 'Termo de Execução Cultural',
             DocumentType::ET->value => 'Extrato',
             DocumentType::PJ->value => 'Parecer Jurídico',
-            DocumentType::PO->value => 'Despacho',
+            DocumentType::D->value => 'Despacho',
             DocumentType::CI->value => 'Comunicação Interna',
         ];
 
@@ -44,7 +44,7 @@ class DocumentTypeTest extends TestCase
         $this->assertSame(DocumentPhase::FORMALIZATION, DocumentType::TC->phase());
         $this->assertSame(DocumentPhase::FORMALIZATION, DocumentType::ET->phase());
         $this->assertSame(DocumentPhase::FORMALIZATION, DocumentType::PJ->phase());
-        $this->assertSame(DocumentPhase::JURIDICAL, DocumentType::PO->phase());
+        $this->assertSame(DocumentPhase::JURIDICAL, DocumentType::D->phase());
     }
 
     public function test_required_for_formalization_advance_returns_tc_et_pj(): void
