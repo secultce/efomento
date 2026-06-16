@@ -251,9 +251,7 @@ class DocumentTest extends TestCase
         [$typeA, $phaseA] = $this->getRandomTypeAndPhase();
 
         $typeB = collect(DocumentType::cases())->reject(fn ($t) => $t === $typeA)->random() ?? DocumentType::D;
-        $phaseB = $typeB === DocumentType::TC || $typeB === DocumentType::ET
-            ? DocumentPhase::FORMALIZATION
-            : DocumentPhase::JURIDICAL;
+        $phaseB = $typeB->phase();
 
         Document::factory()->count(2)->create([
             'type' => $typeA,
@@ -316,7 +314,7 @@ class DocumentTest extends TestCase
         $type = collect(DocumentType::cases())->random();
 
         $invalidPhase = collect(DocumentPhase::cases())
-            ->reject(fn (DocumentPhase $phase) => $phase === DocumentPhase::PAYMENT)
+            ->reject(fn (DocumentPhase $phase) => $phase === $type->phase())
             ->random();
 
         $response = $this->actingAs($this->user)
