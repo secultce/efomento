@@ -18,14 +18,18 @@ const viewHistory = ref(false);
 const poDialog = ref(false);
 const docListDialog = ref(false);
 
-const { showSnackbar } = useSnackbar();
-
-function openNoticeHistory() {
-    viewHistory.value = true;
-}
+const uploadInput = ref(null);
+const selectedInstallment = ref(null);
+const uploadingInstallment = ref(null);
 
 const errorMessage = ref('');
 const showError = ref(false);
+
+const { showSnackbar } = useSnackbar();
+
+const hasSelectedProjects = computed(() => {
+    return props.selectedProjects?.length > 0;
+});
 
 const selectedProjectsList = computed(() => {
     return props.projects.filter((p) => props.selectedProjects.includes(p.id));
@@ -38,15 +42,17 @@ const selectedDocuments = computed(() =>
 );
 
 const anyProjectsHasPO = computed(() => {
-    return selectedProjectsList.value.some((p) => p.documents?.some((d) => d.type === 'po'));
+    return selectedProjectsList.value.some((p) => p.documents?.some((d) => d.type?.toLowerCase() === 'po'));
 });
 
 const selectedPO = computed(() => {
-    const projectWithPO = selectedProjectsList.value.find((p) => p.documents?.some((d) => d.type === 'po'));
+    const projectWithPO = selectedProjectsList.value.find((p) =>
+        p.documents?.some((d) => d.type?.toLowerCase() === 'po')
+    );
 
     if (!projectWithPO) return null;
 
-    const poDocument = projectWithPO.documents.find((d) => d.type === 'po');
+    const poDocument = projectWithPO.documents.find((d) => d.type?.toLowerCase() === 'po');
 
     return {
         content: poDocument.body,
@@ -55,14 +61,19 @@ const selectedPO = computed(() => {
     };
 });
 
+function openNoticeHistory() {
+    viewHistory.value = true;
+}
+
 function openPODialog() {
     poDialog.value = true;
 }
 
-const uploadInput = ref(null);
-const selectedInstallment = ref(null);
-
 function openUpload(installment) {
+    if (!hasSelectedProjects.value || uploadingInstallment.value !== null) {
+        return;
+    }
+
     selectedInstallment.value = installment;
     uploadInput.value?.click();
 }
@@ -71,20 +82,27 @@ async function handleFileUpload(event) {
     const file = event.target.files?.[0];
 
     if (!file || !selectedInstallment.value) {
+        event.target.value = '';
         return;
     }
 
+    const installment = selectedInstallment.value;
+
     const formData = new FormData();
+
     formData.append('file', file);
-    formData.append('installment', selectedInstallment.value);
+    formData.append('installment', installment);
+
     props.selectedProjects.forEach((projectId) => {
         formData.append('selectedProjects[]', projectId);
     });
+
     router.post(route('installments.import', props.notice.id), formData, {
         forceFormData: true,
         preserveScroll: true,
 
         onStart: () => {
+            uploadingInstallment.value = installment;
             showSnackbar('Importando planilha, aguarde...', 'warning', -1);
         },
 
@@ -104,9 +122,13 @@ async function handleFileUpload(event) {
 
             showSnackbar(message, 'error');
         },
-    });
 
-    event.target.value = '';
+        onFinish: () => {
+            uploadingInstallment.value = null;
+            selectedInstallment.value = null;
+            event.target.value = '';
+        },
+    });
 }
 </script>
 
@@ -130,7 +152,6 @@ async function handleFileUpload(event) {
             <div class="w-full pt-2">
                 <p>Fazer upload de planilha de pagamentos</p>
 
-                <!-- Single hidden input -->
                 <input
                     ref="uploadInput"
                     type="file"
@@ -147,6 +168,8 @@ async function handleFileUpload(event) {
                                     '!shadow-none !font-bold !bg-[#ffcc05FF] !text-[#2d353fFF] rounded-lg px-2 py-2 text-[11px]',
                                     props.notice?.installments == 1 ? 'w-full' : 'flex-1',
                                 ]"
+                                :loading="uploadingInstallment === n"
+                                :disabled="!hasSelectedProjects || uploadingInstallment !== null"
                                 @click="openUpload(n)"
                             >
                                 {{
@@ -165,7 +188,7 @@ async function handleFileUpload(event) {
 
                         <v-btn
                             class="w-full !shadow-none !font-bold !border-gray-300 !bg-white !text-[#2d353fFF] rounded-lg text-xs gap-6"
-                            :disabled="!(props.selectedProjects?.length > 0)"
+                            :disabled="!hasSelectedProjects"
                             variant="outlined"
                             @click="openPODialog"
                         >
@@ -182,7 +205,7 @@ async function handleFileUpload(event) {
 
                         <v-btn
                             class="w-full !shadow-none !font-bold !bg-[#ffcc05FF] !text-[#2d353fFF] rounded-lg px-4 py-2 text-xs"
-                            :disabled="!(props.selectedProjects?.length > 0)"
+                            :disabled="!hasSelectedProjects"
                             @click="openPODialog"
                         >
                             Criar

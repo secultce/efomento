@@ -6,11 +6,11 @@ use App\Models\Budget;
 use App\Models\Installment;
 use App\Models\Notice;
 use App\Models\Project;
+use App\Support\Import;
 use App\Support\Spreadsheet\Maps\InstallmentSpreadsheetMap;
 use App\Support\Spreadsheet\SpreadsheetImporter;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
-use PhpOffice\PhpSpreadsheet\Shared\Date;
 
 class InstallmentImportService
 {
@@ -27,52 +27,54 @@ class InstallmentImportService
         );
 
         if ($data->isEmpty()) {
-            throw new \InvalidArgumentException(
-                'A planilha enviada está vazia.'
-            );
+            throw new \InvalidArgumentException('A planilha enviada está vazia.');
         }
 
         $projects = Project::query()
             ->where('notice_id', $notice->id)
             ->whereIn('id', $selectedProjects)
             ->with('openings')
-            ->get()
-            ->mapWithKeys(function ($project) {
-                $openingNup = $project->openings?->first()?->opening_nup;
+            ->get();
 
-                if (! $openingNup) {
-                    return [];
+        $projectsByNup = collect();
+
+        foreach ($projects as $project) {
+            foreach ($project->openings ?? [] as $opening) {
+                $normalizedNup = Import::normalizeNup($opening->opening_nup ?? null);
+
+                if ($normalizedNup) {
+                    $projectsByNup->put($normalizedNup, $project);
                 }
+            }
+        }
 
-                return [
-                    preg_replace('/\D+/', '', (string) $openingNup) => $project,
-                ];
-            });
-
-        if ($projects->isEmpty()) {
+        if ($projectsByNup->isEmpty()) {
             throw new \InvalidArgumentException(
-                'Nenhum dos projetos selecionados possui processo vinculado.'
+                'Nenhum dos projetos selecionados possui processo vinculado na planilha.'
             );
         }
 
         $matchedRows = $data
-            ->map(function ($row) use ($projects) {
-                $normalizedProcesso = preg_replace(
-                    '/\D+/',
-                    '',
-                    (string) ($row['processo'] ?? '')
-                );
+            ->map(function ($row) use ($projectsByNup) {
+                $row = collect($row)->toArray();
 
-                $project = $projects->get($normalizedProcesso);
+                $rowNup = $row['processo'] ?? null;
+                $normalizedNup = Import::normalizeNup($rowNup);
+
+                if (! $normalizedNup) {
+                    return null;
+                }
+
+                $project = $projectsByNup->get($normalizedNup);
 
                 if (! $project) {
                     return null;
                 }
 
-                return [
-                    ...$row,
+                return array_merge($row, [
                     'project_id' => $project->id,
-                ];
+                    'normalized_nup' => $normalizedNup,
+                ]);
             })
             ->filter()
             ->values();
@@ -83,20 +85,19 @@ class InstallmentImportService
             );
         }
 
-        $imported = 0;
+        $updated = 0;
         $skipped = 0;
 
         DB::transaction(function () use (
             $matchedRows,
             $installment,
-            &$imported,
+            &$updated,
             &$skipped
         ) {
             foreach ($matchedRows as $row) {
-                $budget = Budget::where(
-                    'project_id',
-                    $row['project_id']
-                )->first();
+                $budget = Budget::query()
+                    ->where('project_id', $row['project_id'])
+                    ->first();
 
                 if (! $budget) {
                     $skipped++;
@@ -104,35 +105,68 @@ class InstallmentImportService
                     continue;
                 }
 
-                Installment::updateOrCreate(
-                    [
-                        'budget_id' => $budget->id,
-                        'installment_number' => $installment,
-                    ],
-                    [
-                        'amount' => $row['liquidado'] ?? 0,
-                        'settlement_number' => $row['nota_de_liquidacao'] ?? null,
-                        'payment_order_number' => $row['ordem_bancaria'] ?? null,
-                        'payment_amount' => $row['pago'] ?? 0,
-                        'commitment_date' => ! empty($row['data_n_l'])
-                            ? Date::excelToDateTimeObject($row['data_n_l'])
-                            : null,
-                        'payment_date' => ! empty($row['data_o_b'])
-                            ? Date::excelToDateTimeObject($row['data_o_b'])
-                            : null,
-                        'remarks' => json_encode(
-                            $row,
-                            JSON_UNESCAPED_UNICODE
-                        ),
-                    ]
-                );
+                $installmentModel = Installment::query()
+                    ->where('budget_id', $budget->id)
+                    ->where('installment_number', $installment)
+                    ->first();
 
-                $imported++;
+                if (! $installmentModel) {
+                    $skipped++;
+
+                    continue;
+                }
+
+                $installmentModel->update([
+                    'settlement_date' => Import::date($row['data_nl'] ?? null)
+                        ?? $installmentModel->settlement_date,
+
+                    'settlement_number' => Import::string($row['nota_de_liquidacao'] ?? null)
+                        ?? $installmentModel->settlement_number,
+
+                    'payment_date' => Import::date($row['data_ob'] ?? null)
+                        ?? $installmentModel->payment_date,
+
+                    'payment_order_number' => Import::string($row['ordem_bancaria'] ?? null)
+                        ?? $installmentModel->payment_order_number,
+
+                    'full_source' => Import::string($row['fonte_completa'] ?? null)
+                        ?? $installmentModel->full_source,
+
+                    'expense_nature' => Import::string($row['natureza_despesa'] ?? null)
+                        ?? $installmentModel->expense_nature,
+
+                    'process_number' => Import::string($row['processo'] ?? null)
+                        ?? $installmentModel->process_number,
+
+                    'creditor' => Import::string($row['credor'] ?? null)
+                        ?? $installmentModel->creditor,
+
+                    'creditor_name' => Import::string($row['nome_credor'] ?? null)
+                        ?? $installmentModel->creditor_name,
+
+                    'retention_creditor' => Import::string($row['credor_retencao'] ?? null)
+                        ?? $installmentModel->retention_creditor,
+
+                    'origin_bank_domicile' => Import::string($row['domicilio_bancario_origem'] ?? null)
+                        ?? $installmentModel->origin_bank_domicile,
+
+                    'committed_amount' => Import::money($row['empenhado'] ?? null)
+                        ?? $installmentModel->committed_amount,
+
+                    'amount' => Import::money($row['liquidado'] ?? null)
+                        ?? $installmentModel->amount,
+
+                    'payment_amount' => Import::money($row['pago'] ?? null)
+                        ?? $installmentModel->payment_amount,
+                ]);
+
+                $updated++;
             }
         });
 
         return [
-            'imported' => $imported,
+            'imported' => $updated,
+            'updated' => $updated,
             'skipped' => $skipped,
             'installment' => $installment,
         ];

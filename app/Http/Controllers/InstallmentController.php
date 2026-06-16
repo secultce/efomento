@@ -29,17 +29,17 @@ class InstallmentController extends Controller
                 selectedProjects: $request->selectedProjects,
             );
 
-            if ($result['imported'] === 0) {
+            if ($result['updated'] === 0) {
                 return back()->with(
                     'error',
-                    'Nenhuma parcela foi importada. Verifique se os projetos possuem orçamento cadastrado.'
+                    'Nenhuma parcela foi atualizada. Verifique se os projetos possuem orçamento e parcela cadastrada.'
                 );
             }
 
-            $message = "Importação concluída. {$result['imported']} projeto(s) tiveram a parcela {$result['installment']} importada com sucesso.";
+            $message = "Importação concluída. {$result['updated']} projeto(s) tiveram a parcela {$result['installment']} atualizada com sucesso.";
 
             if ($result['skipped'] > 0) {
-                $message .= " {$result['skipped']} projeto(s) foram ignorados por não possuírem orçamento.";
+                $message .= " {$result['skipped']} projeto(s) foram ignorados por não possuírem orçamento ou parcela cadastrada.";
             }
 
             return back()->with('success', $message);
