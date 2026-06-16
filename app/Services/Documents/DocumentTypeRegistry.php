@@ -28,8 +28,8 @@ class DocumentTypeRegistry
             'requires_sign' => true,
             'requires_legal' => true,
         ],
-        'd+juridical' => [
-            'label' => 'Despacho para Parecer Jurídico',
+        'd+payment' => [
+            'label' => 'Despacho',
             'requires_sign' => false,
             'requires_legal' => false,
         ],
