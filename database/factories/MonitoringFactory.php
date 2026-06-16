@@ -32,7 +32,9 @@ class MonitoringFactory extends Factory
             'deadline_for_completing_report' => $this->faker->dateTimeBetween($startDate, '+6 months'),
             'deadline_for_analysis_and_issuance_of_the_opinion' => $this->faker->dateTimeBetween('+6 months', '+1 year'),
 
-            'date_of_processing_of_the_opinion_via_suite' => $this->faker->dateTimeBetween('-3 months', 'now'),
+            'technical_opinions' => [
+                ['suite_number' => $this->faker->numerify('####'), 'processing_date' => $this->faker->date()],
+            ],
             'date_of_notification_to_the_agent' => $this->faker->dateTimeBetween('-3 months', 'now'),
 
             'observations' => $this->faker->optional()->paragraph(),

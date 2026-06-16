@@ -131,10 +131,11 @@ onMounted(async () => {
         await fetchMessages();
         scrollToTop();
     } catch (error) {
-        if (error.response?.status === 404) {
-            stageUnavailable.value = true;
+        if (error.response.data.message === '') {
+            stageUnavailable.value = false;
         } else {
             showSnackbar('Não foi possível carregar as mensagens da diligência.', 'error');
+            stageUnavailable.value = true;
         }
     }
 });

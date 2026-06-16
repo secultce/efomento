@@ -5,6 +5,7 @@ use App\Http\Controllers\DocumentController;
 use App\Http\Controllers\FormalizationController;
 use App\Http\Controllers\GroupController;
 use App\Http\Controllers\LegalAnalysisController;
+use App\Http\Controllers\MonitoringController;
 use App\Http\Controllers\NoticeController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\OpeningController;
@@ -108,6 +109,11 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::delete('/projetos/{project}/formalizacao/{formalization}/arquivos/{file}', [FormalizationController::class, 'destroyFile'])
         ->scopeBindings()
         ->name('projects.formalizations.files.destroy');
+    Route::post('/projetos/{project}/monitoramento', [MonitoringController::class, 'store'])
+        ->name('projects.monitorings.store');
+    Route::patch('/projetos/{project}/monitoramento/{monitoring}/atualizar', [MonitoringController::class, 'update'])
+        ->name('projects.monitorings.update');
+
     Route::get('/projetos/{project}/diligencias/{stage}', [DiligenceMessageController::class, 'index'])
         ->name('diligences.index');
     Route::post('/projetos/{project}/diligencias/{stage}', [DiligenceMessageController::class, 'store'])
