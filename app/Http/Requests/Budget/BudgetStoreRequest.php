@@ -17,7 +17,7 @@ class BudgetStoreRequest extends FormRequest
             'processing_date_for_codip' => ['nullable', 'date'],
             'processing_date_for_coafi' => ['nullable', 'date'],
 
-            'installment_amount' => ['required', 'numeric', 'min:0'],
+            'installment_amount' => ['required', 'numeric', 'min:0.01'],
             'installment_number' => ['required', 'integer', 'min:1'],
             'installment_request_date' => ['nullable', 'date'],
             'installment_justification' => ['nullable', 'string'],

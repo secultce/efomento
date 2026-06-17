@@ -186,7 +186,7 @@ const tramit = async () => {
     }
 
     if (!canTramitBudget.value) {
-        showSnackbar(showTramitBlockedMessage.value, 'warning');
+        showTramitBlockedMessage();
         return;
     }
 
