@@ -62,6 +62,7 @@ const stopEdit = () => {
                 autofocus
                 hide-details
                 :error-messages="error"
+                data-cy="notice-edit-textfield"
                 @update:model-value="
                     (val) => {
                         localValue = props.mask ? val.replace(/\D/g, '') : val;
@@ -78,6 +79,7 @@ const stopEdit = () => {
                 density="compact"
                 :error-messages="error"
                 auto-grow
+                data-cy="notice-edit-textarea"
                 @blur="stopEdit"
             />
 
@@ -88,6 +90,7 @@ const stopEdit = () => {
                 :items="items"
                 :error-messages="error"
                 density="compact"
+                data-cy="notice-edit-select"
                 @update:model-value="stopEdit"
             />
 

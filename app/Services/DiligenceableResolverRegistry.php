@@ -19,6 +19,10 @@ class DiligenceableResolverRegistry
 
         abort_unless($resolver !== null, Response::HTTP_NOT_FOUND);
 
-        return $resolver->resolve($project);
+        $diligenceable = $resolver->resolve($project);
+
+        abort_unless($diligenceable !== null, Response::HTTP_NOT_FOUND);
+
+        return $diligenceable;
     }
 }

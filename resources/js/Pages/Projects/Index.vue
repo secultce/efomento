@@ -10,6 +10,7 @@ import { useSnackbar } from '@/Composables/useSnackbar';
 import { Head, router } from '@inertiajs/vue3';
 import { ref } from 'vue';
 import FormalizationActions from './Partials/Actions/Formalization/FormalizationActions.vue';
+import PaymentActions from './Partials/Actions/Payment/PaymentActions.vue';
 import MonitoringActions from './Partials/Actions/Monitoring/MonitoringActions.vue';
 
 const props = defineProps({
@@ -170,7 +171,7 @@ function handleAction({ action, item }) {
                 </div>
                 <div class="row-span-2 col-start-4 row-start-2">
                     <OpeningActions
-                        v-if="selectedPhase === 'abertura' || !selectedPhase"
+                        v-if="selectedPhase === 'abertura'"
                         :selected-projects="selectedProjects"
                         :projects="projects"
                         :supervisors-available="supervisorsAvailable"
@@ -179,6 +180,12 @@ function handleAction({ action, item }) {
                     />
                     <FormalizationActions
                         v-else-if="selectedPhase === 'formalizacao'"
+                        :selected-projects="selectedProjects"
+                        :projects="projects"
+                        :notice="notice"
+                    />
+                    <PaymentActions
+                        v-else-if="selectedPhase === 'pagamento'"
                         :selected-projects="selectedProjects"
                         :projects="projects"
                         :notice="notice"

@@ -1,4 +1,6 @@
-import { addDaysTo, getDate } from '@/Utils/dateHelpers';
+import { useDate } from '@/Composables/useDate';
+
+const { addDaysTo, getDate, daysBetween } = useDate();
 
 export const viewSections = [
     {
@@ -26,15 +28,15 @@ export const viewSections = [
 
             {
                 label: 'Data de início de vigência do instrumento',
-                compute: getDate('formalization.validity_start_at'),
+                compute: getDate('formalizations.validity_start_at'),
             },
             {
                 label: 'Data de término de vigência do instrumento',
-                compute: getDate('formalization.validity_end_at'),
+                compute: getDate('formalizations.validity_end_at'),
             },
             {
                 label: 'Quantidade de dias da vigência inicial',
-                key: 'monitoring.date_of_notification_to_the_agent',
+                compute: daysBetween('formalizations.validity_start_at', 'formalizations.validity_end_at'),
             },
             {
                 label: 'Período entre publica entre publicação e pagamento',
@@ -42,7 +44,7 @@ export const viewSections = [
             },
             {
                 label: 'Data da publicação do DOE',
-                compute: getDate('formalization.official_gazette_published_at'),
+                compute: getDate('formalizations.official_gazette_published_at'),
             },
         ],
     },

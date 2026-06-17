@@ -1,20 +1,66 @@
 <script setup>
 import { ref } from 'vue';
+import { useForm } from '@inertiajs/vue3';
 import SplitScreenTab from '@/Components/SplitScreenTab.vue';
 import SectionChips from '@/Components/SectionChips.vue';
 import SectionContent from '@/Components/SectionContent.vue';
+import SectionForm from '@/Components/SectionForm.vue';
+import FormField from '@/Components/FormField.vue';
+import TextField from '@/Components/TextField.vue';
 import AuxLinks from '@/Components/AuxLinks.vue';
+import DiligenceChat from '@/Components/DiligenceChat.vue';
 import { viewSections, formSections } from '@/Schemas/Monitoring';
+import { useSnackbar } from '@/Composables/useSnackbar';
 
-defineProps({
+const props = defineProps({
     project: {
         type: Object,
         default: () => ({}),
     },
 });
 
+const { showSnackbar } = useSnackbar();
+
 const activeViewIndex = ref('all');
-const activeFormIndex = ref(0);
+
+const form = useForm({
+    technical_opinions: props.project.monitoring?.technical_opinions?.length
+        ? props.project.monitoring.technical_opinions
+        : [{ suite_number: '', processing_date: '' }],
+    observations: props.project.monitoring?.observations ?? '',
+});
+
+function addOpinion() {
+    form.technical_opinions.push({ suite_number: '', processing_date: '' });
+}
+
+function removeOpinion(index) {
+    form.technical_opinions.splice(index, 1);
+}
+
+function submit() {
+    const monitoring = props.project.monitoring;
+
+    const options = {
+        preserveScroll: true,
+        onSuccess: () => showSnackbar('Monitoramento salvo com sucesso!', 'success'),
+        onError: () => showSnackbar('Ocorreu um erro ao salvar o monitoramento.', 'error'),
+    };
+
+    if (monitoring?.id) {
+        form.patch(
+            route('projects.monitorings.update', {
+                project: props.project.id,
+                monitoring: monitoring.id,
+            }),
+            options
+        );
+
+        return;
+    }
+
+    form.post(route('projects.monitorings.store', { project: props.project.id }), options);
+}
 </script>
 
 <template>
@@ -40,13 +86,67 @@ const activeFormIndex = ref(0);
 
         <template #right-content>
             <div class="space-y-6">
-                <div>
-                    <p class="font-bold text-lg">Campos para você inserir ou editar dados</p>
-                    <p class="font-bold text-md mt-2 text-black">Links auxiliares</p>
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="font-bold text-lg">Campos para você inserir ou editar dados</p>
+                        <p class="font-bold text-md mt-2 text-black">Links auxiliares</p>
+                    </div>
+                    <v-btn
+                        variant="outlined"
+                        color="outlineSecondary"
+                        class="rounded-lg"
+                        :loading="form.processing"
+                        @click="submit"
+                    >
+                        Salvar Alterações
+                    </v-btn>
                 </div>
                 <aux-links />
-                <section-chips v-model="activeFormIndex" :sections="formSections" />
-                <div class="mt-4 text-sm text-gray-500 italic">Formulário de edição disponível em breve.</div>
+                <diligence-chat
+                    :project="project"
+                    stage="monitoramento"
+                    description="Envie mensagem ao agente cultural sobre o relatório de monitoramento (não vale para notificações, comunicados, solicitações etc.)"
+                />
+                <section-form :active-edit-index="'all'" :sections="formSections">
+                    <template #header-action="{ section }">
+                        <v-btn
+                            v-if="section.key === 'opinion'"
+                            variant="text"
+                            color="primary"
+                            class="pl-0 font-bold text-xs"
+                            prepend-icon="mdi-plus"
+                            @click="addOpinion"
+                        >
+                            Registre novo parecer técnico
+                        </v-btn>
+                    </template>
+                    <template #default="{ section }">
+                        <template v-if="section.key === 'opinion'">
+                            <div v-for="(opinion, i) in form.technical_opinions" :key="i" class="mb-2">
+                                <div class="grid grid-cols-2 gap-4">
+                                    <form-field label="Número do parecer no SUITE" required>
+                                        <text-field v-model="opinion.suite_number" />
+                                    </form-field>
+                                    <form-field label="Data da tramitação do parecer via Suite">
+                                        <text-field v-model="opinion.processing_date" type="date" />
+                                    </form-field>
+                                </div>
+                                <v-btn
+                                    variant="text"
+                                    color="error"
+                                    class="pl-0 font-bold text-xs"
+                                    prepend-icon="mdi-plus"
+                                    @click="removeOpinion(i)"
+                                >
+                                    Excluir campos
+                                </v-btn>
+                            </div>
+                        </template>
+                        <template v-if="section.key === 'observations'">
+                            <text-field v-model="form.observations" :rows="4" type="textarea" />
+                        </template>
+                    </template>
+                </section-form>
             </div>
         </template>
     </split-screen-tab>

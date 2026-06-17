@@ -3,6 +3,8 @@ export const DOCUMENT_TYPES = {
     TC: 'tc',
     PJ: 'pj',
     ET: 'et',
+    PO: 'po',
+    D: 'd',
 };
 
 export const documentConfigs = {
@@ -32,5 +34,19 @@ export const documentConfigs = {
         titleCreate: 'Criar parecer jurídico (PJ)',
         titleEdit: 'Editar parecer jurídico (PJ)',
         save: 'pj',
+    },
+
+    [DOCUMENT_TYPES.PO]: {
+        name: 'Parecer Orçamentário',
+        titleCreate: 'Criar Parecer Orçamentário (PO)',
+        titleEdit: 'Editar Parecer Orçamentário',
+        save: 'pj',
+    },
+
+    [DOCUMENT_TYPES.D]: {
+        name: 'Despacho',
+        titleCreate: 'Criar Despacho (D)',
+        titleEdit: 'Editar Despacho (D)',
+        save: 'd',
     },
 };

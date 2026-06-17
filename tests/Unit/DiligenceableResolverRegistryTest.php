@@ -49,6 +49,28 @@ class DiligenceableResolverRegistryTest extends TestCase
         }
     }
 
+    public function test_resolve_aborts_with_404_when_resolver_returns_null(): void
+    {
+        $resolver = new class implements DiligenceableResolver
+        {
+            public function resolve(Project $project): ?Model
+            {
+                return null;
+            }
+        };
+
+        $registry = new DiligenceableResolverRegistry([
+            ProjectStageSlug::MONITORAMENTO->value => $resolver,
+        ]);
+
+        try {
+            $registry->resolve(new Project, ProjectStageSlug::MONITORAMENTO);
+            $this->fail('Expected HttpException was not thrown.');
+        } catch (HttpException $e) {
+            $this->assertSame(404, $e->getStatusCode());
+        }
+    }
+
     public function test_resolve_uses_correct_resolver_when_multiple_are_registered(): void
     {
         $project = new Project;

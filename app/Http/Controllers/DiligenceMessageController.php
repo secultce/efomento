@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Enums\ProjectStageSlug;
 use App\Http\Requests\Diligence\StoreDiligenceMessageRequest;
+use App\Http\Resources\DiligenceMessageResource;
 use App\Models\Project;
 use App\Services\DiligenceableResolverRegistry;
 use App\Services\DiligenceMessageService;
@@ -23,20 +24,11 @@ class DiligenceMessageController extends Controller
 
         $messages = $diligenceable->diligenceMessages()
             ->with('creator:id,name')
-            ->get()
-            ->map(fn ($msg) => [
-                'id' => $msg->id,
-                'direction' => $msg->direction->value,
-                'from_email' => $msg->from_email,
-                'to_email' => $msg->to_email,
-                'subject' => $msg->subject,
-                'body' => $msg->body,
-                'sent_at' => $msg->sent_at,
-                'read_at' => $msg->read_at,
-                'creator' => $msg->creator?->name,
-            ]);
+            ->get();
 
-        return response()->json(['messages' => $messages]);
+        return response()->json([
+            'messages' => DiligenceMessageResource::collection($messages),
+        ]);
     }
 
     public function store(StoreDiligenceMessageRequest $request, Project $project, string $stage): JsonResponse

@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class MonitoringDiligenceableResolver implements DiligenceableResolver
 {
-    public function resolve(Project $project): Model
+    public function resolve(Project $project): ?Model
     {
         return $project->monitoring;
     }
