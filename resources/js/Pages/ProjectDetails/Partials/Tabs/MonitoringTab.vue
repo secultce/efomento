@@ -234,6 +234,7 @@ function submit() {
                         </template>
                     </template>
                 </section-form>
+                <!-- BOTÃO DE AÇÃO -->
                 <div v-if="monitoringStage?.status === 'em_andamento'" class="flex gap-2">
                     <v-btn
                         v-if="canRequestNextInstallment"
