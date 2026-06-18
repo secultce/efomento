@@ -1,5 +1,6 @@
 <?php
 
+use App\Jobs\SyncMonitoringJob;
 use App\Jobs\SyncNoticesJob;
 use Illuminate\Foundation\Inspiring;
 use Illuminate\Support\Facades\Artisan;
@@ -10,9 +11,15 @@ Artisan::command('inspire', function () {
 })->purpose('Display an inspiring quote');
 
 Schedule::job(new SyncNoticesJob)
-    ->dailyAt('06:00')
+    ->dailyAt('15:31')
     ->timezone('America/Fortaleza')
     ->withoutOverlapping()
+    ->onOneServer();
+
+Schedule::job(new SyncMonitoringJob, 'high')
+    ->dailyAt('16:00')
+    ->timezone('America/Fortaleza')
+    ->withoutOverlapping(60)
     ->onOneServer();
 
 Schedule::command('app:sync-diligence-emails')

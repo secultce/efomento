@@ -26,6 +26,9 @@ const { showAlert } = useAlert();
 
 const activeViewIndex = ref('all');
 
+const hasMonitoringSnapshot = computed(() => props.project.has_monitoring_snapshot === true);
+const monitoringDialogOpen = ref(false);
+
 const monitoringStage = computed(() => props.project.stages?.find((s) => s.slug === 'monitoramento') ?? null);
 
 const canRequestNextInstallment = computed(() => {
@@ -189,6 +192,14 @@ function submit() {
                     </div>
                 </div>
                 <aux-links />
+                <v-btn
+                    color="primary"
+                    class="rounded-lg w-full"
+                    :disabled="!hasMonitoringSnapshot"
+                    @click="monitoringDialogOpen = true"
+                >
+                    Visualizar ficha da fase do Monitoramento
+                </v-btn>
                 <diligence-chat
                     :project="project"
                     stage="monitoramento"
@@ -251,4 +262,24 @@ function submit() {
             </div>
         </template>
     </split-screen-tab>
+
+    <v-dialog v-model="monitoringDialogOpen" max-width="800" scrollable>
+        <v-card class="rounded-lg d-flex flex-column" max-height="85vh">
+            <v-card-title class="pa-4">Ficha da fase do Monitoramento</v-card-title>
+            <v-divider />
+            <v-card-text class="pa-4">
+                <template v-if="project.data_registration">
+                    <div v-for="(value, key) in project.data_registration" :key="key" class="mb-3">
+                        <p class="text-xs text-gray-500 font-semibold uppercase">{{ key }}</p>
+                        <p class="text-sm">{{ value ?? '—' }}</p>
+                    </div>
+                </template>
+                <p v-else class="text-sm text-gray-500">Nenhum dado de inscrição disponível.</p>
+            </v-card-text>
+            <v-divider />
+            <v-card-actions class="pa-4 justify-end">
+                <v-btn variant="outlined" @click="monitoringDialogOpen = false">Fechar</v-btn>
+            </v-card-actions>
+        </v-card>
+    </v-dialog>
 </template>

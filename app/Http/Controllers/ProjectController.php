@@ -104,6 +104,7 @@ class ProjectController extends Controller
             'formalizations',
             'formalizations.files',
             'agent.latestSnapshot',
+            'monitoringSnapshot',
             'stages',
         ]);
 
