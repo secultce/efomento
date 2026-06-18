@@ -29,6 +29,27 @@ const activeViewIndex = ref('all');
 const hasMonitoringSnapshot = computed(() => props.project.has_monitoring_snapshot === true);
 const monitoringDialogOpen = ref(false);
 
+const registrationFields = computed(() => {
+    const fields = props.project.monitoring?.data_registration?.fields ?? [];
+    return fields.map((f) => ({
+        label: f.titleField,
+        value: parseFieldValue(f.valueField),
+    }));
+});
+
+function parseFieldValue(raw) {
+    if (raw === null || raw === undefined) return '—';
+    if (typeof raw !== 'string') return String(raw);
+    try {
+        const parsed = JSON.parse(raw);
+        if (typeof parsed === 'string') return parsed;
+        if (Array.isArray(parsed)) return parsed.join(', ');
+        return JSON.stringify(parsed);
+    } catch {
+        return raw;
+    }
+}
+
 const monitoringStage = computed(() => props.project.stages?.find((s) => s.slug === 'monitoramento') ?? null);
 
 const canRequestNextInstallment = computed(() => {
@@ -192,6 +213,11 @@ function submit() {
                     </div>
                 </div>
                 <aux-links />
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="font-bold text-md mt-2 text-black">Relatório de monitoramento</p>
+                    </div>
+                </div>
                 <v-btn
                     color="primary"
                     class="rounded-lg w-full"
@@ -268,10 +294,10 @@ function submit() {
             <v-card-title class="pa-4">Ficha da fase do Monitoramento</v-card-title>
             <v-divider />
             <v-card-text class="pa-4">
-                <template v-if="project.data_registration">
-                    <div v-for="(value, key) in project.data_registration" :key="key" class="mb-3">
-                        <p class="text-xs text-gray-500 font-semibold uppercase">{{ key }}</p>
-                        <p class="text-sm">{{ value ?? '—' }}</p>
+                <template v-if="registrationFields.length">
+                    <div v-for="(field, i) in registrationFields" :key="i" class="mb-3">
+                        <p class="text-xs text-gray-500 font-semibold uppercase">{{ field.label }}</p>
+                        <p class="text-sm">{{ field.value }}</p>
                     </div>
                 </template>
                 <p v-else class="text-sm text-gray-500">Nenhum dado de inscrição disponível.</p>

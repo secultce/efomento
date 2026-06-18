@@ -3,6 +3,7 @@
 namespace App\Jobs;
 
 use App\Enums\ProfileSnapshotSource;
+use App\Models\Monitoring;
 use App\Models\ProfileSnapshot;
 use App\Models\Project;
 use App\Services\MapasClient;
@@ -77,6 +78,11 @@ class SyncMonitoringRegistrationJob implements ShouldQueue
 
             return;
         }
+
+        Monitoring::updateOrCreate(
+            ['project_id' => $project->id],
+            ['data_registration' => $details]
+        );
 
         ProfileSnapshot::updateOrCreate(
             [

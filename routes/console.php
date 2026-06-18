@@ -17,7 +17,7 @@ Schedule::job(new SyncNoticesJob)
     ->onOneServer();
 
 Schedule::job(new SyncMonitoringJob, 'high')
-    ->dailyAt('16:00')
+    ->dailyAt('16:55')
     ->timezone('America/Fortaleza')
     ->withoutOverlapping(60)
     ->onOneServer();
