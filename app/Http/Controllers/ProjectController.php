@@ -98,8 +98,8 @@ class ProjectController extends Controller
             'opening.supervisors.user',
             'documents',
             'documents.images',
-            'budget',
-            'budget.installments',
+            'budgets',
+            'budgets.installments',
             'monitoring',
             'formalizations',
             'formalizations.files',
@@ -159,7 +159,7 @@ class ProjectController extends Controller
     public function createDocument(Request $request, ProjectDocumentService $service)
     {
         $data = $request->validate([
-            'type' => 'required|in:ci,tc,pj,et',
+            'type' => 'required|in:ci,tc,pj,et,d',
 
             'selected_projects' => 'required|array|min:1',
             'selected_projects.*' => 'exists:projects,id',
