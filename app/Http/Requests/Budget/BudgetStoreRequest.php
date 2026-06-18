@@ -17,8 +17,7 @@ class BudgetStoreRequest extends FormRequest
             'processing_date_for_codip' => ['nullable', 'date'],
             'processing_date_for_coafi' => ['nullable', 'date'],
 
-            'installment_amount' => ['required', 'numeric', 'min:0.01'],
-            'installment_number' => ['required', 'integer', 'min:1'],
+            'installment_amount' => ['nullable', 'numeric', 'min:0.01'],
             'installment_request_date' => ['nullable', 'date'],
             'installment_justification' => ['nullable', 'string'],
             'installment_observations' => ['nullable', 'string'],
@@ -32,13 +31,8 @@ class BudgetStoreRequest extends FormRequest
 
             'processing_date_for_coafi.date' => 'A data de tramitação para a Coafi deve ser uma data válida.',
 
-            'installment_amount.required' => 'O valor da parcela é obrigatório.',
             'installment_amount.numeric' => 'O valor da parcela deve ser numérico.',
             'installment_amount.min' => 'O valor da parcela deve ser maior que zero.',
-
-            'installment_number.required' => 'O número da parcela é obrigatório.',
-            'installment_number.integer' => 'O número da parcela deve ser um número inteiro.',
-            'installment_number.min' => 'O número da parcela deve ser maior que zero.',
 
             'installment_request_date.date' => 'A data de solicitação da parcela deve ser uma data válida.',
 

@@ -45,7 +45,6 @@ const form = useForm({
     processing_date_for_codip: null,
     processing_date_for_coafi: null,
     installment_amount: null,
-    installment_number: null,
     installment_request_date: null,
     installment_justification: null,
     installment_observations: null,
@@ -59,7 +58,6 @@ onMounted(() => {
     form.processing_date_for_codip = normalizeDate(budget.processing_date_for_codip) ?? null;
     form.processing_date_for_coafi = normalizeDate(budget.processing_date_for_coafi) ?? null;
     form.installment_amount = latestInstallment?.amount ?? null;
-    form.installment_number = latestInstallment?.installment_number ?? null;
     form.installment_request_date = normalizeDate(latestInstallment?.request_date) ?? null;
     form.installment_justification = latestInstallment?.justification ?? null;
     form.installment_observations = latestInstallment?.observations ?? null;
@@ -137,12 +135,7 @@ const submit = () => {
 };
 
 const hasRequiredFields = computed(() => {
-    return (
-        form.installment_amount !== null &&
-        form.installment_amount !== '' &&
-        form.installment_number !== null &&
-        form.installment_number !== ''
-    );
+    return form.installment_amount !== null && form.installment_amount !== '';
 });
 
 const hasBudgetOpinionDocument = computed(() => !!budgetOpinionDocument.value);
@@ -399,19 +392,9 @@ const permissionMessage = computed(() => {
                                         <TextField v-model="form.installment_amount" money />
                                     </FormField>
 
-                                    <FormField
-                                        label="Número da parcela para este agente"
-                                        required
-                                        :error="form.errors.installment_number"
-                                    >
-                                        <TextField v-model="form.installment_number" type="number" min="1" />
+                                    <FormField label="Data de solicitação da parcela">
+                                        <TextField v-model="form.installment_request_date" type="date" />
                                     </FormField>
-
-                                    <div class="col-span-2 grid grid-cols-2 gap-4">
-                                        <FormField label="Data de solicitação da parcela">
-                                            <TextField v-model="form.installment_request_date" type="date" />
-                                        </FormField>
-                                    </div>
 
                                     <FormField label="Justificativa da parcela">
                                         <v-textarea

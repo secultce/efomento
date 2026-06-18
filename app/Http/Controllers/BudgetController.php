@@ -27,7 +27,7 @@ class BudgetController extends Controller
                 'request_date' => $request->installment_request_date,
                 'justification' => $request->installment_justification,
                 'observations' => $request->installment_observations,
-                'installment_number' => $request->installment_number,
+                'installment_number' => 1,
                 'created_by' => auth()->id(),
             ]);
         });
