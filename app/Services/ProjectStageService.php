@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Contracts\InstallmentCycleStrategy;
 use App\Enums\ProjectStageSlug;
 use App\Enums\ProjectStageStatus;
 use App\Models\Project;
@@ -15,7 +16,8 @@ use InvalidArgumentException;
 class ProjectStageService
 {
     public function __construct(
-        private Notify $notify
+        private Notify $notify,
+        private InstallmentCycleStrategy $cycleStrategy,
     ) {}
 
     public function advance(
@@ -101,11 +103,7 @@ class ProjectStageService
             $project->increment('current_installment_cycle');
 
             $project->stages()
-                ->whereIn('slug', [
-                    ProjectStageSlug::ORCAMENTO,
-                    ProjectStageSlug::PAGAMENTO,
-                    ProjectStageSlug::MONITORAMENTO,
-                ])
+                ->whereIn('slug', $this->cycleStrategy->stagesToReset())
                 ->update([
                     'status' => ProjectStageStatus::BLOQUEADO,
                     'started_at' => null,
@@ -114,7 +112,7 @@ class ProjectStageService
                 ]);
 
             $project->stages()
-                ->where('slug', ProjectStageSlug::ORCAMENTO)
+                ->where('slug', $this->cycleStrategy->activationStage())
                 ->update([
                     'status' => ProjectStageStatus::EM_ANDAMENTO,
                     'started_at' => now(),
