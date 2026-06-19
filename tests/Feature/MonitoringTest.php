@@ -7,7 +7,6 @@ use App\Models\DiligenceMessage;
 use App\Models\Monitoring;
 use App\Models\Project;
 use App\Models\User;
-use Carbon\Carbon;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
@@ -41,31 +40,17 @@ class MonitoringTest extends TestCase
     }
 
     #[Test]
-    public function dates_are_cast_correctly(): void
+    public function data_registration_is_cast_to_array(): void
     {
-        $user = User::factory()->create();
-        $project = Project::factory()->create();
+        $data = ['key' => 'value', 'count' => 3];
 
-        $monitoring = Monitoring::create([
-            'project_id' => $project->id,
-            'created_by' => $user->id,
-            'effective_date_of_the_instrument' => '2024-01-01',
-            'expiration_date_of_the_instrument' => '2024-12-31',
-            'deadline_for_completing_report' => '2024-06-01',
-            'deadline_for_analysis_and_issuance_of_the_opinion' => '2024-07-01',
-            'technical_opinions' => [],
-            'date_of_notification_to_the_agent' => '2024-09-01',
-        ]);
+        $monitoring = Monitoring::factory()->create(['data_registration' => $data]);
 
-        $this->assertInstanceOf(Carbon::class, $monitoring->effective_date_of_the_instrument);
-        $this->assertEquals('2024-01-01', $monitoring->effective_date_of_the_instrument->format('Y-m-d'));
+        $fresh = $monitoring->fresh();
 
-        $this->assertInstanceOf(Carbon::class, $monitoring->expiration_date_of_the_instrument);
-        $this->assertEquals('2024-12-31', $monitoring->expiration_date_of_the_instrument->format('Y-m-d'));
-
-        $this->assertInstanceOf(Carbon::class, $monitoring->deadline_for_completing_report);
-        $this->assertInstanceOf(Carbon::class, $monitoring->deadline_for_analysis_and_issuance_of_the_opinion);
-        $this->assertInstanceOf(Carbon::class, $monitoring->date_of_notification_to_the_agent);
+        $this->assertIsArray($fresh->data_registration);
+        $this->assertEquals('value', $fresh->data_registration['key']);
+        $this->assertEquals(3, $fresh->data_registration['count']);
     }
 
     #[Test]
@@ -107,14 +92,9 @@ class MonitoringTest extends TestCase
         $this->assertEquals([
             'project_id',
             'created_by',
-            'effective_date_of_the_instrument',
-            'expiration_date_of_the_instrument',
-            'deadline_for_completing_report',
-            'deadline_for_analysis_and_issuance_of_the_opinion',
             'technical_opinions',
-            'date_of_notification_to_the_agent',
             'observations',
-            'processed_at',
+            'data_registration',
         ], $monitoring->getFillable());
     }
 
@@ -229,20 +209,25 @@ class MonitoringTest extends TestCase
     }
 
     #[Test]
-    public function processed_at_is_cast_to_datetime(): void
+    public function data_registration_stores_and_retrieves_data(): void
     {
-        $monitoring = Monitoring::factory()->create(['processed_at' => '2024-08-01 10:30:00']);
+        $data = [['field' => 'valor_a'], ['field' => 'valor_b']];
 
-        $this->assertInstanceOf(Carbon::class, $monitoring->processed_at);
-        $this->assertEquals('2024-08-01', $monitoring->processed_at->format('Y-m-d'));
+        $monitoring = Monitoring::factory()->create(['data_registration' => $data]);
+
+        $fresh = $monitoring->fresh();
+
+        $this->assertCount(2, $fresh->data_registration);
+        $this->assertEquals('valor_a', $fresh->data_registration[0]['field']);
+        $this->assertEquals('valor_b', $fresh->data_registration[1]['field']);
     }
 
     #[Test]
-    public function processed_at_is_nullable(): void
+    public function data_registration_is_nullable(): void
     {
-        $monitoring = Monitoring::factory()->create(['processed_at' => null]);
+        $monitoring = Monitoring::factory()->create(['data_registration' => null]);
 
-        $this->assertNull($monitoring->processed_at);
+        $this->assertNull($monitoring->fresh()->data_registration);
     }
 
     #[Test]
