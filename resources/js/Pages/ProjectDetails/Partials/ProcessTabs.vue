@@ -4,6 +4,7 @@ import OpeningTab from './Tabs/OpeningTab.vue';
 import LegalAnalysisTab from './Tabs/LegalAnalysisTab.vue';
 import FormalizationTab from './Tabs/FormalizationTab.vue';
 import MonitoringTab from './Tabs/MonitoringTab.vue';
+import PaymentTab from './Tabs/PaymentTab.vue';
 
 const props = defineProps({
     project: { type: Object, default: null },
@@ -25,7 +26,7 @@ const tabs = [
     { value: 'legal-analysis', label: 'Análise jurídica' },
     { value: 'formalization', label: 'Formalização de processos' },
     { value: '4', label: 'Orçamento e parcela' },
-    { value: '5', label: 'Pagamentos' },
+    { value: 'payment', label: 'Pagamentos' },
     { value: 'monitoramento', label: 'Monitoramento' },
 ];
 </script>
@@ -69,9 +70,7 @@ const tabs = [
                     <v-sheet class="pa-5 h-[35em]" color="green" />
                 </v-tabs-window-item>
 
-                <v-tabs-window-item value="5">
-                    <v-sheet class="pa-5 h-[35em]" color="blue" />
-                </v-tabs-window-item>
+                <PaymentTab :project="project" />
 
                 <MonitoringTab :project="project" />
             </v-tabs-window>
