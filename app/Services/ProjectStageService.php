@@ -77,7 +77,7 @@ class ProjectStageService
             ->update(['status' => ProjectStageStatus::BLOQUEADO->value]);
     }
 
-    public function requestNextInstallment(Project $project, User $user): void
+    public function requestNextInstallment(Project $project): void
     {
         $notice = $project->notice;
 
@@ -116,6 +116,8 @@ class ProjectStageService
                 ->update([
                     'status' => ProjectStageStatus::EM_ANDAMENTO,
                     'started_at' => now(),
+                    'concluded_at' => null,
+                    'rejection_reason' => null,
                 ]);
         });
     }

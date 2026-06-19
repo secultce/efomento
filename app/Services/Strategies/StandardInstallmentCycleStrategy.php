@@ -10,9 +10,7 @@ class StandardInstallmentCycleStrategy implements InstallmentCycleStrategy
     public function stagesToReset(): array
     {
         return [
-            ProjectStageSlug::ORCAMENTO,
             ProjectStageSlug::PAGAMENTO,
-            ProjectStageSlug::MONITORAMENTO,
         ];
     }
 

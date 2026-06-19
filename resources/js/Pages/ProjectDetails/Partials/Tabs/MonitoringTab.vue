@@ -106,7 +106,7 @@ const tramit = () => {
                 });
             },
             onError: (errors) => {
-                const message = Object.values(errors).flat().join(', ') || 'Erro ao tramitar monitoramento';
+                const message = Object.values(errors).join(', ') || 'Erro ao tramitar monitoramento';
                 showSnackbar(message, 'error');
             },
             onFinish: () => {
@@ -135,7 +135,7 @@ function requestNextInstallment() {
                     onSuccess: () =>
                         router.visit(window.location.pathname, { preserveState: false, preserveScroll: true }),
                     onError: (errors) => {
-                        const msg = Object.values(errors).flat().join(', ') || 'Erro ao solicitar próxima parcela';
+                        const msg = Object.values(errors).join(', ') || 'Erro ao solicitar próxima parcela';
                         showSnackbar(msg, 'error');
                     },
                     onFinish: () => {
@@ -279,6 +279,7 @@ function submit() {
                         color="primary"
                         class="rounded-lg mt-4"
                         :loading="requestingNextInstallment"
+                        :disabled="requestingNextInstallment"
                         @click="requestNextInstallment"
                     >
                         Solicitar próxima parcela

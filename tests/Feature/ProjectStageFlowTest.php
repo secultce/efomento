@@ -286,7 +286,7 @@ class ProjectStageFlowTest extends TestCase
         $this->expectException(InvalidArgumentException::class);
         $this->expectExceptionMessage('Projeto não possui múltiplas parcelas.');
 
-        $this->service->requestNextInstallment($project, User::factory()->create());
+        $this->service->requestNextInstallment($project);
     }
 
     public function test_request_next_installment_throws_when_all_cycles_completed(): void
@@ -298,7 +298,7 @@ class ProjectStageFlowTest extends TestCase
         $this->expectException(InvalidArgumentException::class);
         $this->expectExceptionMessage('Todos os ciclos de parcelas já foram concluídos.');
 
-        $this->service->requestNextInstallment($project, User::factory()->create());
+        $this->service->requestNextInstallment($project);
     }
 
     public function test_request_next_installment_throws_when_monitoring_not_em_andamento(): void
@@ -310,7 +310,7 @@ class ProjectStageFlowTest extends TestCase
         $this->expectException(InvalidArgumentException::class);
         $this->expectExceptionMessage('A etapa de Monitoramento precisa estar em andamento.');
 
-        $this->service->requestNextInstallment($project, User::factory()->create());
+        $this->service->requestNextInstallment($project);
     }
 
     public function test_request_next_installment_increments_cycle_and_resets_stages(): void
@@ -321,7 +321,7 @@ class ProjectStageFlowTest extends TestCase
 
         $this->activateStage($project, ProjectStageSlug::MONITORAMENTO);
 
-        $this->service->requestNextInstallment($project, User::factory()->create());
+        $this->service->requestNextInstallment($project);
 
         $project->refresh();
 
@@ -337,8 +337,7 @@ class ProjectStageFlowTest extends TestCase
         $this->assertNull($payment->concluded_at);
 
         $monitoring = $project->stages()->where('slug', ProjectStageSlug::MONITORAMENTO)->first();
-        $this->assertEquals(ProjectStageStatus::BLOQUEADO, $monitoring->status);
-        $this->assertNull($monitoring->started_at);
-        $this->assertNull($monitoring->concluded_at);
+        $this->assertEquals(ProjectStageStatus::APROVADO, $monitoring->status);
+        $this->assertNotNull($monitoring->concluded_at);
     }
 }
