@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\ProfileSnapshotSource;
 use App\Enums\ProjectStageSlug;
 use App\Enums\ProjectStageStatus;
 use App\Traits\HasCreatedBy;
@@ -166,6 +167,13 @@ class Project extends Model implements Auditable
     public function latestSnapshot(): MorphOne
     {
         return $this->morphOne(ProfileSnapshot::class, 'object')->latestOfMany('recorded_at');
+    }
+
+    public function monitoringSnapshot(): MorphOne
+    {
+        return $this->morphOne(ProfileSnapshot::class, 'object')
+            ->where('source', ProfileSnapshotSource::MONITORING)
+            ->latestOfMany('recorded_at');
     }
 
     public function stages(): HasMany

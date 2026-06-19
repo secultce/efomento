@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Contracts\InstallmentCycleStrategy;
 use App\Enums\ProjectStageSlug;
 use App\Enums\ProjectStageStatus;
 use App\Models\Project;
@@ -15,7 +16,8 @@ use InvalidArgumentException;
 class ProjectStageService
 {
     public function __construct(
-        private Notify $notify
+        private Notify $notify,
+        private InstallmentCycleStrategy $cycleStrategy,
     ) {}
 
     public function advance(
@@ -75,31 +77,25 @@ class ProjectStageService
             ->update(['status' => ProjectStageStatus::BLOQUEADO->value]);
     }
 
-    public function requestNextInstallment(Project $project, User $user): void
+    public function requestNextInstallment(Project $project): void
     {
         $notice = $project->notice;
 
-        abort_if(
-            ! $notice || $notice->installments <= 1,
-            403,
-            'Projeto não possui múltiplas parcelas.'
-        );
+        if (! $notice || $notice->installments <= 1) {
+            throw new InvalidArgumentException('Projeto não possui múltiplas parcelas.');
+        }
 
-        abort_if(
-            $project->current_installment_cycle >= $notice->installments,
-            403,
-            'Todos os ciclos de parcelas já foram concluídos.'
-        );
+        if ($project->current_installment_cycle >= $notice->installments) {
+            throw new InvalidArgumentException('Todos os ciclos de parcelas já foram concluídos.');
+        }
 
         $monitoringStage = $project->stages()
             ->where('slug', ProjectStageSlug::MONITORAMENTO)
             ->firstOrFail();
 
-        abort_if(
-            $monitoringStage->status !== ProjectStageStatus::EM_ANDAMENTO,
-            403,
-            'A etapa de Monitoramento precisa estar em andamento.'
-        );
+        if ($monitoringStage->status !== ProjectStageStatus::EM_ANDAMENTO) {
+            throw new InvalidArgumentException('A etapa de Monitoramento precisa estar em andamento.');
+        }
 
         DB::transaction(function () use ($project, $monitoringStage) {
             $monitoringStage->markApproved();
@@ -107,11 +103,7 @@ class ProjectStageService
             $project->increment('current_installment_cycle');
 
             $project->stages()
-                ->whereIn('slug', [
-                    ProjectStageSlug::ORCAMENTO,
-                    ProjectStageSlug::PAGAMENTO,
-                    ProjectStageSlug::MONITORAMENTO,
-                ])
+                ->whereIn('slug', $this->cycleStrategy->stagesToReset())
                 ->update([
                     'status' => ProjectStageStatus::BLOQUEADO,
                     'started_at' => null,
@@ -120,10 +112,12 @@ class ProjectStageService
                 ]);
 
             $project->stages()
-                ->where('slug', ProjectStageSlug::ORCAMENTO)
+                ->where('slug', $this->cycleStrategy->activationStage())
                 ->update([
                     'status' => ProjectStageStatus::EM_ANDAMENTO,
                     'started_at' => now(),
+                    'concluded_at' => null,
+                    'rejection_reason' => null,
                 ]);
         });
     }

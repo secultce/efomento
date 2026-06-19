@@ -52,12 +52,10 @@ class ProjectStageController extends Controller
     public function requestNextInstallment(Request $request, Project $project)
     {
         try {
-            $this->stageService->requestNextInstallment($project, $request->user());
+            $this->stageService->requestNextInstallment($project);
 
             return back();
-        } catch (\Throwable $e) {
-            report($e);
-
+        } catch (\InvalidArgumentException $e) {
             return back()->withErrors(['message' => $e->getMessage()]);
         }
     }
