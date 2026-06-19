@@ -79,27 +79,21 @@ class ProjectStageService
     {
         $notice = $project->notice;
 
-        abort_if(
-            ! $notice || $notice->installments <= 1,
-            403,
-            'Projeto não possui múltiplas parcelas.'
-        );
+        if (! $notice || $notice->installments <= 1) {
+            throw new InvalidArgumentException('Projeto não possui múltiplas parcelas.');
+        }
 
-        abort_if(
-            $project->current_installment_cycle >= $notice->installments,
-            403,
-            'Todos os ciclos de parcelas já foram concluídos.'
-        );
+        if ($project->current_installment_cycle >= $notice->installments) {
+            throw new InvalidArgumentException('Todos os ciclos de parcelas já foram concluídos.');
+        }
 
         $monitoringStage = $project->stages()
             ->where('slug', ProjectStageSlug::MONITORAMENTO)
             ->firstOrFail();
 
-        abort_if(
-            $monitoringStage->status !== ProjectStageStatus::EM_ANDAMENTO,
-            403,
-            'A etapa de Monitoramento precisa estar em andamento.'
-        );
+        if ($monitoringStage->status !== ProjectStageStatus::EM_ANDAMENTO) {
+            throw new InvalidArgumentException('A etapa de Monitoramento precisa estar em andamento.');
+        }
 
         DB::transaction(function () use ($project, $monitoringStage) {
             $monitoringStage->markApproved();

@@ -55,9 +55,7 @@ class ProjectStageController extends Controller
             $this->stageService->requestNextInstallment($project, $request->user());
 
             return back();
-        } catch (\Throwable $e) {
-            report($e);
-
+        } catch (\InvalidArgumentException $e) {
             return back()->withErrors(['message' => $e->getMessage()]);
         }
     }
