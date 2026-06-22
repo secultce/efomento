@@ -28,6 +28,7 @@ return new class extends Migration
             $table->foreignId('created_by')->nullable()->constrained('users')->nullOnDelete();
             $table->index('created_by');
             $table->string('title_project')->nullable();
+            $table->unsignedTinyInteger('current_installment_cycle')->default(1);
 
             $table->timestamps();
             $table->softDeletes();

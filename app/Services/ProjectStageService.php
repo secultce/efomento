@@ -2,7 +2,10 @@
 
 namespace App\Services;
 
+use App\Contracts\InstallmentCycleStrategy;
+use App\Enums\ProjectStageSlug;
 use App\Enums\ProjectStageStatus;
+use App\Models\Project;
 use App\Models\ProjectStage;
 use App\Models\User;
 use App\Support\Notify;
@@ -13,7 +16,8 @@ use InvalidArgumentException;
 class ProjectStageService
 {
     public function __construct(
-        private Notify $notify
+        private Notify $notify,
+        private InstallmentCycleStrategy $cycleStrategy,
     ) {}
 
     public function advance(
@@ -71,6 +75,41 @@ class ProjectStageService
         $stage->project->stages()
             ->where('order', '>', $stage->order)
             ->update(['status' => ProjectStageStatus::BLOQUEADO->value]);
+    }
+
+    public function requestNextInstallment(Project $project): void
+    {
+        $notice = $project->notice;
+
+        if (! $notice || $notice->installments <= 1) {
+            throw new InvalidArgumentException('Projeto não possui múltiplas parcelas.');
+        }
+
+        if ($project->current_installment_cycle >= $notice->installments) {
+            throw new InvalidArgumentException('Todos os ciclos de parcelas já foram concluídos.');
+        }
+
+        $monitoringStage = $project->stages()
+            ->where('slug', ProjectStageSlug::MONITORAMENTO)
+            ->firstOrFail();
+
+        if ($monitoringStage->status !== ProjectStageStatus::EM_ANDAMENTO) {
+            throw new InvalidArgumentException('A etapa de Monitoramento precisa estar em andamento.');
+        }
+
+        DB::transaction(function () use ($project, $monitoringStage) {
+            $monitoringStage->markApproved();
+
+            $project->increment('current_installment_cycle');
+
+            $project->stages()
+                ->whereIn('slug', $this->cycleStrategy->stagesToReset())
+                ->update(['status' => ProjectStageStatus::BLOQUEADO]);
+
+            $project->stages()
+                ->where('slug', $this->cycleStrategy->activationStage())
+                ->update(['status' => ProjectStageStatus::EM_ANDAMENTO]);
+        });
     }
 
     public function returnStage(ProjectStage $stage, string $reason, User $user): ProjectStage
