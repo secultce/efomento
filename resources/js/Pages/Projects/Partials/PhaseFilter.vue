@@ -30,6 +30,7 @@ function select(phase) {
                     <v-card-title
                         class="font-weight-bold !text-xs"
                         :class="selectedPhase === phase.value ? '!text-white' : '!text-[#004c27FF]'"
+                        data-cy="filter-phase-card"
                     >
                         {{ phase.title }}
                     </v-card-title>

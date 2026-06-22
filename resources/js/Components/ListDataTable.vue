@@ -100,6 +100,7 @@ function runAction(action, item) {
                     hide-details
                     density="compact"
                     class="mr-3"
+                    data-cy="checkbox-project-list"
                     @update:model-value="() => toggle(item)"
                 />
                 <div class="w-[15em] flex-shrink-0">
@@ -125,6 +126,7 @@ function runAction(action, item) {
                             size="small"
                             rounded="full"
                             class="h-[2em] ml-[-1.5em]"
+                            data-cy="chip-project-list"
                             :color="typeof chip.color === 'function' ? chip.color(item) : chip.color"
                         >
                             {{ typeof chip.label === 'function' ? chip.label(item) : chip.label }}
