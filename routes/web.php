@@ -126,6 +126,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('/projetos/{project}/monitoramento', [MonitoringController::class, 'store'])
         ->name('projects.monitorings.store');
     Route::patch('/projetos/{project}/monitoramento/{monitoring}/atualizar', [MonitoringController::class, 'update'])
+        ->scopeBindings()
         ->name('projects.monitorings.update');
 
     Route::get('/projetos/{project}/diligencias/{stage}', [DiligenceMessageController::class, 'index'])
