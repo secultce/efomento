@@ -49,6 +49,17 @@ class ProjectStageController extends Controller
         }
     }
 
+    public function requestNextInstallment(Request $request, Project $project)
+    {
+        try {
+            $this->stageService->requestNextInstallment($project);
+
+            return back();
+        } catch (\InvalidArgumentException $e) {
+            return back()->withErrors(['message' => $e->getMessage()]);
+        }
+    }
+
     public function return(
         ReturnStageRequest $request,
         Project $project,
