@@ -37,6 +37,17 @@ const registrationFields = computed(() => {
     }));
 });
 
+const registrationFiles = computed(() => {
+    const files = props.project.monitoring?.data_registration?.registration?.files ?? {};
+    return Object.entries(files)
+        .filter(([group]) => group !== 'zipArchive')
+        .map(([, file]) => ({
+            name: file.name ?? '—',
+            title: file.title ?? file.name ?? '—',
+            url: file.url ?? null,
+        }));
+});
+
 function parseFieldValue(raw) {
     if (raw === null || raw === undefined) return '—';
     if (typeof raw !== 'string') return String(raw);
@@ -295,11 +306,38 @@ function submit() {
             <v-card-title class="pa-4">Ficha da fase do Monitoramento</v-card-title>
             <v-divider />
             <v-card-text class="pa-4">
-                <template v-if="registrationFields.length">
-                    <div v-for="(field, i) in registrationFields" :key="i" class="mb-3">
-                        <p class="text-xs text-gray-500 font-semibold uppercase">{{ field.label }}</p>
-                        <p class="text-sm">{{ field.value }}</p>
-                    </div>
+                <template v-if="registrationFields.length || registrationFiles.length">
+                    <template v-if="registrationFields.length">
+                        <p class="font-semibold text-sm mb-3">Campos da inscrição</p>
+                        <div v-for="(field, i) in registrationFields" :key="'field-' + i" class="mb-3">
+                            <p class="text-xs text-gray-700 font-semibold uppercase">{{ field.label }}</p>
+                            <p class="text-sm">{{ field.value }}</p>
+                        </div>
+                    </template>
+
+                    <template v-if="registrationFiles.length">
+                        <v-divider v-if="registrationFields.length" class="my-4" />
+                        <p class="font-semibold text-sm mb-3">Arquivos da inscrição</p>
+                        <div
+                            v-for="(file, i) in registrationFiles"
+                            :key="'file-' + i"
+                            class="mb-3 flex items-center gap-2"
+                        >
+                            <v-icon size="small" color="grey">mdi-file-outline</v-icon>
+                            <div>
+                                <p class="text-xs text-gray-500 font-semibold uppercase">{{ file.title }}</p>
+                                <a
+                                    v-if="file.url"
+                                    :href="file.url"
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    class="text-sm text-blue-600 hover:underline"
+                                    >{{ file.name }}</a
+                                >
+                                <p v-else class="text-sm text-gray-700">{{ file.name }}</p>
+                            </div>
+                        </div>
+                    </template>
                 </template>
                 <p v-else class="text-sm text-gray-500">Nenhum dado de inscrição disponível.</p>
             </v-card-text>
