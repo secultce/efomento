@@ -104,21 +104,11 @@ class ProjectStageService
 
             $project->stages()
                 ->whereIn('slug', $this->cycleStrategy->stagesToReset())
-                ->update([
-                    'status' => ProjectStageStatus::BLOQUEADO,
-                    'started_at' => null,
-                    'concluded_at' => null,
-                    'rejection_reason' => null,
-                ]);
+                ->update(['status' => ProjectStageStatus::BLOQUEADO]);
 
             $project->stages()
                 ->where('slug', $this->cycleStrategy->activationStage())
-                ->update([
-                    'status' => ProjectStageStatus::EM_ANDAMENTO,
-                    'started_at' => now(),
-                    'concluded_at' => null,
-                    'rejection_reason' => null,
-                ]);
+                ->update(['status' => ProjectStageStatus::EM_ANDAMENTO]);
         });
     }
 
