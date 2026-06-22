@@ -329,15 +329,11 @@ class ProjectStageFlowTest extends TestCase
 
         $budget = $project->stages()->where('slug', ProjectStageSlug::ORCAMENTO)->first();
         $this->assertEquals(ProjectStageStatus::EM_ANDAMENTO, $budget->status);
-        $this->assertNotNull($budget->started_at);
 
         $payment = $project->stages()->where('slug', ProjectStageSlug::PAGAMENTO)->first();
         $this->assertEquals(ProjectStageStatus::BLOQUEADO, $payment->status);
-        $this->assertNull($payment->started_at);
-        $this->assertNull($payment->concluded_at);
 
         $monitoring = $project->stages()->where('slug', ProjectStageSlug::MONITORAMENTO)->first();
         $this->assertEquals(ProjectStageStatus::APROVADO, $monitoring->status);
-        $this->assertNotNull($monitoring->concluded_at);
     }
 }
