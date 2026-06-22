@@ -136,7 +136,7 @@ class Project extends Model implements Auditable
         return $this->hasOne(Payment::class);
     }
 
-    public function budget(): HasOne
+    public function budgets(): HasOne
     {
         return $this->hasOne(Budget::class);
     }
