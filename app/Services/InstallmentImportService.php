@@ -168,11 +168,10 @@ class InstallmentImportService
                     'committed_amount' => Import::money($row['empenhado'] ?? null)
                         ?? $installmentModel->committed_amount,
 
-                    'amount' => Import::money($row['liquidado'] ?? null)
-                        ?? $installmentModel->amount,
-
                     'payment_amount' => Import::money($row['pago'] ?? null)
                         ?? $installmentModel->payment_amount,
+
+                    'updated_by' => Auth()->id(),
                 ]);
 
                 $updated++;
