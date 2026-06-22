@@ -79,7 +79,7 @@ class SyncMonitoringRegistrationJob implements ShouldQueue
             return;
         }
 
-        Monitoring::updateOrCreate(
+        $monitoring = Monitoring::updateOrCreate(
             ['project_id' => $project->id],
             ['data_registration' => $details]
         );
@@ -98,6 +98,15 @@ class SyncMonitoringRegistrationJob implements ShouldQueue
                 'registration_id' => $this->registrationId,
             ]);
         }
+
+        SyncProjectFilesJob::dispatch(
+            projectId: $project->id,
+            registrationId: $this->registrationId,
+            files: data_get($details, 'registration.files', []),
+            fileConfigurations: data_get($details, 'fileConfigurations', []),
+            objectType: 'monitoring',
+            objectId: $monitoring->id,
+        )->onQueue('files');
 
         Log::info('sync.monitoring.registration.done', [
             'registration_id' => $this->registrationId,

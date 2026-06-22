@@ -23,8 +23,11 @@ class SyncProjectFilesJob implements ShouldQueue
         public int $projectId,
         public int $registrationId,
         public array $files,
-        public array $fileConfigurations
+        public array $fileConfigurations,
+        public string $objectType = 'project',
+        public ?int $objectId = null,
     ) {
+        $this->objectId ??= $this->projectId;
         $this->onQueue('files');
     }
 
@@ -48,7 +51,9 @@ class SyncProjectFilesJob implements ShouldQueue
             ->map(fn (array $file) => new DownloadMapasProjectFileJob(
                 projectId: $this->projectId,
                 registrationId: $this->registrationId,
-                file: $file
+                file: $file,
+                objectType: $this->objectType,
+                objectId: $this->objectId,
             ))
             ->all();
 
