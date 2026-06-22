@@ -4,9 +4,9 @@ namespace App\Jobs;
 
 use App\Enums\ProfileSnapshotSource;
 use App\Models\Monitoring;
-use App\Models\ProfileSnapshot;
 use App\Models\Project;
 use App\Services\MapasClient;
+use App\Services\ProfileSnapshotService;
 use DateTimeInterface;
 use Illuminate\Bus\Batchable;
 use Illuminate\Bus\Queueable;
@@ -50,7 +50,7 @@ class SyncMonitoringRegistrationJob implements ShouldQueue
         return now()->addHours(2);
     }
 
-    public function handle(MapasClient $mapasClient): void
+    public function handle(MapasClient $mapasClient, ProfileSnapshotService $snapshotService): void
     {
         if ($this->batch()?->cancelled()) {
             return;
@@ -84,14 +84,20 @@ class SyncMonitoringRegistrationJob implements ShouldQueue
             ['data_registration' => $details]
         );
 
-        ProfileSnapshot::updateOrCreate(
-            [
-                'object_id' => $project->id,
-                'object_type' => 'project',
-                'source' => ProfileSnapshotSource::MONITORING,
-            ],
-            ['recorded_at' => now()]
-        );
+        $ownerId = data_get($details, 'registration.owner.id');
+
+        if ($ownerId) {
+            $agentData = $mapasClient->agentById((int) $ownerId);
+            $snapshotService->recordMapasAgentIfChanged(
+                $project,
+                $agentData,
+                ProfileSnapshotSource::MONITORING
+            );
+        } else {
+            Log::warning('sync.monitoring.registration.owner_missing', [
+                'registration_id' => $this->registrationId,
+            ]);
+        }
 
         Log::info('sync.monitoring.registration.done', [
             'registration_id' => $this->registrationId,
