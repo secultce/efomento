@@ -30,9 +30,9 @@ const { normalizeDate } = useDate();
 const { showSnackbar } = useSnackbar();
 const { showAlert } = useAlert();
 
-const canUserHandleBudget = computed(() => hasRole(['super_admin', 'budgetary', 'coord_budgetary']));
+const canUserHandlePayment = computed(() => hasRole(['super_admin', 'financial', 'coord_financial']));
 
-const stage = computed(() => props.project.stages?.find((s) => s.slug === 'orcamento'));
+const stage = computed(() => props.project.stages?.find((s) => s.slug === 'pagamento'));
 
 const paymentStage = computed(() => {
     return props.currentStage ?? props.project.stages?.find((s) => s.slug === 'pagamento');
@@ -181,13 +181,12 @@ function getInstallmentStatus(installment) {
     const hasSettlementData =
         hasValue(installment?.settlement_date) || hasValue(installment?.settlement_number) || liquidated > 0;
 
-    const hasPaymentData =
-        hasValue(installment?.payment_date) || hasValue(installment?.payment_order_number) || paid > 0;
+    const hasPaymentData = hasValue(installment?.payment_date) || hasValue(installment?.payment_amount) || paid > 0;
 
     const isIrregular =
         (hasPaymentData && !hasSettlementData) ||
         (hasSettlementData && !hasCommitmentData) ||
-        (paid > 0 && liquidated > 0 && paid > liquidated) ||
+        (hasPaymentData && hasCommitmentData && paid !== committed) ||
         (liquidated > 0 && committed > 0 && liquidated > committed);
 
     if (isIrregular) {
@@ -238,7 +237,7 @@ const hasPaymentData = computed(() => {
 });
 
 const canTramitPayment = computed(() => {
-    return canUserHandleBudget.value && !!selectedInstallment.value && hasPaymentData.value;
+    return canUserHandlePayment.value && !!selectedInstallment.value && hasPaymentData.value;
 });
 
 function saveRemarks(options = {}) {
@@ -282,19 +281,13 @@ function showTramitBlockedMessage() {
         return;
     }
 
-    if (!selectedInstallment.value) {
-        showSnackbar('Selecione uma parcela antes de tramitar.', 'warning');
-
-        return;
-    }
-
     if (!hasPaymentData.value) {
         showSnackbar('Os dados de pagamento precisam ser importados antes da tramitação.', 'warning');
 
         return;
     }
 
-    if (!canUserHandleBudget.value) {
+    if (!canUserHandlePayment.value) {
         showSnackbar('Usuário não tem permissão para tramitar pagamento.', 'warning');
 
         return;
@@ -370,8 +363,8 @@ const tramit = async () => {
                         <v-btn
                             v-if="canReturn && currentStage"
                             v-permission="{
-                                condition: !canUserHandleBudget || stage?.status !== 'aprovado',
-                                message: !canUserHandleBudget
+                                condition: !canUserHandlePayment || stage?.status !== 'aprovado',
+                                message: !canUserHandlePayment
                                     ? 'Usuário não tem permissão para devolver processo'
                                     : 'Orçamento já foi tramitado.',
                             }"

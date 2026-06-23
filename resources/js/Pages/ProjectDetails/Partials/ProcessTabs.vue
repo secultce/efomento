@@ -69,7 +69,7 @@ const tabs = [
 
                 <BudgetTab :project="project" :can-return="canReturn" :current-stage="currentStage" />
 
-                <PaymentTab :project="project" />
+                <PaymentTab :project="project" :can-return="canReturn" :current-stage="currentStage" />
 
                 <MonitoringTab :project="project" />
             </v-tabs-window>
