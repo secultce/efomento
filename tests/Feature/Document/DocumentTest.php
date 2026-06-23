@@ -137,12 +137,11 @@ class DocumentTest extends TestCase
 
     public function test_service_create_rejects_invalid_combination(): void
     {
-        $type = collect(DocumentType::cases())->random();
-
+        // CI só é válido com OPENING — ci+payment não existe no registry
         $this->expectException(\InvalidArgumentException::class);
 
         $this->service->create([
-            'type' => $type->value,
+            'type' => DocumentType::CI->value,
             'phase' => DocumentPhase::PAYMENT->value,
             'body' => 'Inválido.',
         ], $this->user->id);

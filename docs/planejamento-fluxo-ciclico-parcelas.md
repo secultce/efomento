@@ -6,24 +6,25 @@
 
 ## Contexto e motivação
 
-O fluxo atual de etapas de um projeto é **linear**: ao ser criado, o `ProjectObserver` gera 7 registros 
+O fluxo atual de etapas de um projeto é **linear**: ao ser criado, o `ProjectObserver` gera 7 registros
 em `project_stages` com `order` de 1 a 7:
 
 ```
 ABERTURA(1) → ANALISE_JURIDICA(2) → FORMALIZACAO(3) → ORCAMENTO(4) → PAGAMENTO(5) → MONITORAMENTO(6) → PRESTACAO_DE_CONTAS(7)
 ```
 
-Ao tramitar MONITORAMENTO (ciclo único) a próxima etapa é PRESTACAO_DE_CONTAS — o projeto só encerra após ela.
-
-A equipe de negócio definiu uma nova regra: se `notices.installments > 1`, ao tramitar MONITORAMENTO do ciclo N o projeto deve **retornar às 3 últimas etapas** (ORCAMENTO → PAGAMENTO → MONITORAMENTO) para o ciclo N+1, repetindo até que todos os ciclos sejam concluídos. Somente após o último MONITORAMENTO o fluxo avança para PRESTACAO_DE_CONTAS.
+A equipe de negócio definiu uma nova regra: se `notices.installments > 1`, ao concluir o MONITORAMENTO
+do ciclo N o projeto deve **retornar às 3 etapas do sub-ciclo** (ORCAMENTO → PAGAMENTO → MONITORAMENTO)
+para o ciclo N+1, repetindo até que todos os ciclos sejam concluídos. Somente após o último MONITORAMENTO
+o fluxo avança para PRESTACAO_DE_CONTAS.
 
 Exemplo com `installments = 2`:
 ```
-ABERTURA → ANALISE_JURIDICA → FORMALIZACAO → ORCAMENTO(ciclo 1) → PAGAMENTO(ciclo 1) → MONITORAMENTO(ciclo 1)
-                                                                                               ↓
-                                                                   ORCAMENTO(ciclo 2) → PAGAMENTO(ciclo 2) → MONITORAMENTO(ciclo 2)
-                                                                                                                       ↓
-                                                                                                         PRESTACAO_DE_CONTAS → FIM
+ABERTURA → ANALISE_JURIDICA → FORMALIZACAO → ORCAMENTO → PAGAMENTO → MONITORAMENTO(ciclo 1)
+                                                                              ↓ [SOLICITAR PRÓXIMA PARCELA]
+                                                          ORCAMENTO → PAGAMENTO → MONITORAMENTO(ciclo 2)
+                                                                                          ↓
+                                                                            PRESTACAO_DE_CONTAS → FIM
 ```
 
 ---
@@ -34,275 +35,201 @@ ABERTURA → ANALISE_JURIDICA → FORMALIZACAO → ORCAMENTO(ciclo 1) → PAGAME
 
 | Model | Relação com Project | Observação |
 |---|---|---|
-| `Budget` | 1:1 | Tem `HasMany Installment` |
+| `Budget` | 1:1 | Tem `HasMany Installment` — já suporta múltiplas parcelas por `installment_number` |
 | `Installment` | via Budget | Campo `installment_number` (unique por budget) |
-| `Payment` | 1:1 (unique em project_id) | Problema: não suporta múltiplos ciclos |
-| `Monitoring` | 1:1 (sem unique, mas tratado assim) | Problema: não suporta múltiplos ciclos |
-| `AccountabilityReport` | 1:1 (nova entidade) | Prestação de contas — etapa final única |
-| `ProjectStage` | 1:N | Progressão por `order` + `status` |
+| `Payment` | 1:1 | Único por projeto — dados sobrescritos a cada ciclo |
+| `Monitoring` | 1:1 | Único por projeto — dados sobrescritos a cada ciclo |
+| `ProjectStage` | 1:N | 7 registros fixos; status é resetado por ciclo |
 
 ### Como a progressão funciona hoje
 
 - `ProjectStageService::advance()` marca a etapa atual como `APROVADO` e ativa a próxima via `getNextStage()` (busca `order + 1`).
 - `canAdvance()` garante que todas as etapas com `order` menor estejam `APROVADO`.
-- `getNextStage()` / `getPreviousStage()` navegam puramente por `order`.
-- `ProjectObserver::created()` cria as 6 etapas do ciclo 1.
+- `project_stages` tem `unique(['project_id', 'slug'])` — cada slug aparece **uma única vez** por projeto.
+- `ProjectObserver::created()` cria as 7 etapas.
 - `ProjectStageService::reject()` e `returnStage()` bloqueiam etapas posteriores.
-
-### O que o `Budget` / `Installment` já suporta
-
-O `Budget` já prevê múltiplas parcelas via `Installment` (com `installment_number` e unique em `(budget_id, installment_number)`). O ORCAMENTO do ciclo 2 apenas adiciona `installment_number: 2` ao Budget existente — **sem necessidade de alterar Budget ou Installment**.
 
 ---
 
-## Solução escolhida: Extensão dinâmica da fila de etapas
+## Solução escolhida: Reuso dos registros existentes + botão explícito
 
-**Sem nova tabela.** A abordagem é estender a tabela `project_stages` com um campo `installment_cycle` e criar dinamicamente as etapas dos ciclos seguintes dentro do `ProjectStageService`, no momento exato em que MONITORAMENTO é tramitado.
+**Sem criar novos registros.** A abordagem é **resetar os status** das etapas ORCAMENTO, PAGAMENTO e
+MONITORAMENTO quando o usuário solicitar a próxima parcela, reiniciando o sub-ciclo com os mesmos
+registros de `project_stages`. O ciclo atual é rastreado por uma única coluna em `projects`.
 
 ### Por que esta abordagem
 
-- `canAdvance()` e `getNextStage()` já funcionam por `order` — **não precisam de nenhuma alteração**.
-- O histórico completo de cada ciclo fica preservado em registros distintos.
-- O `TramitButton.vue` e a rota `PATCH /projetos/{project}/etapas/{stage}/tramitar` **não mudam**.
-- A lógica de notificações e auditoria existente cobre os novos registros automaticamente.
-- Não há risco de sobrescrever dados de ciclos anteriores.
+- **Sem novas migrations** de tabelas `payments` e `monitorings` — os registros existentes são sobrescritos.
+- A constraint `unique(['project_id', 'slug'])` em `project_stages` é compatível: nunca há slugs duplicados.
+- Nenhuma alteração em `canAdvance()`, `getNextStage()`, `TramitButton.vue` ou rotas existentes.
+- O ciclo atual é visível e simples de consultar: `project.current_installment_cycle`.
+- Ação explícita do usuário (botão com confirmação) — o avanço de ciclo não é automático ao tramitar.
 
-### Como a tabela ficará com 2 parcelas
+### Como os dados ficam entre ciclos
 
-| order | slug                  | installment_cycle | status       |
-|-------|-----------------------|-------------------|--------------|
-| 1     | abertura              | 1                 | aprovado     |
-| 2     | analise_juridica      | 1                 | aprovado     |
-| 3     | formalizacao          | 1                 | aprovado     |
-| 4     | orcamento             | 1                 | aprovado     |
-| 5     | pagamento             | 1                 | aprovado     |
-| 6     | monitoramento         | 1                 | aprovado     |
-| 7     | orcamento             | 2                 | aprovado     |
-| 8     | pagamento             | 2                 | aprovado     |
-| 9     | monitoramento         | 2                 | aprovado     |
-| 10    | prestacao_de_contas   | 1                 | em_andamento |
-
-> `installment_cycle` é irrelevante para PRESTACAO_DE_CONTAS (sempre 1), pois é etapa única ao final de todos os ciclos.
+| Entidade | Comportamento |
+|---|---|
+| `project_stages` (ORCAMENTO/PAGAMENTO/MONITORAMENTO) | Status resetado; mesmos registros reusados |
+| `Budget` | Mantido; ciclo 2 adiciona `Installment` com `installment_number = 2` ao mesmo Budget |
+| `Payment` | Dados sobrescritos no ciclo 2 (único registro por projeto) |
+| `Monitoring` | Dados sobrescritos no ciclo 2 (único registro por projeto) |
 
 ---
 
-## Implementação detalhada
+## Implementação
 
-### 1. Migrations (4 novas)
+### 1. Migration — `projects` (editar diretamente)
 
-#### `add_installment_cycle_to_project_stages_table`
+Adicionar coluna em `database/migrations/2026_03_16_161002_create_projects_table.php`:
+
 ```php
-$table->unsignedTinyInteger('installment_cycle')->default(1)->after('order');
+$table->unsignedTinyInteger('current_installment_cycle')->default(1)->after('notice_id');
 ```
 
-#### `add_installment_cycle_to_payments_table`
-```php
-// Remover unique simples de project_id
-$table->dropUnique(['project_id']);
-// Adicionar coluna e nova unique composta
-$table->unsignedTinyInteger('installment_cycle')->default(1)->after('project_id');
-$table->unique(['project_id', 'installment_cycle']);
-```
-
-#### `add_installment_cycle_to_monitorings_table`
-```php
-$table->unsignedTinyInteger('installment_cycle')->default(1)->after('project_id');
-$table->unique(['project_id', 'installment_cycle']);
-```
-
-#### `create_accountability_reports_table` (nova tabela — etapa final)
-```php
-$table->id();
-$table->foreignId('project_id')->constrained()->cascadeOnDelete();
-$table->unsignedTinyInteger('installment_cycle')->default(1); // sempre 1
-$table->unique(['project_id', 'installment_cycle']);
-// demais campos da prestação de contas
-$table->timestamps();
-```
+Nenhuma outra migration precisa ser alterada.
 
 ---
 
-### 2. Models
+### 2. Model — `app/Models/Project.php`
 
-#### `app/Models/ProjectStage.php`
 ```php
 protected $fillable = [
     // ... existentes ...
-    'installment_cycle',   // ADICIONAR
+    'current_installment_cycle',   // ADICIONAR
 ];
 
 protected $casts = [
     // ... existentes ...
-    'installment_cycle' => 'integer',  // ADICIONAR
-];
-```
-
-#### `app/Models/Payment.php`
-```php
-protected $fillable = [
-    // ... existentes ...
-    'installment_cycle',   // ADICIONAR
-];
-
-protected $casts = [
-    // ... existentes ...
-    'installment_cycle' => 'integer',  // ADICIONAR
-];
-```
-
-#### `app/Models/Monitoring.php`
-```php
-protected $fillable = [
-    // ... existentes ...
-    'installment_cycle',   // ADICIONAR
-];
-
-protected $casts = [
-    // ... existentes ...
-    'installment_cycle' => 'integer',  // ADICIONAR
+    'current_installment_cycle' => 'integer',  // ADICIONAR
 ];
 ```
 
 ---
 
-### 3. `app/Services/ProjectStageService.php` — método `advance()`
+### 3. Novo método — `app/Services/ProjectStageService.php`
 
-Após `$stage->markApproved()` e antes da lógica de ativar a próxima etapa, inserir:
+Adicionar método `requestNextInstallment(Project $project)`:
 
 ```php
-use Illuminate\Support\Facades\DB;
-
-// Dentro de advance(), após $stage->markApproved():
-
-if ($stage->slug === ProjectStageSlug::MONITORAMENTO) {
-    $totalInstallments = $stage->project->notice->installments ?? 1;
-    $nextCycle = $stage->installment_cycle + 1;
-
-    if ($nextCycle <= $totalInstallments) {
-        // Busca os responsible_sectors do ciclo 1 para reutilizar
-        $sectors = $stage->project->stages()
-            ->whereIn('slug', [
-                ProjectStageSlug::ORCAMENTO->value,
-                ProjectStageSlug::PAGAMENTO->value,
-                ProjectStageSlug::MONITORAMENTO->value,
-            ])
-            ->where('installment_cycle', 1)
-            ->pluck('responsible_sector', 'slug');
-
-        $maxOrder = $stage->project->stages()->max('order');
-
-        $newStages = [
-            [ProjectStageSlug::ORCAMENTO,    $maxOrder + 1, ProjectStageStatus::EM_ANDAMENTO, now()],
-            [ProjectStageSlug::PAGAMENTO,    $maxOrder + 2, ProjectStageStatus::PENDENTE,     null],
-            [ProjectStageSlug::MONITORAMENTO, $maxOrder + 3, ProjectStageStatus::PENDENTE,    null],
+public function requestNextInstallment(Project $project): void
+{
+    DB::transaction(function () use ($project) {
+        $slugsToReset = [
+            ProjectStageSlug::ORCAMENTO,
+            ProjectStageSlug::PAGAMENTO,
+            ProjectStageSlug::MONITORAMENTO,
         ];
 
-        DB::transaction(function () use ($stage, $nextCycle, $newStages, $sectors) {
-            foreach ($newStages as [$slug, $order, $status, $startedAt]) {
-                $stage->project->stages()->create([
-                    'slug'               => $slug,
-                    'order'              => $order,
-                    'installment_cycle'  => $nextCycle,
-                    'responsible_sector' => $sectors[$slug->value] ?? [],
-                    'status'             => $status,
-                    'started_at'         => $startedAt,
-                ]);
-            }
-        });
+        foreach ($slugsToReset as $slug) {
+            $stage = $project->stages()->where('slug', $slug->value)->first();
+            if (! $stage) continue;
 
-        return $stage->project->stages()
-            ->where('order', $maxOrder + 1)
-            ->first();
-    }
+            $isFirst = $slug === ProjectStageSlug::ORCAMENTO;
+            $stage->update([
+                'status'       => $isFirst ? ProjectStageStatus::EM_ANDAMENTO : ProjectStageStatus::PENDENTE,
+                'started_at'   => $isFirst ? now() : null,
+                'concluded_at' => null,
+            ]);
+        }
 
-    // Sem ciclos restantes → avança para PRESTACAO_DE_CONTAS (última etapa do projeto)
-    $next = $stage->getNextStage(); // order + 1 aponta para prestacao_de_contas
-    if ($next) {
-        $next->update([
-            'status'     => ProjectStageStatus::EM_ANDAMENTO,
-            'started_at' => now(),
-        ]);
-    }
-    return $next?->fresh();
+        $project->increment('current_installment_cycle');
+    });
 }
+```
 
-// Fluxo normal para as demais etapas:
-$next = $stage->getNextStage();
-if ($next) {
-    $next->update([
-        'status'     => ProjectStageStatus::EM_ANDAMENTO,
-        'started_at' => now(),
-    ]);
+---
+
+### 4. Novo endpoint — `app/Http/Controllers/ProjectStageController.php`
+
+```php
+public function requestNextInstallment(Project $project, ProjectStageService $service): \Illuminate\Http\RedirectResponse
+{
+    $notice = $project->notice;
+
+    abort_if(
+        ! $notice || $notice->installments <= 1,
+        403, 'Projeto não possui múltiplas parcelas.'
+    );
+
+    abort_if(
+        $project->current_installment_cycle >= $notice->installments,
+        403, 'Todos os ciclos de parcelas já foram concluídos.'
+    );
+
+    $service->requestNextInstallment($project);
+
+    return back();
 }
-return $next?->fresh();
-```
-
-> **Atenção:** o `project->notice` precisa estar carregado. Verificar se `advance()` recebe o projeto com `notice` eager-loaded ou adicionar `$stage->project->load('notice')` se necessário.
-
----
-
-### 4. `app/Http/Requests/Payment/PaymentStoreRequest.php`
-
-Trocar a regra unique:
-
-```php
-// ANTES:
-Rule::unique('payments', 'project_id')
-
-// DEPOIS:
-Rule::unique('payments')->where(fn ($q) => $q->where('installment_cycle', $this->installment_cycle))
-
-// ADICIONAR campo nas regras:
-'installment_cycle' => ['required', 'integer', 'min:1'],
-```
-
-Mesma alteração em `PaymentUpdateRequest.php`, ajustando o `ignore` para o registro atual.
-
----
-
-### 5. `app/Http/Controllers/ProjectController.php` — `projectDetail()`
-
-Adicionar nas props do Inertia:
-
-```php
-'noticeInstallments' => $project->notice->installments ?? 1,
-```
-
-Garantir que `payment`, `monitoring` e `notice` estejam no `load()`:
-
-```php
-$project->load([
-    // ... existentes ...
-    'notice',
-    'payment',
-    'monitoring',
-]);
 ```
 
 ---
 
-### 6. Frontend — tabs ORCAMENTO, PAGAMENTO, MONITORAMENTO
+### 5. Rota — `routes/web.php`
 
-A aba recebe `project.stages` com todos os ciclos. Para identificar a etapa ativa do ciclo correto:
+```php
+Route::patch('/projetos/{project}/solicitar-proxima-parcela', [ProjectStageController::class, 'requestNextInstallment'])
+    ->name('projects.stages.request-next-installment');
+```
+
+---
+
+### 6. Frontend — `MonitoringTab.vue`
+
+**Visibilidade do botão** (3 condições AND):
 
 ```js
-// Pega a etapa ativa (em_andamento) de um determinado slug
-const activeStage = project.stages.find(s => s.slug === 'orcamento' && s.status === 'em_andamento')
-
-// installment_cycle da etapa ativa indica qual parcela exibir
-const currentCycle = activeStage?.installment_cycle ?? 1
-
-// Na aba ORCAMENTO: filtra a parcela do ciclo atual
-const currentInstallment = project.budget?.installments?.find(i => i.installment_number === currentCycle)
+const canRequestNextInstallment = computed(() =>
+    props.project.notice?.installments > 1 &&
+    props.project.current_installment_cycle < props.project.notice?.installments &&
+    monitoringStage.value?.status === 'em_andamento'
+)
 ```
 
-Para exibição de histórico (ver ciclos anteriores), filtrar por `installment_cycle`:
+> `project.notice.installments` já está disponível: `ProjectController::projectDetail()` carrega a relação
+> `notice` e `ProjectResource` a repassa via `parent::toArray()`.
+> `project.current_installment_cycle` é repasado pelo mesmo mecanismo após ser adicionado ao model.
+
+**Ação do botão** (usar `useAlert` — SweetAlert2 não está instalado):
 
 ```js
-const stagesForCycle = (cycle) => project.stages.filter(s => s.installment_cycle === cycle)
+import { useAlert } from '@/Composables/useAlert';
+const { showAlert } = useAlert();
+
+function requestNextInstallment() {
+    showAlert({
+        alertTitle: 'Solicitar próxima parcela',
+        alertMessage: 'Ao confirmar, o ciclo de Orçamento, Pagamento e Monitoramento será reiniciado para a próxima parcela.',
+        confirmText: 'Confirmar',
+        action: () => {
+            router.patch(
+                route('projects.stages.request-next-installment', { project: props.project.id }),
+                {},
+                {
+                    preserveScroll: true,
+                    onSuccess: () => router.visit(window.location.pathname, { preserveState: false }),
+                    onError: (errors) => {
+                        const msg = Object.values(errors).flat().join(', ') || 'Erro ao solicitar próxima parcela';
+                        showSnackbar(msg, 'error');
+                    },
+                }
+            );
+        },
+    });
+}
 ```
 
-O `TramitButton.vue` **não muda** — continua passando a action que chama `route('projects.stages.advance', {project, stage})`.
+**Template** (botão renderizado acima do botão "Salvar Alterações"):
+
+```html
+<v-btn
+    v-if="canRequestNextInstallment"
+    variant="outlined"
+    color="primary"
+    @click="requestNextInstallment"
+>
+    Solicitar próxima parcela
+</v-btn>
+```
 
 ---
 
@@ -310,45 +237,42 @@ O `TramitButton.vue` **não muda** — continua passando a action que chama `rou
 
 | Componente | Motivo |
 |---|---|
-| `ProjectObserver::created()` | Passa a criar 7 etapas: as 6 originais + `prestacao_de_contas` (order 7, `installment_cycle = 1`) |
-| `ProjectStage::canAdvance()` | Lógica por `order` cobre os novos registros naturalmente |
-| `ProjectStage::getNextStage()` | Idem — `order + 1` funciona para qualquer ciclo |
-| `ProjectStageService::reject()` | Bloqueia etapas posteriores por `order` — sem impacto |
-| `ProjectStageService::returnStage()` | Idem |
-| `Budget` e `Installment` | O ciclo 2 adiciona `installment_number: 2` ao Budget existente |
-| `TramitButton.vue` | Interface genérica — sem acoplamento ao ciclo |
-| Rotas | Nenhuma rota nova necessária |
+| `ProjectObserver::created()` | Continua criando as 7 etapas fixas |
+| `ProjectStage::canAdvance()` | Lógica por `order` não é afetada |
+| `ProjectStage::getNextStage()` | Idem |
+| `ProjectStageService::advance()` | Não intercepta MONITORAMENTO — o avanço de ciclo é via botão explícito |
+| `ProjectStageService::reject()` / `returnStage()` | Inalterados |
+| `TramitButton.vue` e rota `advance` | Sem acoplamento ao ciclo |
+| `Budget` e `Installment` | Ciclo 2 adiciona `installment_number: 2` ao Budget existente |
+| `payments` / `monitorings` (migrations) | Sem `installment_cycle` — dados sobrescritos por ciclo |
 
 ---
 
 ## Verificação / testes
 
 ```bash
-# 1. Rodar as migrations
-docker compose exec app php artisan migrate
+# 1. Recriar banco com a migration editada
+docker compose exec app php artisan migrate:fresh --seed
 
-# 2. Rodar suite de testes existente — nada deve quebrar
+# 2. Suite de testes existente — nada deve quebrar
 docker compose exec app php artisan test
 
 # 3. Testes manuais
 
-# Cenário A: installments = 1 (comportamento original)
-# - Tramitar MONITORAMENTO ciclo 1 → avança para PRESTACAO_DE_CONTAS (order 7)
-# - Tramitar PRESTACAO_DE_CONTAS → projeto encerra
+# Cenário A: installments = 1
+# - Botão "SOLICITAR PRÓXIMA PARCELA" NÃO aparece no MonitoringTab
 
 # Cenário B: installments = 2
-# - Tramitar MONITORAMENTO ciclo 1 → surgem etapas order 7, 8, 9 com installment_cycle = 2
-# - Etapa 7 (ORCAMENTO ciclo 2) fica EM_ANDAMENTO
-# - Tramitar ORCAMENTO, PAGAMENTO, MONITORAMENTO do ciclo 2
-# - Ao tramitar MONITORAMENTO ciclo 2 → avança para PRESTACAO_DE_CONTAS (order 10)
-# - Tramitar PRESTACAO_DE_CONTAS → projeto encerra
+# - Botão aparece quando MONITORAMENTO está EM_ANDAMENTO (cycle 1)
+# - Ao confirmar: ORCAMENTO → EM_ANDAMENTO; project.current_installment_cycle = 2
+# - Botão DESAPARECE (cycle 2 = installments 2 → não há próximo)
+# - Tramitar normalmente ORCAMENTO → PAGAMENTO → MONITORAMENTO do ciclo 2
+# - Tramitar MONITORAMENTO ciclo 2 → avança para PRESTACAO_DE_CONTAS (order 7, fluxo normal)
 
 # Cenário C: installments = 3
-# - Idem, com um terceiro ciclo sendo criado ao tramitar MONITORAMENTO ciclo 2
-# - Ao tramitar MONITORAMENTO ciclo 3 → avança para PRESTACAO_DE_CONTAS
-
-# 4. Verificar que canAdvance() impede tramitar ORCAMENTO ciclo 2
-#    se MONITORAMENTO ciclo 1 não estiver APROVADO
+# - Botão aparece no ciclo 1 → cycle = 2 após clicar
+# - Botão aparece no ciclo 2 → cycle = 3 após clicar
+# - Botão desaparece no ciclo 3
 ```
 
 ---
@@ -357,9 +281,7 @@ docker compose exec app php artisan test
 
 | Risco | Mitigação |
 |---|---|
-| `project->notice` não eager-loaded em `advance()` | Verificar e adicionar `load('notice')` se necessário, ou garantir no controller |
-| `getProgressPercentage()` em `Project.php` soma etapas aprovadas / total — com ciclos extras o denominador muda | Revisar o cálculo para refletir o total planejado real (base: 7 + 3×(N-1) etapas) |
-| Testes existentes de `ProjectStageService` podem não cobrir MONITORAMENTO com ciclos | Adicionar casos de teste para os novos cenários, incluindo avanço para PRESTACAO_DE_CONTAS |
-| `PaymentStoreRequest` unique quebra se `installment_cycle` não vier no request | Garantir que o frontend sempre envie `installment_cycle` ao criar Payment |
-| `ProjectObserver::created()` cria 6 etapas hoje — precisa incluir `prestacao_de_contas` (order 7) | Atualizar o observer e os factories/seeders de teste que esperam exatamente 6 etapas |
-| PRESTACAO_DE_CONTAS não tem `installment_cycle` relevante, mas a coluna existe | Definir convenção (sempre 1) e garantir que `canAdvance()` não seja afetado |
+| Dados de Payment/Monitoring ciclo 1 sobrescritos no ciclo 2 | Comportamento esperado e aceito nesta abordagem |
+| `getProgressPercentage()` em `Project.php` pode contar etapas aprovadas de forma errada ao resetar | Revisar o cálculo após implementar |
+| Testes existentes que esperam exatamente 7 stages podem quebrar se o Observer mudar | Verificar factories e seeders de teste |
+| Botão acessível antes de salvar o parecer técnico | Considerar chamar `saveMonitoring()` antes de `requestNextInstallment()` no frontend |

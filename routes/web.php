@@ -77,6 +77,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::patch('/projetos/{project}/etapas/{stage}/tramitar', [ProjectStageController::class, 'advance'])
         ->scopeBindings()
         ->name('projects.stages.advance');
+    Route::patch('/projetos/{project}/solicitar-proxima-parcela', [ProjectStageController::class, 'requestNextInstallment'])
+        ->name('projects.stages.request-next-installment');
     Route::get('editais/{notice}/projetos', [ProjectController::class, 'index'])
         ->name('notices.projects');
     Route::get('editais/{notice}/projetos/{project}', [ProjectController::class, 'projectDetail'])
@@ -130,6 +132,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('/projetos/{project}/monitoramento', [MonitoringController::class, 'store'])
         ->name('projects.monitorings.store');
     Route::patch('/projetos/{project}/monitoramento/{monitoring}/atualizar', [MonitoringController::class, 'update'])
+        ->scopeBindings()
         ->name('projects.monitorings.update');
 
     Route::get('/projetos/{project}/diligencias/{stage}', [DiligenceMessageController::class, 'index'])

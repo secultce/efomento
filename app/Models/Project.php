@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\ProfileSnapshotSource;
 use App\Enums\ProjectStageSlug;
 use App\Enums\ProjectStageStatus;
 use App\Traits\HasCreatedBy;
@@ -28,6 +29,7 @@ class Project extends Model implements Auditable
         'category_id',
         'agent_id',
         'notice_id',
+        'current_installment_cycle',
         'create_timestamp',
         'sent_timestamp',
         'consolidated_result',
@@ -40,6 +42,7 @@ class Project extends Model implements Auditable
         'create_timestamp' => 'datetime',
         'sent_timestamp' => 'datetime',
         'data_registration' => 'array',
+        'current_installment_cycle' => 'integer',
     ];
 
     protected $appends = ['phase', 'opening_nup'];
@@ -146,6 +149,11 @@ class Project extends Model implements Auditable
         return $this->hasOne(Monitoring::class);
     }
 
+    public function monitorings(): HasMany
+    {
+        return $this->hasMany(Monitoring::class);
+    }
+
     public function documents(): HasMany
     {
         return $this->hasMany(Document::class);
@@ -159,6 +167,13 @@ class Project extends Model implements Auditable
     public function latestSnapshot(): MorphOne
     {
         return $this->morphOne(ProfileSnapshot::class, 'object')->latestOfMany('recorded_at');
+    }
+
+    public function monitoringSnapshot(): MorphOne
+    {
+        return $this->morphOne(ProfileSnapshot::class, 'object')
+            ->where('source', ProfileSnapshotSource::MONITORING)
+            ->latestOfMany('recorded_at');
     }
 
     public function stages(): HasMany
