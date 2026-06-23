@@ -13,6 +13,7 @@ import TramitButton from '@/Pages/ProjectDetails/Partials/Tabs/Actions/TramitBut
 import { viewSections, formSections } from '@/Schemas/Monitoring';
 import { useSnackbar } from '@/Composables/useSnackbar';
 import { useAlert } from '@/Composables/useAlert';
+import { sanitizeExternalUrl } from '@/Composables/useExternalLink';
 
 const props = defineProps({
     project: {
@@ -329,12 +330,14 @@ function submit() {
                         <div>
                             <p class="text-xs text-gray-500 font-semibold uppercase">{{ file.title }}</p>
                             <a
-                                :href="file.url"
+                                v-if="sanitizeExternalUrl(file.url)"
+                                :href="sanitizeExternalUrl(file.url)"
                                 target="_blank"
                                 rel="noopener noreferrer"
                                 class="text-sm text-blue-600 hover:underline"
                                 >{{ file.name }}</a
                             >
+                            <span v-else class="text-sm text-gray-400">{{ file.name }}</span>
                         </div>
                     </div>
                 </template>

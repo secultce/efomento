@@ -10,6 +10,7 @@ use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Facades\Bus;
 use Illuminate\Support\Facades\Log;
+use InvalidArgumentException;
 
 class SyncProjectFilesJob implements ShouldQueue
 {
@@ -27,7 +28,13 @@ class SyncProjectFilesJob implements ShouldQueue
         public string $objectType = 'project',
         public ?int $objectId = null,
     ) {
-        $this->objectId ??= $this->projectId;
+        if ($this->objectType === 'project') {
+            $this->objectId ??= $this->projectId;
+        } elseif ($this->objectId === null) {
+            throw new InvalidArgumentException(
+                'objectId is required when objectType is not project.'
+            );
+        }
         $this->onQueue('files');
     }
 
