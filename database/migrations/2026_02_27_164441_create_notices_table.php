@@ -22,7 +22,7 @@ return new class extends Migration
             $table->string('process_manager_email')->nullable()->comment('Process Manager Email');
             $table->string('creditor_registration_nup')->nullable()->comment('Creditor Registration NUP');
             $table->date('creditor_registration_request_date')->nullable()->comment('Date of Creditor Registration Request');
-            $table->string('budget_allocation_nup')->nullable()->comment('Budget Allocation NUP');
+            $table->string('budget_allocation_nup')->nullable()->unique()->comment('Budget Allocation NUP');
             $table->date('budget_allocation_request_date')->nullable()->comment('Date of Budget Allocation Request');
             $table->enum('instrument_type', InstrumentType::values())->nullable()->comment('Type of legal instrument');
             $table->foreignId('created_by')->nullable()->constrained('users')->nullOnDelete();
