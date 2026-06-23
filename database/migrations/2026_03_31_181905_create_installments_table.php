@@ -18,8 +18,8 @@ return new class extends Migration
                 ->constrained()
                 ->cascadeOnDelete();
 
-            $table->decimal('amount', 10, 2);
-            $table->date('request_date');
+            $table->decimal('amount', 10, 2)->nullable();
+            $table->date('request_date')->nullable();
 
             $table->text('justification')->nullable();
             $table->text('observations')->nullable();
