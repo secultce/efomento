@@ -1,5 +1,5 @@
 <script setup>
-import { ref, computed } from 'vue';
+import { ref, computed, watch } from 'vue';
 import { useForm, router } from '@inertiajs/vue3';
 import SplitScreenTab from '@/Components/SplitScreenTab.vue';
 import SectionChips from '@/Components/SectionChips.vue';
@@ -37,15 +37,20 @@ const registrationFields = computed(() => {
     }));
 });
 
-const registrationFiles = computed(() => {
-    const files = props.project.monitoring?.data_registration?.registration?.files ?? {};
-    return Object.entries(files)
-        .filter(([group]) => group !== 'zipArchive')
-        .map(([, file]) => ({
-            name: file.name ?? '—',
-            title: file.title ?? file.name ?? '—',
-            url: file.url ?? null,
-        }));
+const monitoringFiles = ref([]);
+const loadingFiles = ref(false);
+
+watch(monitoringDialogOpen, async (open) => {
+    if (!open || monitoringFiles.value.length > 0) return;
+    loadingFiles.value = true;
+    try {
+        const { data } = await window.axios.get(route('projects.monitorings.files', { project: props.project.id }));
+        monitoringFiles.value = data.files ?? [];
+    } catch {
+        monitoringFiles.value = [];
+    } finally {
+        loadingFiles.value = false;
+    }
 });
 
 function parseFieldValue(raw) {
@@ -306,40 +311,41 @@ function submit() {
             <v-card-title class="pa-4">Ficha da fase do Monitoramento</v-card-title>
             <v-divider />
             <v-card-text class="pa-4">
-                <template v-if="registrationFields.length || registrationFiles.length">
-                    <template v-if="registrationFields.length">
-                        <p class="font-semibold text-sm mb-3">Campos da inscrição</p>
-                        <div v-for="(field, i) in registrationFields" :key="'field-' + i" class="mb-3">
-                            <p class="text-xs text-gray-700 font-semibold uppercase">{{ field.label }}</p>
-                            <p class="text-sm">{{ field.value }}</p>
-                        </div>
-                    </template>
-
-                    <template v-if="registrationFiles.length">
-                        <v-divider v-if="registrationFields.length" class="my-4" />
-                        <p class="font-semibold text-sm mb-3">Arquivos da inscrição</p>
-                        <div
-                            v-for="(file, i) in registrationFiles"
-                            :key="'file-' + i"
-                            class="mb-3 flex items-center gap-2"
-                        >
-                            <v-icon size="small" color="grey">mdi-file-outline</v-icon>
-                            <div>
-                                <p class="text-xs text-gray-500 font-semibold uppercase">{{ file.title }}</p>
-                                <a
-                                    v-if="file.url"
-                                    :href="file.url"
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    class="text-sm text-blue-600 hover:underline"
-                                    >{{ file.name }}</a
-                                >
-                                <p v-else class="text-sm text-gray-700">{{ file.name }}</p>
-                            </div>
-                        </div>
-                    </template>
+                <template v-if="registrationFields.length">
+                    <p class="font-semibold text-sm mb-3">Campos da inscrição</p>
+                    <div v-for="(field, i) in registrationFields" :key="'field-' + i" class="mb-3">
+                        <p class="text-xs text-gray-700 font-semibold uppercase">{{ field.label }}</p>
+                        <p class="text-sm">{{ field.value }}</p>
+                    </div>
                 </template>
-                <p v-else class="text-sm text-gray-500">Nenhum dado de inscrição disponível.</p>
+
+                <v-divider v-if="registrationFields.length" class="my-4" />
+
+                <p class="font-semibold text-sm mb-3">Arquivos da inscrição</p>
+                <v-progress-linear v-if="loadingFiles" indeterminate color="primary" class="mb-4" />
+                <template v-else-if="monitoringFiles.length">
+                    <div v-for="file in monitoringFiles" :key="file.id" class="mb-3 flex items-center gap-2">
+                        <v-icon size="small" color="grey">mdi-file-outline</v-icon>
+                        <div>
+                            <p class="text-xs text-gray-500 font-semibold uppercase">{{ file.title }}</p>
+                            <a
+                                :href="file.url"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                class="text-sm text-blue-600 hover:underline"
+                                >{{ file.name }}</a
+                            >
+                        </div>
+                    </div>
+                </template>
+                <p v-else class="text-sm text-gray-400">Nenhum arquivo encontrado.</p>
+
+                <p
+                    v-if="!registrationFields.length && !loadingFiles && !monitoringFiles.length"
+                    class="text-sm text-gray-500"
+                >
+                    Nenhum dado de inscrição disponível.
+                </p>
             </v-card-text>
             <v-divider />
             <v-card-actions class="pa-4 justify-end">

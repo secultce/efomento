@@ -79,9 +79,20 @@ class SyncMonitoringRegistrationJob implements ShouldQueue
             return;
         }
 
+        $safeRegistration = [
+            'registration' => [
+                'id' => data_get($details, 'registration.id'),
+                'number' => data_get($details, 'registration.number'),
+                'status' => data_get($details, 'registration.status'),
+                'files' => data_get($details, 'registration.files', []),
+            ],
+            'fileConfigurations' => data_get($details, 'fileConfigurations', []),
+            'fields' => data_get($details, 'fields', []),
+        ];
+
         $monitoring = Monitoring::updateOrCreate(
             ['project_id' => $project->id],
-            ['data_registration' => $details]
+            ['data_registration' => $safeRegistration]
         );
 
         $ownerId = data_get($details, 'registration.owner.id');
