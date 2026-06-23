@@ -1,10 +1,13 @@
 <?php
 
+use App\Http\Controllers\BudgetController;
 use App\Http\Controllers\DiligenceMessageController;
 use App\Http\Controllers\DocumentController;
 use App\Http\Controllers\FormalizationController;
 use App\Http\Controllers\GroupController;
+use App\Http\Controllers\InstallmentController;
 use App\Http\Controllers\LegalAnalysisController;
+use App\Http\Controllers\MonitoringController;
 use App\Http\Controllers\NoticeController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\OpeningController;
@@ -74,6 +77,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::patch('/projetos/{project}/etapas/{stage}/tramitar', [ProjectStageController::class, 'advance'])
         ->scopeBindings()
         ->name('projects.stages.advance');
+    Route::patch('/projetos/{project}/solicitar-proxima-parcela', [ProjectStageController::class, 'requestNextInstallment'])
+        ->name('projects.stages.request-next-installment');
     Route::get('editais/{notice}/projetos', [ProjectController::class, 'index'])
         ->name('notices.projects');
     Route::get('editais/{notice}/projetos/{project}', [ProjectController::class, 'projectDetail'])
@@ -85,6 +90,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::patch('/{id}/ler', [NotificationController::class, 'markAsRead'])->name('notifications.mark-read');
         Route::patch('/ler-todas', [NotificationController::class, 'markAllAsRead'])->name('notifications.mark-all-read');
     });
+    Route::post('/editais/{notice}/projetos/pagamento/import', [InstallmentController::class, 'import'])
+        ->scopeBindings()
+        ->name('installments.import');
     Route::get('/projetos/{project}/analise-juridica', [LegalAnalysisController::class, 'index'])
         ->name('legal-analysis.index');
     Route::get('/projetos/{project}/analise-juridica/arquivos/{file}', [LegalAnalysisController::class, 'serveFile'])
@@ -108,6 +116,19 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::delete('/projetos/{project}/formalizacao/{formalization}/arquivos/{file}', [FormalizationController::class, 'destroyFile'])
         ->scopeBindings()
         ->name('projects.formalizations.files.destroy');
+
+    Route::post('/projetos/{project}/orcamento', [BudgetController::class, 'store'])
+        ->name('projects.budgets.store');
+    Route::patch('/projetos/{project}/orcamento/{budget}/atualizar', [BudgetController::class, 'update'])
+        ->scopeBindings()
+        ->name('projects.budgets.update');
+
+    Route::post('/projetos/{project}/monitoramento', [MonitoringController::class, 'store'])
+        ->name('projects.monitorings.store');
+    Route::patch('/projetos/{project}/monitoramento/{monitoring}/atualizar', [MonitoringController::class, 'update'])
+        ->scopeBindings()
+        ->name('projects.monitorings.update');
+
     Route::get('/projetos/{project}/diligencias/{stage}', [DiligenceMessageController::class, 'index'])
         ->name('diligences.index');
     Route::post('/projetos/{project}/diligencias/{stage}', [DiligenceMessageController::class, 'store'])

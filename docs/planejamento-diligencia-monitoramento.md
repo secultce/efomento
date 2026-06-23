@@ -319,15 +319,9 @@ IMAP_VALIDATE_CERT=false
 
 Em produção, os valores apontam para a caixa institucional real (ssl/993). O `config/imap.php` já suporta `encryption => false` e `validate_cert` via env.
 
-### ⚠️ Bug bloqueante conhecido
+### ✅ Bug do `$messageId` (resolvido em 11/06/2026)
 
-`app/Services/DiligenceMessageService.php` (método `send()`): a variável `$messageId` é usada no `create()` mas **nunca é definida** — o helper `messageIdDomain()` existe órfão. Sem Message-ID, o `DiligenceMail::headers()` recebe null e o encadeamento `In-Reply-To` da resposta nunca casa no `syncIncoming()`. Corrigir antes de testar o loop:
-
-```php
-$messageId = '<'.Str::uuid().'@'.$this->messageIdDomain().'>';
-```
-
-(formato com `<>` conforme comentário em `DiligenceMail::headers()`, que faz `trim(..., '<>')` ao montar o header).
+`app/Services/DiligenceMessageService.php` (método `send()`) usava `$messageId` no `create()` sem nunca defini-lo. **Já corrigido**: o Message-ID é gerado no formato `<diligence_{uuid}@domínio>` antes do envio, então o encadeamento `In-Reply-To` casa normalmente no `syncIncoming()`. Nenhuma ação pendente.
 
 ### Verificação do loop de ponta a ponta
 

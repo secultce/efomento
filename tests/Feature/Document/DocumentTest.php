@@ -47,7 +47,7 @@ class DocumentTest extends TestCase
         $this->assertSame('tc', DocumentType::TC->value);
         $this->assertSame('et', DocumentType::ET->value);
         $this->assertSame('pj', DocumentType::PJ->value);
-        $this->assertSame('po', DocumentType::PO->value);
+        $this->assertSame('d', DocumentType::D->value);
 
         $this->assertSame('draft', DocumentStatus::DRAFT->value);
         $this->assertSame('pending_signature', DocumentStatus::PENDING_SIGNATURE->value);
@@ -137,12 +137,11 @@ class DocumentTest extends TestCase
 
     public function test_service_create_rejects_invalid_combination(): void
     {
-        $type = collect(DocumentType::cases())->random();
-
+        // CI só é válido com OPENING — ci+payment não existe no registry
         $this->expectException(\InvalidArgumentException::class);
 
         $this->service->create([
-            'type' => $type->value,
+            'type' => DocumentType::CI->value,
             'phase' => DocumentPhase::PAYMENT->value,
             'body' => 'Inválido.',
         ], $this->user->id);
@@ -250,10 +249,8 @@ class DocumentTest extends TestCase
     {
         [$typeA, $phaseA] = $this->getRandomTypeAndPhase();
 
-        $typeB = collect(DocumentType::cases())->reject(fn ($t) => $t === $typeA)->random() ?? DocumentType::PO;
-        $phaseB = $typeB === DocumentType::TC || $typeB === DocumentType::ET
-            ? DocumentPhase::FORMALIZATION
-            : DocumentPhase::JURIDICAL;
+        $typeB = collect(DocumentType::cases())->reject(fn ($t) => $t === $typeA)->random() ?? DocumentType::D;
+        $phaseB = $typeB->phase();
 
         Document::factory()->count(2)->create([
             'type' => $typeA,
@@ -314,7 +311,10 @@ class DocumentTest extends TestCase
     public function test_store_endpoint_returns_422_for_invalid_combination(): void
     {
         $type = collect(DocumentType::cases())->random();
-        $invalidPhase = DocumentPhase::PAYMENT;
+
+        $invalidPhase = collect(DocumentPhase::cases())
+            ->reject(fn (DocumentPhase $phase) => $phase === $type->phase())
+            ->random();
 
         $response = $this->actingAs($this->user)
             ->postJson('/api/documents', [

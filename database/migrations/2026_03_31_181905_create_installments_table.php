@@ -13,17 +13,68 @@ return new class extends Migration
     {
         Schema::create('installments', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('budget_id')->constrained();
+
+            $table->foreignId('budget_id')
+                ->constrained()
+                ->cascadeOnDelete();
+
             $table->decimal('amount', 10, 2);
             $table->date('request_date');
+
             $table->text('justification')->nullable();
             $table->text('observations')->nullable();
+
             $table->integer('installment_number');
-            $table->foreignId('created_by')->nullable()->constrained('users')->nullOnDelete();
-            $table->index('created_by');
+
+            $table->string('commitment_number')->nullable();
+            $table->date('commitment_date')->nullable();
+
+            $table->string('settlement_number')->nullable();
+            $table->date('settlement_date')->nullable();
+
+            $table->string('payment_order_number')->nullable();
+            $table->decimal('payment_amount', 10, 2)->nullable();
+            $table->date('payment_date')->nullable();
+
+            $table->string('full_source')->nullable();
+            $table->string('expense_nature')->nullable();
+
+            $table->string('process_number')->nullable();
+
+            $table->string('creditor')->nullable();
+            $table->string('creditor_name')->nullable();
+            $table->string('retention_creditor')->nullable();
+
+            $table->string('origin_bank_domicile')->nullable();
+
+            $table->decimal('committed_amount', 10, 2)->nullable();
+
+            $table->text('remarks')->nullable();
+
+            $table->foreignId('created_by')
+                ->nullable()
+                ->constrained('users')
+                ->nullOnDelete();
+
+            $table->foreignId('updated_by')
+                ->nullable()
+                ->constrained('users')
+                ->nullOnDelete();
+
             $table->timestamps();
             $table->softDeletes();
+
             $table->unique(['budget_id', 'installment_number']);
+
+            $table->index('created_by');
+            $table->index('updated_by');
+
+            $table->index('installment_number');
+            $table->index('settlement_number');
+            $table->index('payment_order_number');
+
+            $table->index('process_number');
+            $table->index('creditor');
         });
     }
 

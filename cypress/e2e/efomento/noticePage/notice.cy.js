@@ -54,31 +54,38 @@ describe('Notice Page - E2E Tests', () => {
         it('should fill and submit the identification data form', function () {
             Notice.openIdentificationDataForm();
 
+            const notice = this.notice[0];
             const formData = {
-                noticeNup: this.notice.noticeNup,
-                instrumentType: this.notice.processInstrumentType,
-                totalAmount: this.notice.noticeTotalValue,
-                noticeManager: this.notice.noticeAccompanimentManager,
-                managerEmail: this.notice.noticeManagerEmail,
-                quotaNumber: this.notice.quotaNumber,
+                noticeNup: notice.noticeNup,
+                instrumentType: notice.noticeInstrumentType,
+                totalAmount: notice.noticeTotalValue,
+                noticeManager: notice.noticeAccompanimentManager,
+                managerEmail: notice.noticeManagerEmail,
+                quotaNumber: notice.quotaNumber,
             };
 
             Notice.fillIdentificationDataForm(formData);
-            Notice.verifySuccessMessage();
+            Notice.verifySuccessMessageIdentificationDataForm();
         });
     });
 
     describe('Search Functionality', () => {
         it('should find a notice by title', function () {
-            Notice.searchNoticeByTitle(this.notice.title);
+            const notice = this.notice[0];
+
+            Notice.searchNoticeByTitle(notice.title);
         });
 
         it('should find a notice by NUP number', function () {
-            Notice.searchNoticeByNup(this.notice.noticeNup);
+            const notice = this.notice[0];
+
+            Notice.searchNoticeByNup(notice.noticeNup);
         });
 
         it('should clear search and display all notices', function () {
-            Notice.searchNoticeByNup(this.notice.noticeNup);
+            const notice = this.notice[0];
+
+            Notice.searchNoticeByNup(notice.noticeNup);
             cy.get('[data-cy=find-specific-notice] input').clear();
             cy.get('[data-cy=table-notice-list] tbody tr').should('have.length.greaterThan', 1);
         });
@@ -86,40 +93,47 @@ describe('Notice Page - E2E Tests', () => {
 
     describe('Filtering', () => {
         it('should filter notices by process status', function () {
-            Notice.filterByProcessStatus(this.notice.processsStatus);
+            const notice = this.notice[0];
+
+            Notice.filterByProcessStatus(notice.processsStatus);
         });
 
         it('should filter notices by instrument type', function () {
-            Notice.filterByInstrumentType(this.notice.processInstrumentType);
+            const notice = this.notice[0];
+
+            Notice.filterByInstrumentType(notice.noticeInstrumentType);
         });
     });
 
     describe('Notice Details View', () => {
         it('should open notice details page', function () {
-            Notice.searchNoticeByNup(this.notice.noticeNup);
-            Notice.goToNoticeDetailsPage(this.notice.noticeNup);
+            const notice = this.notice[0];
+
+            Notice.searchNoticeByNup(notice.noticeNup);
+            Notice.goToNoticeDetailsPage(notice.noticeNup);
             cy.url().should('match', /\/editais\/\d+\/projetos$/);
         });
 
         it('should display all information in detail view', function () {
-            Notice.searchNoticeByNup(this.notice.noticeNup);
-            Notice.goToNoticeDetailsPage(this.notice.noticeNup);
+            const notice = this.notice[0];
+
+            Notice.searchNoticeByNup(notice.noticeNup);
+            Notice.goToNoticeDetailsPage(notice.noticeNup);
             Notice.clickShowAllInformationButton();
             Notice.verifyDetailViewElements();
         });
 
         it('should display correct NUP in detail view', function () {
-            Notice.searchNoticeByNup(this.notice.noticeNup);
-            Notice.goToNoticeDetailsPage(this.notice.noticeNup);
-            cy.get('[data-cy=notice-nup-show-all-information]')
-                .should('be.visible')
-                .and('contain', this.notice.noticeNup);
+            const notice = this.notice[0];
+            Notice.searchNoticeByNup(notice.noticeNup);
+            Notice.goToNoticeDetailsPage(notice.noticeNup);
+            Notice.displayCorrectNupInDetailView(notice.noticeNup);
         });
     });
 
     describe('Pagination', () => {
         it('should change the number of items displayed per page', function () {
-            const itemsPerPage = this.notice.quantityPerPage;
+            const itemsPerPage = this.notice[0].quantityPerPage;
             Notice.changeItemsPerPage(itemsPerPage);
         });
 
@@ -144,6 +158,20 @@ describe('Notice Page - E2E Tests', () => {
                 .closest('.v-input')
                 .contains('Campo obrigatório')
                 .should('be.visible');
+        });
+    });
+
+    describe('Update Notice Data', () => {
+        it('should update data about notice and save', function () {
+            const currentNoticeData = this.notice[0];
+            const newNoticeData = this.notice[1];
+
+            Notice.goToNoticeDetailsPage(currentNoticeData.noticeNup);
+            Notice.clickShowAllInformationButton();
+            Notice.verifyDetailViewElements();
+            Notice.updateDataAboutProcess(newNoticeData.noticeInstrumentType, newNoticeData.noticeManagerEmail);
+            Notice.verifySuccessMessageUpdateNoiceData();
+            Notice.verifyUpdatedDataAboutProcess(newNoticeData.noticeInstrumentType, newNoticeData.noticeManagerEmail);
         });
     });
 });

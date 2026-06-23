@@ -153,11 +153,11 @@ class DiligenceMessageServiceTest extends TestCase
 
         $this->fakeImapInbox([
             $this->fakeImapMessage([
-                'message_id' => '<resposta@example.com>',
-                'in_reply_to' => '<diligence_origem@efomento.ce.gov.br>',
+                'message_id' => 'resposta@example.com',
+                'in_reply_to' => 'diligence_origem@efomento.ce.gov.br',
                 'from' => 'agente@example.com',
                 'subject' => 'Re: Diligência — Monitoramento',
-                'bodies' => ['text' => (object) ['content' => 'Segue em anexo o relatório solicitado.']],
+                'bodies' => ['text' => 'Segue em anexo o relatório solicitado.'],
                 'date' => $sentAt,
             ]),
         ]);
@@ -195,11 +195,11 @@ class DiligenceMessageServiceTest extends TestCase
 
         $this->fakeImapInbox([
             $this->fakeImapMessage([
-                'message_id' => '<resposta@example.com>',
-                'in_reply_to' => '<diligence_origem@efomento.ce.gov.br>',
+                'message_id' => 'resposta@example.com',
+                'in_reply_to' => 'diligence_origem@efomento.ce.gov.br',
                 'from' => 'agente@example.com',
                 'subject' => 'Re: Diligência — Monitoramento',
-                'bodies' => ['text' => (object) ['content' => 'Resposta já importada.']],
+                'bodies' => ['text' => 'Resposta já importada.'],
                 'date' => now(),
             ]),
         ]);
@@ -212,11 +212,11 @@ class DiligenceMessageServiceTest extends TestCase
     {
         $this->fakeImapInbox([
             $this->fakeImapMessage([
-                'message_id' => '<spam@example.com>',
-                'in_reply_to' => '<desconhecido@example.com>',
+                'message_id' => 'spam@example.com',
+                'in_reply_to' => 'desconhecido@example.com',
                 'from' => 'desconhecido@example.com',
                 'subject' => 'Mensagem sem diligência',
-                'bodies' => ['text' => (object) ['content' => 'Não deveria ser importada.']],
+                'bodies' => ['text' => 'Não deveria ser importada.'],
                 'date' => now(),
             ]),
         ]);
@@ -240,11 +240,11 @@ class DiligenceMessageServiceTest extends TestCase
 
         $this->fakeImapInbox([
             $this->fakeImapMessage([
-                'message_id' => '<resposta_html@example.com>',
-                'in_reply_to' => '<diligence_origem@efomento.ce.gov.br>',
+                'message_id' => 'resposta_html@example.com',
+                'in_reply_to' => 'diligence_origem@efomento.ce.gov.br',
                 'from' => 'agente@example.com',
                 'subject' => 'Re: Diligência — Monitoramento',
-                'bodies' => ['html' => (object) ['content' => '<p>Segue o <strong>relatório</strong>.</p>']],
+                'bodies' => ['html' => '<p>Segue o <strong>relatório</strong>.</p>'],
                 'date' => now(),
             ]),
         ]);
@@ -292,6 +292,10 @@ class DiligenceMessageServiceTest extends TestCase
         Client::shouldReceive('account')->with('default')->andReturn($client);
     }
 
+    /**
+     * Espelha a API real do webklex/php-imap: bodies são strings e os headers
+     * Message-ID/In-Reply-To chegam sem os colchetes angulares.
+     */
     private function fakeImapMessage(array $attributes): object
     {
         return new class($attributes)
@@ -305,7 +309,17 @@ class DiligenceMessageServiceTest extends TestCase
 
             public function hasTextBody(): bool
             {
-                return isset($this->attributes['bodies']['text']);
+                return ($this->attributes['bodies']['text'] ?? '') !== '';
+            }
+
+            public function getTextBody(): string
+            {
+                return $this->attributes['bodies']['text'] ?? '';
+            }
+
+            public function getHTMLBody(): string
+            {
+                return $this->attributes['bodies']['html'] ?? '';
             }
         };
     }
