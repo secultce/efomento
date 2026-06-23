@@ -53,14 +53,31 @@ const form = useForm({
 
 onMounted(() => {
     const budget = props.project.budgets || {};
-    const latestInstallment = budget.installments?.at(-1);
+
+    const currentInstallment = budget.installments?.find(
+        (i) => i.installment_number === props.project.current_installment_cycle
+    );
 
     form.processing_date_for_codip = normalizeDate(budget.processing_date_for_codip) ?? null;
     form.processing_date_for_coafi = normalizeDate(budget.processing_date_for_coafi) ?? null;
-    form.installment_amount = latestInstallment?.amount ?? null;
-    form.installment_request_date = normalizeDate(latestInstallment?.request_date) ?? null;
-    form.installment_justification = latestInstallment?.justification ?? null;
-    form.installment_observations = latestInstallment?.observations ?? null;
+    form.installment_amount = currentInstallment?.amount ?? null;
+    form.installment_request_date = normalizeDate(currentInstallment?.request_date) ?? null;
+    form.installment_justification = currentInstallment?.justification ?? null;
+    form.installment_observations = currentInstallment?.observations ?? null;
+});
+
+const budgetLocked = computed(() => {
+    return props.project.current_installment_cycle > 1;
+});
+
+const installmentLabel = computed(() => {
+    const labels = {
+        1: 'primeira (1ª)',
+        2: 'segunda (2ª)',
+        3: 'terceira (3ª)',
+    };
+
+    return labels[props.project.current_installment_cycle] ?? `${props.project.current_installment_cycle}ª`;
 });
 
 const budgetOpinionDocument = computed(
@@ -135,7 +152,13 @@ const submit = () => {
 };
 
 const hasRequiredFields = computed(() => {
-    return form.installment_amount !== null && form.installment_amount !== '';
+    return Boolean(
+        form.processing_date_for_codip &&
+        form.processing_date_for_coafi &&
+        form.installment_amount &&
+        form.installment_request_date &&
+        form.installment_justification
+    );
 });
 
 const hasBudgetOpinionDocument = computed(() => !!budgetOpinionDocument.value);
@@ -315,11 +338,19 @@ const permissionMessage = computed(() => {
                             <template v-if="section.key === 'dates'">
                                 <div class="grid grid-cols-2 gap-4">
                                     <FormField label="Data de tramitação para a CODIP">
-                                        <TextField v-model="form.processing_date_for_codip" type="date" />
+                                        <TextField
+                                            v-model="form.processing_date_for_codip"
+                                            type="date"
+                                            :disabled="budgetLocked"
+                                        />
                                     </FormField>
 
                                     <FormField label="Data de tramitação para a Coafi">
-                                        <TextField v-model="form.processing_date_for_coafi" type="date" />
+                                        <TextField
+                                            v-model="form.processing_date_for_coafi"
+                                            type="date"
+                                            :disabled="budgetLocked"
+                                        />
                                     </FormField>
                                 </div>
                             </template>
@@ -385,7 +416,7 @@ const permissionMessage = computed(() => {
                             <template v-else-if="section.key === 'installments'">
                                 <div class="grid grid-cols-2 gap-4">
                                     <FormField
-                                        label="Valor da parcela"
+                                        :label="`Valor da ${installmentLabel} parcela`"
                                         required
                                         :error="form.errors.installment_amount"
                                     >

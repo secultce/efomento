@@ -1,4 +1,3 @@
-// arquivo para alterar
 export const viewSections = [
     {
         title: 'Dados do agente e do projeto',

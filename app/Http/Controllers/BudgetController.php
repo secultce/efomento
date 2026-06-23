@@ -5,7 +5,6 @@ namespace App\Http\Controllers;
 use App\Http\Requests\Budget\BudgetStoreRequest;
 use App\Http\Requests\Budget\BudgetUpdateRequest;
 use App\Models\Budget;
-use App\Models\Installment;
 use App\Models\Project;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\DB;
@@ -27,7 +26,7 @@ class BudgetController extends Controller
                 'request_date' => $request->installment_request_date,
                 'justification' => $request->installment_justification,
                 'observations' => $request->installment_observations,
-                'installment_number' => 1,
+                'installment_number' => $project->current_installment_cycle,
                 'created_by' => auth()->id(),
             ]);
         });
@@ -37,18 +36,19 @@ class BudgetController extends Controller
 
     public function update(BudgetUpdateRequest $request, Project $project, Budget $budget): RedirectResponse
     {
-        DB::transaction(function () use ($request, $budget) {
-            $budget->update([
-                'processing_date_for_codip' => $request->processing_date_for_codip,
-                'processing_date_for_coafi' => $request->processing_date_for_coafi,
-            ]);
+        DB::transaction(function () use ($request, $budget, $project) {
+            $cycle = $project->current_installment_cycle;
 
-            $installment = Installment::query()
-                ->where('budget_id', $budget->id)
-                ->where(
-                    'installment_number',
-                    $request->installment_number
-                )
+            if ($cycle === 1) {
+                $budget->update([
+                    'processing_date_for_codip' => $request->processing_date_for_codip,
+                    'processing_date_for_coafi' => $request->processing_date_for_coafi,
+                ]);
+            }
+
+            $installment = $budget
+                ->installments()
+                ->where('installment_number', $cycle)
                 ->first();
 
             if ($installment) {
@@ -67,7 +67,7 @@ class BudgetController extends Controller
                 'request_date' => $request->installment_request_date,
                 'justification' => $request->installment_justification,
                 'observations' => $request->installment_observations,
-                'installment_number' => $request->installment_number,
+                'installment_number' => $cycle,
                 'created_by' => auth()->id(),
             ]);
         });
