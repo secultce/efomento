@@ -70,16 +70,6 @@ const budgetLocked = computed(() => {
     return props.project.current_installment_cycle > 1;
 });
 
-const installmentLabel = computed(() => {
-    const labels = {
-        1: 'primeira (1ª)',
-        2: 'segunda (2ª)',
-        3: 'terceira (3ª)',
-    };
-
-    return labels[props.project.current_installment_cycle] ?? `${props.project.current_installment_cycle}ª`;
-});
-
 const budgetOpinionDocument = computed(
     () => props.project.documents?.find((document) => document.phase === 'budget' && document.type === 'po') ?? null
 );
@@ -403,7 +393,7 @@ const permissionMessage = computed(() => {
                                 </div>
 
                                 <div v-else class="grid grid-cols-2 gap-4">
-                                    <FormField label="Parecer orçamentário" required>
+                                    <FormField label="Parecer orçamentário">
                                         <div class="border rounded-lg px-4 py-3 mt-2 flex items-center justify-between">
                                             <span class="text-sm font-bold"> O parecer ainda não foi gerado </span>
 
@@ -416,8 +406,7 @@ const permissionMessage = computed(() => {
                             <template v-else-if="section.key === 'installments'">
                                 <div class="grid grid-cols-2 gap-4">
                                     <FormField
-                                        :label="`Valor da ${installmentLabel} parcela`"
-                                        required
+                                        :label="`Valor da ${project.current_installment_cycle}ª parcela`"
                                         :error="form.errors.installment_amount"
                                     >
                                         <TextField v-model="form.installment_amount" money />

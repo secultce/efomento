@@ -17,7 +17,7 @@ class BudgetStoreRequest extends FormRequest
             'processing_date_for_codip' => ['nullable', 'date'],
             'processing_date_for_coafi' => ['nullable', 'date'],
 
-            'installment_amount' => ['nullable', 'numeric', 'min:0.01'],
+            'installment_amount' => ['nullable', 'numeric', 'min:0.01', 'max:99999999.99'],
             'installment_request_date' => ['nullable', 'date'],
             'installment_justification' => ['nullable', 'string'],
             'installment_observations' => ['nullable', 'string'],
@@ -33,7 +33,7 @@ class BudgetStoreRequest extends FormRequest
 
             'installment_amount.numeric' => 'O valor da parcela deve ser numérico.',
             'installment_amount.min' => 'O valor da parcela deve ser maior que zero.',
-
+            'installment_amount.max' => 'O valor da parcela não pode ser superior a 99.999.999,99.',
             'installment_request_date.date' => 'A data de solicitação da parcela deve ser uma data válida.',
 
             'installment_justification.string' => 'A justificativa da parcela deve ser um texto válido.',
