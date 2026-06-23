@@ -9,10 +9,6 @@ describe('Formalization', () => {
         cy.fixture('notices').as('notice');
         cy.fixture('projects').as('project');
 
-        // cy.get('@user').then((user) => {
-
-        // });
-
         Login.accessLoginPage();
         Login.successLogin('glaucivane.portela@secult.ce.gov.br', 'password', 'Glaucivane Silveira Barbosa Portel');
 
