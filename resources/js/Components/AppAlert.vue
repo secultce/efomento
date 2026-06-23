@@ -1,7 +1,7 @@
 <script setup>
 import { useAlert } from '@/Composables/useAlert';
 
-const { isOpen, title, message, buttonText, confirm } = useAlert();
+const { isOpen, title, message, buttonText, cancelText, confirm, cancel } = useAlert();
 </script>
 
 <template>
@@ -15,9 +15,17 @@ const { isOpen, title, message, buttonText, confirm } = useAlert();
                 {{ message }}
             </v-card-text>
 
-            <v-card-actions>
+            <v-card-actions class="flex gap-2">
                 <v-btn
-                    class="w-full !shadow-none !font-bold !bg-[#ffcc05FF] !text-[#2d353fFF] rounded-lg text-xs"
+                    v-if="cancelText"
+                    variant="outlined"
+                    class="flex-1 !shadow-none !font-bold rounded-lg text-xs"
+                    @click="cancel"
+                >
+                    {{ cancelText }}
+                </v-btn>
+                <v-btn
+                    class="flex-1 !shadow-none !font-bold !bg-[#ffcc05FF] !text-[#2d353fFF] rounded-lg text-xs"
                     @click="confirm"
                 >
                     {{ buttonText }}

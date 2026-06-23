@@ -8,6 +8,7 @@ use App\Enums\ProjectStageSlug;
 use App\Enums\ProjectStageStatus;
 use App\Models\Document;
 use App\Models\Formalization;
+use App\Models\Notice;
 use App\Models\Project;
 use App\Models\ProjectStage;
 use App\Models\User;
@@ -208,5 +209,51 @@ class ProjectStageControllerTest extends TestCase
                 'reason' => 'Tentativa de devolução inválida.',
             ])
             ->assertSessionHas('error', 'Não há etapa anterior para devolução.');
+    }
+
+    // — requestNextInstallment —
+
+    public function test_request_next_installment_returns_error_when_single_installment(): void
+    {
+        $project = Project::factory()
+            ->for(Notice::factory()->state(['installments' => 1]))
+            ->create();
+
+        $user = User::factory()->create();
+
+        $this->actingAs($user)
+            ->patch(route('projects.stages.request-next-installment', $project))
+            ->assertSessionHasErrors(['message']);
+    }
+
+    public function test_request_next_installment_returns_error_when_monitoring_not_active(): void
+    {
+        $project = Project::factory()
+            ->for(Notice::factory()->state(['installments' => 2]))
+            ->create(['current_installment_cycle' => 1]);
+
+        $user = User::factory()->create();
+
+        $this->actingAs($user)
+            ->patch(route('projects.stages.request-next-installment', $project))
+            ->assertSessionHasErrors(['message']);
+    }
+
+    public function test_request_next_installment_redirects_on_success(): void
+    {
+        $project = Project::factory()
+            ->for(Notice::factory()->state(['installments' => 2]))
+            ->create(['current_installment_cycle' => 1]);
+
+        $this->activateStage($project, ProjectStageSlug::MONITORAMENTO);
+
+        $user = User::factory()->create();
+
+        $this->actingAs($user)
+            ->patch(route('projects.stages.request-next-installment', $project))
+            ->assertRedirect()
+            ->assertSessionHasNoErrors();
+
+        $this->assertEquals(2, $project->fresh()->current_installment_cycle);
     }
 }

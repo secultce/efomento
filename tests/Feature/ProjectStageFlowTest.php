@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use App\Enums\ProjectStageSlug;
 use App\Enums\ProjectStageStatus;
+use App\Models\Notice;
 use App\Models\Project;
 use App\Models\ProjectStage;
 use App\Models\User;
@@ -252,5 +253,87 @@ class ProjectStageFlowTest extends TestCase
         $orders = $project->stages->pluck('order')->all();
 
         $this->assertEquals([1, 2, 3, 4, 5, 6, 7], $orders);
+    }
+
+    // — requestNextInstallment —
+
+    private function activateStage(Project $project, ProjectStageSlug $slug): ProjectStage
+    {
+        $stage = $project->stages()->where('slug', $slug->value)->firstOrFail();
+
+        $project->stages()
+            ->where('order', '<', $stage->order)
+            ->update([
+                'status' => ProjectStageStatus::APROVADO->value,
+                'started_at' => now()->subDay(),
+                'concluded_at' => now(),
+            ]);
+
+        $stage->update([
+            'status' => ProjectStageStatus::EM_ANDAMENTO->value,
+            'started_at' => now(),
+        ]);
+
+        return $stage->fresh();
+    }
+
+    public function test_request_next_installment_throws_when_notice_has_single_installment(): void
+    {
+        $project = Project::factory()
+            ->for(Notice::factory()->state(['installments' => 1]))
+            ->create();
+
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessage('Projeto não possui múltiplas parcelas.');
+
+        $this->service->requestNextInstallment($project);
+    }
+
+    public function test_request_next_installment_throws_when_all_cycles_completed(): void
+    {
+        $project = Project::factory()
+            ->for(Notice::factory()->state(['installments' => 2]))
+            ->create(['current_installment_cycle' => 2]);
+
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessage('Todos os ciclos de parcelas já foram concluídos.');
+
+        $this->service->requestNextInstallment($project);
+    }
+
+    public function test_request_next_installment_throws_when_monitoring_not_em_andamento(): void
+    {
+        $project = Project::factory()
+            ->for(Notice::factory()->state(['installments' => 2]))
+            ->create(['current_installment_cycle' => 1]);
+
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessage('A etapa de Monitoramento precisa estar em andamento.');
+
+        $this->service->requestNextInstallment($project);
+    }
+
+    public function test_request_next_installment_increments_cycle_and_resets_stages(): void
+    {
+        $project = Project::factory()
+            ->for(Notice::factory()->state(['installments' => 2]))
+            ->create(['current_installment_cycle' => 1]);
+
+        $this->activateStage($project, ProjectStageSlug::MONITORAMENTO);
+
+        $this->service->requestNextInstallment($project);
+
+        $project->refresh();
+
+        $this->assertEquals(2, $project->current_installment_cycle);
+
+        $budget = $project->stages()->where('slug', ProjectStageSlug::ORCAMENTO)->first();
+        $this->assertEquals(ProjectStageStatus::EM_ANDAMENTO, $budget->status);
+
+        $payment = $project->stages()->where('slug', ProjectStageSlug::PAGAMENTO)->first();
+        $this->assertEquals(ProjectStageStatus::BLOQUEADO, $payment->status);
+
+        $monitoring = $project->stages()->where('slug', ProjectStageSlug::MONITORAMENTO)->first();
+        $this->assertEquals(ProjectStageStatus::APROVADO, $monitoring->status);
     }
 }

@@ -16,6 +16,8 @@ class DiligenceMessageResource extends JsonResource
             'to_email' => $this->to_email,
             'subject' => $this->subject,
             'body' => $this->body,
+            'imap_message_id' => $this->imap_message_id,
+            'in_reply_to' => $this->in_reply_to,
             'sent_at' => $this->sent_at?->toISOString(),
             'read_at' => $this->read_at?->toISOString(),
             'creator' => $this->creator?->name,
