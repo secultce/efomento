@@ -2,12 +2,14 @@
 import { computed, ref } from 'vue';
 import SupervisorDialog from '@/Pages/Projects/Partials/Actions/SupervisorDialog.vue';
 import { useAuth } from '@/Composables/useAuth';
+import { usePermissions } from '@/Composables/usePermissions';
 import { downloadDocumentsZip } from '@/Services/documentService';
 import NoticeHistoryDialog from '@/Pages/Projects/Partials/Actions/NoticeHistoryDialog.vue';
 import HandleDocumentsDialog from '../HandleDocumentsDialog.vue';
 import DocumentListDialog from '../DocumentListDialog.vue';
 
-const { canPerform, hasRole } = useAuth();
+const { canPerform } = useAuth();
+const { isSuperAdmin } = usePermissions();
 
 const props = defineProps({
     selectedProjects: { type: Array, default: () => [] },
@@ -39,11 +41,11 @@ const hasProjectsWithSupervisor = computed(() => {
 });
 
 const canAssignSupervisor = computed(() => {
-    return hasRole('super_admin') || canPerform('opening.assign_supervisor');
+    return isSuperAdmin.value || canPerform('opening.assign_supervisor');
 });
 
 const canCreateCI = computed(() => {
-    return hasRole('super_admin') || canPerform('ci.create');
+    return isSuperAdmin.value || canPerform('ci.create');
 });
 
 const selectedProjectsList = computed(() => {

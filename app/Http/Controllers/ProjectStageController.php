@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Enums\ProjectStageSlug;
+use App\Enums\Role;
 use App\Http\Requests\Stages\ReturnStageRequest;
 use App\Models\Project;
 use App\Models\ProjectStage;
@@ -75,7 +76,7 @@ class ProjectStageController extends Controller
             $this->notificationService->notifyProcessReturned(
                 $project,
                 $request->validated('reason'),
-                ['fomentation', 'coord_fomentation']
+                Role::fomentoRoles()
             );
 
             return back()->with('success', 'Processo devolvido com sucesso.');

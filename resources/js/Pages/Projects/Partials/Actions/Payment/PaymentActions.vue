@@ -6,6 +6,7 @@ import HandleDocumentsDialog from '../HandleDocumentsDialog.vue';
 import DocumentListDialog from '../DocumentListDialog.vue';
 import { useSnackbar } from '@/Composables/useSnackbar.js';
 import { useAuth } from '@/Composables/useAuth.js';
+import { usePermissions } from '@/Composables/usePermissions';
 
 const props = defineProps({
     selectedProjects: { type: Array, default: () => [] },
@@ -15,7 +16,8 @@ const props = defineProps({
 
 defineEmits(['saved']);
 
-const { canPerform, hasRole } = useAuth();
+const { canPerform } = useAuth();
+const { canManagePayment } = usePermissions();
 
 const viewHistory = ref(false);
 const dispatchDialog = ref(false);
@@ -68,12 +70,10 @@ const selectedDispatch = computed(() => {
     };
 });
 
-const canImportPayments = computed(() => {
-    return hasRole('super_admin') || hasRole('coord_financial') || hasRole('payment');
-});
+const canImportPayments = canManagePayment;
 
 const canCreateDispatch = computed(() => {
-    return hasRole('super_admin') || hasRole('coord_financial') || hasRole('payment') || canPerform('dispatch.create');
+    return canManagePayment.value || canPerform('dispatch.create');
 });
 
 function openNoticeHistory() {

@@ -11,6 +11,7 @@ use App\Enums\OpeningStatus;
 use App\Enums\ProjectStageSlug;
 use App\Enums\ProjectStageStatus;
 use App\Enums\ReportStatus;
+use App\Enums\Role;
 use App\Enums\TermStatus;
 use App\Http\Resources\ProjectResource;
 use App\Models\Notice;
@@ -75,10 +76,7 @@ class ProjectController extends Controller
                     ];
                 }),
 
-            'supervisorsAvailable' => User::role([
-                'monitoring',
-                'coord_monitoring',
-            ])
+            'supervisorsAvailable' => User::role(Role::monitoringRoles())
                 ->select('id', 'name')
                 ->get(),
         ]);
@@ -107,7 +105,7 @@ class ProjectController extends Controller
             'stages',
         ]);
 
-        $availableSupervisors = User::role(['monitoring', 'coord_monitoring'])
+        $availableSupervisors = User::role(Role::monitoringRoles())
             ->select('id', 'name', 'registration_number')
             ->get();
 

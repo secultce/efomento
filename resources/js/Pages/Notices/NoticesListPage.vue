@@ -2,6 +2,7 @@
 import { ref, computed, watch } from 'vue';
 import NupDialog from './NupDialog.vue';
 import { router } from '@inertiajs/vue3';
+import { usePermissions } from '@/Composables/usePermissions';
 
 const props = defineProps({
     notices: {
@@ -171,6 +172,8 @@ function onChangePerPage(qty) {
 }
 
 // ─── nup dialog ───────────────────────────────────────────────────────────────
+const { canManageNotices } = usePermissions();
+
 const dialog = ref(false);
 const selectedItem = ref(null);
 
@@ -275,6 +278,10 @@ function openDialog(item) {
                 </span>
                 <v-btn
                     v-else
+                    v-permission="{
+                        condition: canManageNotices,
+                        message: 'Você não tem permissão para informar os dados de identificação',
+                    }"
                     variant="text"
                     density="compact"
                     class="!text-[#008344] !font-bold spacing tracking-tight"

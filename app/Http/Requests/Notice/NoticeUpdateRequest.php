@@ -3,6 +3,7 @@
 namespace App\Http\Requests\Notice;
 
 use App\Enums\InstrumentType;
+use App\Enums\Role;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\Rules\Enum;
@@ -11,7 +12,7 @@ class NoticeUpdateRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        return true;
+        return $this->user()->hasAnyRole(Role::fomentoRoles());
     }
 
     public function messages(): array

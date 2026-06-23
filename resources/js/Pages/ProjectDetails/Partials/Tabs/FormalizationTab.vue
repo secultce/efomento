@@ -16,7 +16,7 @@ import TramitButton from '@/Pages/ProjectDetails/Partials/Tabs/Actions/TramitBut
 import { viewSections } from '@/Schemas/Opening';
 import { formSections } from '@/Schemas/Formalization';
 
-import { useAuth } from '@/Composables/useAuth';
+import { usePermissions } from '@/Composables/usePermissions';
 import { useDate } from '@/Composables/useDate';
 import { useSnackbar } from '@/Composables/useSnackbar';
 import { useAlert } from '@/Composables/useAlert';
@@ -30,12 +30,12 @@ const props = defineProps({
     deliberation: { type: Array, default: () => [] },
 });
 
-const { hasRole } = useAuth();
+const { canManageFormalization } = usePermissions();
 const { normalizeDate } = useDate();
 const { showSnackbar } = useSnackbar();
 const { showAlert } = useAlert();
 
-const canUserHandleFormalization = computed(() => hasRole(['super_admin', 'legal_analysis', 'coord_legal']));
+const canUserHandleFormalization = canManageFormalization;
 
 const stage = computed(() => props.project.stages?.find((s) => s.slug === 'formalizacao'));
 
