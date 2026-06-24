@@ -79,6 +79,7 @@ function downloadDocument(document) {
 }
 
 function viewDocument(document) {
+    document.project = props.project;
     viewerDocument.value = document;
     viewerOpen.value = true;
 }

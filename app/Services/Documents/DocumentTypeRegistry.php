@@ -29,7 +29,7 @@ class DocumentTypeRegistry
             'requires_legal' => true,
         ],
         'po+budget' => [
-            'label' => 'Parecer Jurídico',
+            'label' => 'Parecer Orçamentário',
             'requires_sign' => true,
             'requires_legal' => true,
         ],

@@ -10,6 +10,7 @@ import { useSnackbar } from '@/Composables/useSnackbar';
 import { Head, router } from '@inertiajs/vue3';
 import { ref } from 'vue';
 import FormalizationActions from './Partials/Actions/Formalization/FormalizationActions.vue';
+import BudgetActions from './Partials/Actions/Budget/BudgetActions.vue';
 import PaymentActions from './Partials/Actions/Payment/PaymentActions.vue';
 import MonitoringActions from './Partials/Actions/Monitoring/MonitoringActions.vue';
 
@@ -180,6 +181,12 @@ function handleAction({ action, item }) {
                     />
                     <FormalizationActions
                         v-else-if="selectedPhase === 'formalizacao'"
+                        :selected-projects="selectedProjects"
+                        :projects="projects"
+                        :notice="notice"
+                    />
+                    <BudgetActions
+                        v-else-if="selectedPhase === 'orcamento'"
                         :selected-projects="selectedProjects"
                         :projects="projects"
                         :notice="notice"
