@@ -85,6 +85,7 @@ const installments = computed(() => {
 
             settlement_date: savedInstallment?.settlement_date ?? null,
             settlement_number: savedInstallment?.settlement_number ?? null,
+            settlement_amount: savedInstallment?.settlement_amount ?? null,
 
             payment_date: savedInstallment?.payment_date ?? null,
             payment_order_number: savedInstallment?.payment_order_number ?? null,
@@ -154,7 +155,7 @@ function formatText(value) {
 
 function getInstallmentStatus(installment) {
     const committed = toNumber(installment?.committed_amount);
-    const liquidated = toNumber(installment?.amount);
+    const liquidated = toNumber(installment?.settlement_amount);
     const paid = toNumber(installment?.payment_amount);
 
     const hasCommitmentData = committed > 0;
@@ -520,7 +521,11 @@ const tramit = async () => {
                                         </FormField>
 
                                         <FormField label="Liquidado">
-                                            <TextField :model-value="selectedInstallment.amount" money disabled />
+                                            <TextField
+                                                :model-value="selectedInstallment.settlement_amount"
+                                                money
+                                                disabled
+                                            />
                                         </FormField>
 
                                         <FormField label="Data de solicitação">

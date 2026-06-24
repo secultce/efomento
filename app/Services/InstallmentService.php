@@ -31,6 +31,7 @@ class InstallmentService
 
         $budgetInstallment->update([
             'remarks' => $remarks,
+            'updated_by' => auth()->id(),
         ]);
     }
 }

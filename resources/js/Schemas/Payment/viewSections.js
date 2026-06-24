@@ -18,7 +18,7 @@ export const viewSections = [
     {
         title: 'Dados Bancários',
         fields: [
-            { label: 'Banco', key: 'agente.opening.bank' },
+            { label: 'Banco', key: 'agente.openings.bank' },
             { label: 'Conta', key: 'agent.openings.account' },
             { label: 'Agência', key: 'agent.openings.branch' },
             { label: 'Tipo de Conta', key: 'agent.openings.account_type' },

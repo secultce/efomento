@@ -27,6 +27,7 @@ class Installment extends Model implements Auditable
 
         'settlement_number',
         'settlement_date',
+        'settlement_amount',
 
         'payment_order_number',
         'payment_amount',

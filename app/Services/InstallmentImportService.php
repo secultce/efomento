@@ -138,6 +138,9 @@ class InstallmentImportService
                     'settlement_number' => Import::string($row['nota_de_liquidacao'] ?? null)
                         ?? $installmentModel->settlement_number,
 
+                    'settlement_amount' => Import::money($row['liquidado'] ?? null)
+                        ?? $installmentModel->settlement_amount,
+
                     'payment_date' => Import::date($row['data_ob'] ?? null)
                         ?? $installmentModel->payment_date,
 
@@ -171,7 +174,7 @@ class InstallmentImportService
                     'payment_amount' => Import::money($row['pago'] ?? null)
                         ?? $installmentModel->payment_amount,
 
-                    'updated_by' => Auth()->id(),
+                    'updated_by' => auth()->id(),
                 ]);
 
                 $updated++;
