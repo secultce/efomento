@@ -129,6 +129,16 @@ function handleSaved() {
     selectedProjects.value = [];
 }
 
+const phaseToTab = {
+    abertura: 'opening',
+    analise_juridica: 'legal-analysis',
+    formalizacao: 'formalization',
+    orcamento: 'budget',
+    pagamento: 'payment',
+    monitoramento: 'monitoring',
+    prestacao_de_contas: 'monitoring',
+};
+
 function handleAction({ action, item }) {
     if (!item?.opening?.id) {
         showSnackbar('Projeto ainda não entrou em fase de abertura.', 'error');
@@ -136,12 +146,13 @@ function handleAction({ action, item }) {
     }
 
     if (action === 'open') {
+        const tab = phaseToTab[selectedPhase.value] ?? 'opening';
         router.get(
             route('notices.projects.show', {
                 notice: props.notice.id,
                 project: item.id,
             }),
-            selectedPhase.value ? { tab: selectedPhase.value } : {}
+            selectedPhase.value ? { tab } : {}
         );
     }
 }
