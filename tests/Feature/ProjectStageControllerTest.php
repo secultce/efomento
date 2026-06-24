@@ -150,6 +150,7 @@ class ProjectStageControllerTest extends TestCase
     {
         Role::firstOrCreate(['name' => 'fomentation', 'guard_name' => 'web']);
         Role::firstOrCreate(['name' => 'coord_fomentation', 'guard_name' => 'web']);
+        Role::firstOrCreate(['name' => 'super_admin', 'guard_name' => 'web']);
 
         $project = Project::factory()->create();
         $stage = $this->activateStage($project, ProjectStageSlug::FORMALIZACAO);
