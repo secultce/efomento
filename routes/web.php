@@ -93,6 +93,12 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('/editais/{notice}/projetos/pagamento/import', [InstallmentController::class, 'import'])
         ->scopeBindings()
         ->name('installments.import');
+    Route::patch(
+        '/projetos/{project}/parcelas/{installment}/observacao',
+        [InstallmentController::class, 'updateRemark']
+    )
+        ->scopeBindings()
+        ->name('projects.installments.remarks.update');
     Route::get('/projetos/{project}/analise-juridica', [LegalAnalysisController::class, 'index'])
         ->name('legal-analysis.index');
     Route::get('/projetos/{project}/analise-juridica/arquivos/{file}', [LegalAnalysisController::class, 'serveFile'])

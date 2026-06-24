@@ -1,0 +1,593 @@
+<script setup>
+import { computed, ref, watch } from 'vue';
+import { useForm, router } from '@inertiajs/vue3';
+
+import SplitScreenTab from '@/Components/SplitScreenTab.vue';
+import SectionChips from '@/Components/SectionChips.vue';
+import SectionContent from '@/Components/SectionContent.vue';
+import SectionForm from '@/Components/SectionForm.vue';
+import ReturnProcessModal from '@/Components/ReturnProcessModal.vue';
+import FormField from '@/Components/FormField.vue';
+import TextField from '@/Components/TextField.vue';
+import TramitButton from '@/Pages/ProjectDetails/Partials/Tabs/Actions/TramitButton.vue';
+
+import { viewSections, formSections } from '@/Schemas/Payment';
+
+import { useAuth } from '@/Composables/useAuth';
+import { useDate } from '@/Composables/useDate';
+import { useSnackbar } from '@/Composables/useSnackbar';
+import { useAlert } from '@/Composables/useAlert';
+import AuxLinks from '@/Components/AuxLinks.vue';
+
+const props = defineProps({
+    project: { type: Object, required: true },
+    canReturn: { type: Boolean, default: false },
+    currentStage: { type: Object, default: null },
+});
+
+const { hasRole } = useAuth();
+const { normalizeDate } = useDate();
+const { showSnackbar } = useSnackbar();
+const { showAlert } = useAlert();
+
+const canUserHandlePayment = computed(() => hasRole(['super_admin', 'financial', 'coord_financial']));
+
+const stage = computed(() => props.project.stages?.find((s) => s.slug === 'pagamento'));
+
+const paymentStage = computed(() => {
+    return props.currentStage ?? props.project.stages?.find((s) => s.slug === 'pagamento');
+});
+
+const showReturnModal = ref(false);
+const activeViewIndex = ref('all');
+const activeEditIndex = ref('all');
+const selectedInstallmentNumber = ref(null);
+
+const budget = computed(() => props.project.budgets ?? null);
+
+const remarksForm = useForm({
+    remarks: '',
+});
+
+const noticeInstallmentsCount = computed(() => {
+    const count = Number(
+        props.project.notice?.installments ??
+            props.project.opening?.notice?.installments ??
+            props.project.notice_installments ??
+            0
+    );
+
+    return Number.isFinite(count) && count > 0 ? count : 0;
+});
+
+const savedInstallmentsByNumber = computed(() => {
+    return new Map(
+        (budget.value?.installments ?? []).map((installment) => [Number(installment.installment_number), installment])
+    );
+});
+
+const installments = computed(() => {
+    return Array.from({ length: noticeInstallmentsCount.value }, (_, index) => {
+        const installmentNumber = index + 1;
+        const savedInstallment = savedInstallmentsByNumber.value.get(installmentNumber);
+
+        return {
+            exists: !!savedInstallment,
+
+            id: savedInstallment?.id ?? null,
+            installment_number: installmentNumber,
+
+            amount: savedInstallment?.amount ?? null,
+            request_date: savedInstallment?.request_date ?? null,
+            justification: savedInstallment?.justification ?? null,
+            observations: savedInstallment?.observations ?? null,
+            remarks: savedInstallment?.remarks ?? null,
+
+            settlement_date: savedInstallment?.settlement_date ?? null,
+            settlement_number: savedInstallment?.settlement_number ?? null,
+            settlement_amount: savedInstallment?.settlement_amount ?? null,
+
+            payment_date: savedInstallment?.payment_date ?? null,
+            payment_order_number: savedInstallment?.payment_order_number ?? null,
+            payment_amount: savedInstallment?.payment_amount ?? null,
+
+            full_source: savedInstallment?.full_source ?? null,
+            expense_nature: savedInstallment?.expense_nature ?? null,
+            process_number: savedInstallment?.process_number ?? null,
+            creditor: savedInstallment?.creditor ?? null,
+            creditor_name: savedInstallment?.creditor_name ?? null,
+            retention_creditor: savedInstallment?.retention_creditor ?? null,
+            origin_bank_domicile: savedInstallment?.origin_bank_domicile ?? null,
+            committed_amount: savedInstallment?.committed_amount ?? null,
+        };
+    });
+});
+
+watch(
+    installments,
+    (items) => {
+        if (!items.length) {
+            selectedInstallmentNumber.value = null;
+            return;
+        }
+
+        const selectedStillExists = items.some(
+            (item) => Number(item.installment_number) === Number(selectedInstallmentNumber.value)
+        );
+
+        if (!selectedStillExists) {
+            selectedInstallmentNumber.value = items[0].installment_number;
+        }
+    },
+    { immediate: true }
+);
+
+const selectedInstallment = computed(() => {
+    return (
+        installments.value.find(
+            (item) => Number(item.installment_number) === Number(selectedInstallmentNumber.value)
+        ) ?? null
+    );
+});
+
+watch(
+    selectedInstallment,
+    (installment) => {
+        remarksForm.remarks = installment?.remarks ?? '';
+        remarksForm.clearErrors();
+    },
+    { immediate: true }
+);
+
+function hasValue(value) {
+    return value !== null && value !== undefined && value !== '';
+}
+
+function toNumber(value) {
+    const number = Number(value ?? 0);
+
+    return Number.isFinite(number) ? number : 0;
+}
+
+function formatText(value) {
+    return hasValue(value) ? value : '—';
+}
+
+function getInstallmentStatus(installment) {
+    const committed = toNumber(installment?.committed_amount);
+    const liquidated = toNumber(installment?.settlement_amount);
+    const paid = toNumber(installment?.payment_amount);
+
+    const hasCommitmentData = committed > 0;
+
+    const hasSettlementData =
+        hasValue(installment?.settlement_date) || hasValue(installment?.settlement_number) || liquidated > 0;
+
+    const hasPaymentData = hasValue(installment?.payment_date) || hasValue(installment?.payment_amount) || paid > 0;
+
+    const isIrregular =
+        (hasPaymentData && !hasSettlementData) ||
+        (hasSettlementData && !hasCommitmentData) ||
+        (hasPaymentData && hasCommitmentData && paid !== committed) ||
+        (liquidated > 0 && committed > 0 && liquidated > committed);
+
+    if (isIrregular) {
+        return {
+            label: 'Irregular',
+            icon: 'mdi-alert-circle',
+            class: 'text-red-700 border-red-200',
+        };
+    }
+
+    if (hasPaymentData) {
+        return {
+            label: 'Pago',
+            icon: 'mdi-check-circle',
+            class: 'text-green-700 border-green-200',
+        };
+    }
+
+    if (hasSettlementData) {
+        return {
+            label: 'Liquidado',
+            icon: 'mdi-file-check-outline',
+            class: 'text-blue-700 border-blue-200',
+        };
+    }
+
+    if (hasCommitmentData) {
+        return {
+            label: 'Empenhado',
+            icon: 'mdi-cash-check',
+            class: 'text-purple-700 border-purple-200',
+        };
+    }
+
+    return {
+        label: 'Pendente',
+        icon: 'mdi-clock-outline',
+        class: 'text-yellow-700 border-yellow-200',
+    };
+}
+
+const hasPaymentData = computed(() => {
+    return (
+        hasValue(selectedInstallment.value?.payment_date) ||
+        hasValue(selectedInstallment.value?.payment_order_number) ||
+        toNumber(selectedInstallment.value?.payment_amount) > 0
+    );
+});
+
+const canTramitPayment = computed(() => {
+    return (
+        canUserHandlePayment.value &&
+        !!selectedInstallment.value &&
+        hasPaymentData.value &&
+        stage?.value.status !== 'aprovado' &&
+        stage?.value.status !== 'bloqueado'
+    );
+});
+
+function saveRemarks(options = {}) {
+    const { showSuccess = true } = options;
+
+    return new Promise((resolve) => {
+        if (!selectedInstallment.value) {
+            resolve(false);
+            return;
+        }
+
+        remarksForm.patch(
+            route('projects.installments.remarks.update', {
+                project: props.project.id,
+                installment: selectedInstallment.value.installment_number,
+            }),
+            {
+                preserveScroll: true,
+                onSuccess: () => {
+                    if (showSuccess) {
+                        showSnackbar('Observação salva com sucesso!', 'success');
+                    }
+
+                    resolve(true);
+                },
+                onError: (errors) => {
+                    const message =
+                        Object.values(errors).flat().filter(Boolean).join(', ') || 'Erro ao salvar observação.';
+
+                    showSnackbar(message, 'error');
+
+                    resolve(false);
+                },
+            }
+        );
+    });
+}
+
+function showTramitBlockedMessage() {
+    if (canTramitPayment.value) {
+        return;
+    }
+
+    if (!hasPaymentData.value) {
+        showSnackbar('Os dados de pagamento precisam ser importados antes da tramitação.', 'warning');
+
+        return;
+    }
+
+    if (!canUserHandlePayment.value) {
+        showSnackbar('Usuário não tem permissão para tramitar pagamento.', 'warning');
+
+        return;
+    }
+
+    showSnackbar('Este projeto já foi tramitado ou não é possivel tramitar no momento.', 'error');
+}
+
+const tramitLoading = ref(false);
+
+const tramit = async () => {
+    if (!paymentStage.value?.id) {
+        showSnackbar('Etapa de pagamento não encontrada.', 'error');
+        return;
+    }
+
+    if (!canTramitPayment.value) {
+        showTramitBlockedMessage();
+        return;
+    }
+
+    tramitLoading.value = true;
+
+    const saved = await saveRemarks({ showSuccess: false });
+
+    if (!saved) {
+        tramitLoading.value = false;
+        return;
+    }
+
+    router.patch(
+        route('projects.stages.advance', {
+            project: props.project.id,
+            stage: paymentStage.value.id,
+        }),
+        {},
+        {
+            preserveScroll: true,
+            onSuccess: () => {
+                showAlert({
+                    alertTitle: 'Tarefa marcada como tramitada',
+                    alertMessage:
+                        'As informações foram validadas e as pessoas envolvidas nesse processo foram notificadas.',
+                    confirmText: 'Entendi',
+                    action: () => {
+                        router.visit(window.location.pathname, {
+                            preserveState: false,
+                            preserveScroll: true,
+                        });
+                    },
+                });
+            },
+            onError: (errors) => {
+                const message = Object.values(errors).flat().join(', ') || 'Erro ao tramitar projeto';
+                showSnackbar(message, 'error');
+            },
+            onFinish: () => {
+                tramitLoading.value = false;
+            },
+        }
+    );
+};
+</script>
+
+<template>
+    <SplitScreenTab value="payment">
+        <template #left-content>
+            <div class="space-y-6">
+                <div>
+                    <p class="font-bold text-lg d-flex justify-between">
+                        Dados disponíveis para consulta
+
+                        <v-btn
+                            v-if="canReturn && currentStage"
+                            v-permission="{
+                                condition: !canUserHandlePayment || stage?.status !== 'aprovado',
+                                message: !canUserHandlePayment
+                                    ? 'Usuário não tem permissão para devolver processo'
+                                    : 'Pagamento já foi tramitado.',
+                            }"
+                            class="!shadow-none !font-bold !bg-[#ffcc05FF] !text-[#2d353fFF] rounded-lg text-xs"
+                            @click="showReturnModal = true"
+                        >
+                            DEVOLVER PROCESSO
+                        </v-btn>
+                    </p>
+
+                    <p class="text-sm text-gray-600">Utilize os filtros abaixo para navegar entre os dados</p>
+                </div>
+
+                <SectionChips v-model="activeViewIndex" :sections="viewSections" show-all-option />
+
+                <div class="space-y-8">
+                    <template v-for="(section, index) in viewSections" :key="'view-' + section.title">
+                        <SectionContent
+                            v-if="activeViewIndex === 'all' || activeViewIndex === index"
+                            :section="section"
+                            :project="project"
+                        />
+                    </template>
+                </div>
+            </div>
+        </template>
+
+        <template #right-content>
+            <div class="space-y-6">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="font-bold text-lg">Campos para você inserir ou editar dados</p>
+
+                        <p class="font-bold text-md mt-2 text-black">Links auxiliares</p>
+                    </div>
+
+                    <v-btn
+                        variant="outlined"
+                        color="outlineSecondary"
+                        class="rounded-lg"
+                        :loading="remarksForm.processing"
+                        :disabled="remarksForm.processing || !selectedInstallment"
+                        @click="saveRemarks"
+                    >
+                        Salvar Alterações
+                    </v-btn>
+                </div>
+
+                <aux-links />
+
+                <SectionChips v-model="activeEditIndex" :sections="formSections" />
+
+                <SectionForm :active-edit-index="activeEditIndex" :sections="formSections">
+                    <template #default="{ section }">
+                        <template v-if="section.key === 'tramit_date'">
+                            <div class="grid grid-cols-2 gap-4">
+                                <FormField label="Data de tramitação para a Coafi">
+                                    <TextField
+                                        :model-value="normalizeDate(budget?.processing_date_for_coafi)"
+                                        type="date"
+                                        disabled
+                                    />
+                                </FormField>
+                            </div>
+                        </template>
+
+                        <template v-else-if="section.key === 'payment_date'">
+                            <div class="space-y-6">
+                                <div v-if="installments.length" class="w-full">
+                                    <v-chip-group
+                                        v-model="selectedInstallmentNumber"
+                                        mandatory
+                                        selected-class="bg-primary text-white"
+                                        column
+                                    >
+                                        <v-chip
+                                            v-for="installment in installments"
+                                            :key="installment.installment_number"
+                                            :value="installment.installment_number"
+                                            filter
+                                            variant="outlined"
+                                        >
+                                            <v-icon start size="16" :class="getInstallmentStatus(installment).class">
+                                                {{ getInstallmentStatus(installment).icon }}
+                                            </v-icon>
+
+                                            Pagamento:
+                                            <span class="ml-1 font-bold">
+                                                {{ installment.installment_number }}ª parcela
+                                            </span>
+
+                                            <span class="ml-2 text-xs opacity-70">
+                                                {{ getInstallmentStatus(installment).label }}
+                                            </span>
+                                        </v-chip>
+                                    </v-chip-group>
+                                </div>
+
+                                <div v-if="selectedInstallment" class="space-y-6">
+                                    <div class="rounded-xl border bg-white p-4">
+                                        <div class="flex items-center justify-between">
+                                            <div>
+                                                <p class="text-sm text-gray-600">Parcela selecionada</p>
+
+                                                <p class="text-xl font-bold text-[#2d353f]">
+                                                    {{ selectedInstallment.installment_number }}ª parcela
+                                                </p>
+                                            </div>
+
+                                            <span
+                                                class="inline-flex items-center gap-1 rounded-full border px-3 py-1 text-xs font-bold"
+                                                :class="getInstallmentStatus(selectedInstallment).class"
+                                            >
+                                                <v-icon size="16">
+                                                    {{ getInstallmentStatus(selectedInstallment).icon }}
+                                                </v-icon>
+
+                                                {{ getInstallmentStatus(selectedInstallment).label }}
+                                            </span>
+                                        </div>
+                                    </div>
+
+                                    <div class="grid grid-cols-2 gap-4">
+                                        <FormField label="Valor da parcela">
+                                            <TextField :model-value="selectedInstallment.amount" money disabled />
+                                        </FormField>
+
+                                        <FormField label="Valor pago">
+                                            <TextField
+                                                :model-value="selectedInstallment.payment_amount"
+                                                money
+                                                disabled
+                                            />
+                                        </FormField>
+
+                                        <FormField label="N° de liquidação">
+                                            <TextField
+                                                :model-value="formatText(selectedInstallment.settlement_number)"
+                                                disabled
+                                            />
+                                        </FormField>
+
+                                        <FormField label="Data de liquidação">
+                                            <TextField
+                                                :model-value="normalizeDate(selectedInstallment.settlement_date)"
+                                                type="date"
+                                                disabled
+                                            />
+                                        </FormField>
+
+                                        <FormField label="Data da ordem bancária">
+                                            <TextField
+                                                :model-value="normalizeDate(selectedInstallment.payment_date)"
+                                                type="date"
+                                                disabled
+                                            />
+                                        </FormField>
+
+                                        <FormField label="Ordem bancária">
+                                            <TextField
+                                                :model-value="formatText(selectedInstallment.payment_order_number)"
+                                                disabled
+                                            />
+                                        </FormField>
+
+                                        <FormField label="Empenhado">
+                                            <TextField
+                                                :model-value="selectedInstallment.committed_amount"
+                                                money
+                                                disabled
+                                            />
+                                        </FormField>
+
+                                        <FormField label="Liquidado">
+                                            <TextField
+                                                :model-value="selectedInstallment.settlement_amount"
+                                                money
+                                                disabled
+                                            />
+                                        </FormField>
+
+                                        <FormField label="Data de solicitação">
+                                            <TextField
+                                                :model-value="normalizeDate(selectedInstallment.request_date)"
+                                                type="date"
+                                                disabled
+                                            />
+                                        </FormField>
+
+                                        <div class="col-span-2">
+                                            <FormField label="Observações" :error="remarksForm.errors.remarks">
+                                                <v-textarea
+                                                    v-model="remarksForm.remarks"
+                                                    label="Digite uma observação para esta parcela"
+                                                    rows="3"
+                                                    no-resize
+                                                    variant="outlined"
+                                                    class="mt-2"
+                                                    :disabled="!canTramitPayment"
+                                                />
+                                            </FormField>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div v-else class="rounded-xl border bg-white p-6 text-center">
+                                    <v-icon size="36" color="warning"> mdi-alert-circle-outline </v-icon>
+
+                                    <p class="mt-3 font-bold text-[#2d353f]">Nenhuma parcela prevista</p>
+
+                                    <p class="mt-1 text-sm text-gray-600">
+                                        O edital deste projeto não possui quantidade de parcelas definida.
+                                    </p>
+                                </div>
+                            </div>
+                        </template>
+                    </template>
+                </SectionForm>
+
+                <div :class="{ 'cursor-not-allowed': !canTramitPayment }" @click="showTramitBlockedMessage">
+                    <TramitButton
+                        :action="tramit"
+                        :disabled="!canTramitPayment"
+                        :loading="tramitLoading"
+                        :class="{ 'pointer-events-none': !canTramitPayment }"
+                    />
+                </div>
+            </div>
+        </template>
+    </SplitScreenTab>
+
+    <ReturnProcessModal
+        v-if="canReturn && currentStage"
+        v-model="showReturnModal"
+        :project-id="project.id"
+        :stage-id="currentStage.id"
+    />
+</template>

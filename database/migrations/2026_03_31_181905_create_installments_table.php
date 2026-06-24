@@ -31,6 +31,7 @@ return new class extends Migration
 
             $table->string('settlement_number')->nullable();
             $table->date('settlement_date')->nullable();
+            $table->decimal('settlement_amount', 10, 2)->nullable();
 
             $table->string('payment_order_number')->nullable();
             $table->decimal('payment_amount', 10, 2)->nullable();

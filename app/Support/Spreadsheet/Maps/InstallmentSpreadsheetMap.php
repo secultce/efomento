@@ -26,6 +26,11 @@ class InstallmentSpreadsheetMap implements SpreadsheetMap
                 'nl',
             ],
 
+            'liquidado' => [
+                'liquidado',
+                'Liquidado',
+            ],
+
             'data_ob' => [
                 'data_ob',
                 'data ob',
