@@ -219,7 +219,13 @@ const hasPaymentData = computed(() => {
 });
 
 const canTramitPayment = computed(() => {
-    return canUserHandlePayment.value && !!selectedInstallment.value && hasPaymentData.value;
+    return (
+        canUserHandlePayment.value &&
+        !!selectedInstallment.value &&
+        hasPaymentData.value &&
+        stage?.value.status !== 'aprovado' &&
+        stage?.value.status !== 'bloqueado'
+    );
 });
 
 function saveRemarks(options = {}) {
@@ -275,7 +281,7 @@ function showTramitBlockedMessage() {
         return;
     }
 
-    showSnackbar('Este projeto não pode ser tramitado no momento.', 'warning');
+    showSnackbar('Este projeto já foi tramitado ou não é possivel tramitar no momento.', 'error');
 }
 
 const tramitLoading = ref(false);
@@ -348,7 +354,7 @@ const tramit = async () => {
                                 condition: !canUserHandlePayment || stage?.status !== 'aprovado',
                                 message: !canUserHandlePayment
                                     ? 'Usuário não tem permissão para devolver processo'
-                                    : 'Orçamento já foi tramitado.',
+                                    : 'Pagamento já foi tramitado.',
                             }"
                             class="!shadow-none !font-bold !bg-[#ffcc05FF] !text-[#2d353fFF] rounded-lg text-xs"
                             @click="showReturnModal = true"
@@ -545,6 +551,7 @@ const tramit = async () => {
                                                     no-resize
                                                     variant="outlined"
                                                     class="mt-2"
+                                                    :disabled="!canTramitPayment"
                                                 />
                                             </FormField>
                                         </div>
