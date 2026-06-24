@@ -26,7 +26,7 @@ return new class extends Migration
 
             $table->date('asjur_processing_date')->nullable();
             $table->string('responsible_at_asjur')->nullable();
-            $table->string('term_number');
+            $table->string('term_number')->nullable();
 
             $table->date('term_signature_sent_at')->nullable();
             $table->enum('term_status', TermStatus::cases())->default(TermStatus::UNSIGNED->value);
