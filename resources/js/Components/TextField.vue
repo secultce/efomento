@@ -88,7 +88,8 @@ function handleInput(value) {
     }
 
     if (props.mask) {
-        newValue = newValue.replace(/\D/g, '');
+        const maxDigits = (props.mask.match(/#/g) || []).length;
+        newValue = newValue.replace(/\D/g, '').slice(0, maxDigits);
     }
 
     emit('update:modelValue', newValue);

@@ -85,7 +85,7 @@ onMounted(() => {
     const agent = props.project.agent || {};
 
     form.opening = {
-        opening_nup: opening.opening_nup ?? null,
+        opening_nup: (opening.opening_nup ?? '').replace(/\D/g, '') || null,
         opening_date: normalizeDate(opening.opening_date) ?? null,
         agent_status: opening.agent_status ?? null,
         opened_by: opening.opened_by ?? null,
@@ -209,7 +209,32 @@ const permissionMessage = computed(() => {
         return 'Este projeto está bloqueado e não pode receber alterações no momento.';
     }
 
+    if (!allRequiredFilled.value) {
+        return 'Preencha e salve todos os campos obrigatórios antes de tramitar.';
+    }
+
     return 'Projeto já foi tramitado e não está mais na fase de Abertura. Aguarde a resposta da Análise Jurídica ou entre em contato com o setor responsável para solicitar a devolução.';
+});
+
+const allRequiredFilled = computed(() => {
+    const opening = props.project.opening ?? {};
+    const formalization = props.project.formalizations ?? {};
+
+    const hasPrincipalSupervisor = (opening.supervisors ?? []).some((s) => s.type === 'principal');
+
+    return !!(
+        opening.opening_nup &&
+        opening.opening_date &&
+        opening.opened_by &&
+        opening.agent_status &&
+        opening.bank &&
+        opening.account_type &&
+        opening.branch &&
+        opening.account &&
+        hasPrincipalSupervisor &&
+        formalization.report_status &&
+        formalization.eparcerias_certificate_date
+    );
 });
 
 const activeViewIndex = ref('all');
@@ -260,7 +285,9 @@ const activeEditIndex = ref('all');
                 <div
                     v-permission="{
                         condition:
-                            !canUserHandleOpening || (stage?.status !== 'aprovado' && stage?.status !== 'bloqueado'),
+                            !canUserHandleOpening ||
+                            (stage?.status !== 'aprovado' && stage?.status !== 'bloqueado') ||
+                            !allRequiredFilled,
                         message: permissionMessage,
                     }"
                     class="mt-4"
@@ -272,7 +299,7 @@ const activeEditIndex = ref('all');
                                     <form-field label="Número do processo*" required>
                                         <text-field
                                             v-model="form.opening.opening_nup"
-                                            mask="####.######/####-##"
+                                            mask="#####.######/####-##"
                                             data-cy="project-nup-opening-tab"
                                         />
                                     </form-field>
@@ -386,7 +413,11 @@ const activeEditIndex = ref('all');
                             </template>
                         </template>
                     </section-form>
-                    <tramit-button :action="tramit" :disabled="!canUserHandleOpening" :loading="tramitLoading" />
+                    <tramit-button
+                        :action="tramit"
+                        :disabled="!canUserHandleOpening || !allRequiredFilled"
+                        :loading="tramitLoading"
+                    />
                 </div>
             </div>
         </template>
