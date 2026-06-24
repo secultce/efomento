@@ -73,16 +73,13 @@ class Opening extends Model implements Auditable
     public function activeSupervisor(): HasOne
     {
         return $this->hasOne(OpeningSupervisor::class)
-            ->where('is_active', true)
-            ->latestOfMany('assigned_at');
+            ->ofMany(['assigned_at' => 'max'], fn ($q) => $q->where('is_active', true));
     }
 
     public function principalSupervisor(): HasOne
     {
         return $this->hasOne(OpeningSupervisor::class)
-            ->where('is_active', true)
-            ->where('type', OpeningSupervisor::TYPE_PRINCIPAL)
-            ->latestOfMany('assigned_at');
+            ->ofMany(['assigned_at' => 'max'], fn ($q) => $q->where('is_active', true)->where('type', OpeningSupervisor::TYPE_PRINCIPAL));
     }
 
     public function assignSupervisors(array $supervisors): void
