@@ -25,9 +25,6 @@ class BudgetFactory extends Factory
 
             'processing_date_for_codip' => $this->faker->optional()->date(),
             'processing_date_for_coafi' => $this->faker->optional()->date(),
-            'date_of_expense_breakdown_table' => $this->faker->optional()->date(),
-
-            'processed_at' => $this->faker->optional()->dateTime(),
         ];
     }
 }

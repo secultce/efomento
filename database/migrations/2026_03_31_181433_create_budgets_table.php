@@ -20,10 +20,7 @@ return new class extends Migration
             // Datas
             $table->date('processing_date_for_codip')->nullable(); // Data de tramitação para a CODIP
             $table->date('processing_date_for_coafi')->nullable(); // Data de tramitação para a Coafi
-            // Quadro de detalhamento de despesas
-            $table->date('date_of_expense_breakdown_table')->nullable(); // Data do quadro de detalhamento de despesas
 
-            $table->timestamp('processed_at')->nullable();
             $table->timestamps();
             $table->softDeletes();
         });
