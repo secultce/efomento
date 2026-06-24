@@ -78,7 +78,7 @@ class InstallmentImportServiceTest extends TestCase
 
         $this->assertSame('NL123', $installment->settlement_number);
         $this->assertSame('2026-01-10', $installment->settlement_date->format('Y-m-d'));
-        $this->assertSame('900,25', $installment->settlement_amount);
+        $this->assertSame('900.25', $installment->settlement_amount);
 
         $this->assertSame('OB456', $installment->payment_order_number);
         $this->assertSame('2026-01-15', $installment->payment_date->format('Y-m-d'));
