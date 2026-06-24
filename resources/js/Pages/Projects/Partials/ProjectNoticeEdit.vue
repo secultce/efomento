@@ -5,6 +5,7 @@ import { useForm } from '@inertiajs/vue3';
 import EditableField from '@/Components/EditableField.vue';
 import { useSnackbar } from '@/Composables/useSnackbar';
 import { usePermissions } from '@/Composables/usePermissions';
+import { useMask } from '@/Composables/useMask';
 
 const props = defineProps({
     notice: { type: Object, default: null },
@@ -17,6 +18,7 @@ const form = useForm({
 
 const { showSnackbar } = useSnackbar();
 const { canManageNotices } = usePermissions();
+const { maskProcessNumber } = useMask();
 
 const showAll = ref(false);
 
@@ -61,7 +63,7 @@ const saveAll = () => {
         </div>
         <div class="col-start-1 row-start-2 flex flex-col justify-start">
             <p data-cy="notice-nup-show-all-information">
-                <span class="font-bold">Nº do processo mãe: </span>{{ notice.nup }}
+                <span class="font-bold">Nº do processo mãe: </span>{{ maskProcessNumber(notice.nup) }}
             </p>
             <div v-show="showAll" class="mt-2 space-y-1 transition-all duration-200 ease-in-out">
                 <EditableField
