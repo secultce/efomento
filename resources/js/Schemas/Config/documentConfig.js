@@ -7,12 +7,27 @@ export const DOCUMENT_TYPES = {
     D: 'd',
 };
 
+const placeHoldersDocsSchema = [
+    { label: 'Num. Edital', value: 'notice_name' },
+    { label: 'Nup Mãe', value: 'nup_mother' },
+    { label: 'Finalidade', value: 'finality' },
+    { label: 'Nup Projeto', value: 'project_nup' },
+    { label: 'Nome do Projeto', value: 'project_name' },
+    { label: 'Nome do Agente', value: 'agent_name' },
+    { label: 'CPF do Agente', value: 'agent_cpf' },
+    { label: 'End. do Agente', value: 'agent_address' },
+    { label: 'E-mail do Agente', value: 'agent_email' },
+    { label: 'Fone do Agente', value: 'agent_phone' },
+    { label: 'Matricula do Fiscal', value: 'fiscal_matricula' },
+    { label: 'Nome do Fiscal', value: 'fiscal_name' },
+];
 export const documentConfigs = {
     [DOCUMENT_TYPES.CI]: {
         name: 'Comunicação Interna',
         titleCreate: 'Criar comunicação interna (CI)',
         titleEdit: 'Editar comunicação interna (CI)',
         save: 'ci',
+        placeholders: placeHoldersDocsSchema,
     },
 
     [DOCUMENT_TYPES.TC]: {
