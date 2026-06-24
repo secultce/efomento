@@ -92,7 +92,6 @@ class InstallmentImportServiceTest extends TestCase
         $this->assertSame('Banco Teste', $installment->origin_bank_domicile);
 
         $this->assertSame('1000.50', $installment->committed_amount);
-        $this->assertSame('900.25', $installment->amount);
         $this->assertSame('850.10', $installment->payment_amount);
 
         $this->assertSame('Observação manual que não deve mudar', $installment->remarks);

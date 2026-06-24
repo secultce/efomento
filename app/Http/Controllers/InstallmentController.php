@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Notice;
 use App\Models\Project;
 use App\Services\InstallmentImportService;
+use App\Services\InstallmentService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 
@@ -56,35 +57,21 @@ class InstallmentController extends Controller
         }
     }
 
-    public function updateRemark(Request $request, Project $project, int $installment): RedirectResponse
-    {
+    public function updateRemark(
+        Request $request,
+        Project $project,
+        int $installment,
+        InstallmentService $service
+    ): RedirectResponse {
         $data = $request->validate([
             'remarks' => ['nullable', 'string', 'max:5000'],
         ]);
 
-        $project->loadMissing('budgets.installments');
-
-        $budget = $project->budgets;
-
-        if (! $budget) {
-            return back()->withErrors([
-                'remarks' => 'Este projeto ainda não possui orçamento cadastrado.',
-            ]);
-        }
-
-        $budgetInstallment = $budget->installments()
-            ->where('installment_number', $installment)
-            ->first();
-
-        if (! $budgetInstallment) {
-            return back()->withErrors([
-                'remarks' => 'Esta parcela ainda não foi cadastrada para este orçamento.',
-            ]);
-        }
-
-        $budgetInstallment->update([
-            'remarks' => $data['remarks'] ?? null,
-        ]);
+        $service->update(
+            project: $project,
+            installment: $installment,
+            remarks: $data['remarks'] ?? null,
+        );
 
         return back()->with('success', 'Observação atualizada com sucesso.');
     }
