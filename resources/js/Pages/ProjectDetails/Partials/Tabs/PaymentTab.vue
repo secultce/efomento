@@ -148,25 +148,6 @@ function toNumber(value) {
     return Number.isFinite(number) ? number : 0;
 }
 
-function formatMoney(value) {
-    if (!hasValue(value)) {
-        return '—';
-    }
-
-    return new Intl.NumberFormat('pt-BR', {
-        style: 'currency',
-        currency: 'BRL',
-    }).format(Number(value));
-}
-
-function formatDate(value) {
-    if (!hasValue(value)) {
-        return '—';
-    }
-
-    return normalizeDate(value) || '—';
-}
-
 function formatText(value) {
     return hasValue(value) ? value : '—';
 }
@@ -423,7 +404,7 @@ const tramit = async () => {
                             <div class="grid grid-cols-2 gap-4">
                                 <FormField label="Data de tramitação para a Coafi">
                                     <TextField
-                                        :model-value="formatDate(budget?.processing_date_for_coafi)"
+                                        :model-value="normalizeDate(budget?.processing_date_for_coafi)"
                                         type="date"
                                         disabled
                                     />
@@ -489,15 +470,13 @@ const tramit = async () => {
 
                                     <div class="grid grid-cols-2 gap-4">
                                         <FormField label="Valor da parcela">
-                                            <TextField
-                                                :model-value="formatMoney(selectedInstallment.amount)"
-                                                disabled
-                                            />
+                                            <TextField :model-value="selectedInstallment.amount" money disabled />
                                         </FormField>
 
                                         <FormField label="Valor pago">
                                             <TextField
-                                                :model-value="formatMoney(selectedInstallment.payment_amount)"
+                                                :model-value="selectedInstallment.payment_amount"
+                                                money
                                                 disabled
                                             />
                                         </FormField>
@@ -511,7 +490,7 @@ const tramit = async () => {
 
                                         <FormField label="Data de liquidação">
                                             <TextField
-                                                :model-value="formatDate(selectedInstallment.settlement_date)"
+                                                :model-value="normalizeDate(selectedInstallment.settlement_date)"
                                                 type="date"
                                                 disabled
                                             />
@@ -519,7 +498,7 @@ const tramit = async () => {
 
                                         <FormField label="Data da ordem bancária">
                                             <TextField
-                                                :model-value="formatDate(selectedInstallment.payment_date)"
+                                                :model-value="normalizeDate(selectedInstallment.payment_date)"
                                                 type="date"
                                                 disabled
                                             />
@@ -534,21 +513,19 @@ const tramit = async () => {
 
                                         <FormField label="Empenhado">
                                             <TextField
-                                                :model-value="formatMoney(selectedInstallment.committed_amount)"
+                                                :model-value="selectedInstallment.committed_amount"
+                                                money
                                                 disabled
                                             />
                                         </FormField>
 
                                         <FormField label="Liquidado">
-                                            <TextField
-                                                :model-value="formatMoney(selectedInstallment.amount)"
-                                                disabled
-                                            />
+                                            <TextField :model-value="selectedInstallment.amount" money disabled />
                                         </FormField>
 
                                         <FormField label="Data de solicitação">
                                             <TextField
-                                                :model-value="formatDate(selectedInstallment.request_date)"
+                                                :model-value="normalizeDate(selectedInstallment.request_date)"
                                                 type="date"
                                                 disabled
                                             />
