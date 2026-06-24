@@ -12,6 +12,7 @@ import FormField from '@/Components/FormField.vue';
 import TextField from '@/Components/TextField.vue';
 import SelectField from '@/Components/SelectField.vue';
 import TramitButton from '@/Pages/ProjectDetails/Partials/Tabs/Actions/TramitButton.vue';
+import SaveButton from '@/Pages/ProjectDetails/Partials/Tabs/Actions/SaveButton.vue';
 
 import { viewSections } from '@/Schemas/Opening';
 import { formSections } from '@/Schemas/Formalization';
@@ -506,15 +507,7 @@ const permissionMessage = computed(() => {
                         <p class="font-bold text-md mt-2 text-black">Links auxiliares</p>
                     </div>
 
-                    <v-btn
-                        variant="outlined"
-                        color="outlineSecondary"
-                        class="rounded-lg"
-                        :loading="form.processing"
-                        @click="submit"
-                    >
-                        Salvar Alterações
-                    </v-btn>
+                    <SaveButton :loading="form.processing" :can-save="canUserHandleFormalization" @click="submit" />
                 </div>
 
                 <AuxLinks />

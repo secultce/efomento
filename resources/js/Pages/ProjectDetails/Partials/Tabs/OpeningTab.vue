@@ -15,6 +15,7 @@ import FormField from '@/Components/FormField.vue';
 import SelectField from '@/Components/SelectField.vue';
 import { useDate } from '@/Composables/useDate';
 import TramitButton from '@/Pages/ProjectDetails/Partials/Tabs/Actions/TramitButton.vue';
+import SaveButton from '@/Pages/ProjectDetails/Partials/Tabs/Actions/SaveButton.vue';
 import { useAlert } from '@/Composables/useAlert';
 import { usePermissions } from '@/Composables/usePermissions';
 
@@ -269,15 +270,7 @@ const activeEditIndex = ref('all');
                             <p class="font-bold text-lg">Campos para você inserir ou editar dados</p>
                             <p class="font-bold text-md mt-2 text-black">Links auxiliares</p>
                         </div>
-                        <v-btn
-                            variant="outlined"
-                            color="outlineSecondary"
-                            class="rounded-lg"
-                            :loading="form.processing"
-                            @click="submit"
-                        >
-                            Salvar Alterações
-                        </v-btn>
+                        <SaveButton :loading="form.processing" :can-save="canUserHandleOpening" @click="submit" />
                     </div>
                 </div>
                 <aux-links />

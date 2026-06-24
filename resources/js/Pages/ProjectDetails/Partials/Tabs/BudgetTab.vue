@@ -12,6 +12,7 @@ import ReturnProcessModal from '@/Components/ReturnProcessModal.vue';
 import FormField from '@/Components/FormField.vue';
 import TextField from '@/Components/TextField.vue';
 import TramitButton from '@/Pages/ProjectDetails/Partials/Tabs/Actions/TramitButton.vue';
+import SaveButton from '@/Pages/ProjectDetails/Partials/Tabs/Actions/SaveButton.vue';
 
 import { viewSections, formSections } from '@/Schemas/Budget';
 
@@ -294,15 +295,7 @@ const permissionMessage = computed(() => {
                         <p class="font-bold text-md mt-2 text-black">Links auxiliares</p>
                     </div>
 
-                    <v-btn
-                        variant="outlined"
-                        color="outlineSecondary"
-                        class="rounded-lg"
-                        :loading="form.processing"
-                        @click="submit"
-                    >
-                        Salvar Alterações
-                    </v-btn>
+                    <SaveButton :loading="form.processing" :can-save="canUserHandleBudget" @click="submit" />
                 </div>
 
                 <AuxLinks />
