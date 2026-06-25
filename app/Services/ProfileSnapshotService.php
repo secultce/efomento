@@ -110,15 +110,12 @@ class ProfileSnapshotService
 
     public function recordMapasAgentIfChanged(
         Model $model,
-        array $mapasAgentData
+        array $mapasAgentData,
+        ProfileSnapshotSource $source = ProfileSnapshotSource::AGENT_UPDATE
     ): ?ProfileSnapshot {
         $normalized = $this->normalizeMapasAgentData($mapasAgentData);
 
-        return $this->recordIfChanged(
-            $model,
-            $normalized,
-            ProfileSnapshotSource::AGENT_UPDATE
-        );
+        return $this->recordIfChanged($model, $normalized, $source);
     }
 
     private function onlySnapshotFields(array $data): array

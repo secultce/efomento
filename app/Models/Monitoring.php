@@ -19,24 +19,14 @@ class Monitoring extends Model implements Auditable
     protected $fillable = [
         'project_id',
         'created_by',
-        'effective_date_of_the_instrument',
-        'expiration_date_of_the_instrument',
-        'deadline_for_completing_report',
-        'deadline_for_analysis_and_issuance_of_the_opinion',
         'technical_opinions',
-        'date_of_notification_to_the_agent',
         'observations',
-        'processed_at',
+        'data_registration',
     ];
 
     protected $casts = [
-        'effective_date_of_the_instrument' => 'date',
-        'expiration_date_of_the_instrument' => 'date',
-        'deadline_for_completing_report' => 'date',
-        'deadline_for_analysis_and_issuance_of_the_opinion' => 'date',
         'technical_opinions' => 'array',
-        'date_of_notification_to_the_agent' => 'date',
-        'processed_at' => 'datetime',
+        'data_registration' => 'array',
     ];
 
     public function project(): BelongsTo

@@ -19,6 +19,10 @@ class ProjectResource extends JsonResource
             $data['monitoring'] = $this->monitoring;
         }
 
+        $data['has_monitoring_snapshot'] = $this->relationLoaded('monitoringSnapshot')
+            ? $this->monitoringSnapshot !== null
+            : false;
+
         return $data;
     }
 }
