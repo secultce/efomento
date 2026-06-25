@@ -32,8 +32,11 @@ class DownloadMapasProjectFileJob implements ShouldQueue
     public function __construct(
         public int $projectId,
         public int $registrationId,
-        public array $file
+        public array $file,
+        public string $objectType = 'project',
+        public ?int $objectId = null,
     ) {
+        $this->objectId ??= $this->projectId;
         $this->onQueue('files');
     }
 
@@ -79,8 +82,8 @@ class DownloadMapasProjectFileJob implements ShouldQueue
         );
 
         $existingFile = StoredFile::withTrashed()
-            ->where('object_type', 'project')
-            ->where('object_id', $this->projectId)
+            ->where('object_type', $this->objectType)
+            ->where('object_id', $this->objectId)
             ->where('source', 'mapas')
             ->where('external_id', (string) $this->file['external_id'])
             ->first();
@@ -136,8 +139,8 @@ class DownloadMapasProjectFileJob implements ShouldQueue
             StoredFile::create([
                 'mime_type' => $download['mime_type'],
                 'name' => $this->file['name'],
-                'object_type' => 'project',
-                'object_id' => $this->projectId,
+                'object_type' => $this->objectType,
+                'object_id' => $this->objectId,
                 'source' => 'mapas',
                 'external_id' => (string) $this->file['external_id'],
                 'grp' => $this->file['grp'],
@@ -155,8 +158,8 @@ class DownloadMapasProjectFileJob implements ShouldQueue
             ]);
         } catch (Throwable $exception) {
             $fileWasRegistered = StoredFile::withTrashed()
-                ->where('object_type', 'project')
-                ->where('object_id', $this->projectId)
+                ->where('object_type', $this->objectType)
+                ->where('object_id', $this->objectId)
                 ->where('source', 'mapas')
                 ->where('external_id', (string) $this->file['external_id'])
                 ->exists();

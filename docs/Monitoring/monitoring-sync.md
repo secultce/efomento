@@ -19,6 +19,7 @@ Na fase de Monitoramento, o agente cultural envia sua prestação de contas dire
 ## Fluxo Completo
 
 ```
+```text
 [Scheduler — diário às 07:00]
      ↓
 SyncMonitoringJob  (queue: high)
@@ -40,7 +41,7 @@ SyncMonitoringJob  (queue: high)
      → botão habilitado (amarelo)
      → click → v-dialog exibe project.data_registration
 ```
-
+```
 ---
 
 ## Configuração Necessária

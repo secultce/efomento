@@ -47,9 +47,14 @@ class MapasClient
 
     public function monitoringOpportunities(): Collection
     {
+        $seal = config('efomento.mapas_monitoring_seal');
+        if (blank($seal)) {
+            return collect();
+        }
+
         return collect($this->get('/api/opportunity/find', [
             '@select' => 'id,name,singleUrl,status',
-            '@seals' => config('efomento.mapas_monitoring_seal'),
+            '@seals' => $seal,
             '@permissions' => 'view',
             'status' => 'EQ(-1)',
         ]));

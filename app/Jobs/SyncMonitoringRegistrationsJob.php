@@ -63,7 +63,7 @@ class SyncMonitoringRegistrationsJob implements ShouldQueue
             return;
         }
 
-        $chunkSize = (int) config('efomento.registration_detail_chunk', 100);
+        $chunkSize = max(1, (int) config('efomento.registration_detail_chunk', 100));
 
         $jobs->chunk($chunkSize)->each(function ($chunk, int $index) {
             Bus::batch($chunk->all())
