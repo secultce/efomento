@@ -15,7 +15,7 @@ import TramitButton from '@/Pages/ProjectDetails/Partials/Tabs/Actions/TramitBut
 
 import { viewSections, formSections } from '@/Schemas/Budget';
 
-import { useAuth } from '@/Composables/useAuth';
+import { usePermissions } from '@/Composables/usePermissions';
 import { useDate } from '@/Composables/useDate';
 import { useSnackbar } from '@/Composables/useSnackbar';
 import { useAlert } from '@/Composables/useAlert';
@@ -26,12 +26,12 @@ const props = defineProps({
     currentStage: { type: Object, default: null },
 });
 
-const { hasRole } = useAuth();
+const { canManageBudget } = usePermissions();
 const { normalizeDate } = useDate();
 const { showSnackbar } = useSnackbar();
 const { showAlert } = useAlert();
 
-const canUserHandleBudget = computed(() => hasRole(['super_admin', 'budgetary', 'coord_budgetary']));
+const canUserHandleBudget = canManageBudget;
 
 const stage = computed(() => props.project.stages?.find((s) => s.slug === 'orcamento'));
 

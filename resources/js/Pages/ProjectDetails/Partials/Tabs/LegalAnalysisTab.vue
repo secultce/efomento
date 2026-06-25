@@ -9,7 +9,7 @@ import ReturnProcessModal from '@/Components/ReturnProcessModal.vue';
 import TramitButton from '@/Pages/ProjectDetails/Partials/Tabs/Actions/TramitButton.vue';
 import { viewSections } from '@/Schemas/Opening';
 import { useLegalAnalysis } from '@/Composables/useLegalAnalysis';
-import { useAuth } from '@/Composables/useAuth';
+import { usePermissions } from '@/Composables/usePermissions';
 
 const props = defineProps({
     project: { type: Object, required: true },
@@ -17,11 +17,9 @@ const props = defineProps({
     currentStage: { type: Object, default: null },
 });
 
-const { hasRole } = useAuth();
+const { canManageLegalAnalysis } = usePermissions();
 
-const canUserHandleLegalAnalysis = computed(() =>
-    hasRole(['super_admin', 'legal_analysis', 'coord_legal', 'coord_financial'])
-);
+const canUserHandleLegalAnalysis = canManageLegalAnalysis;
 
 const showReturnModal = ref(false);
 
