@@ -1,5 +1,6 @@
 import { elements as el, TIMEOUTS } from './elements';
 import { elements as noticeEl } from '../notice/elements';
+import Notice from '../../pages/notice/index.js';
 
 class Project {
     accessProjectPage(noticeId) {
@@ -9,6 +10,18 @@ class Project {
 
     displayProjectList() {
         cy.get(el.projectList, { timeout: TIMEOUTS.DEFAULT }).should('be.visible');
+    }
+
+    goToProjectDetailsPage(projectNup) {
+        const expectedNup = Notice.normalizeNup(projectNup);
+
+        cy.get(el.rowTableProjectList)
+            .contains(el.projectNupProjectList, expectedNup)
+            .closest(el.rowTableProjectList)
+            .find(el.openProjectOpeningTabButton)
+            .click();
+
+        cy.url({ timeout: 10000 }).should('match', /\/editais\/\d+\/projetos\/\d+$/);
     }
 
     getProjectData() {
@@ -32,10 +45,8 @@ class Project {
         });
     }
 
-    findProjectByProjectNup() {
-        this.getProjectData().then((data) => {
-            const projectNup = data.projectNup;
-
+    findProjectByProjectNup(projectNup) {
+        if (projectNup) {
             cy.log('projectNup', projectNup);
 
             cy.get(`${el.findProjectPageInput} input`, { timeout: TIMEOUTS.DEFAULT }).should('be.visible').clear();
@@ -47,7 +58,23 @@ class Project {
                     .contains(projectNup)
                     .should('be.visible');
             });
-        });
+        } else {
+            this.getProjectData().then((data) => {
+                const projectNup = data.projectNup;
+
+                // cy.log('projectNup', projectNup);
+
+                cy.get(`${el.findProjectPageInput} input`, { timeout: TIMEOUTS.DEFAULT }).should('be.visible').clear();
+
+                cy.get(`${el.findProjectPageInput} input`).type(projectNup);
+
+                cy.get(el.projectList).within(() => {
+                    cy.get(el.projectNupProjectList, { timeout: TIMEOUTS.SEARCH })
+                        .contains(projectNup)
+                        .should('be.visible');
+                });
+            });
+        }
     }
 
     findProjectByNonExistentProjectNup() {

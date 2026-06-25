@@ -42,6 +42,7 @@ const tabs = [
                     :value="item.value"
                     color="primary"
                     :class="{ '!bg-white': tab === item.value, '!bg-[#f5f5f5]': tab !== item.value }"
+                    :data-cy="`${item.value}-tab`"
                 >
                     {{ item.label }}
                 </v-tab>
