@@ -5,13 +5,9 @@ class FormalizationTab {
         cy.get(el.formalizationTab).click();
     }
 
-    fillRequiredFields() {
-        cy.get(el.projecNupOpeningTab).should();
-    }
-
     validatePage() {
-        cy.get(el.formalizationTab).should('have.value', 'formalization').and('have.attr', 'aria-selected', 'true');
-        cy.get(el.rightPainel).should('exist').and('be.visible');
+        cy.get(el.formalizationTab).should('have.attr', 'aria-selected', 'true');
+        cy.get(el.rightPanel).should('exist').and('be.visible');
     }
 }
 

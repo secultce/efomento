@@ -44,6 +44,9 @@ Cypress.Commands.add('setRoles', () => {
 
 Cypress.Commands.add('loginByRole', (role) => {
     cy.fixture('users').then((users) => {
+        if (!users[role]) {
+            throw new Error(`Role "${role}" not found in users.json`);
+        }
         const user = users[role];
 
         cy.session(

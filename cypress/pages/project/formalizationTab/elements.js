@@ -1,7 +1,7 @@
 export const elements = {
     formalizationTab: '[data-cy=formalization-tab]',
     projecNupOpeningTab: '[data-cy=project-nup-opening-tab]',
-    rightPainel: '[data-cy=right-painel]',
+    rightPanel: '[data-cy=right-panel]',
 };
 
 // Constantes de timeout para melhor manutenibilidade
