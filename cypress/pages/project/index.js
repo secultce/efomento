@@ -1,6 +1,6 @@
 import { elements as el, TIMEOUTS } from './elements';
 import { elements as noticeEl } from '../notice/elements';
-import { normalizeNup } from '../notice/index.js';
+import Notice from '../../pages/notice/index.js';
 
 class Project {
     accessProjectPage(noticeId) {
@@ -12,16 +12,14 @@ class Project {
         cy.get(el.projectList, { timeout: TIMEOUTS.DEFAULT }).should('be.visible');
     }
 
-    goToProjectDetailsPage(projectId) {
-        const expectedNup = normalizeNup(projectId);
+    goToProjectDetailsPage(projectNup) {
+        const expectedNup = Notice.normalizeNup(projectNup);
 
-        cy.get(el.projectNupProjectList).each(($element) => {
-            const currentNup = normalizeNup($element.text());
-
-            if (currentNup === expectedNup) {
-                cy.get(el.rowTableProjectList).find(el.openProjectOpeningTabButton).click();
-            }
-        });
+        cy.get(el.rowTableProjectList)
+            .contains(el.projectNupProjectList, expectedNup)
+            .closest(el.rowTableProjectList)
+            .find(el.openProjectOpeningTabButton)
+            .click();
 
         cy.url({ timeout: 10000 }).should('match', /\/editais\/\d+\/projetos\/\d+$/);
     }
@@ -110,8 +108,6 @@ class Project {
             });
         });
     }
-
-    createCI() {}
 }
 
 export default new Project();

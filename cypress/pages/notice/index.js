@@ -103,7 +103,12 @@ class Notice {
         cy.get(el.findSpecificNoticeInput).should('be.visible').type(expectedNup);
 
         cy.get(el.noticeListTable).within(() => {
-            cy.get(el.noticeNupNoticesList).should('have.text', nup).and('be.visible');
+            cy.get(el.noticeNupNoticesList)
+                .invoke('text')
+                .then((text) => {
+                    const formattedNup = text.replace(/\D/g, '');
+                    expect(formattedNup).to.equal(expectedNup);
+                });
         });
     }
 
@@ -124,8 +129,6 @@ class Notice {
     // Detail View
     goToNoticeDetailsPage(nup) {
         const expectedNup = this.normalizeNup(nup);
-
-        // this.searchNoticeByNup(nup);
 
         cy.get(el.noticeNupNoticesList).each(($element) => {
             const currentNup = this.normalizeNup($element.text());

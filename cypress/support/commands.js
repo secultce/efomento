@@ -23,6 +23,7 @@
 //
 // -- This will overwrite an existing command --
 // Cypress.Commands.overwrite('visit', (originalFn, url, options) => { ... })
+import LoginPage from '../pages/auth';
 
 Cypress.Commands.add('setRoles', () => {
     cy.visit('/grupos');
@@ -38,5 +39,26 @@ Cypress.Commands.add('setRoles', () => {
         cy.visit(`/add-user/${userCount.id}/super_admin`);
 
         return pageJson.props.roles;
+    });
+});
+
+Cypress.Commands.add('loginByRole', (role) => {
+    cy.fixture('users').then((users) => {
+        const user = users[role];
+
+        cy.session(
+            role,
+            () => {
+                LoginPage.accessLoginPage();
+
+                LoginPage.successLogin(user.valid_email, user.password, user.name);
+            },
+            {
+                validate() {
+                    cy.visit('/editais');
+                    cy.contains(user.name).should('be.visible');
+                },
+            }
+        );
     });
 });
