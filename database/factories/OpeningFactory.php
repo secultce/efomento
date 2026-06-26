@@ -21,7 +21,7 @@ class OpeningFactory extends Factory
             'user_id' => User::factory(),
             'supervisor_id' => User::factory(),
 
-            'opening_nup' => $this->faker->numerify('#####.######/####-##'),
+            'opening_nup' => $this->faker->numerify('#################'),
             'opening_date' => $this->faker->date(),
 
             'agent_status' => $this->faker->randomElement(AgentStatus::cases())->value,
