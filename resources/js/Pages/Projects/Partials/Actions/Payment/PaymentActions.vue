@@ -183,7 +183,7 @@ async function handleFileUpload(event) {
                         class="!shadow-none !font-bold !bg-[#ffcc05FF] !text-[#2d353fFF] rounded-lg px-2 py-2 text-[11px] w-full"
                         :loading="uploadingInstallment === 1"
                         :disabled="!hasSelectedProjects || uploadingInstallment !== null || !canImportPayments"
-                        @click="openUpload(1)"
+                        @click="openUpload()"
                     >
                         Fazer upload do pagamento
                     </v-btn>
