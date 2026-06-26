@@ -19,6 +19,10 @@ export function useLegalAnalysis(project) {
         () => groups.value.length > 0 && groups.value.every((g) => g.files.every((f) => f.status !== null))
     );
 
+    const allFilesValid = computed(
+        () => groups.value.length > 0 && groups.value.every((g) => g.files.every((f) => f.status === 'valid'))
+    );
+
     async function fetchFiles() {
         loadingFiles.value = true;
         try {
@@ -94,6 +98,7 @@ export function useLegalAnalysis(project) {
         loadingFiles,
         in_progress,
         allFilesEvaluated,
+        allFilesValid,
         fetchFiles,
         onStatusUpdated,
         process,
