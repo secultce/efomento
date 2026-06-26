@@ -60,7 +60,7 @@ class OpeningUpdateService
 
         $agent->profileSnapshots()->updateOrCreate(
             [
-                'source' => ProfileSnapshotSource::PROJECT_UPDATE,
+                'source' => ProfileSnapshotSource::AGENT_UPDATE,
             ],
             [
                 'name' => $agentData['name'] ?? $agent->name,
