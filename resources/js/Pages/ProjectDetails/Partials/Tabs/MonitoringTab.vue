@@ -1,5 +1,5 @@
 <script setup>
-import { ref, computed } from 'vue';
+import { ref, computed, watch } from 'vue';
 import { useForm, router } from '@inertiajs/vue3';
 import SplitScreenTab from '@/Components/SplitScreenTab.vue';
 import SectionChips from '@/Components/SectionChips.vue';
@@ -13,6 +13,7 @@ import TramitButton from '@/Pages/ProjectDetails/Partials/Tabs/Actions/TramitBut
 import { viewSections, formSections } from '@/Schemas/Monitoring';
 import { useSnackbar } from '@/Composables/useSnackbar';
 import { useAlert } from '@/Composables/useAlert';
+import { sanitizeExternalUrl } from '@/Composables/useExternalLink';
 
 const props = defineProps({
     project: {
@@ -35,6 +36,22 @@ const registrationFields = computed(() => {
         label: f.titleField,
         value: parseFieldValue(f.valueField),
     }));
+});
+
+const monitoringFiles = ref([]);
+const loadingFiles = ref(false);
+
+watch(monitoringDialogOpen, async (open) => {
+    if (!open || monitoringFiles.value.length > 0) return;
+    loadingFiles.value = true;
+    try {
+        const { data } = await window.axios.get(route('projects.monitorings.files', { project: props.project.id }));
+        monitoringFiles.value = data.files ?? [];
+    } catch {
+        monitoringFiles.value = [];
+    } finally {
+        loadingFiles.value = false;
+    }
 });
 
 function parseFieldValue(raw) {
@@ -296,12 +313,42 @@ function submit() {
             <v-divider />
             <v-card-text class="pa-4">
                 <template v-if="registrationFields.length">
-                    <div v-for="(field, i) in registrationFields" :key="i" class="mb-3">
-                        <p class="text-xs text-gray-500 font-semibold uppercase">{{ field.label }}</p>
+                    <p class="font-semibold text-sm mb-3">Campos da inscrição</p>
+                    <div v-for="(field, i) in registrationFields" :key="'field-' + i" class="mb-3">
+                        <p class="text-xs text-gray-700 font-semibold uppercase">{{ field.label }}</p>
                         <p class="text-sm">{{ field.value }}</p>
                     </div>
                 </template>
-                <p v-else class="text-sm text-gray-500">Nenhum dado de inscrição disponível.</p>
+
+                <v-divider v-if="registrationFields.length" class="my-4" />
+
+                <p class="font-semibold text-sm mb-3">Arquivos da inscrição</p>
+                <v-progress-linear v-if="loadingFiles" indeterminate color="primary" class="mb-4" />
+                <template v-else-if="monitoringFiles.length">
+                    <div v-for="file in monitoringFiles" :key="file.id" class="mb-3 flex items-center gap-2">
+                        <v-icon size="small" color="grey">mdi-file-outline</v-icon>
+                        <div>
+                            <p class="text-xs text-gray-500 font-semibold uppercase">{{ file.title }}</p>
+                            <a
+                                v-if="sanitizeExternalUrl(file.url)"
+                                :href="sanitizeExternalUrl(file.url)"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                class="text-sm text-blue-600 hover:underline"
+                                >{{ file.name }}</a
+                            >
+                            <span v-else class="text-sm text-gray-400">{{ file.name }}</span>
+                        </div>
+                    </div>
+                </template>
+                <p v-else class="text-sm text-gray-400">Nenhum arquivo encontrado.</p>
+
+                <p
+                    v-if="!registrationFields.length && !loadingFiles && !monitoringFiles.length"
+                    class="text-sm text-gray-500"
+                >
+                    Nenhum dado de inscrição disponível.
+                </p>
             </v-card-text>
             <v-divider />
             <v-card-actions class="pa-4 justify-end">

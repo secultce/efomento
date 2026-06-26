@@ -63,10 +63,11 @@ class OpeningController extends Controller
 
         } catch (\Throwable $e) {
 
-            return back()->with(
-                'error',
-                'Erro ao atualizar abertura'
-            );
+            report($e);
+
+            return back()->withErrors([
+                'message' => 'Erro ao atualizar abertura: '.$e->getMessage(),
+            ]);
         }
     }
 

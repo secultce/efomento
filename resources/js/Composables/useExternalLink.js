@@ -1,3 +1,13 @@
+export function sanitizeExternalUrl(url) {
+    if (typeof url !== 'string') return null;
+    try {
+        const { protocol } = new URL(url);
+        return protocol === 'http:' || protocol === 'https:' ? url : null;
+    } catch {
+        return null;
+    }
+}
+
 export function useExternalLink() {
     const openExternal = (url, options = {}) => {
         if (!url) return;

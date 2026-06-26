@@ -55,7 +55,7 @@ export const documentConfigs = {
         name: 'Parecer Orçamentário',
         titleCreate: 'Criar Parecer Orçamentário (PO)',
         titleEdit: 'Editar Parecer Orçamentário',
-        save: 'pj',
+        save: 'po',
     },
 
     [DOCUMENT_TYPES.D]: {

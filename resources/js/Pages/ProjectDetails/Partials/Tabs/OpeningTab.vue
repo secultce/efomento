@@ -18,6 +18,7 @@ import TramitButton from '@/Pages/ProjectDetails/Partials/Tabs/Actions/TramitBut
 import SaveButton from '@/Pages/ProjectDetails/Partials/Tabs/Actions/SaveButton.vue';
 import { useAlert } from '@/Composables/useAlert';
 import { usePermissions } from '@/Composables/usePermissions';
+import { useSaveShortcut } from '@/Composables/useSaveShortcut';
 
 const { showSnackbar } = useSnackbar();
 const { normalizeDate } = useDate();
@@ -79,6 +80,11 @@ const form = useForm({
         secondary_phone: null,
     },
 });
+
+useSaveShortcut(
+    () => submit(),
+    computed(() => canUserHandleOpening.value && !form.processing)
+);
 
 onMounted(() => {
     const opening = props.project.opening || {};
@@ -164,9 +170,7 @@ const submit = () => {
 
 const tramitLoading = ref(false);
 
-const tramit = () => {
-    tramitLoading.value = true;
-
+const advanceStage = () => {
     router.patch(
         route('projects.stages.advance', {
             project: props.project.id,
@@ -191,10 +195,32 @@ const tramit = () => {
             },
             onError: (errors) => {
                 const message = Object.values(errors).flat().join(', ') || 'Erro ao tramitar projeto';
-
                 showSnackbar(message, 'error');
             },
             onFinish: () => {
+                tramitLoading.value = false;
+            },
+        }
+    );
+};
+
+const tramit = () => {
+    tramitLoading.value = true;
+
+    form.patch(
+        route('projects.openings.update', {
+            project: props.project.id,
+            opening: props.project.opening.id,
+        }),
+        {
+            preserveScroll: true,
+            onSuccess: () => {
+                advanceStage();
+            },
+            onError: (errors) => {
+                const message =
+                    Object.values(errors).flat().join(', ') || 'Ocorreu um erro ao salvar antes de tramitar';
+                showSnackbar('Erro ao salvar os dados: ' + message, 'error');
                 tramitLoading.value = false;
             },
         }

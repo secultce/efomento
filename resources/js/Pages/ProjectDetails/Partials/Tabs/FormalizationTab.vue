@@ -21,6 +21,7 @@ import { usePermissions } from '@/Composables/usePermissions';
 import { useDate } from '@/Composables/useDate';
 import { useSnackbar } from '@/Composables/useSnackbar';
 import { useAlert } from '@/Composables/useAlert';
+import { useSaveShortcut } from '@/Composables/useSaveShortcut';
 
 const props = defineProps({
     project: { type: Object, required: true },
@@ -39,6 +40,11 @@ const { showAlert } = useAlert();
 const canUserHandleFormalization = canManageFormalization;
 
 const stage = computed(() => props.project.stages?.find((s) => s.slug === 'formalizacao'));
+
+useSaveShortcut(
+    () => submit(),
+    computed(() => canUserHandleFormalization.value && !form.processing)
+);
 
 const showReturnModal = ref(false);
 const activeViewIndex = ref('all');
@@ -499,7 +505,7 @@ const permissionMessage = computed(() => {
         </template>
 
         <template #right-content>
-            <div class="space-y-6">
+            <div class="space-y-6" data-cy="right-panel">
                 <div class="flex items-center justify-between">
                     <div>
                         <p class="font-bold text-lg">Campos para você inserir ou editar dados</p>

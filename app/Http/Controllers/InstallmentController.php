@@ -3,7 +3,9 @@
 namespace App\Http\Controllers;
 
 use App\Models\Notice;
+use App\Models\Project;
 use App\Services\InstallmentImportService;
+use App\Services\InstallmentService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 
@@ -53,5 +55,24 @@ class InstallmentController extends Controller
                 'Ocorreu um erro inesperado ao processar a planilha. Tente novamente ou contate o suporte.'
             );
         }
+    }
+
+    public function updateRemark(
+        Request $request,
+        Project $project,
+        int $installment,
+        InstallmentService $service
+    ): RedirectResponse {
+        $data = $request->validate([
+            'remarks' => ['nullable', 'string', 'max:5000'],
+        ]);
+
+        $service->update(
+            project: $project,
+            installment: $installment,
+            remarks: $data['remarks'] ?? null,
+        );
+
+        return back()->with('success', 'Observação atualizada com sucesso.');
     }
 }

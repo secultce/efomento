@@ -78,6 +78,7 @@ class InstallmentImportServiceTest extends TestCase
 
         $this->assertSame('NL123', $installment->settlement_number);
         $this->assertSame('2026-01-10', $installment->settlement_date->format('Y-m-d'));
+        $this->assertSame('900.25', $installment->settlement_amount);
 
         $this->assertSame('OB456', $installment->payment_order_number);
         $this->assertSame('2026-01-15', $installment->payment_date->format('Y-m-d'));
@@ -92,7 +93,6 @@ class InstallmentImportServiceTest extends TestCase
         $this->assertSame('Banco Teste', $installment->origin_bank_domicile);
 
         $this->assertSame('1000.50', $installment->committed_amount);
-        $this->assertSame('900.25', $installment->amount);
         $this->assertSame('850.10', $installment->payment_amount);
 
         $this->assertSame('Observação manual que não deve mudar', $installment->remarks);

@@ -8,6 +8,7 @@ use App\Models\Project;
 use App\Models\User;
 use Exception;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\ValidationException;
 
 class OpeningUpdateService
 {
@@ -74,6 +75,61 @@ class OpeningUpdateService
                 'recorded_at' => now(),
             ]
         );
+    }
+
+    public function ensureCanAdvance(Project $project): void
+    {
+        $opening = $project->opening;
+
+        if (! $opening) {
+            throw ValidationException::withMessages([
+                'opening' => 'Preencha e salve os dados da abertura antes de tramitar.',
+            ]);
+        }
+
+        $requiredOpeningFields = [
+            'opening_nup' => 'Número do processo',
+            'opening_date' => 'Data de abertura do processo',
+            'opened_by' => 'Responsável por abrir o processo',
+            'agent_status' => 'Status do agente cultural',
+            'bank' => 'Banco',
+            'account_type' => 'Tipo de conta',
+            'branch' => 'Agência',
+            'account' => 'Conta',
+        ];
+
+        $missingFields = collect($requiredOpeningFields)
+            ->filter(fn ($label, $field) => blank($opening->{$field}))
+            ->values();
+
+        $hasPrincipalSupervisor = $opening->supervisors()
+            ->whereNull('removed_at')
+            ->where('type', 'principal')
+            ->exists();
+
+        if (! $hasPrincipalSupervisor) {
+            $missingFields->push('Fiscal titular');
+        }
+
+        $formalization = $project->formalizations;
+
+        $requiredFormalizationFields = [
+            'report_status' => 'Regularidade e inadimplência',
+            'eparcerias_certificate_date' => 'Data da certidão',
+        ];
+
+        $missingFormalizationFields = collect($requiredFormalizationFields)
+            ->filter(fn ($label, $field) => ! $formalization || blank($formalization->{$field}))
+            ->values();
+
+        $missingFields = $missingFields->merge($missingFormalizationFields);
+
+        if ($missingFields->isNotEmpty()) {
+            throw ValidationException::withMessages([
+                'opening' => 'Preencha e salve os campos obrigatórios antes de tramitar: '
+                    .$missingFields->join(', ').'.',
+            ]);
+        }
     }
 
     protected function syncSupervisors(Project $project, array $supervisors): void
