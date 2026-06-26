@@ -29,6 +29,7 @@ const selectedPhase = ref(props.filters?.phase ?? null);
 const { showSnackbar } = useSnackbar();
 
 function selectPhase(phase) {
+    selectedProjects.value = [];
     selectedPhase.value = phase.value;
 
     router.get(
@@ -60,6 +61,7 @@ function onSearch(value) {
 }
 
 function clearPhaseFilter() {
+    selectedProjects.value = [];
     selectedPhase.value = null;
 
     router.get(
