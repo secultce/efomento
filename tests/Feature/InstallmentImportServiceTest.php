@@ -18,7 +18,7 @@ class InstallmentImportServiceTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_it_updates_existing_installment_using_processo_and_installment_number(): void
+    public function test_it_updates_first_unpaid_installment_using_processo(): void
     {
         $notice = Notice::factory()->create();
 
@@ -65,14 +65,13 @@ class InstallmentImportServiceTest extends TestCase
         $result = app(InstallmentImportService::class)->import(
             file: $file,
             notice: $notice,
-            installment: 1,
             selectedProjects: [$project->id],
         );
 
         $this->assertSame(1, $result['updated']);
         $this->assertSame(1, $result['imported']);
         $this->assertSame(0, $result['skipped']);
-        $this->assertSame(1, $result['installment']);
+        $this->assertSame([1], $result['installments']);
 
         $installment->refresh();
 
@@ -96,6 +95,87 @@ class InstallmentImportServiceTest extends TestCase
         $this->assertSame('850.10', $installment->payment_amount);
 
         $this->assertSame('Observação manual que não deve mudar', $installment->remarks);
+    }
+
+    public function test_it_updates_the_first_unpaid_installment_when_previous_one_is_paid(): void
+    {
+        $notice = Notice::factory()->create();
+
+        $project = Project::factory()->create([
+            'notice_id' => $notice->id,
+        ]);
+
+        $project->openings()->create([
+            'opening_nup' => '23000.000001/2024-10',
+        ]);
+
+        $budget = Budget::factory()->create([
+            'project_id' => $project->id,
+        ]);
+
+        $firstInstallment = Installment::factory()->create([
+            'budget_id' => $budget->id,
+            'installment_number' => 1,
+            'amount' => 0,
+            'payment_amount' => 100,
+            'request_date' => '2026-01-01',
+            'settlement_number' => 'OLD-NL',
+            'payment_order_number' => 'OLD-OB',
+        ]);
+
+        $secondInstallment = Installment::factory()->create([
+            'budget_id' => $budget->id,
+            'installment_number' => 2,
+            'amount' => 0,
+            'payment_amount' => null,
+            'request_date' => '2026-02-01',
+        ]);
+
+        $file = $this->makeSpreadsheet([
+            [
+                'Data NL' => '10/01/2026',
+                'Nota de Liquidação' => 'NL123',
+                'Data OB' => '15/01/2026',
+                'Ordem Bancária' => 'OB456',
+                'Fonte Completa' => 'Fonte Teste',
+                'Natureza Despesa' => '339030',
+                'Processo' => '23000.000001/2024-10',
+                'Credor' => '12345678900',
+                'Nome do Credor' => 'Credor Teste',
+                'Credor da Retenção' => 'Retenção Teste',
+                'Domicílio Bancário Origem (OB)' => 'Banco Teste',
+                'Empenhado' => '1.000,50',
+                'Liquidado' => '900,25',
+                'Pago' => '850,10',
+            ],
+        ]);
+
+        $result = app(InstallmentImportService::class)->import(
+            file: $file,
+            notice: $notice,
+            selectedProjects: [$project->id],
+        );
+
+        $this->assertSame(1, $result['updated']);
+        $this->assertSame(1, $result['imported']);
+        $this->assertSame(0, $result['skipped']);
+        $this->assertSame([2], $result['installments']);
+
+        $firstInstallment->refresh();
+        $secondInstallment->refresh();
+
+        $this->assertSame('OLD-NL', $firstInstallment->settlement_number);
+        $this->assertSame('OLD-OB', $firstInstallment->payment_order_number);
+        $this->assertSame('100.00', $firstInstallment->payment_amount);
+
+        $this->assertSame('NL123', $secondInstallment->settlement_number);
+        $this->assertSame('2026-01-10', $secondInstallment->settlement_date->format('Y-m-d'));
+        $this->assertSame('900.25', $secondInstallment->settlement_amount);
+
+        $this->assertSame('OB456', $secondInstallment->payment_order_number);
+        $this->assertSame('2026-01-15', $secondInstallment->payment_date->format('Y-m-d'));
+
+        $this->assertSame('850.10', $secondInstallment->payment_amount);
     }
 
     public function test_it_does_not_create_installment_when_installment_does_not_exist(): void
@@ -136,13 +216,13 @@ class InstallmentImportServiceTest extends TestCase
         $result = app(InstallmentImportService::class)->import(
             file: $file,
             notice: $notice,
-            installment: 1,
             selectedProjects: [$project->id],
         );
 
         $this->assertSame(0, $result['updated']);
         $this->assertSame(0, $result['imported']);
         $this->assertSame(1, $result['skipped']);
+        $this->assertSame([], $result['installments']);
 
         $this->assertDatabaseMissing('installments', [
             'installment_number' => 1,
@@ -184,13 +264,13 @@ class InstallmentImportServiceTest extends TestCase
         $result = app(InstallmentImportService::class)->import(
             file: $file,
             notice: $notice,
-            installment: 1,
             selectedProjects: [$project->id],
         );
 
         $this->assertSame(0, $result['updated']);
         $this->assertSame(0, $result['imported']);
         $this->assertSame(1, $result['skipped']);
+        $this->assertSame([], $result['installments']);
     }
 
     public function test_it_throws_when_no_spreadsheet_rows_match_selected_projects(): void
@@ -232,7 +312,6 @@ class InstallmentImportServiceTest extends TestCase
         app(InstallmentImportService::class)->import(
             file: $file,
             notice: $notice,
-            installment: 1,
             selectedProjects: [$project->id],
         );
     }
@@ -272,7 +351,6 @@ class InstallmentImportServiceTest extends TestCase
         app(InstallmentImportService::class)->import(
             file: $file,
             notice: $notice,
-            installment: 1,
             selectedProjects: [$project->id],
         );
     }

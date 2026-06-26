@@ -24,7 +24,6 @@ const dispatchDialog = ref(false);
 const docListDialog = ref(false);
 
 const uploadInput = ref(null);
-const selectedInstallment = ref(null);
 const uploadingInstallment = ref(null);
 
 const errorMessage = ref('');
@@ -88,29 +87,25 @@ function openDispatchDialog() {
     dispatchDialog.value = true;
 }
 
-function openUpload(installment) {
+function openUpload() {
     if (!hasSelectedProjects.value || uploadingInstallment.value !== null || !canImportPayments.value) {
         return;
     }
 
-    selectedInstallment.value = installment;
     uploadInput.value?.click();
 }
 
 async function handleFileUpload(event) {
     const file = event.target.files?.[0];
 
-    if (!file || !selectedInstallment.value || !canImportPayments.value) {
+    if (!file || !canImportPayments.value) {
         event.target.value = '';
         return;
     }
 
-    const installment = selectedInstallment.value;
-
     const formData = new FormData();
 
     formData.append('file', file);
-    formData.append('installment', installment);
 
     props.selectedProjects.forEach((projectId) => {
         formData.append('selectedProjects[]', projectId);
@@ -121,7 +116,6 @@ async function handleFileUpload(event) {
         preserveScroll: true,
 
         onStart: () => {
-            uploadingInstallment.value = installment;
             showSnackbar('Importando planilha, aguarde...', 'warning', -1);
         },
 
@@ -144,7 +138,6 @@ async function handleFileUpload(event) {
 
         onFinish: () => {
             uploadingInstallment.value = null;
-            selectedInstallment.value = null;
             event.target.value = '';
         },
     });
@@ -186,25 +179,14 @@ async function handleFileUpload(event) {
                 />
 
                 <div class="w-full pt-2">
-                    <div class="grid grid-cols-2 gap-2">
-                        <template v-for="n in props.notice?.installments || 0" :key="n">
-                            <v-btn
-                                :class="[
-                                    '!shadow-none !font-bold !bg-[#ffcc05FF] !text-[#2d353fFF] rounded-lg px-2 py-2 text-[11px]',
-                                    props.notice?.installments == 1 ? 'col-span-2 w-full' : 'w-full',
-                                ]"
-                                :loading="uploadingInstallment === n"
-                                :disabled="!hasSelectedProjects || uploadingInstallment !== null || !canImportPayments"
-                                @click="openUpload(n)"
-                            >
-                                {{
-                                    props.notice?.installments == 1
-                                        ? 'Fazer upload do pagamento'
-                                        : `Upload da ${n}º parcela`
-                                }}
-                            </v-btn>
-                        </template>
-                    </div>
+                    <v-btn
+                        class="!shadow-none !font-bold !bg-[#ffcc05FF] !text-[#2d353fFF] rounded-lg px-2 py-2 text-[11px] w-full"
+                        :loading="uploadingInstallment === 1"
+                        :disabled="!hasSelectedProjects || uploadingInstallment !== null || !canImportPayments"
+                        @click="openUpload(1)"
+                    >
+                        Fazer upload do pagamento
+                    </v-btn>
                 </div>
             </div>
 
