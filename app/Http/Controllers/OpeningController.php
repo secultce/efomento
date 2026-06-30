@@ -66,7 +66,7 @@ class OpeningController extends Controller
             report($e);
 
             return back()->withErrors([
-                'message' => 'Erro ao atualizar abertura: '.$e->getMessage(),
+                'message' => 'Erro ao atualizar abertura. Tente novamente mais tarde. ',
             ]);
         }
     }

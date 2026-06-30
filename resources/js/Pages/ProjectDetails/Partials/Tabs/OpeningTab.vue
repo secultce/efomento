@@ -153,7 +153,7 @@ const submit = () => {
     form.patch(
         route('projects.openings.update', {
             project: props.project.id,
-            opening: props.project.opening.id,
+            opening: props.project.opening?.id,
         }),
         {
             preserveScroll: true,
@@ -210,7 +210,7 @@ const tramit = () => {
     form.patch(
         route('projects.openings.update', {
             project: props.project.id,
-            opening: props.project.opening.id,
+            opening: props.project.opening?.id,
         }),
         {
             preserveScroll: true,

@@ -84,8 +84,6 @@ class ProjectController extends Controller
 
     public function projectDetail(Request $request, Notice $notice, Project $project)
     {
-        $project->openings()->firstOrCreate([]);
-
         $project->load([
             'notice',
             'agent',

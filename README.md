@@ -135,7 +135,6 @@ docker exec efomento-app php artisan db:seed --class=PermissionSeeder
 ## Arquitetura
 
 ### Duas camadas de interface
-- **Filament PHP** → admin interno (equipe técnica, gestores). Acessa models diretamente.
 - **Vue.js + Vuetify + Tailwind** → interface do usuário final. Consome API RESTful.
 
 ### Padrões de Projeto
