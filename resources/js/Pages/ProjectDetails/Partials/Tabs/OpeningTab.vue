@@ -248,13 +248,14 @@ const permissionMessage = computed(() => {
 });
 
 const allRequiredFilled = computed(() => {
-    const opening = props.project.opening ?? {};
-    const formalization = props.project.formalizations ?? {};
+    const opening = form.opening ?? {};
+    const formalization = form.formalization ?? {};
 
-    const hasPrincipalSupervisor = (opening.supervisors ?? []).some((s) => s.type === 'principal');
+    const hasPrincipalSupervisor = (opening.supervisors ?? []).some((s) => s.type === 'principal' && !!s.id);
+    const hasValidNup = String(opening.opening_nup ?? '').replace(/\D/g, '').length === 17;
 
     return !!(
-        opening.opening_nup &&
+        hasValidNup &&
         opening.opening_date &&
         opening.opened_by &&
         opening.agent_status &&
