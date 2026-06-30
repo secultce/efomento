@@ -23,13 +23,6 @@ class ForamlizationWorkflow {
     }
 
     createCulturalExecutionTerm({ role, notice, project, text }) {
-        cy.log(role);
-
-        cy.log(notice.noticeNup);
-
-        cy.log(project.projectNup);
-
-        cy.log(text);
         cy.loginByRole(role);
 
         Notice.visitPage();
