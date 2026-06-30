@@ -27,6 +27,7 @@ class Installment extends Model implements Auditable
 
         'settlement_number',
         'settlement_date',
+        'settlement_amount',
 
         'payment_order_number',
         'payment_amount',
@@ -51,7 +52,7 @@ class Installment extends Model implements Auditable
         'amount' => 'decimal:2',
         'payment_amount' => 'decimal:2',
         'committed_amount' => 'decimal:2',
-
+        'settlement_amount' => 'decimal:2',
         'request_date' => 'date',
         'commitment_date' => 'date',
         'settlement_date' => 'date',

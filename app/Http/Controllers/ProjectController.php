@@ -11,6 +11,7 @@ use App\Enums\OpeningStatus;
 use App\Enums\ProjectStageSlug;
 use App\Enums\ProjectStageStatus;
 use App\Enums\ReportStatus;
+use App\Enums\Role;
 use App\Enums\TermStatus;
 use App\Http\Resources\ProjectResource;
 use App\Models\Notice;
@@ -75,10 +76,7 @@ class ProjectController extends Controller
                     ];
                 }),
 
-            'supervisorsAvailable' => User::role([
-                'monitoring',
-                'coord_monitoring',
-            ])
+            'supervisorsAvailable' => User::role(Role::monitoringRoles())
                 ->select('id', 'name')
                 ->get(),
         ]);
@@ -104,10 +102,11 @@ class ProjectController extends Controller
             'formalizations',
             'formalizations.files',
             'agent.latestSnapshot',
+            'monitoringSnapshot',
             'stages',
         ]);
 
-        $availableSupervisors = User::role(['monitoring', 'coord_monitoring'])
+        $availableSupervisors = User::role(Role::monitoringRoles())
             ->select('id', 'name', 'registration_number')
             ->get();
 
@@ -159,7 +158,7 @@ class ProjectController extends Controller
     public function createDocument(Request $request, ProjectDocumentService $service)
     {
         $data = $request->validate([
-            'type' => 'required|in:ci,tc,pj,et,d',
+            'type' => 'required|in:ci,tc,pj,et,po,d',
 
             'selected_projects' => 'required|array|min:1',
             'selected_projects.*' => 'exists:projects,id',

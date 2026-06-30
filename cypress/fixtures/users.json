@@ -1,10 +1,52 @@
 {
-    "name": "Test User",
-    "valid_email": "test@example.com",
-    "password": "password",
-    "invalid_email": "test",
-    "incorrect_password": "123456",
-    "updated_name": "User Updated",
-    "updated_email": "user.updated@example.com",
-    "new_password": "newpassword"
+    "administrator": {
+        "name": "Test User",
+        "valid_email": "test@example.com",
+        "password": "password",
+        "invalid_email": "test",
+        "incorrect_password": "123456",
+        "updated_name": "User Updated",
+        "updated_email": "user.updated@example.com",
+        "new_password": "newpassword"
+    },
+    "fomentation": {
+        "name": "Glaucivane Silveira Barbosa Portel",
+        "valid_email": "glaucivane.portela@secult.ce.gov.br",
+        "password": "password",
+        "invalid_email": "test",
+        "incorrect_password": "123456",
+        "updated_name": "User Updated",
+        "updated_email": "user.updated@example.com",
+        "new_password": "newpassword"
+    },
+    "legal_analisys": {
+        "name": "Glaucivane Silveira Barbosa Portel",
+        "valid_email": "glaucivane.portela@secult.ce.gov.br",
+        "password": "password",
+        "invalid_email": "test",
+        "incorrect_password": "123456",
+        "updated_name": "User Updated",
+        "updated_email": "user.updated@example.com",
+        "new_password": "newpassword"
+    },
+    "formalization": {
+        "name": "Glaucivane Silveira Barbosa Portel",
+        "valid_email": "glaucivane.portela@secult.ce.gov.br",
+        "password": "password",
+        "invalid_email": "test",
+        "incorrect_password": "123456",
+        "updated_name": "User Updated",
+        "updated_email": "user.updated@example.com",
+        "new_password": "newpassword"
+    },
+    "budget": {
+        "name": "Glaucivane Silveira Barbosa Portel",
+        "valid_email": "glaucivane.portela@secult.ce.gov.br",
+        "password": "password",
+        "invalid_email": "test",
+        "incorrect_password": "123456",
+        "updated_name": "User Updated",
+        "updated_email": "user.updated@example.com",
+        "new_password": "newpassword"
+    }
 }

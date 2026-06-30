@@ -40,4 +40,12 @@ export default [
             'no-unused-vars': ['warn', { argsIgnorePattern: '^_' }],
         },
     },
+    {
+        files: ['cypress.config.js'],
+        languageOptions: {
+            globals: {
+                ...globals.node,
+            },
+        },
+    },
 ];

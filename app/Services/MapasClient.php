@@ -45,12 +45,36 @@ class MapasClient
         ], authenticated: false));
     }
 
+    public function monitoringOpportunities(): Collection
+    {
+        $seal = config('efomento.mapas_monitoring_seal');
+        if (blank($seal)) {
+            return collect();
+        }
+
+        return collect($this->get('/api/opportunity/find', [
+            '@select' => 'id,name,singleUrl,status',
+            '@seals' => $seal,
+            '@permissions' => 'view',
+            'status' => 'EQ(-1)',
+        ]));
+    }
+
     public function selectedRegistrations(int $noticeId): Collection
     {
         return collect($this->get('/api/opportunity/findRegistrations', [
             '@select' => 'id,createTimestamp,sentTimestamp',
             '@opportunity' => $noticeId,
             'status' => 'EQ(10)',
+        ]));
+    }
+
+    public function monitoringRegistrations(int $opportunityId): Collection
+    {
+        return collect($this->get('/api/opportunity/findRegistrations', [
+            '@select' => 'id,number,createTimestamp,sentTimestamp',
+            '@opportunity' => $opportunityId,
+            'status' => 'EQ(1)',
         ]));
     }
 

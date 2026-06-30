@@ -79,6 +79,15 @@ function resolveChips(item) {
 function runAction(action, item) {
     emit('action', { action, item });
 }
+
+const getDataByLabel = (label) => {
+    const data = {
+        Fase: 'project-phase',
+        'Número do processo': 'project-nup-project-list',
+    };
+
+    return data[label];
+};
 </script>
 
 <template>
@@ -139,10 +148,7 @@ function runAction(action, item) {
                     <div class="text-caption text-[#3b3b3cFF]">
                         {{ m.label }}
                     </div>
-                    <div
-                        class="font-weight-bold text-[#3b3b3cFF]"
-                        :data-cy="m.label === 'Número do processo' ? 'project-nup-project-list' : null"
-                    >
+                    <div class="font-weight-bold text-[#3b3b3cFF]" :data-cy="getDataByLabel(m.label)">
                         {{ m.value(item) }}
                     </div>
                 </div>

@@ -1,7 +1,7 @@
 <script setup>
 import { ref, computed } from 'vue';
 import { useSnackbar } from '@/Composables/useSnackbar';
-import { useAuth } from '@/Composables/useAuth';
+import { usePermissions } from '@/Composables/usePermissions';
 
 const props = defineProps({
     file: {
@@ -18,13 +18,11 @@ const props = defineProps({
     },
 });
 
-const { hasRole } = useAuth();
+const { canManageLegalAnalysis } = usePermissions();
 
 const stage = computed(() => props.project.stages?.find((s) => s.slug === 'analise_juridica'));
 
-const canUserHandleLegalAnalysis = computed(() =>
-    hasRole(['super_admin', 'legal_analysis', 'coord_legal', 'coord_financial'])
-);
+const canUserHandleLegalAnalysis = canManageLegalAnalysis;
 
 const emit = defineEmits(['status-updated']);
 

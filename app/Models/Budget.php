@@ -21,15 +21,11 @@ class Budget extends Model implements Auditable
         'created_by',
         'processing_date_for_codip',
         'processing_date_for_coafi',
-        'date_of_expense_breakdown_table',
-        'processed_at',
     ];
 
     protected $casts = [
         'processing_date_for_codip' => 'date',
         'processing_date_for_coafi' => 'date',
-        'date_of_expense_breakdown_table' => 'date',
-        'processed_at' => 'datetime',
     ];
 
     protected static function booted()

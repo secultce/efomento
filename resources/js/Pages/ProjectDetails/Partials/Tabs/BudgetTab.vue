@@ -15,7 +15,7 @@ import TramitButton from '@/Pages/ProjectDetails/Partials/Tabs/Actions/TramitBut
 
 import { viewSections, formSections } from '@/Schemas/Budget';
 
-import { useAuth } from '@/Composables/useAuth';
+import { usePermissions } from '@/Composables/usePermissions';
 import { useDate } from '@/Composables/useDate';
 import { useSnackbar } from '@/Composables/useSnackbar';
 import { useAlert } from '@/Composables/useAlert';
@@ -26,12 +26,12 @@ const props = defineProps({
     currentStage: { type: Object, default: null },
 });
 
-const { hasRole } = useAuth();
+const { canManageBudget } = usePermissions();
 const { normalizeDate } = useDate();
 const { showSnackbar } = useSnackbar();
 const { showAlert } = useAlert();
 
-const canUserHandleBudget = computed(() => hasRole(['super_admin', 'budgetary', 'coord_budgetary']));
+const canUserHandleBudget = canManageBudget;
 
 const stage = computed(() => props.project.stages?.find((s) => s.slug === 'orcamento'));
 
@@ -45,7 +45,6 @@ const form = useForm({
     processing_date_for_codip: null,
     processing_date_for_coafi: null,
     installment_amount: null,
-    installment_number: null,
     installment_request_date: null,
     installment_justification: null,
     installment_observations: null,
@@ -54,15 +53,21 @@ const form = useForm({
 
 onMounted(() => {
     const budget = props.project.budgets || {};
-    const latestInstallment = budget.installments?.at(-1);
+
+    const currentInstallment = budget.installments?.find(
+        (i) => i.installment_number === props.project.current_installment_cycle
+    );
 
     form.processing_date_for_codip = normalizeDate(budget.processing_date_for_codip) ?? null;
     form.processing_date_for_coafi = normalizeDate(budget.processing_date_for_coafi) ?? null;
-    form.installment_amount = latestInstallment?.amount ?? null;
-    form.installment_number = latestInstallment?.installment_number ?? null;
-    form.installment_request_date = normalizeDate(latestInstallment?.request_date) ?? null;
-    form.installment_justification = latestInstallment?.justification ?? null;
-    form.installment_observations = latestInstallment?.observations ?? null;
+    form.installment_amount = currentInstallment?.amount ?? null;
+    form.installment_request_date = normalizeDate(currentInstallment?.request_date) ?? null;
+    form.installment_justification = currentInstallment?.justification ?? null;
+    form.installment_observations = currentInstallment?.observations ?? null;
+});
+
+const budgetLocked = computed(() => {
+    return props.project.current_installment_cycle > 1;
 });
 
 const budgetOpinionDocument = computed(
@@ -74,6 +79,7 @@ function downloadDocument(document) {
 }
 
 function viewDocument(document) {
+    document.project = props.project;
     viewerDocument.value = document;
     viewerOpen.value = true;
 }
@@ -137,11 +143,12 @@ const submit = () => {
 };
 
 const hasRequiredFields = computed(() => {
-    return (
-        form.installment_amount !== null &&
-        form.installment_amount !== '' &&
-        form.installment_number !== null &&
-        form.installment_number !== ''
+    return Boolean(
+        form.processing_date_for_codip &&
+        form.processing_date_for_coafi &&
+        form.installment_amount &&
+        form.installment_request_date &&
+        form.installment_justification
     );
 });
 
@@ -322,11 +329,19 @@ const permissionMessage = computed(() => {
                             <template v-if="section.key === 'dates'">
                                 <div class="grid grid-cols-2 gap-4">
                                     <FormField label="Data de tramitação para a CODIP">
-                                        <TextField v-model="form.processing_date_for_codip" type="date" />
+                                        <TextField
+                                            v-model="form.processing_date_for_codip"
+                                            type="date"
+                                            :disabled="budgetLocked"
+                                        />
                                     </FormField>
 
                                     <FormField label="Data de tramitação para a Coafi">
-                                        <TextField v-model="form.processing_date_for_coafi" type="date" />
+                                        <TextField
+                                            v-model="form.processing_date_for_coafi"
+                                            type="date"
+                                            :disabled="budgetLocked"
+                                        />
                                     </FormField>
                                 </div>
                             </template>
@@ -379,7 +394,7 @@ const permissionMessage = computed(() => {
                                 </div>
 
                                 <div v-else class="grid grid-cols-2 gap-4">
-                                    <FormField label="Parecer orçamentário" required>
+                                    <FormField label="Parecer orçamentário">
                                         <div class="border rounded-lg px-4 py-3 mt-2 flex items-center justify-between">
                                             <span class="text-sm font-bold"> O parecer ainda não foi gerado </span>
 
@@ -392,26 +407,15 @@ const permissionMessage = computed(() => {
                             <template v-else-if="section.key === 'installments'">
                                 <div class="grid grid-cols-2 gap-4">
                                     <FormField
-                                        label="Valor da parcela"
-                                        required
+                                        :label="`Valor da ${project.current_installment_cycle}ª parcela`"
                                         :error="form.errors.installment_amount"
                                     >
                                         <TextField v-model="form.installment_amount" money />
                                     </FormField>
 
-                                    <FormField
-                                        label="Número da parcela para este agente"
-                                        required
-                                        :error="form.errors.installment_number"
-                                    >
-                                        <TextField v-model="form.installment_number" type="number" min="1" />
+                                    <FormField label="Data de solicitação da parcela">
+                                        <TextField v-model="form.installment_request_date" type="date" />
                                     </FormField>
-
-                                    <div class="col-span-2 grid grid-cols-2 gap-4">
-                                        <FormField label="Data de solicitação da parcela">
-                                            <TextField v-model="form.installment_request_date" type="date" />
-                                        </FormField>
-                                    </div>
 
                                     <FormField label="Justificativa da parcela">
                                         <v-textarea

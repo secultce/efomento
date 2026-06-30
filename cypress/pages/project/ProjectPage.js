@@ -1,6 +1,6 @@
 import { elements as el, TIMEOUTS } from './elements';
 import { elements as noticeEl } from '../notice/elements';
-import { normalizeNup } from '../notice/index.js';
+import Notice from '../notice/index.js';
 
 class Project {
     accessProjectPage(noticeId) {
@@ -12,16 +12,14 @@ class Project {
         cy.get(el.projectList, { timeout: TIMEOUTS.DEFAULT }).should('be.visible');
     }
 
-    goToProjectDetailsPage(projectId) {
-        const expectedNup = normalizeNup(projectId);
+    goToProjectDetailsPage(projectNup) {
+        const expectedNup = Notice.normalizeNup(projectNup);
 
-        cy.get(el.projectNupProjectList).each(($element) => {
-            const currentNup = normalizeNup($element.text());
-
-            if (currentNup === expectedNup) {
-                cy.get(el.rowTableProjectList).find(el.openProjectOpeningTabButton).click();
-            }
-        });
+        cy.get(el.rowTableProjectList)
+            .contains(el.projectNupProjectList, expectedNup)
+            .closest(el.rowTableProjectList)
+            .find(el.openProjectOpeningTabButton)
+            .click();
 
         cy.url({ timeout: 10000 }).should('match', /\/editais\/\d+\/projetos\/\d+$/);
     }
@@ -111,7 +109,71 @@ class Project {
         });
     }
 
-    createCI() {}
+    clickFilterFormalizationPhase() {
+        cy.get(el.filterProjectPhaseCard).contains('Formalização').should('be.visible').click();
+    }
+
+    validateFilterFormalizationPhase() {
+        cy.get(el.projectPhase).contains('Formalização').should('be.visible');
+    }
+
+    selectProject() {
+        cy.get(el.rowTableProjectList).within(() => {
+            cy.get(el.checkboxProjectList).click();
+        });
+    }
+
+    clickCreateExecutionTerm() {
+        cy.get(el.createDocumentButon)
+            .should('be.visible')
+            .and('not.be.disabled')
+            .contains('Criar termo de execução cultural (TC)')
+            .click();
+    }
+
+    saveExecutionTerm() {
+        cy.get(el.saveDocumentButton).click();
+    }
+
+    validatExecutionTermContent() {
+        cy.window().then((win) => {
+            const editor = win.tinymce.activeEditor;
+
+            expect(editor.getContent()).to.contain('My new text');
+        });
+    }
+
+    validateExecutionTermCreated() {
+        cy.get(el.rowTableProjectList).within(() => {
+            cy.get(el.chipProjectList).should('be.visible').contains('TC');
+        });
+    }
+
+    fillExecutionTerm(text) {
+        cy.window()
+            .its('tinymce.activeEditor')
+            .should('exist')
+            .should((editor) => {
+                expect(editor.initialized).to.be.true;
+            });
+
+        cy.window().then((win) => {
+            const editor = win.tinymce.activeEditor;
+            editor.setContent(`<p>${text}</p>`);
+            editor.focus();
+
+            editor.selection.select(editor.getBody(), true);
+
+            editor.execCommand('Bold');
+            editor.fire('change');
+            editor.save();
+        });
+    }
+
+    verifySuccessMessageSaveDocument() {
+        // Verify success message
+        cy.get(el.successAlert, { timeout: 20000 }).contains('Documento salvo com sucesso!').should('be.visible');
+    }
 }
 
 export default new Project();

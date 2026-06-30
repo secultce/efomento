@@ -1,57 +1,53 @@
-import { elements as el } from '../../pages/project/elements';
+import '../commands.js';
+import Notice from '../../pages/notice/index.js';
+import Project from '../../pages/project/ProjectPage';
+import FormalizationTab from '../../pages/project/formalizationTab/index.js';
 
-class FormalizationWorkflow {
-    accessFilterFormalizationPhase() {
-        cy.get(el.filterProjectPhaseCard).contains('Formalização').click();
+class ForamlizationWorkflow {
+    accessFormalizationTab({ role, notice, project }) {
+        cy.loginByRole(role);
+
+        Notice.visitPage();
+
+        Notice.searchNoticeByNup(notice.noticeNup);
+
+        Notice.goToNoticeDetailsPage(notice.noticeNup);
+
+        Project.findProjectByProjectNup(project.projectNup);
+
+        Project.goToProjectDetailsPage(project.projectNup);
+
+        FormalizationTab.goToFormalizationTab();
+
+        FormalizationTab.validatePage();
     }
-    createCulturalExecutionTerm() {
-        cy.get(el.rowTableProjectList).within(() => {
-            cy.get(el.checkboxProjectList).click();
-        });
 
-        cy.get(el.createDocumentButon)
-            .should('be.visible')
-            .and('not.be.disabled')
-            .contains('Criar termo de execução cultural (TC)')
-            .click();
+    createCulturalExecutionTerm({ role, notice, project, text }) {
+        cy.log(role);
 
-        // Wait until TinyMCE is initialized
-        cy.window()
-            .its('tinymce.activeEditor')
-            .should('exist')
-            .should((editor) => {
-                expect(editor.initialized).to.be.true;
-            });
+        cy.log(notice.noticeNup);
 
-        // Set the content
-        cy.window().then((win) => {
-            const editor = win.tinymce.activeEditor;
-            editor.setContent('<p>My new text</p>');
-            editor.focus();
+        cy.log(project.projectNup);
 
-            // Select all text
-            editor.selection.select(editor.getBody(), true);
+        cy.log(text);
+        cy.loginByRole(role);
 
-            // Toggle bold
-            editor.execCommand('Bold');
-            editor.fire('change');
-            editor.save();
-        });
+        Notice.visitPage();
+        Notice.searchNoticeByNup(notice.noticeNup);
+        Notice.goToNoticeDetailsPage(notice.noticeNup);
 
-        // After: verify the content was updated
-        cy.window().then((win) => {
-            const editor = win.tinymce.activeEditor;
+        Project.clickFilterFormalizationPhase();
+        Project.validateFilterFormalizationPhase();
+        Project.findProjectByProjectNup(project.projectNup);
 
-            expect(editor.getContent()).to.contain('My new text');
-        });
+        Project.selectProject();
 
-        // Save cultural execution term text
-        cy.get(el.saveDocumentButton).click();
-
-        cy.get(el.rowTableProjectList).within(() => {
-            cy.get(el.chipProjectList).should('be.visible').contains('TC');
-        });
+        Project.clickCreateExecutionTerm();
+        Project.fillExecutionTerm(text);
+        Project.saveExecutionTerm();
+        Project.verifySuccessMessageSaveDocument();
+        Project.validateExecutionTermCreated();
     }
 }
 
-export default new FormalizationWorkflow();
+export default new ForamlizationWorkflow();

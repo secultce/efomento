@@ -2,6 +2,7 @@
 
 namespace Database\Seeders;
 
+use App\Enums\Role as RoleEnum;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 use Spatie\Permission\Models\Permission;
@@ -55,22 +56,7 @@ class PermissionSeeder extends Seeder
         }
 
         // Criar roles
-        $roles = [
-            'fomentation',
-            'coord_fomentation',
-            'financial',
-            'coord_financial',
-            'legal_analysis',
-            'coord_legal',
-            'budgetary',
-            'coord_budgetary',
-            'monitoring',
-            'coord_monitoring',
-            'tracking',
-            'super_admin',
-        ];
-
-        foreach ($roles as $roleName) {
+        foreach (RoleEnum::values() as $roleName) {
             Role::firstOrCreate([
                 'name' => $roleName,
                 'guard_name' => 'web',

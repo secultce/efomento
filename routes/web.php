@@ -93,6 +93,12 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('/editais/{notice}/projetos/pagamento/import', [InstallmentController::class, 'import'])
         ->scopeBindings()
         ->name('installments.import');
+    Route::patch(
+        '/projetos/{project}/parcelas/{installment}/observacao',
+        [InstallmentController::class, 'updateRemark']
+    )
+        ->scopeBindings()
+        ->name('projects.installments.remarks.update');
     Route::get('/projetos/{project}/analise-juridica', [LegalAnalysisController::class, 'index'])
         ->name('legal-analysis.index');
     Route::get('/projetos/{project}/analise-juridica/arquivos/{file}', [LegalAnalysisController::class, 'serveFile'])
@@ -128,6 +134,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::patch('/projetos/{project}/monitoramento/{monitoring}/atualizar', [MonitoringController::class, 'update'])
         ->scopeBindings()
         ->name('projects.monitorings.update');
+    Route::get('/projetos/{project}/monitoramento/arquivos', [MonitoringController::class, 'files'])
+        ->name('projects.monitorings.files');
+    Route::get('/projetos/{project}/monitoramento/arquivos/{file}', [MonitoringController::class, 'serveFile'])
+        ->name('projects.monitorings.files.serve');
 
     Route::get('/projetos/{project}/diligencias/{stage}', [DiligenceMessageController::class, 'index'])
         ->name('diligences.index');

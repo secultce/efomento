@@ -16,12 +16,12 @@ import SelectField from '@/Components/SelectField.vue';
 import { useDate } from '@/Composables/useDate';
 import TramitButton from '@/Pages/ProjectDetails/Partials/Tabs/Actions/TramitButton.vue';
 import { useAlert } from '@/Composables/useAlert';
-import { useAuth } from '@/Composables/useAuth';
+import { usePermissions } from '@/Composables/usePermissions';
 
 const { showSnackbar } = useSnackbar();
 const { normalizeDate } = useDate();
 const { showAlert } = useAlert();
-const { hasRole } = useAuth();
+const { canManageNotices } = usePermissions();
 
 const props = defineProps({
     project: {
@@ -48,9 +48,7 @@ const props = defineProps({
 
 const stage = props.project.stages?.find((s) => s.slug === 'abertura');
 
-const canUserHandleOpening = computed(() => {
-    return hasRole('super_admin') || hasRole('fomentation') || hasRole('coord_fomentation');
-});
+const canUserHandleOpening = canManageNotices;
 
 defineEmits(['update:field']);
 

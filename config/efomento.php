@@ -34,6 +34,7 @@ return [
     'mapas_domain' => env('MAPAS_DOMAIN'),
     'mapas_token' => env('MAPAS_TOKEN'),
     'mapas_seal' => env('MAPAS_SEAL'),
+    'mapas_monitoring_seal' => env('MAPAS_MONITORING_SEAL'),
 
     'http_timeout' => env('MAPAS_HTTP_TIMEOUT', 10),
     'http_retries' => env('MAPAS_HTTP_RETRIES', 3),

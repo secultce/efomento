@@ -3,6 +3,7 @@
 namespace App\Http\Requests\Notice;
 
 use App\Enums\InstrumentType;
+use App\Enums\Role;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\Rules\Enum;
@@ -11,7 +12,15 @@ class NoticeUpdateRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        return true;
+        return $this->user()->hasAnyRole(Role::fomentoRoles());
+    }
+
+    public function messages(): array
+    {
+        return [
+            'nup.unique' => 'Este número de processo mãe já está em uso.',
+            'budget_allocation_nup.unique' => 'Este número de processo de dotação orçamentária já está em uso.',
+        ];
     }
 
     public function rules(): array
@@ -33,7 +42,11 @@ class NoticeUpdateRequest extends FormRequest
             'installments' => 'nullable|integer|min:0',
             'process_manager' => 'nullable|string',
             'process_manager_email' => 'nullable|email',
-            'budget_allocation_nup' => 'nullable|string',
+            'budget_allocation_nup' => [
+                'nullable',
+                'string',
+                Rule::unique('notices', 'budget_allocation_nup')->ignore($notice->id),
+            ],
             'budget_allocation_request_date' => 'nullable|date',
             'creditor_registration_nup' => 'nullable|string',
             'creditor_registration_request_date' => 'nullable|date',
