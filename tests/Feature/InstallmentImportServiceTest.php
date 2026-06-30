@@ -26,7 +26,7 @@ class InstallmentImportServiceTest extends TestCase
             'notice_id' => $notice->id,
         ]);
 
-        $project->openings()->create([
+        $project->opening->update([
             'opening_nup' => '23000.000001/2024-10',
         ]);
 
@@ -106,7 +106,7 @@ class InstallmentImportServiceTest extends TestCase
             'notice_id' => $notice->id,
         ]);
 
-        $project->openings()->create([
+        $project->opening->update([
             'opening_nup' => '23000.000001/2024-10',
         ]);
 
@@ -158,7 +158,7 @@ class InstallmentImportServiceTest extends TestCase
             'notice_id' => $notice->id,
         ]);
 
-        $project->openings()->create([
+        $project->opening->update([
             'opening_nup' => '23000.000001/2024-10',
         ]);
 
@@ -201,7 +201,7 @@ class InstallmentImportServiceTest extends TestCase
             'notice_id' => $notice->id,
         ]);
 
-        $project->openings()->create([
+        $project->opening->update([
             'opening_nup' => '23000.000001/2024-10',
         ]);
 

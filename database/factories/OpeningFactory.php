@@ -14,6 +14,15 @@ class OpeningFactory extends Factory
 {
     protected $model = Opening::class;
 
+    public function configure(): static
+    {
+        return $this->afterMaking(function (Opening $opening) {
+            if ($opening->project_id) {
+                Opening::where('project_id', $opening->project_id)->forceDelete();
+            }
+        });
+    }
+
     public function definition(): array
     {
         return [
