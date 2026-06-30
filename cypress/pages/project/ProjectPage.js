@@ -150,12 +150,13 @@ class Project {
     }
 
     fillExecutionTerm(text) {
-        cy.window()
-            .its('tinymce.activeEditor')
-            .should('exist')
-            .should((editor) => {
-                expect(editor.initialized).to.be.true;
+        cy.window({ timeout: 10000 }).then((win) => {
+            cy.wrap(null, { log: false }).should(() => {
+                expect(win.tinymce).to.exist;
+                expect(win.tinymce.activeEditor).to.exist;
+                expect(win.tinymce.activeEditor.initialized).to.be.true;
             });
+        });
 
         cy.window().then((win) => {
             const editor = win.tinymce.activeEditor;
@@ -168,11 +169,17 @@ class Project {
             editor.fire('change');
             editor.save();
         });
+
+        cy.window().then((win) => {
+            const editor = win.tinymce.activeEditor;
+            const content = editor.getContent();
+            expect(content).to.contain(text); // Usar parâmetro
+        });
     }
 
     verifySuccessMessageSaveDocument() {
         // Verify success message
-        cy.get(el.successAlert, { timeout: 20000 }).contains('Documento salvo com sucesso!').should('be.visible');
+        cy.get(el.successAlert, { timeout: 5000 }).contains('Documento salvo com sucesso!').should('be.visible');
     }
 }
 
