@@ -1,6 +1,6 @@
 import { elements as el, TIMEOUTS } from './elements';
 import { elements as noticeEl } from '../notice/elements';
-import Notice from '../../pages/notice/index.js';
+import Notice from '../notice/index.js';
 
 class Project {
     accessProjectPage(noticeId) {
@@ -107,6 +107,73 @@ class Project {
                 cy.get(el.agentNameProjectList, { timeout: TIMEOUTS.SEARCH }).contains(agentName).should('be.visible');
             });
         });
+    }
+
+    clickFilterFormalizationPhase() {
+        cy.get(el.filterProjectPhaseCard).contains('Formalização').should('be.visible').click();
+    }
+
+    validateFilterFormalizationPhase() {
+        cy.get(el.projectPhase).contains('Formalização').should('be.visible');
+    }
+
+    selectProject() {
+        cy.get(el.rowTableProjectList).within(() => {
+            cy.get(el.checkboxProjectList).click();
+        });
+    }
+
+    clickCreateExecutionTerm() {
+        cy.get(el.createDocumentButon)
+            .should('be.visible')
+            .and('not.be.disabled')
+            .contains('Criar termo de execução cultural (TC)')
+            .click();
+    }
+
+    saveExecutionTerm() {
+        cy.get(el.saveDocumentButton).click();
+    }
+
+    validateExecutionTermContent() {
+        cy.window().then((win) => {
+            const editor = win.tinymce.activeEditor;
+
+            expect(editor.getContent()).to.contain('My new text');
+        });
+    }
+
+    validateExecutionTermCreated() {
+        cy.get(el.rowTableProjectList).within(() => {
+            cy.get(el.chipProjectList).should('be.visible').contains('TC');
+        });
+    }
+
+    fillExecutionTerm(text) {
+        cy.window({ timeout: 10000 }).then((win) => {
+            cy.wrap(null, { log: false }).should(() => {
+                expect(win.tinymce).to.exist;
+                expect(win.tinymce.activeEditor).to.exist;
+                expect(win.tinymce.activeEditor.initialized).to.be.true;
+            });
+        });
+
+        cy.window().then((win) => {
+            const editor = win.tinymce.activeEditor;
+            editor.setContent(`<p>${text}</p>`);
+            editor.focus();
+
+            editor.selection.select(editor.getBody(), true);
+
+            editor.execCommand('Bold');
+            editor.fire('change');
+            editor.save();
+        });
+    }
+
+    verifySuccessMessageSaveDocument() {
+        // Verify success message
+        cy.get(el.successAlert, { timeout: 5000 }).contains('Documento salvo com sucesso!').should('be.visible');
     }
 }
 

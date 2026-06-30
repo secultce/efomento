@@ -140,6 +140,7 @@ const selectedDocument = computed(() => {
                             class="w-full !shadow-none !font-bold !border-gray-300 !bg-white !text-[#2d353fFF] rounded-lg text-xs"
                             variant="outlined"
                             :disabled="!selectedProjects?.length"
+                            data-cy="edit-document-button"
                             @click="openDocumentDialog(doc.type)"
                         >
                             <span class="w-full text-left">
@@ -156,6 +157,7 @@ const selectedDocument = computed(() => {
                         <v-btn
                             class="w-full !shadow-none !font-bold !bg-[#ffcc05FF] !text-[#2d353fFF] rounded-lg px-4 py-2 text-xs"
                             :disabled="!selectedProjects?.length"
+                            data-cy="create-document-button"
                             @click="openDocumentDialog(doc.type)"
                         >
                             {{ doc.createLabel }}

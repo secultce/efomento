@@ -5,10 +5,10 @@ export default defineConfig({
     viewportWidth: 1920,
     viewportHeight: 1080,
     allowCypressEnv: true,
+    video: false,
+    numTestsKeptInMemory: 0,
+    experimentalMemoryManagement: true,
     e2e: {
-        video: false,
-        numTestsKeptInMemory: 10,
-        experimentalMemoryManagement: true,
         baseUrl: process.env.APP_URL,
     },
 });

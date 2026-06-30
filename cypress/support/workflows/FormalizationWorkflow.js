@@ -1,6 +1,6 @@
 import '../commands.js';
 import Notice from '../../pages/notice/index.js';
-import Project from '../../pages/project/index';
+import Project from '../../pages/project/ProjectPage';
 import FormalizationTab from '../../pages/project/formalizationTab/index.js';
 
 class ForamlizationWorkflow {
@@ -20,6 +20,26 @@ class ForamlizationWorkflow {
         FormalizationTab.goToFormalizationTab();
 
         FormalizationTab.validatePage();
+    }
+
+    createCulturalExecutionTerm({ role, notice, project, text }) {
+        cy.loginByRole(role);
+
+        Notice.visitPage();
+        Notice.searchNoticeByNup(notice.noticeNup);
+        Notice.goToNoticeDetailsPage(notice.noticeNup);
+
+        Project.clickFilterFormalizationPhase();
+        Project.validateFilterFormalizationPhase();
+        Project.findProjectByProjectNup(project.projectNup);
+
+        Project.selectProject();
+
+        Project.clickCreateExecutionTerm();
+        Project.fillExecutionTerm(text);
+        Project.saveExecutionTerm();
+        Project.verifySuccessMessageSaveDocument();
+        Project.validateExecutionTermCreated();
     }
 }
 
