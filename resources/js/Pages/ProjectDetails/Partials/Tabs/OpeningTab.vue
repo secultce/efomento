@@ -81,9 +81,7 @@ const form = useForm({
     },
 });
 
-const canEditOpening = computed(
-    () => canUserHandleOpening.value && !(stage?.status !== 'aprovado' && stage?.status !== 'bloqueado')
-);
+const canEditOpening = computed(() => canUserHandleOpening.value && stage?.status === 'em_andamento');
 
 useSaveShortcut(
     () => submit(),
@@ -301,14 +299,14 @@ const activeEditIndex = ref('all');
                             <p class="font-bold text-lg">Campos para você inserir ou editar dados</p>
                             <p class="font-bold text-md mt-2 text-black">Links auxiliares</p>
                         </div>
-                        <SaveButton :loading="form.processing" :can-save="canEditOpening" `@click`="submit" />
+                        <SaveButton :loading="form.processing" :can-save="canEditOpening" @click="submit" />
                     </div>
                 </div>
                 <aux-links />
                 <section-chips v-model="activeEditIndex" :sections="formSections" />
                 <div
                     v-permission="{
-                        condition: !canEditOpening,
+                        condition: canEditOpening,
                         message: permissionMessage,
                     }"
                     class="mt-4"

@@ -147,13 +147,13 @@ function handleAction({ action, item }) {
     }
 
     if (action === 'open') {
-        const tab = phaseToTab[selectedPhase.value] ?? 'opening';
+        const tab = phaseToTab[item.phase] ?? 'opening';
         router.get(
             route('notices.projects.show', {
                 notice: props.notice.id,
                 project: item.id,
             }),
-            selectedPhase.value ? { tab } : {}
+            { tab }
         );
     }
 }
