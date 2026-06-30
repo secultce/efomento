@@ -102,10 +102,7 @@ class OpeningUpdateService
             ->filter(fn ($label, $field) => blank($opening->{$field}))
             ->values();
 
-        $hasPrincipalSupervisor = $opening->supervisors()
-            ->whereNull('removed_at')
-            ->where('type', 'principal')
-            ->exists();
+        $hasPrincipalSupervisor = $opening->principalSupervisor()->exists();
 
         if (! $hasPrincipalSupervisor) {
             $missingFields->push('Fiscal titular');
