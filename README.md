@@ -121,6 +121,8 @@ docker exec efomento-app composer require laravel/breeze --dev
 docker exec efomento-app php artisan migrate:fresh --seed
 docker exec efomento-app php artisan db:seed --class=PermissionSeeder
 
+# Forcar Sincronismo dos editais
+docker compose exec app php artisan tinker  --execute="SyncNoticesJob::dispatch()"
 ```
 
 ### Acessos locais

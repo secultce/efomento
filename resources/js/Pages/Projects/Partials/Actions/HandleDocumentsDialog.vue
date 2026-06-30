@@ -292,7 +292,7 @@ watch(
                 />
 
                 <!-- PLACEHOLDERS -->
-                <v-combobox
+                <v-autocomplete
                     v-if="config.placeholders?.length"
                     v-model="selectedPlaceholders"
                     :items="config.placeholders"
