@@ -73,6 +73,8 @@ function applyMask(value) {
 }
 
 function handleInput(value) {
+    value = value ?? '';
+
     if (props.money) {
         const digits = value.replace(/\D/g, '');
         const numeric = Number(digits) / 100;
