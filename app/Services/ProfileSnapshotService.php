@@ -100,12 +100,11 @@ class ProfileSnapshotService
             return null;
         }
 
-        $existing->update([
+        return $model->profileSnapshots()->create([
             ...$payload,
+            'source' => $source,
             'recorded_at' => now(),
         ]);
-
-        return $existing->refresh();
     }
 
     public function recordMapasAgentIfChanged(
