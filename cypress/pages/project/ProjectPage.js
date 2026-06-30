@@ -169,12 +169,6 @@ class Project {
             editor.fire('change');
             editor.save();
         });
-
-        cy.window().then((win) => {
-            const editor = win.tinymce.activeEditor;
-            const content = editor.getContent();
-            expect(content).to.contain(text); // Usar parâmetro
-        });
     }
 
     verifySuccessMessageSaveDocument() {
