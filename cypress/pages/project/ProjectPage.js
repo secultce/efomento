@@ -135,7 +135,7 @@ class Project {
         cy.get(el.saveDocumentButton).click();
     }
 
-    validatExecutionTermContent() {
+    validateExecutionTermContent() {
         cy.window().then((win) => {
             const editor = win.tinymce.activeEditor;
 
