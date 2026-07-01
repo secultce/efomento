@@ -26,7 +26,6 @@ const props = defineProps({
     canReturn: { type: Boolean, default: false },
     currentStage: { type: Object, default: null },
     reportStatus: { type: Array, default: () => [] },
-    termStatus: { type: Array, default: () => [] },
     deliberation: { type: Array, default: () => [] },
 });
 
@@ -53,10 +52,8 @@ const form = useForm({
     responsible_at_asjur: null,
     term_number: null,
     term_signature_sent_at: null,
-    term_status: null,
     term_signed_at: null,
     sent_to_office_at: null,
-    signature_status_office: null,
     signed_by_office_at: null,
     sacc_number: null,
     cge_atende_ticket: null,
@@ -82,10 +79,8 @@ onMounted(() => {
     form.responsible_at_asjur = formalization.responsible_at_asjur ?? null;
     form.term_number = formalization.term_number ?? null;
     form.term_signature_sent_at = normalizeDate(formalization.term_signature_sent_at) ?? null;
-    form.term_status = formalization.term_status ?? null;
     form.term_signed_at = normalizeDate(formalization.term_signed_at) ?? null;
     form.sent_to_office_at = normalizeDate(formalization.sent_to_office_at) ?? null;
-    form.signature_status_office = formalization.signature_status_office ?? null;
     form.signed_by_office_at = normalizeDate(formalization.signed_by_office_at) ?? null;
     form.sacc_number = formalization.sacc_number ?? null;
     form.cge_atende_ticket = formalization.cge_atende_ticket ?? null;
@@ -98,34 +93,29 @@ onMounted(() => {
 });
 
 const requiredFields = {
-    report_status: 'Informe regularidade e inadimplência é obrigatório.',
-    term_number: 'Número do termo é obrigatório.',
-    term_status: 'Status do termo é obrigatório.',
-    signature_status_office: 'Status de assinatura pelo Gabinete é obrigatório.',
-    deliberation: 'Deliberação é obrigatória.',
+    asjur_finalistic_processing_date: 'Data de tramitação da finalística para a ASJUR',
+    asjur_received_at: 'Data de recebimento do processo pela ASJUR',
+    process_assigned_to: 'Processo distribuído para',
+    report_status: 'Informe regularidade e inadimplência',
+    eparcerias_certificate_date: 'Data da certidão',
+    asjur_processing_date: 'Data de tramitação na ASJUR',
+    responsible_at_asjur: 'Responsável (Distribuido para)',
+    term_number: 'Número do termo',
+    term_signature_sent_at: 'Data do envio para assinatura do termo',
+    term_signed_at: 'Data da assinatura do termo',
+    sent_to_office_at: 'Data de envio para Gabinete',
+    signed_by_office_at: 'Data de assinatura do termo pelo Gabinete',
+    sacc_number: 'Número do SACC',
+    cge_atende_ticket: 'Chamado CGE atende',
+    deliberation: 'Deliberação',
+    sent_to_chief_of_staff_at: 'Data de envio para Casa Civil',
+    official_gazette_published_at: 'Data de Publicação do Diário Oficial do Estado',
+    validity_start_at: 'Data de início da vigência do instrumento',
+    validity_end_at: 'Data de término da vigência do instrumento',
+    legal_opinion_date: 'Data do parecer jurídico',
 };
 
 const isBlank = (value) => value === null || value === undefined || value === '';
-
-const validateForm = () => {
-    form.clearErrors();
-
-    let hasError = false;
-
-    Object.entries(requiredFields).forEach(([field, message]) => {
-        if (isBlank(form[field])) {
-            form.setError(field, message);
-            hasError = true;
-        }
-    });
-
-    if (hasError) {
-        showSnackbar('Preencha os campos obrigatórios.', 'error');
-        return false;
-    }
-
-    return true;
-};
 
 const requiredFormalizationDocuments = {
     tc: 'Termo de execução cultural',
@@ -173,9 +163,16 @@ const missingGeneratedDocuments = computed(() => {
 const hasGeneratedRequiredDocuments = computed(() => missingGeneratedDocuments.value.length === 0);
 
 const missingRequiredFields = computed(() => {
-    return Object.entries(requiredFields)
+    const missing = Object.entries(requiredFields)
         .filter(([field]) => isBlank(form[field]))
-        .map(([, message]) => message.replace(' é obrigatório.', ''));
+        .map(([, message]) => message);
+
+    // Verifica se não há anexo selecionado na tela nem salvo no banco
+    if (!form.official_gazette_file && !officialGazetteFile.value) {
+        missing.push('Anexo do documento do Diário Oficial do Estado');
+    }
+
+    return missing;
 });
 
 const hasRequiredFieldsFilled = computed(() => missingRequiredFields.value.length === 0);
@@ -323,11 +320,6 @@ const downloadOfficialGazetteFile = () => {
 
 const saveFormalization = ({ showSuccess = true } = {}) => {
     return new Promise((resolve) => {
-        if (!validateForm()) {
-            resolve(false);
-            return;
-        }
-
         const formalization = props.project.formalizations;
 
         const options = {
@@ -550,11 +542,7 @@ const permissionMessage = computed(() => {
                                         <div></div>
                                     </div>
 
-                                    <FormField
-                                        label="Informe regularidade e inadimplência"
-                                        required
-                                        :error="form.errors.report_status"
-                                    >
+                                    <FormField label="Informe regularidade e inadimplência">
                                         <SelectField
                                             v-model="form.report_status"
                                             :items="reportStatus"
@@ -580,7 +568,7 @@ const permissionMessage = computed(() => {
                                         <TextField v-model="form.responsible_at_asjur" />
                                     </FormField>
 
-                                    <FormField label="Número do termo" required :error="form.errors.term_number">
+                                    <FormField label="Número do termo">
                                         <TextField v-model="form.term_number" />
                                     </FormField>
                                 </div>
@@ -592,49 +580,17 @@ const permissionMessage = computed(() => {
                                         <TextField v-model="form.term_signature_sent_at" type="date" />
                                     </FormField>
 
-                                    <FormField label="Status do termo" required :error="form.errors.term_status">
-                                        <SelectField
-                                            v-model="form.term_status"
-                                            :items="termStatus"
-                                            item-title="label"
-                                            item-value="value"
-                                            placeholder="Selecione um status"
-                                        />
+                                    <FormField label="Data da assinatura do termo">
+                                        <TextField v-model="form.term_signed_at" type="date" />
                                     </FormField>
-
-                                    <div class="col-span-2 grid grid-cols-2 gap-4">
-                                        <FormField label="Data da assinatura do termo">
-                                            <TextField v-model="form.term_signed_at" type="date" />
-                                        </FormField>
-
-                                        <div></div>
-                                    </div>
 
                                     <FormField label="Data de envio para Gabinete">
                                         <TextField v-model="form.sent_to_office_at" type="date" />
                                     </FormField>
 
-                                    <FormField
-                                        label="Status de assinatura pelo Gabinete"
-                                        required
-                                        :error="form.errors.signature_status_office"
-                                    >
-                                        <SelectField
-                                            v-model="form.signature_status_office"
-                                            :items="termStatus"
-                                            item-title="label"
-                                            item-value="value"
-                                            placeholder="Selecione um status"
-                                        />
+                                    <FormField label="Data de assinatura do termo pelo Gabinete">
+                                        <TextField v-model="form.signed_by_office_at" type="date" />
                                     </FormField>
-
-                                    <div class="col-span-2 grid grid-cols-2 gap-4">
-                                        <FormField label="Data de assinatura do termo pelo Gabinete">
-                                            <TextField v-model="form.signed_by_office_at" type="date" />
-                                        </FormField>
-
-                                        <div></div>
-                                    </div>
                                 </div>
                             </template>
 
@@ -652,7 +608,7 @@ const permissionMessage = computed(() => {
                                         <TextField v-model="form.cge_atende_ticket" />
                                     </FormField>
 
-                                    <FormField label="Deliberação" required :error="form.errors.deliberation">
+                                    <FormField label="Deliberação">
                                         <SelectField
                                             v-model="form.deliberation"
                                             :items="deliberation"

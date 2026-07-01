@@ -24,10 +24,8 @@ class FormalizationResource extends JsonResource
             'term_number' => $this->term_number,
 
             'term_signature_sent_at' => $this->term_signature_sent_at,
-            'term_status' => $this->term_status?->value,
             'term_signed_at' => $this->term_signed_at,
             'sent_to_office_at' => $this->sent_to_office_at,
-            'signature_status_office' => $this->signature_status_office?->value,
             'signed_by_office_at' => $this->signed_by_office_at,
 
             'sacc_number' => $this->sacc_number,

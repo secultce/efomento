@@ -12,7 +12,6 @@ use App\Enums\ProjectStageSlug;
 use App\Enums\ProjectStageStatus;
 use App\Enums\ReportStatus;
 use App\Enums\Role;
-use App\Enums\TermStatus;
 use App\Http\Resources\ProjectResource;
 use App\Models\Notice;
 use App\Models\Project;
@@ -118,7 +117,6 @@ class ProjectController extends Controller
             'agentStatus' => AgentStatus::options(),
             'accountType' => AccountType::options(),
             'reportStatus' => ReportStatus::options(),
-            'termStatus' => TermStatus::options(),
             'deliberation' => DeliberationType::options(),
             'openingStatus' => OpeningStatus::options(),
             'currentStage' => $currentStage,
