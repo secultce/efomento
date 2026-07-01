@@ -11,6 +11,7 @@ use App\Models\Notice;
 use App\Models\Opening;
 use App\Models\Project;
 use App\Support\DocumentNumber;
+use App\Support\Import;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -132,7 +133,7 @@ class SpreadsheetImportService
         return Opening::firstOrCreate(
             ['project_id' => $projectId],
             [
-                'opening_nup' => trim((string) ($row['N° DO PROCESSO (NUP)'] ?? '')),
+                'opening_nup' => trim((string) (Import::normalizeNup($row['N° DO PROCESSO (NUP)']) ?? '')),
                 'opening_date' => $this->parseDate(trim((string) ($row['DATA ABERTURA DE PROCESSO'] ?? ''))),
                 'agent_status' => $this->mapAgentStatus(trim((string) ($row['STATUS'] ?? ''))),
                 'opened_by' => trim((string) ($row['RESPONSÁVEL POR ABRIR PROCESSO'] ?? '')),

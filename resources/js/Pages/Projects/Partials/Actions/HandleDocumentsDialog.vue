@@ -309,7 +309,12 @@ watch(
                 />
 
                 <!-- EDITOR -->
-                <app-text-editor v-model="form.content" :error="form.errors.content" class="flex-grow" />
+                <app-text-editor
+                    v-model="form.content"
+                    :error="form.errors.content"
+                    class="flex-grow"
+                    data-cy="document-text-area"
+                />
 
                 <!-- FOOTER TYPE -->
                 <div class="mt-6 mb-6">
@@ -347,6 +352,7 @@ watch(
                         class="!shadow-none !font-bold !bg-[#ffcc05] !text-[#2d353f] rounded-lg"
                         :loading="form.processing"
                         :disabled="!form.content.trim()"
+                        data-cy="save-document-button"
                         @click="handleSave"
                     >
                         Salvar

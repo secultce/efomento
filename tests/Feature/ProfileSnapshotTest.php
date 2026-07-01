@@ -50,9 +50,15 @@ class ProfileSnapshotTest extends TestCase
             'gender' => 'Homem Cis',
         ], ProfileSnapshotSource::AGENT_UPDATE);
 
-        $this->assertEquals(1, $agent->profileSnapshots()->count());
+        $this->assertEquals(2, $agent->profileSnapshots()->count());
+
         $this->assertDatabaseHas('profile_snapshots', [
             'id' => $snapshot->id,
+            'gender' => $snapshot->gender,
+        ]);
+
+        $this->assertDatabaseHas('profile_snapshots', [
+            'object_id' => $agent->id,
             'gender' => 'Homem Cis',
         ]);
     }

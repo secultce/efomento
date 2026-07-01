@@ -26,7 +26,7 @@ class NoticeSeeder extends Seeder
                     'name' => $noticeData['nome'],
                     'notice_url' => env('EXTERNAL_PROVIDER_URL').$noticeData['id'],
                     'creditor_registration_request_date' => $this->parseDate($noticeData['inicio'] ?? null),
-                    'nup' => $hasNup ? fake()->numerify('#####.######/####-##') : null,
+                    'nup' => $hasNup ? fake()->numerify('#################') : null,
                     'total_notice_amount' => fake()->randomFloat(2, 10000, 500000),
                     'total_commitment_amount' => fake()->randomFloat(2, 5000, 300000),
                     'installments' => fake()->numberBetween(1, 12),
