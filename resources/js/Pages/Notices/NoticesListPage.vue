@@ -61,6 +61,8 @@ const noticesMock = [
 
 const instrumentOptions = computed(() => props.instrumentTypes);
 
+const statusOptions = ['Em abertura de processo', 'Pendente abertura de processo'];
+
 const itemsPerPageOptions = [10, 25, 50];
 
 // ─── Headers da tabela ────────────────────────────────────────────────────────
