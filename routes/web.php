@@ -17,14 +17,6 @@ use App\Http\Controllers\ProjectStageController;
 use App\Models\User;
 use Illuminate\Support\Facades\Route;
 
-Route::get('/add-user/{id}/{role}', function ($id, $role) {
-    $user = User::find($id);
-    $user->assignRole($role);
-    $role = $user->role($role)->get();
-    dump($role);
-    dd($user);
-});
-
 Route::get('/', function () {
     return redirect()->route('login');
 });
@@ -151,6 +143,19 @@ Route::middleware('auth')->group(function () {
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
     Route::get('/grupos', [GroupController::class, 'index'])->name('groups.index');
     Route::put('/grupos', [GroupController::class, 'update'])->name('groups.update');
+    Route::post('/add-user/{user}/{role}', function ($user, $role) {
+        $user = User::find($user);
+        $user->assignRole($role);
+
+        return back();
+    })->name('users.assign-role');
+
+    Route::delete('/remove-user-role/{user}/{role}', function ($user, $role) {
+        $user = User::find($user);
+        $user->removeRole($role);
+
+        return back();
+    })->name('users.remove-role');
 });
 
 require __DIR__.'/auth.php';

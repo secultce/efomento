@@ -1,7 +1,71 @@
 <script setup>
-defineProps({
+import { useAlert } from '@/Composables/useAlert';
+import { router } from '@inertiajs/vue3';
+import { ref } from 'vue';
+
+const props = defineProps({
     users: { type: Array, required: true },
+    roles: { type: Array, required: true },
 });
+
+const { showAlert } = useAlert();
+
+const dialog = ref(false);
+const selectedUser = ref(null);
+const selectedRole = ref(null);
+const saving = ref(false);
+
+const openDialog = (user) => {
+    selectedUser.value = user;
+    selectedRole.value = null;
+    dialog.value = true;
+};
+
+const closeDialog = () => {
+    dialog.value = false;
+    selectedUser.value = null;
+    selectedRole.value = null;
+};
+
+const confirm = () => {
+    if (!selectedRole.value) return;
+
+    saving.value = true;
+
+    router.post(
+        route('users.assign-role', { user: selectedUser.value.id, role: selectedRole.value }),
+        {},
+        {
+            onSuccess: () => {
+                closeDialog();
+                showAlert({
+                    alertTitle: 'Função atribuída',
+                    alertMessage: 'A função foi atribuída ao usuário com sucesso.',
+                    confirmText: 'Entendi',
+                });
+            },
+            onFinish: () => {
+                saving.value = false;
+            },
+            preserveScroll: true,
+        }
+    );
+};
+
+const roleItems = props.roles.map((r) => ({ title: r.label, value: r.name }));
+
+const removeRole = (user, roleName) => {
+    router.delete(route('users.remove-role', { user: user.id, role: roleName }), {
+        onSuccess: () => {
+            showAlert({
+                alertTitle: 'Função removida',
+                alertMessage: 'A função foi removida do usuário com sucesso.',
+                confirmText: 'Entendi',
+            });
+        },
+        preserveScroll: true,
+    });
+};
 </script>
 
 <template>
@@ -33,14 +97,53 @@ defineProps({
                         color="primary"
                         variant="tonal"
                         class="mr-1"
+                        closable
+                        @click:close="removeRole(user, role.name)"
                     >
                         {{ role.label }}
                     </v-chip>
                 </v-col>
                 <v-col cols="2" class="d-flex justify-end">
-                    <v-btn variant="outlined" color="primary" rounded="lg" height="25">atribuir função</v-btn>
+                    <v-btn variant="outlined" color="primary" rounded="lg" height="25" @click="openDialog(user)">
+                        atribuir função
+                    </v-btn>
                 </v-col>
             </v-row>
         </v-sheet>
     </div>
+
+    <v-dialog v-model="dialog" max-width="574" persistent>
+        <v-card class="rounded-xl pa-4">
+            <v-card-title class="text-h6 font-weight-bold pb-2">
+                Altere ou remova uma função de um usuário
+            </v-card-title>
+
+            <v-card-text class="pt-2">
+                <p class="text-body-2 text-grey-darken-1 mb-2">Funções</p>
+                <v-select
+                    v-model="selectedRole"
+                    :items="roleItems"
+                    item-title="title"
+                    item-value="value"
+                    placeholder="Selecione uma função"
+                    variant="outlined"
+                    density="comfortable"
+                    hide-details
+                />
+            </v-card-text>
+
+            <v-card-actions class="justify-end gap-2 pt-2">
+                <v-btn variant="outlined" rounded="lg" class="px-6" @click="closeDialog">Cancelar</v-btn>
+                <v-btn
+                    rounded="lg"
+                    class="px-6 !bg-[#ffcc05FF] !text-[#2d353fFF] font-weight-bold"
+                    :loading="saving"
+                    :disabled="!selectedRole"
+                    @click="confirm"
+                >
+                    Confirmar
+                </v-btn>
+            </v-card-actions>
+        </v-card>
+    </v-dialog>
 </template>
