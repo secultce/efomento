@@ -35,6 +35,7 @@ export const documentConfigs = {
         titleCreate: 'Criar termo de execução cultural (TC)',
         titleEdit: 'Editar termo de execução cultural (TC)',
         save: 'tc',
+        placeholders: placeHoldersDocsSchema,
     },
 
     [DOCUMENT_TYPES.ET]: {
@@ -42,6 +43,7 @@ export const documentConfigs = {
         titleCreate: 'Criar extrato do termo (ET)',
         titleEdit: 'Editar extrato do termo (ET)',
         save: 'et',
+        placeholders: placeHoldersDocsSchema,
     },
 
     [DOCUMENT_TYPES.PJ]: {
@@ -49,6 +51,7 @@ export const documentConfigs = {
         titleCreate: 'Criar parecer jurídico (PJ)',
         titleEdit: 'Editar parecer jurídico (PJ)',
         save: 'pj',
+        placeholders: placeHoldersDocsSchema,
     },
 
     [DOCUMENT_TYPES.PO]: {
@@ -56,6 +59,7 @@ export const documentConfigs = {
         titleCreate: 'Criar Parecer Orçamentário (PO)',
         titleEdit: 'Editar Parecer Orçamentário',
         save: 'po',
+        placeholders: placeHoldersDocsSchema,
     },
 
     [DOCUMENT_TYPES.D]: {
@@ -63,5 +67,6 @@ export const documentConfigs = {
         titleCreate: 'Criar Despacho (D)',
         titleEdit: 'Editar Despacho (D)',
         save: 'd',
+        placeholders: placeHoldersDocsSchema,
     },
 };

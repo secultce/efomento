@@ -7,6 +7,9 @@ import DocumentListDialog from '../DocumentListDialog.vue';
 
 import { DOCUMENT_TYPES, documentConfigs } from '@/Schemas/Config/documentConfig.js';
 import { downloadDocumentsZip } from '@/Services/documentService';
+import { usePermissions } from '@/Composables/usePermissions';
+
+const { canManageBudget } = usePermissions();
 
 const props = defineProps({
     selectedProjects: { type: Array, default: () => [] },
@@ -133,32 +136,41 @@ function openNoticeHistory() {
                 <div v-for="doc in availableDocuments" :key="doc.type" class="flex flex-col gap-2">
                     <p>{{ doc.title }}</p>
 
-                    <template v-if="projectHasDocument(doc.type)">
-                        <v-btn
-                            class="w-full !shadow-none !font-bold !border-gray-300 !bg-white !text-[#2d353fFF] rounded-lg text-xs"
-                            variant="outlined"
-                            :disabled="!selectedProjects?.length"
-                            @click="openDocumentDialog(doc.type)"
-                        >
-                            <span class="w-full text-left">
-                                {{ doc.editLabel }}
-                            </span>
+                    <div
+                        v-permission="{
+                            condition: canManageBudget,
+                            message:
+                                'Você não tem permissão para criar ou editar este documento, contate o administrador do sistema.',
+                        }"
+                        class="flex flex-col gap-1"
+                    >
+                        <template v-if="projectHasDocument(doc.type)">
+                            <v-btn
+                                class="w-full !shadow-none !font-bold !border-gray-300 !bg-white !text-[#2d353fFF] rounded-lg text-xs"
+                                variant="outlined"
+                                :disabled="!selectedProjects?.length || !canManageBudget"
+                                @click="openDocumentDialog(doc.type)"
+                            >
+                                <span class="w-full text-left">
+                                    {{ doc.editLabel }}
+                                </span>
 
-                            <template #append>
-                                <v-icon size="18"> mdi-pencil </v-icon>
-                            </template>
-                        </v-btn>
-                    </template>
+                                <template #append>
+                                    <v-icon size="18"> mdi-pencil </v-icon>
+                                </template>
+                            </v-btn>
+                        </template>
 
-                    <template v-else>
-                        <v-btn
-                            class="w-full !shadow-none !font-bold !bg-[#ffcc05FF] !text-[#2d353fFF] rounded-lg px-4 py-2 text-xs"
-                            :disabled="!selectedProjects?.length"
-                            @click="openDocumentDialog(doc.type)"
-                        >
-                            {{ doc.createLabel }}
-                        </v-btn>
-                    </template>
+                        <template v-else>
+                            <v-btn
+                                class="w-full !shadow-none !font-bold !bg-[#ffcc05FF] !text-[#2d353fFF] rounded-lg px-4 py-2 text-xs"
+                                :disabled="!selectedProjects?.length || !canManageBudget"
+                                @click="openDocumentDialog(doc.type)"
+                            >
+                                {{ doc.createLabel }}
+                            </v-btn>
+                        </template>
+                    </div>
 
                     <div class="w-full flex flex-col sm:flex-row gap-2">
                         <v-btn
