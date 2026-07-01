@@ -1,4 +1,5 @@
 import FormalizationWorkflow from '../../../support/workflows/FormalizationWorkflow.js';
+import { DOCUMENTS } from '../../../support/constants/documents.js';
 
 describe('Formalization', () => {
     beforeEach(() => {
@@ -22,7 +23,16 @@ describe('Formalization', () => {
                 role: 'formalization',
                 notice: this.notice,
                 project: this.project,
-                text: 'Texto do Termo de Execução Cultural',
+                documentType: DOCUMENTS.executionTerm,
+            });
+        });
+
+        it.only('should create summary term', function () {
+            FormalizationWorkflow.createSummaryTerm({
+                role: 'formalization',
+                notice: this.notice,
+                project: this.project,
+                documentType: DOCUMENTS.summaryTerm,
             });
         });
     });

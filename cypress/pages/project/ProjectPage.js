@@ -123,33 +123,29 @@ class Project {
         });
     }
 
-    clickCreateExecutionTerm() {
-        cy.get(el.createDocumentButon)
-            .should('be.visible')
-            .and('not.be.disabled')
-            .contains('Criar termo de execução cultural (TC)')
-            .click();
+    clickCreateDocument(buttonText) {
+        cy.get(el.createDocumentButon).should('be.visible').and('not.be.disabled').contains(buttonText).click();
     }
 
-    saveExecutionTerm() {
+    saveDocument() {
         cy.get(el.saveDocumentButton).click();
     }
 
-    validateExecutionTermContent() {
+    validateDocumentContent(texto) {
         cy.window().then((win) => {
             const editor = win.tinymce.activeEditor;
 
-            expect(editor.getContent()).to.contain('My new text');
+            expect(editor.getContent()).to.contain(texto);
         });
     }
 
-    validateExecutionTermCreated() {
+    validateDocumentCreated(chip) {
         cy.get(el.rowTableProjectList).within(() => {
-            cy.get(el.chipProjectList).should('be.visible').contains('TC');
+            cy.get(el.chipProjectList).should('be.visible').contains(chip);
         });
     }
 
-    fillExecutionTerm(text) {
+    fillDocument(text) {
         cy.window({ timeout: 10000 }).then((win) => {
             cy.wrap(null, { log: false }).should(() => {
                 expect(win.tinymce).to.exist;
