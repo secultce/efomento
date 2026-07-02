@@ -1,5 +1,6 @@
 <?php
 
+use App\Enums\Role as RoleEnum;
 use App\Http\Controllers\BudgetController;
 use App\Http\Controllers\DiligenceMessageController;
 use App\Http\Controllers\DocumentController;
@@ -144,7 +145,9 @@ Route::middleware('auth')->group(function () {
     Route::get('/grupos', [GroupController::class, 'index'])->name('groups.index');
     Route::put('/grupos', [GroupController::class, 'update'])->name('groups.update');
     Route::post('/add-user/{user}/{role}', function ($user, $role) {
-        $user = User::find($user);
+        abort_unless(in_array($role, RoleEnum::values(), true), 404);
+
+        $user = User::findOrFail($user);
         $user->assignRole($role);
 
         return back();
