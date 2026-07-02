@@ -35,11 +35,14 @@ class ForamlizationWorkflow {
 
         Project.selectProject();
 
-        Project.clickCreateDocument(documentType.button);
+        Project.clickCreateDocument(documentType.createButton);
         Project.fillDocument(documentType.text);
         Project.saveDocument();
         Project.verifySuccessMessageSaveDocument();
         Project.validateDocumentCreated(documentType.chip);
+        Project.clickEditDocument(documentType.editButton);
+        Project.validateDocumentContent(documentType.text);
+        Project.clickCancelDocumentButton();
     }
 
     createSummaryTerm({ role, notice, project, documentType }) {
@@ -55,11 +58,14 @@ class ForamlizationWorkflow {
 
         Project.selectProject();
 
-        Project.clickCreateDocument(documentType.button);
+        Project.clickCreateDocument(documentType.createButton);
         Project.fillDocument(documentType.text);
         Project.saveDocument();
         Project.verifySuccessMessageSaveDocument();
         Project.validateDocumentCreated(documentType.chip);
+        Project.clickEditDocument(documentType.editButton);
+        Project.validateDocumentContent(documentType.text);
+        Project.clickCancelDocumentButton();
     }
 }
 

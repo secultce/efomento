@@ -11,7 +11,9 @@ export const elements = {
     noDataAvailableMessage: '[data-cy=no-data-available-message]',
     projectPhase: '[data-cy=project-phase]',
     createDocumentButon: '[data-cy=create-document-button]',
+    editDocumentButon: '[data-cy=edit-document-button]',
     saveDocumentButton: '[data-cy=save-document-button]',
+    cancelDocumentButton: '[data-cy=cancel-document-button]',
     successAlert: '.v-snackbar',
 };
 
