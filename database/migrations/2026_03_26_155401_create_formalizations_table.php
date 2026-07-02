@@ -21,18 +21,18 @@ return new class extends Migration
             $table->date('asjur_finalistic_processing_date')->nullable();
             $table->date('asjur_received_at')->nullable();
             $table->string('process_assigned_to')->nullable();
-            $table->enum('report_status', ReportStatus::cases())->default(ReportStatus::SEM_CADASTRO->value);
+            $table->enum('report_status', ReportStatus::cases())->nullable();
             $table->date('eparcerias_certificate_date')->nullable();
 
             $table->date('asjur_processing_date')->nullable();
             $table->string('responsible_at_asjur')->nullable();
-            $table->string('term_number');
+            $table->string('term_number')->nullable();
 
             $table->date('term_signature_sent_at')->nullable();
-            $table->enum('term_status', TermStatus::cases())->default(TermStatus::UNSIGNED->value);
+            $table->enum('term_status', TermStatus::cases())->nullable();
             $table->date('term_signed_at')->nullable();
             $table->date('sent_to_office_at')->nullable();
-            $table->enum('signature_status_office', TermStatus::cases())->default(TermStatus::UNSIGNED->value);
+            $table->enum('signature_status_office', TermStatus::cases())->nullable();
             $table->date('signed_by_office_at')->nullable();
 
             $table->string('sacc_number')->nullable();

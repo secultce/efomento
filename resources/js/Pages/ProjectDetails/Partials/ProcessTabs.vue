@@ -28,7 +28,7 @@ const tabs = [
     { value: 'formalization', label: 'Formalização de processos' },
     { value: 'budget', label: 'Orçamento' },
     { value: 'payment', label: 'Pagamentos' },
-    { value: 'monitoramento', label: 'Monitoramento' },
+    { value: 'monitoring', label: 'Monitoramento' },
 ];
 </script>
 
@@ -70,6 +70,9 @@ const tabs = [
 
                 <BudgetTab :project="project" :can-return="canReturn" :current-stage="currentStage" />
 
+                <v-tabs-window-item value="payment">
+                    <v-sheet class="pa-5 h-[35em]" color="blue" />
+                </v-tabs-window-item>
                 <PaymentTab :project="project" :can-return="canReturn" :current-stage="currentStage" />
 
                 <MonitoringTab :project="project" />

@@ -1,16 +1,19 @@
 export const DOCUMENTS = {
     executionTerm: {
-        button: 'Criar termo de execução cultural (TC)',
+        createButton: 'Criar termo de execução cultural',
+        editButton: 'Editar termo de execução cultural',
         chip: 'TC',
-        text: 'Texto Termo de Execução Cultural',
+        text: 'Texto para o Termo de Execução Cultural',
     },
     summaryTerm: {
-        button: 'Criar extrato do termo',
+        createButton: 'Criar extrato do termo ',
+        editButton: 'Editar extrato do termo',
         chip: 'ET',
         text: 'Texto para o Extrato do Termo',
     },
     legalOpinion: {
-        button: 'Criar parecer jurídico',
+        createButton: 'Criar parecer jurídico',
+        editButton: 'Editar parecer',
         chip: 'PJ',
         text: 'Texto para o Parecer Jurídico',
     },

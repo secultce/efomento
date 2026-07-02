@@ -73,6 +73,8 @@ function applyMask(value) {
 }
 
 function handleInput(value) {
+    value = value ?? '';
+
     if (props.money) {
         const digits = value.replace(/\D/g, '');
         const numeric = Number(digits) / 100;
@@ -88,7 +90,8 @@ function handleInput(value) {
     }
 
     if (props.mask) {
-        newValue = newValue.replace(/\D/g, '');
+        const maxDigits = (props.mask.match(/#/g) || []).length;
+        newValue = newValue.replace(/\D/g, '').slice(0, maxDigits);
     }
 
     emit('update:modelValue', newValue);

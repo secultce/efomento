@@ -15,8 +15,10 @@ import FormField from '@/Components/FormField.vue';
 import SelectField from '@/Components/SelectField.vue';
 import { useDate } from '@/Composables/useDate';
 import TramitButton from '@/Pages/ProjectDetails/Partials/Tabs/Actions/TramitButton.vue';
+import SaveButton from '@/Pages/ProjectDetails/Partials/Tabs/Actions/SaveButton.vue';
 import { useAlert } from '@/Composables/useAlert';
 import { usePermissions } from '@/Composables/usePermissions';
+import { useSaveShortcut } from '@/Composables/useSaveShortcut';
 
 const { showSnackbar } = useSnackbar();
 const { normalizeDate } = useDate();
@@ -79,13 +81,20 @@ const form = useForm({
     },
 });
 
+const canEditOpening = computed(() => canUserHandleOpening.value && stage?.status === 'em_andamento');
+
+useSaveShortcut(
+    () => submit(),
+    computed(() => canEditOpening.value && !form.processing)
+);
+
 onMounted(() => {
     const opening = props.project.opening || {};
     const formalization = props.project.formalizations || {};
     const agent = props.project.agent || {};
 
     form.opening = {
-        opening_nup: opening.opening_nup ?? null,
+        opening_nup: (opening.opening_nup ?? '').replace(/\D/g, '') || null,
         opening_date: normalizeDate(opening.opening_date) ?? null,
         agent_status: opening.agent_status ?? null,
         opened_by: opening.opened_by ?? null,
@@ -146,7 +155,7 @@ const submit = () => {
     form.patch(
         route('projects.openings.update', {
             project: props.project.id,
-            opening: props.project.opening.id,
+            opening: props.project.opening?.id,
         }),
         {
             preserveScroll: true,
@@ -163,9 +172,7 @@ const submit = () => {
 
 const tramitLoading = ref(false);
 
-const tramit = () => {
-    tramitLoading.value = true;
-
+const advanceStage = () => {
     router.patch(
         route('projects.stages.advance', {
             project: props.project.id,
@@ -190,10 +197,32 @@ const tramit = () => {
             },
             onError: (errors) => {
                 const message = Object.values(errors).flat().join(', ') || 'Erro ao tramitar projeto';
-
                 showSnackbar(message, 'error');
             },
             onFinish: () => {
+                tramitLoading.value = false;
+            },
+        }
+    );
+};
+
+const tramit = () => {
+    tramitLoading.value = true;
+
+    form.patch(
+        route('projects.openings.update', {
+            project: props.project.id,
+            opening: props.project.opening?.id,
+        }),
+        {
+            preserveScroll: true,
+            onSuccess: () => {
+                advanceStage();
+            },
+            onError: (errors) => {
+                const message =
+                    Object.values(errors).flat().join(', ') || 'Ocorreu um erro ao salvar antes de tramitar';
+                showSnackbar('Erro ao salvar os dados: ' + message, 'error');
                 tramitLoading.value = false;
             },
         }
@@ -209,7 +238,33 @@ const permissionMessage = computed(() => {
         return 'Este projeto está bloqueado e não pode receber alterações no momento.';
     }
 
+    if (!allRequiredFilled.value) {
+        return 'Preencha e salve todos os campos obrigatórios antes de tramitar.';
+    }
+
     return 'Projeto já foi tramitado e não está mais na fase de Abertura. Aguarde a resposta da Análise Jurídica ou entre em contato com o setor responsável para solicitar a devolução.';
+});
+
+const allRequiredFilled = computed(() => {
+    const opening = form.opening ?? {};
+    const formalization = form.formalization ?? {};
+
+    const hasPrincipalSupervisor = (opening.supervisors ?? []).some((s) => s.type === 'principal' && !!s.id);
+    const hasValidNup = String(opening.opening_nup ?? '').replace(/\D/g, '').length === 17;
+
+    return !!(
+        hasValidNup &&
+        opening.opening_date &&
+        opening.opened_by &&
+        opening.agent_status &&
+        opening.bank &&
+        opening.account_type &&
+        opening.branch &&
+        opening.account &&
+        hasPrincipalSupervisor &&
+        formalization.report_status &&
+        formalization.eparcerias_certificate_date
+    );
 });
 
 const activeViewIndex = ref('all');
@@ -244,23 +299,14 @@ const activeEditIndex = ref('all');
                             <p class="font-bold text-lg">Campos para você inserir ou editar dados</p>
                             <p class="font-bold text-md mt-2 text-black">Links auxiliares</p>
                         </div>
-                        <v-btn
-                            variant="outlined"
-                            color="outlineSecondary"
-                            class="rounded-lg"
-                            :loading="form.processing"
-                            @click="submit"
-                        >
-                            Salvar Alterações
-                        </v-btn>
+                        <SaveButton :loading="form.processing" :can-save="canEditOpening" @click="submit" />
                     </div>
                 </div>
                 <aux-links />
                 <section-chips v-model="activeEditIndex" :sections="formSections" />
                 <div
                     v-permission="{
-                        condition:
-                            !canUserHandleOpening || (stage?.status !== 'aprovado' && stage?.status !== 'bloqueado'),
+                        condition: canEditOpening,
                         message: permissionMessage,
                     }"
                     class="mt-4"
@@ -272,7 +318,7 @@ const activeEditIndex = ref('all');
                                     <form-field label="Número do processo*" required>
                                         <text-field
                                             v-model="form.opening.opening_nup"
-                                            mask="####.######/####-##"
+                                            mask="#####.######/####-##"
                                             data-cy="project-nup-opening-tab"
                                         />
                                     </form-field>
@@ -386,7 +432,11 @@ const activeEditIndex = ref('all');
                             </template>
                         </template>
                     </section-form>
-                    <tramit-button :action="tramit" :disabled="!canUserHandleOpening" :loading="tramitLoading" />
+                    <tramit-button
+                        :action="tramit"
+                        :disabled="!canUserHandleOpening || !allRequiredFilled"
+                        :loading="tramitLoading"
+                    />
                 </div>
             </div>
         </template>

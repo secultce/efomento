@@ -27,7 +27,7 @@ describe('Formalization', () => {
             });
         });
 
-        it.only('should create summary term', function () {
+        it('should create summary term', function () {
             FormalizationWorkflow.createSummaryTerm({
                 role: 'formalization',
                 notice: this.notice,

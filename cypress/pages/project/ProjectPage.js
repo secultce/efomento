@@ -127,16 +127,27 @@ class Project {
         cy.get(el.createDocumentButon).should('be.visible').and('not.be.disabled').contains(buttonText).click();
     }
 
+    clickEditDocument(buttonEditDocument) {
+        cy.get(el.editDocumentButon).should('be.visible').and('not.be.disabled').contains(buttonEditDocument).click();
+    }
+
     saveDocument() {
         cy.get(el.saveDocumentButton).click();
     }
 
-    validateDocumentContent(texto) {
-        cy.window().then((win) => {
-            const editor = win.tinymce.activeEditor;
+    clickCancelDocumentButton() {
+        cy.get(el.cancelDocumentButton).click();
+    }
 
-            expect(editor.getContent()).to.contain(texto);
-        });
+    validateDocumentContent(expectedText) {
+        cy.window()
+            .its('tinymce.activeEditor')
+            .should('exist')
+            .then((editor) => {
+                cy.wrap(null).should(() => {
+                    expect(editor.getContent({ format: 'text' })).to.contain(expectedText);
+                });
+            });
     }
 
     validateDocumentCreated(chip) {

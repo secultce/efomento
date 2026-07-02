@@ -190,7 +190,7 @@ function submit() {
 </script>
 
 <template>
-    <split-screen-tab value="monitoramento">
+    <split-screen-tab value="monitoring">
         <template #left-content>
             <div class="space-y-6">
                 <div>
