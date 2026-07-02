@@ -36,7 +36,7 @@ describe('Formalization', () => {
             });
         });
 
-        it.only('should create legal opinion', function () {
+        it('should create legal opinion', function () {
             FormalizationWorkflow.createSummaryTerm({
                 role: 'formalization',
                 notice: this.notice,
