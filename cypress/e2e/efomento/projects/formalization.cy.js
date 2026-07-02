@@ -35,5 +35,14 @@ describe('Formalization', () => {
                 documentType: DOCUMENTS.summaryTerm,
             });
         });
+
+        it.only('should create legal opinion', function () {
+            FormalizationWorkflow.createSummaryTerm({
+                role: 'formalization',
+                notice: this.notice,
+                project: this.project,
+                documentType: DOCUMENTS.legalOpinion,
+            });
+        });
     });
 });
