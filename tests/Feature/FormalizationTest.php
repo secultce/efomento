@@ -1,12 +1,9 @@
 <?php
 
-// alterar os testes
-
 namespace Tests\Feature;
 
 use App\Enums\DeliberationType;
 use App\Enums\ReportStatus;
-use App\Enums\TermStatus;
 use App\Models\Formalization;
 use App\Models\Project;
 use App\Models\User;
@@ -37,8 +34,6 @@ class FormalizationTest extends TestCase
         return array_merge([
             'report_status' => ReportStatus::REGULAR_E_ADIMPLENTE->value,
             'term_number' => 'TERM-2026-001',
-            'term_status' => TermStatus::SIGNED->value,
-            'signature_status_office' => TermStatus::UNSIGNED->value,
             'deliberation' => DeliberationType::MANUAL->value,
         ], $overrides);
     }
@@ -58,11 +53,27 @@ class FormalizationTest extends TestCase
         $this->actingAs($this->user)
             ->from(route('projects.show', $project))
             ->post(route('projects.formalizations.store', $project), $this->validPayload())
-            ->assertRedirect(route('projects.show', $project));
+            ->assertRedirect(route('projects.show', $project))
+            ->assertSessionHasNoErrors();
 
         $this->assertDatabaseHas('formalizations', [
             'project_id' => $project->id,
             'term_number' => 'TERM-2026-001',
+            'created_by' => $this->user->id,
+        ]);
+    }
+
+    public function test_store_allows_empty_payload(): void
+    {
+        $project = Project::factory()->create();
+
+        $this->actingAs($this->user)
+            ->post(route('projects.formalizations.store', $project), [])
+            ->assertSessionHasNoErrors();
+
+        $this->assertDatabaseHas('formalizations', [
+            'project_id' => $project->id,
+            'term_number' => null,
             'created_by' => $this->user->id,
         ]);
     }
@@ -105,21 +116,6 @@ class FormalizationTest extends TestCase
         Storage::disk($this->disk)->assertExists($file->path);
     }
 
-    public function test_store_requires_mandatory_fields(): void
-    {
-        $project = Project::factory()->create();
-
-        $this->actingAs($this->user)
-            ->post(route('projects.formalizations.store', $project), [])
-            ->assertSessionHasErrors([
-                'report_status',
-                'term_number',
-                'term_status',
-                'signature_status_office',
-                'deliberation',
-            ]);
-    }
-
     public function test_store_rejects_invalid_enum_values(): void
     {
         $project = Project::factory()->create();
@@ -127,14 +123,10 @@ class FormalizationTest extends TestCase
         $this->actingAs($this->user)
             ->post(route('projects.formalizations.store', $project), $this->validPayload([
                 'report_status' => 'INVALIDO',
-                'term_status' => 'INVALIDO',
-                'signature_status_office' => 'INVALIDO',
                 'deliberation' => 'INVALIDO',
             ]))
             ->assertSessionHasErrors([
                 'report_status',
-                'term_status',
-                'signature_status_office',
                 'deliberation',
             ]);
     }
