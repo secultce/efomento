@@ -4,6 +4,8 @@ import { ref } from 'vue';
 import { useForm } from '@inertiajs/vue3';
 import EditableField from '@/Components/EditableField.vue';
 import { useSnackbar } from '@/Composables/useSnackbar';
+import { usePermissions } from '@/Composables/usePermissions';
+import { useMask } from '@/Composables/useMask';
 
 const props = defineProps({
     notice: { type: Object, default: null },
@@ -15,6 +17,8 @@ const form = useForm({
 });
 
 const { showSnackbar } = useSnackbar();
+const { canManageNotices } = usePermissions();
+const { maskProcessNumber } = useMask();
 
 const showAll = ref(false);
 
@@ -49,7 +53,7 @@ const saveAll = () => {
                 class="!text-[#008344] !font-bold !border-[#008344] !h-[3em] mb-2 !px-2 !py-1"
                 density="compact"
                 rounded="lg"
-                :disabled="!form.isDirty"
+                :disabled="!form.isDirty || !canManageNotices"
                 :loading="form.processing"
                 data-cy="update-data-button"
                 @click="saveAll"
@@ -59,11 +63,12 @@ const saveAll = () => {
         </div>
         <div class="col-start-1 row-start-2 flex flex-col justify-start">
             <p data-cy="notice-nup-show-all-information">
-                <span class="font-bold">Nº do processo mãe: </span>{{ notice.nup }}
+                <span class="font-bold">Nº do processo mãe: </span>{{ maskProcessNumber(notice.nup) }}
             </p>
             <div v-show="showAll" class="mt-2 space-y-1 transition-all duration-200 ease-in-out">
                 <EditableField
                     v-model="form.instrument_type"
+                    :disabled="!canManageNotices"
                     label="Tipo de Instrumento:"
                     type="select"
                     :items="instrumentTypes"
@@ -72,11 +77,13 @@ const saveAll = () => {
                 />
                 <EditableField
                     v-model="form.process_manager"
+                    :disabled="!canManageNotices"
                     label="Gestor do processo do sistema:"
                     data-cy="notice-manager-show-all-information"
                 />
                 <EditableField
                     v-model="form.budget_allocation_request_date"
+                    :disabled="!canManageNotices"
                     label="Data da Solicitação da Dotação Orçamentária:"
                     type="date"
                     data-cy="budget-allocation-request-date-show-all-information"
@@ -86,6 +93,7 @@ const saveAll = () => {
         <div class="col-start-2 row-start-2">
             <EditableField
                 v-model="form.total_notice_amount"
+                :disabled="!canManageNotices"
                 label="Valor total do edital:"
                 type="number"
                 :format="
@@ -106,12 +114,14 @@ const saveAll = () => {
                 </p>
                 <EditableField
                     v-model="form.process_manager_email"
+                    :disabled="!canManageNotices"
                     label="Email do gestor:"
                     type="email"
                     data-cy="manager-email-show-all-information"
                 />
                 <EditableField
                     v-model="form.creditor_registration_nup"
+                    :disabled="!canManageNotices"
                     label="N° Processo Cadastro do Credor:"
                     data-cy="process-number-creditor-register-show-all-information"
                 />
@@ -129,18 +139,21 @@ const saveAll = () => {
             <div v-show="showAll" class="mt-2 space-y-1 transition-all duration-200 ease-in-out">
                 <EditableField
                     v-model="form.installments"
+                    :disabled="!canManageNotices"
                     label="N° Parcelas:"
                     type="number"
                     data-cy="quota-number-show-all-information"
                 />
                 <EditableField
                     v-model="form.budget_allocation_nup"
+                    :disabled="!canManageNotices"
                     label="N° Processo Dotação Orçamentária:"
                     mask="#####.######/####-##"
                     data-cy="process-number-budget-allocation-show-all-information"
                 />
                 <EditableField
                     v-model="form.creditor_registration_request_date"
+                    :disabled="!canManageNotices"
                     label="Data da Solicitação do Cadastro do Credor:"
                     type="date"
                     data-cy="budget-allocation-request-creditor-register-date-show-all-information"

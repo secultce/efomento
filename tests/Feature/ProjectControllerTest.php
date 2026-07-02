@@ -193,7 +193,8 @@ class ProjectControllerTest extends TestCase
 
     public function test_assign_supervisor_returns_error_when_project_has_no_opening(): void
     {
-        $project = Project::factory()->create(); // sem opening
+        $project = Project::factory()->create();
+        $project->opening->forceDelete();
         $supervisor = User::factory()->create();
 
         $response = $this->actingAs($this->user)

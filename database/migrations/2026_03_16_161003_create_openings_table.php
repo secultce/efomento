@@ -20,7 +20,7 @@ return new class extends Migration
             $table->foreignId('project_id')
                 ->unique()
                 ->constrained()
-                ->nullOnDelete();
+                ->cascadeOnDelete();
 
             $table->foreignId('user_id')
                 ->nullable()

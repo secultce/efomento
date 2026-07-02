@@ -69,6 +69,7 @@ Notice (edital cultural)
 - Para uso do PlantUml poderá ter que instalar o executável dot.exe na sua máquina o instalar no linux e configurar o 
 caminho do Ubuntu que é '/usr/bin/dot'. A instalação é com `sudo apt install graphviz`
 
+</div>
 
 ## Como Rodar
 
@@ -83,12 +84,17 @@ docker compose up -d
 
 Isso inicia automaticamente:
 
-| Container        | Descrição                              | Porta          |
-|------------------|----------------------------------------|----------------|
-| efomento-postgres| PostgreSQL com health check            | 5432           |
-| efomento-app     | PHP-FPM com OPcache + caches Laravel   | 9000 (interno) |
-| efomento-vite    | Vite dev server com HMR                | 5173           |
-| efomento-nginx   | Proxy reverso                          | 8080           |
+| Container              | Descrição                                     | Porta          |
+|------------------------|-----------------------------------------------|----------------|
+| efomento-postgres      | PostgreSQL 16 com health check                | 5433 (host)    |
+| efomento-app           | PHP-FPM com OPcache + caches Laravel          | 9000 (interno) |
+| efomento-vite          | Vite dev server com HMR                       | 5173           |
+| efomento-nginx         | Proxy reverso                                 | 8080           |
+| efomento-queue         | Worker de filas (high/medium/details/default) | —              |
+| efomento-queue-files   | Worker de filas (files)                       | —              |
+| efomento-scheduler     | Laravel scheduler                             | —              |
+| efomento-greenmail     | Servidor SMTP/IMAP local (e-mail de teste)    | —              |
+| efomento-roundcube     | Webmail para visualizar e-mails de teste      | 8025           |
 
 Acesse: **http://localhost:8080**
 
@@ -115,20 +121,22 @@ docker exec efomento-app composer require laravel/breeze --dev
 docker exec efomento-app php artisan migrate:fresh --seed
 docker exec efomento-app php artisan db:seed --class=PermissionSeeder
 
+# Forcar Sincronismo dos editais
+docker compose exec app php artisan tinker  --execute="SyncNoticesJob::dispatch()"
 ```
 
 ### Acessos locais
 
-| Serviço    | URL / Host             |
-|------------|------------------------|
-| App        | http://localhost:8080   |
-| Vite HMR   | http://localhost:5173   |
-| PostgreSQL | localhost:5432          |
+| Serviço       | URL / Host             |
+|---------------|------------------------|
+| App           | http://localhost:8080  |
+| Vite HMR      | http://localhost:5173  |
+| PostgreSQL    | localhost:5433         |
+| Webmail       | http://localhost:8025  |
 
 ## Arquitetura
 
 ### Duas camadas de interface
-- **Filament PHP** → admin interno (equipe técnica, gestores). Acessa models diretamente.
 - **Vue.js + Vuetify + Tailwind** → interface do usuário final. Consome API RESTful.
 
 ### Padrões de Projeto
