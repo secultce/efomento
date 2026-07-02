@@ -145,6 +145,7 @@ class MassSupervisorAssignmentTest extends TestCase
     public function test_throws_exception_when_project_has_no_opening(): void
     {
         $project = Project::factory()->create();
+        $project->opening->forceDelete();
         $user = User::factory()->create();
 
         $this->expectException(\Exception::class);
@@ -157,6 +158,7 @@ class MassSupervisorAssignmentTest extends TestCase
     {
         $validProject = Project::factory()->has(Opening::factory())->create();
         $invalidProject = Project::factory()->create();
+        $invalidProject->opening->forceDelete();
         $user = User::factory()->create();
 
         $exceptionThrown = false;

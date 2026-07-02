@@ -13,7 +13,7 @@ class DocumentPdfService
         'images',
         'project.agent',
         'project.notice',
-        'project.opening.activeSupervisor.user',
+        'project.opening.principalSupervisor.user',
     ];
 
     public function download(Document $document, ?string $type = null): Response
@@ -85,8 +85,8 @@ class DocumentPdfService
             '[agent_email]' => $document->project?->agent?->latestSnapshot?->email,
             '[agent_phone]' => $document->project?->agent?->latestSnapshot?->phone,
             '[finality]' => $document->project?->notice?->instrument_type,
-            '[fiscal_matricula]' => $document->project?->opening?->activeSupervisor?->user?->registration_number,
-            '[fiscal_name]' => $document->project?->opening?->activeSupervisor?->user?->name,
+            '[fiscal_matricula]' => $document->project?->opening?->principalSupervisor?->user?->registration_number,
+            '[fiscal_name]' => $document->project?->opening?->principalSupervisor?->user?->name,
             '[project_name]' => $document->project?->title_project,
         ];
 

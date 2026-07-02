@@ -9,7 +9,7 @@ import HandleDocumentsDialog from '../HandleDocumentsDialog.vue';
 import DocumentListDialog from '../DocumentListDialog.vue';
 
 const { canPerform } = useAuth();
-const { isSuperAdmin } = usePermissions();
+const { isSuperAdmin, canManageNotices } = usePermissions();
 
 const props = defineProps({
     selectedProjects: { type: Array, default: () => [] },
@@ -45,7 +45,7 @@ const canAssignSupervisor = computed(() => {
 });
 
 const canCreateCI = computed(() => {
-    return isSuperAdmin.value || canPerform('ci.create');
+    return canManageNotices.value;
 });
 
 const selectedProjectsList = computed(() => {

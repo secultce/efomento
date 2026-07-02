@@ -123,33 +123,40 @@ class Project {
         });
     }
 
-    clickCreateExecutionTerm() {
-        cy.get(el.createDocumentButon)
-            .should('be.visible')
-            .and('not.be.disabled')
-            .contains('Criar termo de execução cultural (TC)')
-            .click();
+    clickCreateDocument(buttonText) {
+        cy.get(el.createDocumentButon).should('be.visible').and('not.be.disabled').contains(buttonText).click();
     }
 
-    saveExecutionTerm() {
+    clickEditDocument(buttonEditDocument) {
+        cy.get(el.editDocumentButon).should('be.visible').and('not.be.disabled').contains(buttonEditDocument).click();
+    }
+
+    saveDocument() {
         cy.get(el.saveDocumentButton).click();
     }
 
-    validateExecutionTermContent() {
-        cy.window().then((win) => {
-            const editor = win.tinymce.activeEditor;
-
-            expect(editor.getContent()).to.contain('My new text');
-        });
+    clickCancelDocumentButton() {
+        cy.get(el.cancelDocumentButton).click();
     }
 
-    validateExecutionTermCreated() {
+    validateDocumentContent(expectedText) {
+        cy.window()
+            .its('tinymce.activeEditor')
+            .should('exist')
+            .then((editor) => {
+                cy.wrap(null).should(() => {
+                    expect(editor.getContent({ format: 'text' })).to.contain(expectedText);
+                });
+            });
+    }
+
+    validateDocumentCreated(chip) {
         cy.get(el.rowTableProjectList).within(() => {
-            cy.get(el.chipProjectList).should('be.visible').contains('TC');
+            cy.get(el.chipProjectList).should('be.visible').contains(chip);
         });
     }
 
-    fillExecutionTerm(text) {
+    fillDocument(text) {
         cy.window({ timeout: 10000 }).then((win) => {
             cy.wrap(null, { log: false }).should(() => {
                 expect(win.tinymce).to.exist;

@@ -11,10 +11,20 @@ class OpeningUpdateRequest extends FormRequest
         return true;
     }
 
+    protected function prepareForValidation(): void
+    {
+        $opening = $this->input('opening', []);
+
+        if (isset($opening['opening_nup'])) {
+            $opening['opening_nup'] = preg_replace('/\D/', '', $opening['opening_nup']) ?: null;
+            $this->merge(['opening' => $opening]);
+        }
+    }
+
     public function rules(): array
     {
         return [
-            'opening.opening_nup' => ['sometimes', 'nullable', 'string', 'max:255'],
+            'opening.opening_nup' => ['sometimes', 'nullable', 'digits:17'],
             'opening.opening_date' => ['sometimes', 'nullable', 'date'],
             'opening.agent_status' => ['sometimes', 'nullable', 'string'],
             'opening.opened_by' => ['sometimes', 'nullable', 'string'],

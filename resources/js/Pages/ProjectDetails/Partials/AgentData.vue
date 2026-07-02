@@ -1,5 +1,9 @@
 <script setup>
 import { useEnums } from '@/Composables/useEnums';
+import { useMask } from '@/Composables/useMask';
+
+const { getLabel } = useEnums();
+const { maskProcessNumber } = useMask();
 
 const props = defineProps({
     project: { type: Object, default: null },
@@ -7,8 +11,6 @@ const props = defineProps({
     reportStatus: { type: Array, default: () => [] },
     openingStatus: { type: Array, default: () => [] },
 });
-
-const { getLabel } = useEnums();
 </script>
 <template>
     <v-card class="w-full !shadow-none border border-gray-800 rounded-lg">
@@ -20,7 +22,7 @@ const { getLabel } = useEnums();
             </div>
             <div>
                 <p>Número do processo</p>
-                <p class="font-bold">{{ props.project?.opening_nup }}</p>
+                <p class="font-bold">{{ maskProcessNumber(props.project?.opening_nup) }}</p>
             </div>
             <div>
                 <p>Status do agente cultural</p>
