@@ -23,6 +23,7 @@ class UserRoleTest extends TestCase
         }
 
         $this->admin = User::factory()->create();
+        $this->admin->assignRole(RoleEnum::SUPER_ADMIN->value);
     }
 
     public function test_assign_role_to_user(): void
@@ -67,6 +68,47 @@ class UserRoleTest extends TestCase
             ->delete(route('users.remove-role', ['user' => $user->id, 'role' => 'funcao-inexistente']));
 
         $response->assertRedirect()->assertSessionHasErrors('role');
+    }
+
+    public function test_user_without_super_admin_cannot_assign_role(): void
+    {
+        $notAdmin = User::factory()->create();
+        $user = User::factory()->create();
+
+        $response = $this->actingAs($notAdmin)
+            ->post(route('users.assign-role', ['user' => $user->id, 'role' => RoleEnum::FOMENTATION->value]));
+
+        $response->assertForbidden();
+        $this->assertCount(0, $user->fresh()->roles);
+    }
+
+    public function test_user_without_super_admin_cannot_remove_role(): void
+    {
+        $notAdmin = User::factory()->create();
+        $user = User::factory()->create();
+        $user->assignRole(RoleEnum::FOMENTATION->value);
+
+        $response = $this->actingAs($notAdmin)
+            ->delete(route('users.remove-role', ['user' => $user->id, 'role' => RoleEnum::FOMENTATION->value]));
+
+        $response->assertForbidden();
+        $this->assertTrue($user->fresh()->hasRole(RoleEnum::FOMENTATION->value));
+    }
+
+    public function test_super_admin_can_access_groups_page(): void
+    {
+        $response = $this->actingAs($this->admin)->get(route('groups.index'));
+
+        $response->assertOk();
+    }
+
+    public function test_user_without_super_admin_cannot_access_groups_page(): void
+    {
+        $notAdmin = User::factory()->create();
+
+        $response = $this->actingAs($notAdmin)->get(route('groups.index'));
+
+        $response->assertForbidden();
     }
 
     public function test_assign_role_to_missing_user_returns_404(): void

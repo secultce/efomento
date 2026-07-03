@@ -141,12 +141,14 @@ Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
-    Route::get('/grupos', [GroupController::class, 'index'])->name('groups.index');
-    Route::put('/grupos', [GroupController::class, 'update'])->name('groups.update');
-    Route::post('/add-user/{user}/{role}', [UserController::class, 'assignRole'])
-        ->name('users.assign-role');
-    Route::delete('/remove-user-role/{user}/{role}', [UserController::class, 'removeRole'])
-        ->name('users.remove-role');
+    Route::middleware('role:super_admin')->group(function () {
+        Route::get('/grupos', [GroupController::class, 'index'])->name('groups.index');
+        Route::put('/grupos', [GroupController::class, 'update'])->name('groups.update');
+        Route::post('/add-user/{user}/{role}', [UserController::class, 'assignRole'])
+            ->name('users.assign-role');
+        Route::delete('/remove-user-role/{user}/{role}', [UserController::class, 'removeRole'])
+            ->name('users.remove-role');
+    });
 });
 
 require __DIR__.'/auth.php';
