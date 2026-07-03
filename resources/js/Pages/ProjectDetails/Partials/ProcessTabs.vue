@@ -68,9 +68,6 @@ const tabs = [
 
                 <BudgetTab :project="project" :can-return="canReturn" :current-stage="currentStage" />
 
-                <v-tabs-window-item value="payment">
-                    <v-sheet class="pa-5 h-[35em]" color="blue" />
-                </v-tabs-window-item>
                 <PaymentTab :project="project" :can-return="canReturn" :current-stage="currentStage" />
 
                 <MonitoringTab :project="project" />
