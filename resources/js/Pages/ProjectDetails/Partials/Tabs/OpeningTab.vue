@@ -19,11 +19,13 @@ import SaveButton from '@/Pages/ProjectDetails/Partials/Tabs/Actions/SaveButton.
 import { useAlert } from '@/Composables/useAlert';
 import { usePermissions } from '@/Composables/usePermissions';
 import { useSaveShortcut } from '@/Composables/useSaveShortcut';
+import { useMask } from '@/Composables/useMask';
 
 const { showSnackbar } = useSnackbar();
 const { normalizeDate } = useDate();
 const { showAlert } = useAlert();
 const { canManageNotices } = usePermissions();
+const { maskPhone } = useMask();
 
 const props = defineProps({
     project: {
@@ -267,6 +269,15 @@ const allRequiredFilled = computed(() => {
     );
 });
 
+const secondaryPhoneModel = computed({
+    get: () => maskPhone(form.agent.secondary_phone),
+    set: (value) => {
+        form.agent.secondary_phone = String(value ?? '')
+            .replace(/\D/g, '')
+            .slice(0, 11);
+    },
+});
+
 const activeViewIndex = ref('all');
 const activeEditIndex = ref('all');
 </script>
@@ -426,7 +437,7 @@ const activeEditIndex = ref('all');
                                     </form-field>
 
                                     <form-field label="Telefone secundário">
-                                        <text-field v-model="form.agent.secondary_phone" />
+                                        <text-field v-model="secondaryPhoneModel" maxlength="15" />
                                     </form-field>
                                 </div>
                             </template>
