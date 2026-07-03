@@ -147,17 +147,41 @@ Route::middleware('auth')->group(function () {
     Route::post('/add-user/{user}/{role}', function ($user, $role) {
         abort_unless(in_array($role, RoleEnum::values(), true), 404);
 
-        $user = User::findOrFail($user);
-        $user->assignRole($role);
+        $user = User::find($user);
 
-        return back();
+        if (! $user) {
+            return back()->with('error', 'Usuário não encontrado.');
+        }
+
+        try {
+            $user->assignRole($role);
+        } catch (\Throwable $e) {
+            report($e);
+
+            return back()->with('error', 'Não foi possível atribuir a função ao usuário.');
+        }
+
+        return back()->with('success', 'Função atribuída ao usuário com sucesso.');
     })->name('users.assign-role');
 
     Route::delete('/remove-user-role/{user}/{role}', function ($user, $role) {
-        $user = User::find($user);
-        $user->removeRole($role);
+        abort_unless(in_array($role, RoleEnum::values(), true), 404);
 
-        return back();
+        $user = User::find($user);
+
+        if (! $user) {
+            return back()->with('error', 'Usuário não encontrado.');
+        }
+
+        try {
+            $user->removeRole($role);
+        } catch (\Throwable $e) {
+            report($e);
+
+            return back()->with('error', 'Não foi possível remover a função do usuário.');
+        }
+
+        return back()->with('success', 'Função removida do usuário com sucesso.');
     })->name('users.remove-role');
 });
 

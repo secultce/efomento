@@ -1,6 +1,7 @@
 <script setup>
 import { useAlert } from '@/Composables/useAlert';
-import { router } from '@inertiajs/vue3';
+import { useSnackbar } from '@/Composables/useSnackbar';
+import { router, usePage } from '@inertiajs/vue3';
 import { ref } from 'vue';
 
 const props = defineProps({
@@ -9,6 +10,8 @@ const props = defineProps({
 });
 
 const { showAlert } = useAlert();
+const { showSnackbar } = useSnackbar();
+const page = usePage();
 
 const dialog = ref(false);
 const selectedUser = ref(null);
@@ -37,12 +40,21 @@ const confirm = () => {
         {},
         {
             onSuccess: () => {
+                const flash = page.props.flash;
+                if (flash?.error) {
+                    showSnackbar(flash.error, 'error');
+                    return;
+                }
                 closeDialog();
                 showAlert({
                     alertTitle: 'Função atribuída',
                     alertMessage: 'A função foi atribuída ao usuário com sucesso.',
                     confirmText: 'Entendi',
                 });
+            },
+            onError: (errors) => {
+                const msg = Object.values(errors).flat().join(', ') || 'Não foi possível atribuir a função ao usuário.';
+                showSnackbar(msg, 'error');
             },
             onFinish: () => {
                 saving.value = false;
@@ -57,11 +69,20 @@ const roleItems = props.roles.map((r) => ({ title: r.label, value: r.name }));
 const removeRole = (user, roleName) => {
     router.delete(route('users.remove-role', { user: user.id, role: roleName }), {
         onSuccess: () => {
+            const flash = page.props.flash;
+            if (flash?.error) {
+                showSnackbar(flash.error, 'error');
+                return;
+            }
             showAlert({
                 alertTitle: 'Função removida',
                 alertMessage: 'A função foi removida do usuário com sucesso.',
                 confirmText: 'Entendi',
             });
+        },
+        onError: (errors) => {
+            const msg = Object.values(errors).flat().join(', ') || 'Não foi possível remover a função do usuário.';
+            showSnackbar(msg, 'error');
         },
         preserveScroll: true,
     });
