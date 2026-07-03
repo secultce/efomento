@@ -1,6 +1,5 @@
 <?php
 
-use App\Enums\Role as RoleEnum;
 use App\Http\Controllers\BudgetController;
 use App\Http\Controllers\DiligenceMessageController;
 use App\Http\Controllers\DocumentController;
@@ -15,7 +14,7 @@ use App\Http\Controllers\OpeningController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ProjectController;
 use App\Http\Controllers\ProjectStageController;
-use App\Models\User;
+use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -144,21 +143,10 @@ Route::middleware('auth')->group(function () {
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
     Route::get('/grupos', [GroupController::class, 'index'])->name('groups.index');
     Route::put('/grupos', [GroupController::class, 'update'])->name('groups.update');
-    Route::post('/add-user/{user}/{role}', function ($user, $role) {
-        abort_unless(in_array($role, RoleEnum::values(), true), 404);
-
-        $user = User::findOrFail($user);
-        $user->assignRole($role);
-
-        return back();
-    })->name('users.assign-role');
-
-    Route::delete('/remove-user-role/{user}/{role}', function ($user, $role) {
-        $user = User::find($user);
-        $user->removeRole($role);
-
-        return back();
-    })->name('users.remove-role');
+    Route::post('/add-user/{user}/{role}', [UserController::class, 'assignRole'])
+        ->name('users.assign-role');
+    Route::delete('/remove-user-role/{user}/{role}', [UserController::class, 'removeRole'])
+        ->name('users.remove-role');
 });
 
 require __DIR__.'/auth.php';
