@@ -25,7 +25,7 @@ const { showSnackbar } = useSnackbar();
 const { normalizeDate } = useDate();
 const { showAlert } = useAlert();
 const { canManageNotices } = usePermissions();
-const { applyMask } = useMask();
+const { maskPhone } = useMask();
 
 const props = defineProps({
     project: {
@@ -269,13 +269,8 @@ const allRequiredFilled = computed(() => {
     );
 });
 
-const secondaryPhoneMask = computed(() => {
-    const digits = String(form.agent.secondary_phone ?? '').replace(/\D/g, '');
-    return digits.length > 10 ? '(##) #####-####' : '(##) ####-####';
-});
-
 const secondaryPhoneModel = computed({
-    get: () => applyMask(form.agent.secondary_phone, secondaryPhoneMask.value),
+    get: () => maskPhone(form.agent.secondary_phone),
     set: (value) => {
         form.agent.secondary_phone = String(value ?? '')
             .replace(/\D/g, '')
