@@ -37,7 +37,7 @@ describe('Formalization', () => {
         });
 
         it('should create legal opinion', function () {
-            FormalizationWorkflow.createSummaryTerm({
+            FormalizationWorkflow.createLegalOpinion({
                 role: 'formalization',
                 notice: this.notice,
                 project: this.project,
