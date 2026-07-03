@@ -49,6 +49,7 @@ class FormalizationController extends Controller
         Formalization $formalization
     ): RedirectResponse {
         $data = $request->validated();
+
         unset($data['official_gazette_file']);
 
         $formalization->update($data);
