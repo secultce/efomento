@@ -44,6 +44,13 @@ const confirm = () => {
                     confirmText: 'Entendi',
                 });
             },
+            onError: (errors) => {
+                showAlert({
+                    alertTitle: 'Erro',
+                    alertMessage: errors.role ?? 'Não foi possível atribuir a função. Tente novamente.',
+                    confirmText: 'Entendi',
+                });
+            },
             onFinish: () => {
                 saving.value = false;
             },
@@ -60,6 +67,13 @@ const removeRole = (user, roleName) => {
             showAlert({
                 alertTitle: 'Função removida',
                 alertMessage: 'A função foi removida do usuário com sucesso.',
+                confirmText: 'Entendi',
+            });
+        },
+        onError: (errors) => {
+            showAlert({
+                alertTitle: 'Erro',
+                alertMessage: errors.role ?? 'Não foi possível remover a função. Tente novamente.',
                 confirmText: 'Entendi',
             });
         },
