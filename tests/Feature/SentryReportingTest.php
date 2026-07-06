@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use Illuminate\Support\Facades\Exceptions;
 use Sentry\State\HubInterface;
 use Tests\TestCase;
 
@@ -90,6 +91,8 @@ class SentryReportingTest extends TestCase
 
     public function test_invalid_argument_exception_still_returns_422_when_report_is_wired(): void
     {
+        Exceptions::fake();
+
         $this->app['router']->post('/__sentry-test/invalid-argument', function () {
             throw new \InvalidArgumentException('Falha de teste.');
         })->middleware('web');
@@ -98,5 +101,9 @@ class SentryReportingTest extends TestCase
 
         $response->assertStatus(422)
             ->assertJsonFragment(['message' => 'Falha de teste.']);
+
+        Exceptions::assertReported(function (\InvalidArgumentException $e): bool {
+            return $e->getMessage() === 'Falha de teste.';
+        });
     }
 }
