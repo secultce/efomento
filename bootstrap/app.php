@@ -29,10 +29,5 @@ return Application::configure(basePath: dirname(__DIR__))
                 return response()->json(['message' => $e->getMessage()], 422);
             }
         });
-
-        $exceptions->report(function (InvalidArgumentException $e): void {
-            \Sentry\captureException($e);
-        });
-
         Integration::handles($exceptions);
     })->create();
