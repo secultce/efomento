@@ -28,7 +28,7 @@ class FormalizationTab {
     }
 
     displayMessageErrorRequiredFields() {
-        cy.get(el.successAlert, { timeout: 5000 })
+        cy.get(el.snackbarAlert, { timeout: 5000 })
             .contains(
                 'Preencha os campos obrigatórios antes de tramitar: Informe regularidade e inadimplência, Número do termo, Status do termo, Status de assinatura pelo Gabinete, Deliberação é obrigatória.'
             )

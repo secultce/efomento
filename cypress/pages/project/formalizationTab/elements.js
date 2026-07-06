@@ -2,6 +2,7 @@ export const elements = {
     formalizationTab: '[data-cy=formalization-tab]',
     projecNupOpeningTab: '[data-cy=project-nup-opening-tab]',
     rightPanel: '[data-cy=right-panel]',
+    snackbarAlert: '[data-cy=snack-alert]',
 };
 
 // Constantes de timeout para melhor manutenibilidade
