@@ -80,6 +80,8 @@ class SentryReportingTest extends TestCase
 
     public function test_client_does_not_send_events_when_dsn_is_empty(): void
     {
+        config(['sentry.dsn' => null]);
+
         $client = app(HubInterface::class)->getClient();
 
         $this->assertNotNull($client);
