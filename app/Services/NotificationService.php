@@ -63,12 +63,17 @@ class NotificationService
             );
     }
 
-    public function notifyProcessReturned(Project $project, string $reason, array $roles): void
-    {
+    public function notifyProcessReturned(
+        Project $project,
+        string $reason,
+        array $roles,
+        User $user
+    ): void {
         $users = User::role($roles)->get();
 
         $message = sprintf(
-            'O processo "%s" de NUP %s foi devolvido para ajustes.',
+            '%s devolveu o processo "%s" de NUP %s para ajustes.',
+            $user->name,
             $project->title_project,
             Mask::nup($project->opening?->opening_nup)
         );
@@ -89,6 +94,10 @@ class NotificationService
                     'params' => [
                         'notice' => $project->notice_id,
                         'project' => $project->id,
+                    ],
+                    'user' => [
+                        'name' => $user->name,
+                        'avatar' => $user->profile_picture,
                     ],
                 ]
             );
