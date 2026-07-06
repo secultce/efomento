@@ -762,7 +762,11 @@ const permissionMessage = computed(() => {
                         </template>
                     </SectionForm>
 
-                    <div :class="{ 'cursor-not-allowed': !canTramitFormalization }" @click="showTramitBlockedMessage">
+                    <div
+                        data-cy="tramit-container"
+                        :class="{ 'cursor-not-allowed': !canTramitFormalization }"
+                        @click="showTramitBlockedMessage"
+                    >
                         <TramitButton
                             :action="tramit"
                             :disabled="!canTramitFormalization"

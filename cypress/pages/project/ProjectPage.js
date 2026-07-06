@@ -21,7 +21,7 @@ class Project {
             .find(el.openProjectOpeningTabButton)
             .click();
 
-        cy.url({ timeout: 10000 }).should('match', /\/editais\/\d+\/projetos\/\d+$/);
+        cy.url({ timeout: 10000 }).should('match', /\/editais\/\d+\/projetos\/\d+\?tab=opening$/);
     }
 
     getProjectData() {
@@ -124,7 +124,7 @@ class Project {
     }
 
     clickCreateDocument(buttonText) {
-        cy.get(el.createDocumentButon).should('be.visible').and('not.be.disabled').contains(buttonText).click();
+        cy.get(el.createDocumentButon).should('be.visible').and('be.disabled').contains(buttonText).click();
     }
 
     clickEditDocument(buttonEditDocument) {
@@ -181,6 +181,10 @@ class Project {
     verifySuccessMessageSaveDocument() {
         // Verify success message
         cy.get(el.successAlert, { timeout: 5000 }).contains('Documento salvo com sucesso!').should('be.visible');
+    }
+
+    validateRequiredFields({ role, notice, project }) {
+        this.accessFormalizationTab({ role, notice, project });
     }
 }
 
