@@ -34,7 +34,7 @@ const props = defineProps({
 
     cancelLabel: {
         type: String,
-        default: 'Cancelar',
+        default: 'Fechar',
     },
 
     confirmLabel: {
@@ -122,7 +122,11 @@ const confirm = () => {
                     {{ cancelLabel }}
                 </v-btn>
 
-                <v-btn v-if="showConfirm" color="secondary" class="!font-bold !rounded-lg" @click="confirm">
+                <v-btn
+                    v-if="showConfirm"
+                    class="!shadow-none !font-bold !bg-[#ffcc05FF] !text-[#2d353fFF] rounded-lg text-xs"
+                    @click="confirm"
+                >
                     {{ confirmLabel }}
                 </v-btn>
             </v-card-actions>
