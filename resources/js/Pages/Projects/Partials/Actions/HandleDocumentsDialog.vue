@@ -346,7 +346,15 @@ watch(
                 <v-card-actions class="mt-6">
                     <v-spacer />
 
-                    <v-btn variant="outlined" color="#004c27" class="rounded-lg" @click="closeDialog"> Cancelar </v-btn>
+                    <v-btn
+                        variant="outlined"
+                        color="#004c27"
+                        class="rounded-lg"
+                        data-cy="cancel-document-button"
+                        @click="closeDialog"
+                    >
+                        Cancelar
+                    </v-btn>
 
                     <v-btn
                         class="!shadow-none !font-bold !bg-[#ffcc05] !text-[#2d353f] rounded-lg"

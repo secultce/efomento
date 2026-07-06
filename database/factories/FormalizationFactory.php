@@ -4,7 +4,6 @@ namespace Database\Factories;
 
 use App\Enums\DeliberationType;
 use App\Enums\ReportStatus;
-use App\Enums\TermStatus;
 use App\Models\Formalization;
 use App\Models\Project;
 use Illuminate\Database\Eloquent\Factories\Factory;
@@ -26,10 +25,8 @@ class FormalizationFactory extends Factory
             'responsible_at_asjur' => $this->faker->name(),
             'term_number' => $this->faker->unique()->numerify('TERM-###'),
             'term_signature_sent_at' => $this->faker->date(),
-            'term_status' => $this->faker->randomElement(TermStatus::cases())->value,
             'term_signed_at' => $this->faker->date(),
             'sent_to_office_at' => $this->faker->date(),
-            'signature_status_office' => $this->faker->randomElement(TermStatus::cases())->value,
             'signed_by_office_at' => $this->faker->date(),
             'sacc_number' => $this->faker->bothify('SACC-#####'),
             'cge_atende_ticket' => $this->faker->bothify('TICKET-#####'),

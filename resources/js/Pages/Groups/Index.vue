@@ -154,7 +154,7 @@ const items = [
                                 <v-tabs-window v-model="mainTab">
                                     <!-- Aba: Todos os usuários -->
                                     <v-tabs-window-item value="usuarios">
-                                        <Users :users="users" />
+                                        <Users :users="users" :roles="roles" />
                                     </v-tabs-window-item>
 
                                     <!-- Aba: Funções e grupos -->

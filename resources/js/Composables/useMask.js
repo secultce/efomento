@@ -26,8 +26,16 @@ export function useMask() {
         return digits.replace(/^(\d{5})(\d{6})(\d{4})(\d{2}).*/, '$1.$2/$3-$4');
     };
 
+    const maskPhone = (value) => {
+        if (!value) return '';
+        const digits = value.toString().replace(/\D/g, '').slice(0, 11);
+        const mask = digits.length > 10 ? '(##) #####-####' : '(##) ####-####';
+        return applyMask(digits, mask);
+    };
+
     return {
         applyMask,
         maskProcessNumber,
+        maskPhone,
     };
 }
