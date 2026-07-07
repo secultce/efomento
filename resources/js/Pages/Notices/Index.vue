@@ -22,7 +22,7 @@ defineProps({
 });
 
 const stats = [
-    { title: 'Todos os editais disponíveis', key: 'pendentes' },
+    { title: 'Editais pendentes para abertura de processo', key: 'pendentes' },
     { title: 'Editais com processos em andamento', key: 'oportunidades' },
     { title: 'Processos Finalizados', key: 'concluidos' },
 ];

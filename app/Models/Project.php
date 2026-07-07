@@ -201,6 +201,36 @@ class Project extends Model implements Auditable
         return $this->currentStage?->slug?->label();
     }
 
+    /**
+     * Indica se o projeto já teve ao menos um pagamento aprovado.
+     *
+     * O ciclo de parcelas (docs/planejamento-fluxo-ciclico-parcelas.md) reseta as etapas
+     * ORCAMENTO/PAGAMENTO/MONITORAMENTO para PENDENTE ao solicitar a próxima parcela, então o
+     * status atual de PAGAMENTO nem sempre reflete pagamentos de ciclos anteriores.
+     * `current_installment_cycle` só avança após o MONITORAMENTO do ciclo corrente entrar em
+     * andamento (ou seja, após o pagamento daquele ciclo já ter sido aprovado), então cycle > 1
+     * é a evidência que sobra do reset.
+     */
+    public function hasCompletedPayment(): bool
+    {
+        if ($this->current_installment_cycle > 1) {
+            return true;
+        }
+
+        $paymentStage = $this->stages->firstWhere('slug', ProjectStageSlug::PAGAMENTO);
+
+        if ($paymentStage?->status === ProjectStageStatus::APROVADO) {
+            return true;
+        }
+
+        return $this->stages->contains(
+            fn (ProjectStage $stage) => in_array($stage->slug, [
+                ProjectStageSlug::MONITORAMENTO,
+                ProjectStageSlug::PRESTACAO_DE_CONTAS,
+            ], true) && $stage->status !== ProjectStageStatus::PENDENTE
+        );
+    }
+
     public function getProgressPercentage(): int
     {
         $stages = $this->stages;

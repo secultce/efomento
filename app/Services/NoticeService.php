@@ -2,20 +2,13 @@
 
 namespace App\Services;
 
-use App\Enums\ProjectStageSlug;
-use App\Enums\ProjectStageStatus;
 use App\Models\Notice;
 use App\Models\Project;
-use App\Models\ProjectStage;
 use Illuminate\Support\Collection;
 use InvalidArgumentException;
 
 class NoticeService
 {
-    /**
-     * Retorna as oportunidades formatadas para exibição no dashboard de editais.
-     * Aplica filtro de busca por nome ou NUP quando informado.
-     */
     public function getNoticesForDashboard(?string $search = null): Collection
     {
         return Notice::query()
@@ -43,35 +36,37 @@ class NoticeService
     private function resolveStatus(Notice $notice): string
     {
         if (! $notice->nup) {
-            return 'Pendente abertura de processo';
+            return 'Pendente de abertura';
         }
 
-        $todosEmPagamento = $notice->projects->isNotEmpty()
-            && $notice->projects->every(
-                fn (Project $project) => $project->stages->contains(
-                    fn (ProjectStage $stage) => $stage->slug === ProjectStageSlug::PAGAMENTO
-                        && $stage->status === ProjectStageStatus::EM_ANDAMENTO
-                )
-            );
+        $allFormalizations = $notice->projects->isNotEmpty()
+            && $notice->projects->every(fn (Project $project) => $project->hasCompletedPayment());
 
-        return $todosEmPagamento
+        return $allFormalizations
             ? 'Processos formalizados'
-            : 'Em abertura de processo';
+            : 'Processos em andamento';
     }
 
     /**
      * Retorna os totais para os cards de estatísticas do dashboard.
+     * Os totais de 'pendentes' e 'oportunidades' refletem o mesmo status calculado
+     * por resolveStatus() para cada edital, evitando divergência entre os cards e a listagem.
      */
     public function getTotals(): array
     {
+        $statusCounts = Notice::query()
+            ->with(['projects.stages'])
+            ->get()
+            ->countBy(fn (Notice $notice) => $this->resolveStatus($notice));
+
         $total = Notice::count();
         $comCredenciamento = Notice::whereNotNull('creditor_registration_request_date')->count();
         $semCredenciamento = Notice::whereNull('creditor_registration_nup')->count();
 
         return [
-            'oportunidades' => $total,
-            'pendentes' => $semCredenciamento,
-            'concluidos' => $comCredenciamento,
+            'oportunidades' => $statusCounts->get('Processos em andamento', 0),
+            'pendentes' => $statusCounts->get('Pendente de abertura', 0),
+            'concluidos' => $statusCounts->get('Processos formalizados', 0),
             'monitoramento' => $total - $comCredenciamento - $semCredenciamento,
         ];
     }

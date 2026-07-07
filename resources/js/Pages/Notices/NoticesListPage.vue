@@ -26,35 +26,35 @@ const noticesMock = [
     {
         id: 1,
         titulo: 'EDITAL DE CHAMAMENTO PÚBLICO Nº 005/2025 - PRE...',
-        status: 'Em abertura de processo',
+        status: 'Processos em andamento',
         tipoInstrumento: 'Termo de execução cultural',
         numeroProcessoMae: '000054554654/45457',
     },
     {
         id: 2,
         titulo: 'EDITAL DE CHAMAMENTO PÚBLICO Nº 006/2025 - CICLO CEARENSE CARNAVALESCO',
-        status: 'Em abertura de processo',
+        status: 'Processos em andamento',
         tipoInstrumento: 'Termo de execução cultural',
         numeroProcessoMae: '000054554654/45457',
     },
     {
         id: 3,
         titulo: 'EDITAL DE CHAMAMENTO PÚBLICO Nº 007/2025 - PNAB MÚSICA',
-        status: 'Em abertura de processo',
+        status: 'Processos em andamento',
         tipoInstrumento: 'Termo de execução cultural',
         numeroProcessoMae: '000054554654/45458',
     },
     {
         id: 4,
         titulo: 'EDITAL DE CHAMAMENTO PÚBLICO Nº 008/2025 - CULTURA VIVA',
-        status: 'Em abertura de processo',
+        status: 'Processos em andamento',
         tipoInstrumento: 'Termo de execução cultural',
         numeroProcessoMae: '000054554654/45459',
     },
     {
         id: 5,
         titulo: 'EDITAL DE CHAMAMENTO PÚBLICO Nº 009/2025 - FUNDO DE CULTURA',
-        status: 'Em abertura de processo',
+        status: 'Processos em andamento',
         tipoInstrumento: 'Termo de execução cultural',
         numeroProcessoMae: '000054554654/45460',
     },
@@ -62,12 +62,12 @@ const noticesMock = [
 
 const instrumentOptions = computed(() => props.instrumentTypes);
 
-const statusOptions = ['Em abertura de processo', 'Pendente abertura de processo', 'Processos formalizados'];
+const statusOptions = ['Processos em andamento', 'Pendente de abertura', 'Processos formalizados'];
 
 const statusColors = {
-    'Pendente abertura de processo': { text: '#a37600', badge: '#fff1c2' },
-    'Em abertura de processo': { text: '#012544', badge: '#c2dbef' },
-    'Processos formalizados': { text: '#006c35', badge: '#2eb06a' },
+    'Pendente de abertura': { text: '#a37600', badge: '#fff1c2' },
+    'Processos em andamento': { text: '#012544', badge: '#c2dbef' },
+    'Processos formalizados': { text: '#006c35', badge: '#c2ecd4' },
 };
 
 function getStatusColor(status) {
