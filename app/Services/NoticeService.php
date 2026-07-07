@@ -29,10 +29,6 @@ class NoticeService
             ]);
     }
 
-    /**
-     * Calcula o status do edital com base no preenchimento do NUP e no
-     * progresso dos projetos vinculados até a etapa de pagamento.
-     */
     private function resolveStatus(Notice $notice): string
     {
         if (! $notice->nup) {
@@ -49,8 +45,6 @@ class NoticeService
 
     /**
      * Retorna os totais para os cards de estatísticas do dashboard.
-     * Os totais de 'pendentes' e 'oportunidades' refletem o mesmo status calculado
-     * por resolveStatus() para cada edital, evitando divergência entre os cards e a listagem.
      */
     public function getTotals(): array
     {
