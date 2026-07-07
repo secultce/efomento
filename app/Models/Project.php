@@ -45,7 +45,7 @@ class Project extends Model implements Auditable
         'current_installment_cycle' => 'integer',
     ];
 
-    protected $appends = ['phase', 'opening_nup'];
+    protected $appends = ['phase', 'phase_slug', 'opening_nup'];
 
     public function notice(): BelongsTo
     {
@@ -80,6 +80,15 @@ class Project extends Model implements Auditable
             : $this->currentStage()->first();
 
         return $currentStage?->slug?->label() ?? 'Não Iniciado';
+    }
+
+    public function getPhaseSlugAttribute(): ?string
+    {
+        $currentStage = $this->relationLoaded('currentStage')
+            ? $this->currentStage
+            : $this->currentStage()->first();
+
+        return $currentStage?->slug?->value;
     }
 
     public function getOpeningNupAttribute()

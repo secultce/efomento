@@ -64,6 +64,16 @@ const instrumentOptions = computed(() => props.instrumentTypes);
 
 const statusOptions = ['Em abertura de processo', 'Pendente abertura de processo', 'Processos formalizados'];
 
+const statusColors = {
+    'Pendente abertura de processo': { text: '#a37600', badge: '#fff1c2' },
+    'Em abertura de processo': { text: '#012544', badge: '#c2dbef' },
+    'Processos formalizados': { text: '#006c35', badge: '#2eb06a' },
+};
+
+function getStatusColor(status) {
+    return statusColors[status] ?? { text: '#1565c0', badge: '#bbdefb' };
+}
+
 const itemsPerPageOptions = [10, 25, 50];
 
 // ─── Headers da tabela ────────────────────────────────────────────────────────
@@ -257,8 +267,15 @@ function openDialog(item) {
 
             <!-- Badge de status -->
             <template #item.status="{ item }">
-                <span class="status-badge" data-cy="process-status-notices-list">
-                    <span class="status-dot">•</span>
+                <span
+                    class="status-badge"
+                    data-cy="process-status-notices-list"
+                    :style="{
+                        backgroundColor: getStatusColor(item.status).badge,
+                        color: getStatusColor(item.status).text,
+                    }"
+                >
+                    <span class="status-dot" :style="{ color: getStatusColor(item.status).text }">•</span>
                     {{ item.status }}
                 </span>
             </template>
@@ -406,7 +423,7 @@ function openDialog(item) {
     display: inline-flex;
     align-items: center;
     gap: 4px;
-    background-color: #bbdefb;
+    background-color: #c2dbef;
     color: #1565c0;
     border-radius: 999px;
     padding: 3px 10px;
