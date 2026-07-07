@@ -12,6 +12,10 @@ use Illuminate\Validation\ValidationException;
 
 class OpeningUpdateService
 {
+    public function __construct(
+        protected ProfileSnapshotService $snapshotService
+    ) {}
+
     public function handle(Project $project, Opening $opening, array $data): void
     {
         try {
@@ -62,18 +66,17 @@ class OpeningUpdateService
 
         $agent = $project->agent;
 
-        $agent->profileSnapshots()->updateOrCreate(
-            [
-                'source' => ProfileSnapshotSource::PROJECT_UPDATE,
-            ],
+        $this->snapshotService->recordIfChanged(
+            $agent,
             [
                 'name' => $agentData['name'] ?? $agent->name,
-                'cpf_cnpj' => $agentData['cpf_cnpj'] ?? null,
+                'cpf_cnpj' => $agentData['cpf_cnpj'] ?? $agent->cpf_cnpj,
                 'director_position' => $agentData['director_position'] ?? $agent->director_position,
                 'director_email' => $agentData['director_email'] ?? $agent->director_email,
+
                 ...$agentData,
-                'recorded_at' => now(),
-            ]
+            ],
+            ProfileSnapshotSource::AGENT_UPDATE,
         );
     }
 
