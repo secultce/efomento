@@ -17,16 +17,6 @@ class FormalizationTab {
         cy.contains('.v-list-item', valueStr).should('be.visible').click();
     }
 
-    fillRequiredFields(reportStatusSelected, termNumber, statusTerm, signatureStatus) {
-        this.selectDropdownOption(el.reportStatusSelect, reportStatusSelected);
-
-        cy.get(el.termNumberInput).type(termNumber);
-
-        this.selectDropdownOption(el.statusTermSelect, statusTerm);
-
-        this.selectDropdownOption(el.signatureStatusOfficeSelect, signatureStatus);
-    }
-
     displayMessageErrorRequiredFields() {
         cy.get(el.snackbarAlert, { timeout: 5000 })
             .contains(
