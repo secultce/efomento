@@ -61,7 +61,7 @@ const noticesMock = [
 
 const instrumentOptions = computed(() => props.instrumentTypes);
 
-const statusOptions = ['Em abertura de processo', 'Pendente abertura de processo'];
+const statusOptions = ['Em abertura de processo', 'Pendente abertura de processo', 'Processos formalizados'];
 
 const itemsPerPageOptions = [10, 25, 50];
 
