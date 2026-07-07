@@ -62,18 +62,22 @@ class OpeningUpdateService
 
         $agent = $project->agent;
 
-        $agent->profileSnapshots()->recordIfChanged([
-            'source' => ProfileSnapshotSource::AGENT_UPDATE,
+        app(ProfileSnapshotService::class)->recordIfChanged(
+            $agent,
+            [
+                'source' => ProfileSnapshotSource::AGENT_UPDATE,
 
-            'name' => $agentData['name'] ?? $agent->name,
-            'cpf_cnpj' => $agentData['cpf_cnpj'] ?? null,
-            'director_position' => $agentData['director_position'] ?? $agent->director_position,
-            'director_email' => $agentData['director_email'] ?? $agent->director_email,
+                'name' => $agentData['name'] ?? $agent->name,
+                'cpf_cnpj' => $agentData['cpf_cnpj'] ?? null,
+                'director_position' => $agentData['director_position'] ?? $agent->director_position,
+                'director_email' => $agentData['director_email'] ?? $agent->director_email,
 
-            ...$agentData,
+                ...$agentData,
 
-            'recorded_at' => now(),
-        ]);
+                'recorded_at' => now(),
+            ],
+            ProfileSnapshotSource::AGENT_UPDATE
+        );
     }
 
     public function ensureCanAdvance(Project $project): void
