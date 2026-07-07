@@ -33,7 +33,7 @@ const props = defineProps({
             <div>
                 <p>Status do processo</p>
                 <p class="font-bold">
-                    {{ props.project.phase }}
+                    {{ props.project?.phase }}
                 </p>
             </div>
         </div>

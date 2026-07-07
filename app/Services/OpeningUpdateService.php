@@ -68,14 +68,7 @@ class OpeningUpdateService
 
         $this->snapshotService->recordIfChanged(
             $agent,
-            [
-                'name' => $agentData['name'] ?? $agent->name,
-                'cpf_cnpj' => $agentData['cpf_cnpj'] ?? $agent->cpf_cnpj,
-                'director_position' => $agentData['director_position'] ?? $agent->director_position,
-                'director_email' => $agentData['director_email'] ?? $agent->director_email,
-
-                ...$agentData,
-            ],
+            $agentData,
             ProfileSnapshotSource::AGENT_UPDATE,
         );
     }
@@ -95,6 +88,8 @@ class OpeningUpdateService
             'opening_date' => 'Data de abertura do processo',
             'opened_by' => 'Responsável por abrir o processo',
             'agent_status' => 'Status do agente cultural',
+            'allocation_code' => 'Código da dotação',
+            'allocation_number' => 'Número completo da dotação',
             'bank' => 'Banco',
             'account_type' => 'Tipo de conta',
             'branch' => 'Agência',

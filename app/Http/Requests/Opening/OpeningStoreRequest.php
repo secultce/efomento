@@ -22,6 +22,9 @@ class OpeningStoreRequest extends FormRequest
             'agent_status' => ['nullable', 'string', 'max:255'],
             'opened_by' => ['nullable', 'string', 'max:255'],
 
+            'allocation_code' => ['nullable', 'string', 'max:255'],
+            'allocation_number' => ['nullable', 'string', 'max:255'],
+
             'bank' => ['nullable', 'string', 'max:255'],
             'account_type' => ['nullable', 'string', 'max:100'],
             'branch' => ['nullable', 'string', 'max:50'],

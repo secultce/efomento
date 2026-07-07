@@ -28,6 +28,8 @@ class Opening extends Model implements Auditable
         'agent_status',
         'opened_by',
         'created_by',
+        'allocation_code',
+        'allocation_number',
         'bank',
         'account_type',
         'branch',

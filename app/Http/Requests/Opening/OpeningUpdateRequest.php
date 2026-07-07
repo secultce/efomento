@@ -17,8 +17,13 @@ class OpeningUpdateRequest extends FormRequest
 
         if (isset($opening['opening_nup'])) {
             $opening['opening_nup'] = preg_replace('/\D/', '', $opening['opening_nup']) ?: null;
-            $this->merge(['opening' => $opening]);
         }
+
+        if (isset($opening['allocation_number'])) {
+            $opening['allocation_number'] = preg_replace('/\D/', '', $opening['allocation_number']) ?: null;
+        }
+
+        $this->merge(['opening' => $opening]);
     }
 
     public function rules(): array
@@ -28,6 +33,9 @@ class OpeningUpdateRequest extends FormRequest
             'opening.opening_date' => ['sometimes', 'nullable', 'date'],
             'opening.agent_status' => ['sometimes', 'nullable', 'string'],
             'opening.opened_by' => ['sometimes', 'nullable', 'string'],
+
+            'opening.allocation_code' => ['sometimes', 'nullable', 'string'],
+            'opening.allocation_number' => ['sometimes', 'nullable', 'string'],
 
             'opening.bank' => ['sometimes', 'nullable', 'string'],
             'opening.account_type' => ['sometimes', 'nullable', 'string'],

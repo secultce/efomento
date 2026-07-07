@@ -100,6 +100,8 @@ entity Opening {
   opening_date : date
   agent_status : App\Enums\AgentStatus
   opened_by : string
+  allocation_code : string
+  allocation_number : string
   bank : string
   account_type : App\Enums\AccountType
   branch : string
