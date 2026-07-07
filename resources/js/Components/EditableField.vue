@@ -20,6 +20,7 @@ const props = defineProps({
     },
     label: { type: String, default: '' },
     error: { type: String, default: '' },
+    disabled: { type: Boolean, default: false },
 });
 
 const emit = defineEmits(['update:modelValue']);
@@ -107,7 +108,14 @@ const stopEdit = () => {
 
         <!-- DISPLAY MODE -->
         <template v-else>
-            <span class="hover:bg-gray-100 cursor-pointer px-1 rounded" @click="startEdit">
+            <span
+                :class="
+                    disabled
+                        ? 'cursor-not-allowed opacity-60 px-1 rounded'
+                        : 'hover:bg-gray-100 cursor-pointer px-1 rounded'
+                "
+                @click="!disabled && startEdit()"
+            >
                 <!-- DATE FORMAT -->
                 <template v-if="type === 'date'">
                     {{ modelValue ? formatDate(modelValue) : '-' }}

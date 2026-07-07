@@ -18,7 +18,6 @@ class InstallmentController extends Controller
     ): RedirectResponse {
         $request->validate([
             'file' => ['required', 'file', 'mimes:xlsx,xls,csv'],
-            'installment' => ['required', 'integer', 'min:1', 'max:'.$notice->installments],
             'selectedProjects' => ['required', 'array'],
             'selectedProjects.*' => ['integer'],
         ]);
@@ -27,25 +26,26 @@ class InstallmentController extends Controller
             $result = $service->import(
                 file: $request->file('file'),
                 notice: $notice,
-                installment: (int) $request->installment,
                 selectedProjects: $request->selectedProjects,
             );
 
             if ($result['updated'] === 0) {
                 return back()->with(
                     'error',
-                    'Nenhuma parcela foi atualizada. Verifique se os projetos possuem orçamento e parcela cadastrada.'
+                    'Nenhuma parcela foi atualizada. Verifique se os projetos possuem orçamento e parcela pendente de pagamento.'
                 );
             }
 
-            $message = "Importação concluída. {$result['updated']} projeto(s) tiveram a parcela {$result['installment']} atualizada com sucesso.";
+            $message = "Importação concluída. {$result['updated']} projeto(s) tiveram parcela(s) atualizada(s) com sucesso.";
 
             if ($result['skipped'] > 0) {
-                $message .= " {$result['skipped']} projeto(s) foram ignorados por não possuírem orçamento ou parcela cadastrada.";
+                $message .= " {$result['skipped']} projeto(s) foram ignorados por não possuírem orçamento, parcela cadastrada ou parcela pendente de pagamento.";
             }
 
             return back()->with('success', $message);
         } catch (\InvalidArgumentException $e) {
+            report($e);
+
             return back()->with('error', $e->getMessage());
         } catch (\Throwable $e) {
             report($e);

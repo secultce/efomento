@@ -12,7 +12,6 @@ const props = defineProps({
     supervisorsAvailable: { type: Array, default: () => [] },
     agentStatus: { type: Array, default: () => [] },
     reportStatus: { type: Array, default: () => [] },
-    termStatus: { type: Array, default: () => [] },
     deliberation: { type: Array, default: () => [] },
     accountType: { type: Array, default: () => [] },
     currentStage: { type: Object, default: null },
@@ -28,7 +27,7 @@ const tabs = [
     { value: 'formalization', label: 'Formalização de processos' },
     { value: 'budget', label: 'Orçamento' },
     { value: 'payment', label: 'Pagamentos' },
-    { value: 'monitoramento', label: 'Monitoramento' },
+    { value: 'monitoring', label: 'Monitoramento' },
 ];
 </script>
 
@@ -64,7 +63,6 @@ const tabs = [
                     :can-return="canReturn"
                     :current-stage="currentStage"
                     :report-status="reportStatus"
-                    :term-status="termStatus"
                     :deliberation="deliberation"
                 />
 

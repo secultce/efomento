@@ -17,7 +17,6 @@ class InstallmentImportService
     public function import(
         UploadedFile $file,
         Notice $notice,
-        int $installment,
         array $selectedProjects
     ): array {
         $data = SpreadsheetImporter::import(
@@ -87,12 +86,13 @@ class InstallmentImportService
 
         $updated = 0;
         $skipped = 0;
+        $updatedInstallments = collect();
 
         DB::transaction(function () use (
             $matchedRows,
-            $installment,
             &$updated,
-            &$skipped
+            &$skipped,
+            &$updatedInstallments
         ) {
             $projectIds = $matchedRows
                 ->pluck('project_id')
@@ -108,11 +108,18 @@ class InstallmentImportService
                 ->pluck('id')
                 ->values();
 
-            $installmentsByBudgetId = Installment::query()
+            $firstUnpaidInstallmentByBudgetId = Installment::query()
                 ->whereIn('budget_id', $budgetIds)
-                ->where('installment_number', $installment)
+                ->where(function ($query) {
+                    $query
+                        ->whereNull('payment_amount')
+                        ->orWhere('payment_amount', '<=', 0);
+                })
+                ->orderBy('budget_id')
+                ->orderBy('installment_number')
                 ->get()
-                ->keyBy('budget_id');
+                ->groupBy('budget_id')
+                ->map(fn ($installments) => $installments->first());
 
             foreach ($matchedRows as $row) {
                 $budget = $budgetsByProjectId->get($row['project_id']);
@@ -123,7 +130,7 @@ class InstallmentImportService
                     continue;
                 }
 
-                $installmentModel = $installmentsByBudgetId->get($budget->id);
+                $installmentModel = $firstUnpaidInstallmentByBudgetId->get($budget->id);
 
                 if (! $installmentModel) {
                     $skipped++;
@@ -178,6 +185,7 @@ class InstallmentImportService
                 ]);
 
                 $updated++;
+                $updatedInstallments->push($installmentModel->installment_number);
             }
         });
 
@@ -185,7 +193,11 @@ class InstallmentImportService
             'imported' => $updated,
             'updated' => $updated,
             'skipped' => $skipped,
-            'installment' => $installment,
+            'installments' => $updatedInstallments
+                ->unique()
+                ->sort()
+                ->values()
+                ->all(),
         ];
     }
 }

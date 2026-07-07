@@ -21,10 +21,8 @@ class FormalizationResourceTest extends TestCase
         $this->assertSame($formalization->id, $data['id']);
         $this->assertSame($formalization->project_id, $data['project_id']);
         $this->assertSame($formalization->term_number, $data['term_number']);
-        $this->assertSame($formalization->report_status->value, $data['report_status']);
-        $this->assertSame($formalization->term_status->value, $data['term_status']);
-        $this->assertSame($formalization->signature_status_office->value, $data['signature_status_office']);
-        $this->assertSame($formalization->deliberation->value, $data['deliberation']);
+        $this->assertSame($formalization->report_status?->value, $data['report_status']);
+        $this->assertSame($formalization->deliberation?->value, $data['deliberation']);
         $this->assertSame($formalization->sacc_number, $data['sacc_number']);
         $this->assertSame($formalization->cge_atende_ticket, $data['cge_atende_ticket']);
     }
@@ -33,16 +31,12 @@ class FormalizationResourceTest extends TestCase
     {
         $formalization = Formalization::factory()->make([
             'report_status' => null,
-            'term_status' => null,
-            'signature_status_office' => null,
             'deliberation' => null,
         ]);
 
         $data = (new FormalizationResource($formalization))->toArray(Request::create('/'));
 
         $this->assertNull($data['report_status']);
-        $this->assertNull($data['term_status']);
-        $this->assertNull($data['signature_status_office']);
         $this->assertNull($data['deliberation']);
     }
 

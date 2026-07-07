@@ -60,5 +60,7 @@ class ProjectObserver
         foreach ($stages as $stage) {
             $project->stages()->create($stage);
         }
+
+        $project->openings()->create();
     }
 }

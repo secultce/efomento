@@ -1,6 +1,6 @@
 import Login from '../../../pages/auth';
 import Notice from '../../../pages/notice';
-import Project from '../../../pages/project';
+import Project from '../../../pages/project/ProjectPage';
 
 describe('Project Page', () => {
     beforeEach(() => {

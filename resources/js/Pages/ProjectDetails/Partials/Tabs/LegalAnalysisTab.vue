@@ -25,8 +25,17 @@ const showReturnModal = ref(false);
 
 const activeViewIndex = ref('all');
 
-const { groups, statusOptions, loadingFiles, in_progress, allFilesEvaluated, fetchFiles, onStatusUpdated, process } =
-    useLegalAnalysis(toRef(props, 'project'));
+const {
+    groups,
+    statusOptions,
+    loadingFiles,
+    in_progress,
+    allFilesEvaluated,
+    allFilesValid,
+    fetchFiles,
+    onStatusUpdated,
+    process,
+} = useLegalAnalysis(toRef(props, 'project'));
 onMounted(fetchFiles);
 
 const stage = computed(() => props.project.stages?.find((s) => s.slug === 'analise_juridica'));
@@ -104,7 +113,7 @@ const stage = computed(() => props.project.stages?.find((s) => s.slug === 'anali
                             : 'Análise jurídica já foi tramitada.',
                     }"
                     :action="process"
-                    :disabled="!canUserHandleLegalAnalysis || !allFilesEvaluated"
+                    :disabled="!canUserHandleLegalAnalysis || !allFilesValid"
                     :loading="in_progress"
                 />
             </div>

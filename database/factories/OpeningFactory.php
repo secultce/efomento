@@ -14,6 +14,15 @@ class OpeningFactory extends Factory
 {
     protected $model = Opening::class;
 
+    public function configure(): static
+    {
+        return $this->afterMaking(function (Opening $opening) {
+            if ($opening->project_id) {
+                Opening::where('project_id', $opening->project_id)->forceDelete();
+            }
+        });
+    }
+
     public function definition(): array
     {
         return [
@@ -21,7 +30,7 @@ class OpeningFactory extends Factory
             'user_id' => User::factory(),
             'supervisor_id' => User::factory(),
 
-            'opening_nup' => $this->faker->numerify('#####.######/####-##'),
+            'opening_nup' => $this->faker->numerify('#################'),
             'opening_date' => $this->faker->date(),
 
             'agent_status' => $this->faker->randomElement(AgentStatus::cases())->value,

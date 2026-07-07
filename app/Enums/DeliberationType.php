@@ -17,7 +17,7 @@ enum DeliberationType: string implements HasLabel
     {
         return match ($this) {
             self::MANUAL => 'Manual',
-            self::BATCH_CGE => 'Batch CGE',
+            self::BATCH_CGE => 'Lote CGE',
             self::FEC => 'FEC',
         };
     }
