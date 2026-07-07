@@ -58,19 +58,18 @@ class OpeningUpdateService
 
         $agent = $project->agent;
 
-        $agent->profileSnapshots()->updateOrCreate(
-            [
-                'source' => ProfileSnapshotSource::AGENT_UPDATE,
-            ],
-            [
-                'name' => $agentData['name'] ?? $agent->name,
-                'cpf_cnpj' => $agentData['cpf_cnpj'] ?? null,
-                'director_position' => $agentData['director_position'] ?? $agent->director_position,
-                'director_email' => $agentData['director_email'] ?? $agent->director_email,
-                ...$agentData,
-                'recorded_at' => now(),
-            ]
-        );
+        $agent->profileSnapshots()->recordIfChanged([
+            'source' => ProfileSnapshotSource::AGENT_UPDATE,
+
+            'name' => $agentData['name'] ?? $agent->name,
+            'cpf_cnpj' => $agentData['cpf_cnpj'] ?? null,
+            'director_position' => $agentData['director_position'] ?? $agent->director_position,
+            'director_email' => $agentData['director_email'] ?? $agent->director_email,
+
+            ...$agentData,
+
+            'recorded_at' => now(),
+        ]);
     }
 
     protected function syncSupervisors(Project $project, array $supervisors): void
