@@ -6,15 +6,17 @@ Este arquivo fornece orientações ao Claude Code (claude.ai/code) ao trabalhar 
 
 Todos os comandos rodam dentro do Docker — nunca execute `php`, `artisan`, `composer` ou `npm` diretamente no host.
 
-| Container              | Função                              | Porta          |
-|------------------------|-------------------------------------|----------------|
-| `efomento-app`         | PHP-FPM (Laravel)                   | 9000 (interno) |
-| `efomento-vite`        | Servidor Vite + HMR                 | 5173           |
-| `efomento-nginx`       | Proxy reverso                       | 8080           |
-| `efomento-postgres`    | PostgreSQL 16                       | 5433 (host)    |
-| `efomento-queue`       | Worker de filas (high/medium/default) | —            |
-| `efomento-queue-files` | Worker de filas (files)             | —              |
-| `efomento-scheduler`   | Laravel scheduler                   | —              |
+| Container              | Função                                        | Porta          |
+|------------------------|-----------------------------------------------|----------------|
+| `efomento-app`         | PHP-FPM (Laravel)                             | 9000 (interno) |
+| `efomento-vite`        | Servidor Vite + HMR                           | 5173           |
+| `efomento-nginx`       | Proxy reverso                                 | 8080           |
+| `efomento-postgres`    | PostgreSQL 16                                 | 5433 (host)    |
+| `efomento-queue`       | Worker de filas (high/medium/details/default) | —              |
+| `efomento-queue-files` | Worker de filas (files)                       | —              |
+| `efomento-scheduler`   | Laravel scheduler                             | —              |
+| `efomento-greenmail`   | Servidor SMTP/IMAP local (e-mail de teste)    | —              |
+| `efomento-roundcube`   | Webmail para visualizar e-mails de teste      | 8025           |
 
 Acesso: http://localhost:8080
 

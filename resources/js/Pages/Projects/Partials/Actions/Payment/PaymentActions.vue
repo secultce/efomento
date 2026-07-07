@@ -5,7 +5,6 @@ import NoticeHistoryDialog from '@/Pages/Projects/Partials/Actions/NoticeHistory
 import HandleDocumentsDialog from '../HandleDocumentsDialog.vue';
 import DocumentListDialog from '../DocumentListDialog.vue';
 import { useSnackbar } from '@/Composables/useSnackbar.js';
-import { useAuth } from '@/Composables/useAuth.js';
 import { usePermissions } from '@/Composables/usePermissions';
 
 const props = defineProps({
@@ -16,7 +15,6 @@ const props = defineProps({
 
 defineEmits(['saved']);
 
-const { canPerform } = useAuth();
 const { canManagePayment } = usePermissions();
 
 const viewHistory = ref(false);
@@ -72,7 +70,7 @@ const selectedDispatch = computed(() => {
 const canImportPayments = canManagePayment;
 
 const canCreateDispatch = computed(() => {
-    return canManagePayment.value || canPerform('dispatch.create');
+    return canManagePayment.value;
 });
 
 function openNoticeHistory() {

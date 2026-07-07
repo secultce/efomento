@@ -1,11 +1,14 @@
 <script setup>
-import { ref, watch } from 'vue';
+import { computed, ref, watch } from 'vue';
+import { router } from '@inertiajs/vue3';
 import { useDate } from '@/Composables/useDate';
 import { useSnackbar } from '@/Composables/useSnackbar';
-import { router } from '@inertiajs/vue3';
 import { fetchNotifications, markNotificationAsRead, markAllNotificationsAsRead } from '@/Services/notificationService';
+import MessageDetailsDialog from '@/Components/MessageDetailsDialog.vue';
 
 const notificationsMenu = ref(false);
+const detailsDialog = ref(false);
+const selectedNotification = ref(null);
 
 const { formatRelativeDate } = useDate();
 const { showSnackbar } = useSnackbar();
@@ -29,6 +32,22 @@ const pageCount = ref(1);
 const loading = ref(false);
 const selectedFilter = ref(null);
 
+const selectedNotificationMeta = computed(() => {
+    return selectedNotification.value?.data?.meta || {};
+});
+
+const selectedNotificationReason = computed(() => {
+    return selectedNotificationMeta.value?.reason || '';
+});
+
+const selectedNotificationRoute = computed(() => {
+    return selectedNotificationMeta.value?.route || null;
+});
+
+const selectedNotificationParams = computed(() => {
+    return selectedNotificationMeta.value?.params || {};
+});
+
 const loadNotifications = async () => {
     if (loading.value) return;
 
@@ -38,7 +57,6 @@ const loadNotifications = async () => {
         const response = await fetchNotifications(currentPage.value, selectedFilter.value);
 
         notificationsData.value = response.data.userNotifications || [];
-
         pageCount.value = response.data.pageCount || 1;
     } catch (error) {
         console.error('Erro ao buscar notificações:', error);
@@ -71,6 +89,22 @@ const closeMenu = () => {
     notificationsMenu.value = false;
 };
 
+const openDetailsDialog = (notification) => {
+    selectedNotification.value = notification;
+    detailsDialog.value = true;
+    closeMenu();
+};
+
+const goToSelectedNotificationRoute = () => {
+    if (!selectedNotificationRoute.value) {
+        return;
+    }
+
+    router.get(route(selectedNotificationRoute.value, selectedNotificationParams.value));
+
+    detailsDialog.value = false;
+};
+
 const markAllAsRead = () => {
     markAllNotificationsAsRead({
         preserveScroll: true,
@@ -90,7 +124,12 @@ const markAllAsRead = () => {
 const handleNavigation = (notification) => {
     const meta = notification?.data?.meta;
 
-    const navigate = () => {
+    const action = () => {
+        if (meta?.reason) {
+            openDetailsDialog(notification);
+            return;
+        }
+
         if (meta?.route) {
             router.get(route(meta.route, meta.params || {}));
 
@@ -104,14 +143,16 @@ const handleNavigation = (notification) => {
             preserveState: true,
 
             onSuccess: () => {
-                navigate();
+                notification.read_at = new Date().toISOString();
+
+                action();
             },
         });
 
         return;
     }
 
-    navigate();
+    action();
 };
 </script>
 
@@ -167,6 +208,7 @@ const handleNavigation = (notification) => {
                         Lidas
                     </v-chip>
                 </div>
+
                 <div v-if="loading" class="p-4 text-center">Carregando...</div>
 
                 <div v-else-if="!notificationsData || notificationsData.length === 0" class="p-4 text-center">
@@ -185,6 +227,7 @@ const handleNavigation = (notification) => {
                                 :src="notification?.data?.meta?.user?.avatar"
                                 alt="User Avatar"
                             />
+
                             <span v-else class="text-h6">
                                 {{ notification?.data?.meta?.user?.name?.charAt(0).toUpperCase() || 'U' }}
                             </span>
@@ -195,13 +238,16 @@ const handleNavigation = (notification) => {
                                 {{ notification?.data?.title }}
                             </p>
 
-                            <p v-if="notification?.data?.message" class="text-sm">
+                            <p
+                                v-if="notification?.data?.message"
+                                class="text-sm leading-relaxed whitespace-pre-line break-words hyphens-auto"
+                            >
                                 {{ notification?.data?.message }}
                             </p>
 
                             <div class="mt-1">
                                 <v-btn
-                                    v-if="notification?.data?.meta?.route"
+                                    v-if="notification?.data?.meta?.route || notification?.data?.meta?.reason"
                                     class="bg-secondary !font-bold !text-xs !rounded-lg !shadow-none"
                                     size="small"
                                     @click="handleNavigation(notification)"
@@ -234,4 +280,22 @@ const handleNavigation = (notification) => {
             </v-card-actions>
         </v-card>
     </v-menu>
+
+    <MessageDetailsDialog
+        v-model="detailsDialog"
+        title="Detalhes da devolução"
+        message-label="Mensagem enviada"
+        :message="selectedNotificationReason"
+        :sent-at="formatRelativeDate(selectedNotification?.created_at)"
+        confirm-label="Ir para processo"
+        :show-confirm="!!selectedNotificationRoute"
+        message-html
+        @confirm="goToSelectedNotificationRoute"
+    >
+        <template #description>
+            <p v-if="selectedNotification?.data?.message" class="text-base mb-4">
+                {{ selectedNotification.data.message }}
+            </p>
+        </template>
+    </MessageDetailsDialog>
 </template>

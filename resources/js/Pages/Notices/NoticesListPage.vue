@@ -3,6 +3,7 @@ import { ref, computed, watch } from 'vue';
 import NupDialog from './NupDialog.vue';
 import { router } from '@inertiajs/vue3';
 import { usePermissions } from '@/Composables/usePermissions';
+import { useMask } from '@/Composables/useMask';
 
 const props = defineProps({
     notices: {
@@ -135,14 +136,6 @@ const visiblePages = computed(() => {
     return [1, '...', c - 1, c, c + 1, '...', n];
 });
 
-function maskProcessNumber(value) {
-    if (!value) return '';
-
-    const digits = value.toString().replace(/\D/g, '');
-
-    return digits.replace(/^(\d{5})(\d{6})(\d{4})(\d{2}).*/, '$1.$2/$3-$4');
-}
-
 // ─── Handlers ────────────────────────────────────────────────────────────────
 
 function onSearch(value) {
@@ -175,6 +168,7 @@ function onChangePerPage(qty) {
 
 // ─── nup dialog ───────────────────────────────────────────────────────────────
 const { canManageNotices } = usePermissions();
+const { maskProcessNumber } = useMask();
 
 const dialog = ref(false);
 const selectedItem = ref(null);

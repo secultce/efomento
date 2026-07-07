@@ -22,7 +22,7 @@ class ForamlizationWorkflow {
         FormalizationTab.validatePage();
     }
 
-    createCulturalExecutionTerm({ role, notice, project, text }) {
+    createCulturalExecutionTerm({ role, notice, project, documentType }) {
         cy.loginByRole(role);
 
         Notice.visitPage();
@@ -35,11 +35,37 @@ class ForamlizationWorkflow {
 
         Project.selectProject();
 
-        Project.clickCreateExecutionTerm();
-        Project.fillExecutionTerm(text);
-        Project.saveExecutionTerm();
+        Project.clickCreateDocument(documentType.createButton);
+        Project.fillDocument(documentType.text);
+        Project.saveDocument();
         Project.verifySuccessMessageSaveDocument();
-        Project.validateExecutionTermCreated();
+        Project.validateDocumentCreated(documentType.chip);
+        Project.clickEditDocument(documentType.editButton);
+        Project.validateDocumentContent(documentType.text);
+        Project.clickCancelDocumentButton();
+    }
+
+    createSummaryTerm({ role, notice, project, documentType }) {
+        cy.loginByRole(role);
+
+        Notice.visitPage();
+        Notice.searchNoticeByNup(notice.noticeNup);
+        Notice.goToNoticeDetailsPage(notice.noticeNup);
+
+        Project.clickFilterFormalizationPhase();
+        Project.validateFilterFormalizationPhase();
+        Project.findProjectByProjectNup(project.projectNup);
+
+        Project.selectProject();
+
+        Project.clickCreateDocument(documentType.createButton);
+        Project.fillDocument(documentType.text);
+        Project.saveDocument();
+        Project.verifySuccessMessageSaveDocument();
+        Project.validateDocumentCreated(documentType.chip);
+        Project.clickEditDocument(documentType.editButton);
+        Project.validateDocumentContent(documentType.text);
+        Project.clickCancelDocumentButton();
     }
 }
 

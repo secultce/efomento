@@ -103,9 +103,17 @@ const dialogHeight = computed(() => {
     return 654;
 });
 
+const selectedPlaceholders = ref([]);
+
 function insertPlaceholder(value) {
-    window.tinymce?.activeEditor?.insertContent(value);
+    window.tinymce?.activeEditor?.insertContent(`[${value}]`);
 }
+
+watch(selectedPlaceholders, (newVal, oldVal) => {
+    if (newVal.length <= oldVal.length) return;
+    const added = newVal.find((v) => !oldVal.includes(v));
+    if (added) insertPlaceholder(typeof added === 'object' ? added.value : added);
+});
 
 function closeDialog() {
     form.reset();
@@ -113,6 +121,8 @@ function closeDialog() {
     form.clearErrors();
 
     resetImages();
+
+    selectedPlaceholders.value = [];
 
     headerLayout.value = IMAGE_LAYOUTS.NONE;
 
@@ -282,18 +292,21 @@ watch(
                 />
 
                 <!-- PLACEHOLDERS -->
-                <div class="flex flex-wrap gap-2 mb-4">
-                    <v-chip
-                        v-for="p in config.placeholders"
-                        :key="p.value"
-                        size="small"
-                        color="primary"
-                        variant="outlined"
-                        @click="insertPlaceholder(p.value)"
-                    >
-                        {{ p.label }}
-                    </v-chip>
-                </div>
+                <v-autocomplete
+                    v-if="config.placeholders?.length"
+                    v-model="selectedPlaceholders"
+                    :items="config.placeholders"
+                    item-title="label"
+                    item-value="value"
+                    label="Inserir placeholder no documento"
+                    chips
+                    closable-chips
+                    multiple
+                    variant="outlined"
+                    density="compact"
+                    hide-details
+                    class="mb-4"
+                />
 
                 <!-- EDITOR -->
                 <app-text-editor
@@ -333,7 +346,15 @@ watch(
                 <v-card-actions class="mt-6">
                     <v-spacer />
 
-                    <v-btn variant="outlined" color="#004c27" class="rounded-lg" @click="closeDialog"> Cancelar </v-btn>
+                    <v-btn
+                        variant="outlined"
+                        color="#004c27"
+                        class="rounded-lg"
+                        data-cy="cancel-document-button"
+                        @click="closeDialog"
+                    >
+                        Cancelar
+                    </v-btn>
 
                     <v-btn
                         class="!shadow-none !font-bold !bg-[#ffcc05] !text-[#2d353f] rounded-lg"

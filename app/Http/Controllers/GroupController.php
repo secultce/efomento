@@ -70,7 +70,14 @@ class GroupController extends Controller
             ->map(fn ($label, $key) => ['key' => $key, 'label' => $label])
             ->values();
 
-        $users = User::all();
+        $users = User::with('roles')->get()->map(fn ($user) => [
+            'id' => $user->id,
+            'name' => $user->name,
+            'roles' => $user->roles->map(fn ($role) => [
+                'name' => $role->name,
+                'label' => $this->roleLabels[$role->name] ?? $role->name,
+            ])->values()->toArray(),
+        ]);
 
         return Inertia::render('Groups/Index', [
             'modules' => $modules,

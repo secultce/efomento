@@ -9,6 +9,8 @@ use App\Enums\ProjectStageStatus;
 use App\Models\Document;
 use App\Models\Formalization;
 use App\Models\Notice;
+use App\Models\Opening;
+use App\Models\OpeningSupervisor;
 use App\Models\Project;
 use App\Models\ProjectStage;
 use App\Models\User;
@@ -51,6 +53,28 @@ class ProjectStageControllerTest extends TestCase
         ]);
 
         return $stage->fresh();
+    }
+
+    private function createCompleteOpening(Project $project): Opening
+    {
+        $opening = Opening::factory()->create(['project_id' => $project->id]);
+
+        $supervisor = User::factory()->create();
+        OpeningSupervisor::create([
+            'opening_id' => $opening->id,
+            'user_id' => $supervisor->id,
+            'type' => 'principal',
+            'is_active' => true,
+            'assigned_at' => now(),
+        ]);
+
+        Formalization::factory()->create([
+            'project_id' => $project->id,
+            'report_status' => 'REGULAR E_ADIMPLENTE',
+            'eparcerias_certificate_date' => now()->toDateString(),
+        ]);
+
+        return $opening;
     }
 
     private function createCompleteFormalization(Project $project): Formalization
@@ -116,12 +140,13 @@ class ProjectStageControllerTest extends TestCase
         $this->assertEquals(ProjectStageStatus::EM_ANDAMENTO, $nextStage->status);
     }
 
-    public function test_advances_non_formalization_stage_without_formalization_check(): void
+    public function test_advances_abertura_stage_when_requirements_are_met(): void
     {
         $project = Project::factory()->create();
         $stage = $project->stages()
             ->where('slug', ProjectStageSlug::ABERTURA->value)
             ->firstOrFail();
+        $this->createCompleteOpening($project);
         $user = $this->createUserWithRoles('fomentation');
 
         $this->actingAs($user)
@@ -131,12 +156,73 @@ class ProjectStageControllerTest extends TestCase
         $this->assertEquals(ProjectStageStatus::APROVADO, $stage->fresh()->status);
     }
 
+    public function test_cannot_advance_abertura_stage_without_opening_data(): void
+    {
+        $project = Project::factory()->create();
+        $stage = $project->stages()
+            ->where('slug', ProjectStageSlug::ABERTURA->value)
+            ->firstOrFail();
+        $user = $this->createUserWithRoles('fomentation');
+
+        $this->actingAs($user)
+            ->patch(route('projects.stages.advance', [$project, $stage]))
+            ->assertSessionHasErrors(['opening']);
+
+        $this->assertEquals(ProjectStageStatus::EM_ANDAMENTO, $stage->fresh()->status);
+    }
+
+    public function test_cannot_advance_abertura_stage_without_principal_supervisor(): void
+    {
+        $project = Project::factory()->create();
+        $stage = $project->stages()
+            ->where('slug', ProjectStageSlug::ABERTURA->value)
+            ->firstOrFail();
+        Opening::factory()->create(['project_id' => $project->id]);
+        Formalization::factory()->create([
+            'project_id' => $project->id,
+            'report_status' => 'REGULAR E_ADIMPLENTE',
+            'eparcerias_certificate_date' => now()->toDateString(),
+        ]);
+        $user = $this->createUserWithRoles('fomentation');
+
+        $this->actingAs($user)
+            ->patch(route('projects.stages.advance', [$project, $stage]))
+            ->assertSessionHasErrors(['opening']);
+
+        $this->assertEquals(ProjectStageStatus::EM_ANDAMENTO, $stage->fresh()->status);
+    }
+
+    public function test_cannot_advance_abertura_stage_without_formalization_data(): void
+    {
+        $project = Project::factory()->create();
+        $stage = $project->stages()
+            ->where('slug', ProjectStageSlug::ABERTURA->value)
+            ->firstOrFail();
+        $opening = Opening::factory()->create(['project_id' => $project->id]);
+        $supervisor = User::factory()->create();
+        OpeningSupervisor::create([
+            'opening_id' => $opening->id,
+            'user_id' => $supervisor->id,
+            'type' => 'principal',
+            'is_active' => true,
+            'assigned_at' => now(),
+        ]);
+        $user = $this->createUserWithRoles('fomentation');
+
+        $this->actingAs($user)
+            ->patch(route('projects.stages.advance', [$project, $stage]))
+            ->assertSessionHasErrors(['opening']);
+
+        $this->assertEquals(ProjectStageStatus::EM_ANDAMENTO, $stage->fresh()->status);
+    }
+
     public function test_advance_returns_error_message_when_user_lacks_role(): void
     {
         $project = Project::factory()->create();
         $stage = $project->stages()
             ->where('slug', ProjectStageSlug::ABERTURA->value)
             ->firstOrFail();
+        $this->createCompleteOpening($project);
         $user = User::factory()->create();
 
         $this->actingAs($user)
