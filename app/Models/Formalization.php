@@ -4,7 +4,6 @@ namespace App\Models;
 
 use App\Enums\DeliberationType;
 use App\Enums\ReportStatus;
-use App\Enums\TermStatus;
 use App\Traits\HasCreatedBy;
 use App\Traits\HasFiles;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -28,10 +27,8 @@ class Formalization extends Model implements Auditable
         'responsible_at_asjur',
         'term_number',
         'term_signature_sent_at',
-        'term_status',
         'term_signed_at',
         'sent_to_office_at',
-        'signature_status_office',
         'signed_by_office_at',
         'sacc_number',
         'cge_atende_ticket',
@@ -52,10 +49,8 @@ class Formalization extends Model implements Auditable
         'eparcerias_certificate_date' => 'date',
         'asjur_processing_date' => 'date',
         'term_signature_sent_at' => 'date',
-        'term_status' => TermStatus::class,
         'term_signed_at' => 'date',
         'sent_to_office_at' => 'date',
-        'signature_status_office' => TermStatus::class,
         'signed_by_office_at' => 'date',
         'deliberation' => DeliberationType::class,
         'sent_to_chief_of_staff_at' => 'date',

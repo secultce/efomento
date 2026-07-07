@@ -12,7 +12,6 @@ const props = defineProps({
     supervisorsAvailable: { type: Array, default: () => [] },
     agentStatus: { type: Array, default: () => [] },
     reportStatus: { type: Array, default: () => [] },
-    termStatus: { type: Array, default: () => [] },
     deliberation: { type: Array, default: () => [] },
     accountType: { type: Array, default: () => [] },
     currentStage: { type: Object, default: null },
@@ -64,15 +63,11 @@ const tabs = [
                     :can-return="canReturn"
                     :current-stage="currentStage"
                     :report-status="reportStatus"
-                    :term-status="termStatus"
                     :deliberation="deliberation"
                 />
 
                 <BudgetTab :project="project" :can-return="canReturn" :current-stage="currentStage" />
 
-                <v-tabs-window-item value="payment">
-                    <v-sheet class="pa-5 h-[35em]" color="blue" />
-                </v-tabs-window-item>
                 <PaymentTab :project="project" :can-return="canReturn" :current-stage="currentStage" />
 
                 <MonitoringTab :project="project" />

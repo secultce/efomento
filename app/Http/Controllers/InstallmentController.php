@@ -44,6 +44,8 @@ class InstallmentController extends Controller
 
             return back()->with('success', $message);
         } catch (\InvalidArgumentException $e) {
+            report($e);
+
             return back()->with('error', $e->getMessage());
         } catch (\Throwable $e) {
             report($e);

@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Models\Project;
 use App\Models\ProjectStage;
 use App\Models\User;
+use App\Support\Mask;
 use App\Support\Notify;
 use Illuminate\Notifications\DatabaseNotification;
 
@@ -30,9 +31,10 @@ class NotificationService
             ->title();
 
         $message = sprintf(
-            '%s tramitou o projeto %s de %s para %s.',
+            '%s tramitou o projeto %s de NUP %s da fase de %s para a fase de %s.',
             $user->name,
             $previousStage->project->title_project,
+            Mask::nup($previousStage->project->opening?->opening_nup),
             $previousName,
             $nextName
         );
@@ -61,15 +63,44 @@ class NotificationService
             );
     }
 
-    public function notifyProcessReturned(Project $project, string $reason, array $roles): void
-    {
+    public function notifyProcessReturned(
+        Project $project,
+        string $reason,
+        array $roles,
+        User $user
+    ): void {
         $users = User::role($roles)->get();
 
-        $this->notify->users($users)->warning(
-            'O processo "'.$project->title_project.'" foi devolvido para ajustes.',
-            'Processo devolvido',
-            (object) ['reason' => $reason]
+        $message = sprintf(
+            '%s devolveu o processo "%s" de NUP %s para ajustes.',
+            $user->name,
+            $project->title_project,
+            Mask::nup($project->opening?->opening_nup)
         );
+
+        $title = sprintf(
+            'Processo %s devolvido',
+            $project->title_project
+        );
+
+        $this->notify
+            ->users($users)
+            ->warning(
+                $message,
+                $title,
+                (object) [
+                    'reason' => $reason,
+                    'route' => 'notices.projects.show',
+                    'params' => [
+                        'notice' => $project->notice_id,
+                        'project' => $project->id,
+                    ],
+                    'user' => [
+                        'name' => $user->name,
+                        'avatar' => $user->profile_picture,
+                    ],
+                ]
+            );
     }
 
     public function getUserNotifications(

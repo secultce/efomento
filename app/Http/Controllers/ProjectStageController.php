@@ -63,6 +63,8 @@ class ProjectStageController extends Controller
 
             return back();
         } catch (\InvalidArgumentException $e) {
+            report($e);
+
             return back()->withErrors(['message' => $e->getMessage()]);
         }
     }
@@ -70,7 +72,7 @@ class ProjectStageController extends Controller
     public function return(
         ReturnStageRequest $request,
         Project $project,
-        ProjectStage $stage
+        ProjectStage $stage,
     ) {
         try {
             $this->stageService->returnStage(
@@ -82,13 +84,18 @@ class ProjectStageController extends Controller
             $this->notificationService->notifyProcessReturned(
                 $project,
                 $request->validated('reason'),
-                Role::fomentoRoles()
+                Role::fomentoRoles(),
+                $request->user()
             );
 
             return back()->with('success', 'Processo devolvido com sucesso.');
         } catch (AuthorizationException $e) {
+            \Sentry\captureException($e);
+
             return back()->with('error', $e->getMessage());
         } catch (\InvalidArgumentException $e) {
+            report($e);
+
             return back()->with('error', $e->getMessage());
         }
     }
