@@ -75,20 +75,12 @@ class Project extends Model implements Auditable
 
     public function getPhaseAttribute(): string
     {
-        $currentStage = $this->relationLoaded('currentStage')
-            ? $this->currentStage
-            : $this->currentStage()->first();
-
-        return $currentStage?->slug?->label() ?? 'Não Iniciado';
+        return $this->currentStage?->slug?->label() ?? 'Não Iniciado';
     }
 
     public function getPhaseSlugAttribute(): ?string
     {
-        $currentStage = $this->relationLoaded('currentStage')
-            ? $this->currentStage
-            : $this->currentStage()->first();
-
-        return $currentStage?->slug?->value;
+        return $this->currentStage?->slug?->value;
     }
 
     public function getOpeningNupAttribute()
