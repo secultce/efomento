@@ -53,15 +53,15 @@ class NoticeService
             ->get()
             ->countBy(fn (Notice $notice) => $this->resolveStatus($notice));
 
-        $total = Notice::count();
-        $comCredenciamento = Notice::whereNotNull('creditor_registration_request_date')->count();
-        $semCredenciamento = Notice::whereNull('creditor_registration_nup')->count();
+        $monitoramento = Notice::whereNotNull('creditor_registration_request_date')
+            ->whereNull('creditor_registration_nup')
+            ->count();
 
         return [
             'oportunidades' => $statusCounts->get('Processos em andamento', 0),
             'pendentes' => $statusCounts->get('Pendente de abertura', 0),
             'concluidos' => $statusCounts->get('Processos formalizados', 0),
-            'monitoramento' => $total - $comCredenciamento - $semCredenciamento,
+            'monitoramento' => $monitoramento,
         ];
     }
 
