@@ -93,6 +93,16 @@ const getDataByLabel = (label) => {
 <template>
     <div class="w-full">
         <v-card
+            v-if="!items.length"
+            class="pa-8 d-flex flex-col items-center justify-center rounded !border-[#ccccccFF]"
+            rounded="lg"
+            variant="outlined"
+            data-cy="project-list-empty-state"
+        >
+            <span class="font-weight-bold text-[#3b3b3cFF]">Não foi encontrado dados para sua pesquisa</span>
+        </v-card>
+
+        <v-card
             v-for="item in items"
             :key="item.id"
             class="mb-3 pa-4 h-[4em] rounded d-flex justify-between items-center !border-[#ccccccFF]"
