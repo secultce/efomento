@@ -124,7 +124,7 @@ class Project {
     }
 
     clickCreateDocument(buttonText) {
-        cy.get(el.createDocumentButon).should('be.visible').and('be.disabled').contains(buttonText).click();
+        cy.get(el.createDocumentButon).should('be.visible').and('not.be.disabled').contains(buttonText).click();
     }
 
     clickEditDocument(buttonEditDocument) {
