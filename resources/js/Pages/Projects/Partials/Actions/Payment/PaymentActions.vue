@@ -1,10 +1,8 @@
 <script setup>
 import { computed, ref } from 'vue';
-import { router } from '@inertiajs/vue3';
 import NoticeHistoryDialog from '@/Pages/Projects/Partials/Actions/NoticeHistoryDialog.vue';
 import HandleDocumentsDialog from '../HandleDocumentsDialog.vue';
 import DocumentListDialog from '../DocumentListDialog.vue';
-import { useSnackbar } from '@/Composables/useSnackbar.js';
 import { usePermissions } from '@/Composables/usePermissions';
 
 const props = defineProps({
@@ -21,13 +19,8 @@ const viewHistory = ref(false);
 const dispatchDialog = ref(false);
 const docListDialog = ref(false);
 
-const uploadInput = ref(null);
-const uploadingInstallment = ref(null);
-
 const errorMessage = ref('');
 const showError = ref(false);
-
-const { showSnackbar } = useSnackbar();
 
 const hasSelectedProjects = computed(() => {
     return props.selectedProjects?.length > 0;
@@ -67,8 +60,6 @@ const selectedDispatch = computed(() => {
     };
 });
 
-const canImportPayments = canManagePayment;
-
 const canCreateDispatch = computed(() => {
     return canManagePayment.value;
 });
@@ -83,62 +74,6 @@ function openDispatchDialog() {
     }
 
     dispatchDialog.value = true;
-}
-
-function openUpload() {
-    if (!hasSelectedProjects.value || uploadingInstallment.value !== null || !canImportPayments.value) {
-        return;
-    }
-
-    uploadInput.value?.click();
-}
-
-async function handleFileUpload(event) {
-    const file = event.target.files?.[0];
-
-    if (!file || !canImportPayments.value) {
-        event.target.value = '';
-        return;
-    }
-
-    const formData = new FormData();
-
-    formData.append('file', file);
-
-    props.selectedProjects.forEach((projectId) => {
-        formData.append('selectedProjects[]', projectId);
-    });
-
-    router.post(route('installments.import', props.notice.id), formData, {
-        forceFormData: true,
-        preserveScroll: true,
-
-        onStart: () => {
-            showSnackbar('Importando planilha, aguarde...', 'warning', -1);
-        },
-
-        onSuccess: (page) => {
-            if (page.props.flash?.error) {
-                showSnackbar(page.props.flash.error, 'error');
-                return;
-            }
-
-            if (page.props.flash?.success) {
-                showSnackbar(page.props.flash.success, 'success');
-            }
-        },
-
-        onError: (errors) => {
-            const message = Object.values(errors).flat().join(', ') || 'Ocorreu um erro ao importar a planilha';
-
-            showSnackbar(message, 'error');
-        },
-
-        onFinish: () => {
-            uploadingInstallment.value = null;
-            event.target.value = '';
-        },
-    });
 }
 </script>
 
@@ -159,35 +94,6 @@ async function handleFileUpload(event) {
         <v-card-title class="font-weight-bold !text-lg"> Ações disponíveis para você </v-card-title>
 
         <v-card-text class="flex flex-col gap-4">
-            <div
-                v-permission="{
-                    condition: canImportPayments,
-                    message: 'Você não tem permissão para importar pagamentos, contate o administrador do sistema.',
-                }"
-                class="w-full pt-2"
-            >
-                <p>Fazer upload de planilha de pagamentos</p>
-
-                <input
-                    ref="uploadInput"
-                    type="file"
-                    accept=".xlsx,.xls,.csv"
-                    class="hidden"
-                    @change="handleFileUpload"
-                />
-
-                <div class="w-full pt-2">
-                    <v-btn
-                        class="!shadow-none !font-bold !bg-[#ffcc05FF] !text-[#2d353fFF] rounded-lg px-2 py-2 text-[11px] w-full"
-                        :loading="uploadingInstallment === 1"
-                        :disabled="!hasSelectedProjects || uploadingInstallment !== null || !canImportPayments"
-                        @click="openUpload()"
-                    >
-                        Fazer upload do pagamento
-                    </v-btn>
-                </div>
-            </div>
-
             <div
                 v-permission="{
                     condition: canCreateDispatch,

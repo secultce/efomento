@@ -4,7 +4,6 @@ namespace App\Services;
 
 use App\Models\Budget;
 use App\Models\Installment;
-use App\Models\Notice;
 use App\Models\Project;
 use App\Support\Import;
 use App\Support\Spreadsheet\Maps\InstallmentSpreadsheetMap;
@@ -14,11 +13,8 @@ use Illuminate\Support\Facades\DB;
 
 class InstallmentImportService
 {
-    public function import(
-        UploadedFile $file,
-        Notice $notice,
-        array $selectedProjects
-    ): array {
+    public function import(UploadedFile $file): array
+    {
         $data = SpreadsheetImporter::import(
             file: $file,
             mapping: InstallmentSpreadsheetMap::definition(),
@@ -30,9 +26,8 @@ class InstallmentImportService
         }
 
         $projects = Project::query()
-            ->where('notice_id', $notice->id)
-            ->whereIn('id', $selectedProjects)
             ->with('openings')
+            ->whereHas('openings')
             ->get();
 
         $projectsByNup = collect();
@@ -49,7 +44,7 @@ class InstallmentImportService
 
         if ($projectsByNup->isEmpty()) {
             throw new \InvalidArgumentException(
-                'Nenhum dos projetos selecionados possui processo vinculado na planilha.'
+                'Nenhum projeto possui processo vinculado para comparação com a planilha.'
             );
         }
 
@@ -80,7 +75,7 @@ class InstallmentImportService
 
         if ($matchedRows->isEmpty()) {
             throw new \InvalidArgumentException(
-                'Nenhuma linha da planilha corresponde aos projetos selecionados.'
+                'Nenhuma linha da planilha corresponde aos processos cadastrados nos projetos.'
             );
         }
 

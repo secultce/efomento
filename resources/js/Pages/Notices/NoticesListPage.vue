@@ -4,6 +4,7 @@ import NupDialog from './NupDialog.vue';
 import { router } from '@inertiajs/vue3';
 import { usePermissions } from '@/Composables/usePermissions';
 import { useMask } from '@/Composables/useMask';
+import { useSnackbar } from '@/Composables/useSnackbar.js';
 
 const props = defineProps({
     notices: {
@@ -175,22 +176,106 @@ function openDialog(item) {
     selectedItem.value = item;
     dialog.value = true;
 }
+
+const uploadInput = ref(null);
+
+const { showSnackbar } = useSnackbar();
+
+const { canManagePayment } = usePermissions();
+
+const canImportPayments = canManagePayment;
+
+function openUpload() {
+    /*
+        if (!canImportPayments.value) {
+            return;
+        }
+    */
+
+    uploadInput.value?.click();
+}
+
+async function handleFileUpload(event) {
+    const file = event.target.files?.[0];
+    /*
+    if (!file || !canImportPayments.value) {
+        event.target.value = '';
+        return;
+    }
+    */
+
+    const formData = new FormData();
+
+    formData.append('file', file);
+
+    router.post(route('installments.import'), formData, {
+        forceFormData: true,
+        preserveScroll: true,
+
+        onStart: () => {
+            showSnackbar('Importando planilha, aguarde...', 'warning', -1);
+        },
+
+        onSuccess: (page) => {
+            if (page.props.flash?.error) {
+                showSnackbar(page.props.flash.error, 'error');
+                return;
+            }
+
+            if (page.props.flash?.success) {
+                showSnackbar(page.props.flash.success, 'success');
+            }
+        },
+
+        onError: (errors) => {
+            const message = Object.values(errors).flat().join(', ') || 'Ocorreu um erro ao importar a planilha';
+
+            showSnackbar(message, 'error');
+        },
+
+        onFinish: () => {
+            event.target.value = '';
+        },
+    });
+}
 </script>
 
 <template>
     <nup-dialog v-model="dialog" :item="selectedItem" :instrument-types="instrumentTypes" />
     <v-card flat class="pa-6 bg-white" data-cy="table-notice-list">
         <!-- ── Cabeçalho ──────────────────────────────────────────────────── -->
-        <div class="mb-5">
-            <p class="text-subtitle-1 font-weight-bold text-grey-darken-3">
-                Editais disponíveis para acompanhamento abaixo
-            </p>
-            <p class="text-body-2 text-grey-darken-1 mt-1">
-                Total de editais encontrados:
-                <strong class="text-grey-darken-3">{{ total }}</strong>
-            </p>
-        </div>
+        <div class="mb-10 flex justify-between gap-4">
+            <div>
+                <p class="text-subtitle-1 font-weight-bold text-grey-darken-3">
+                    Editais disponíveis para acompanhamento abaixo
+                </p>
 
+                <p class="text-body-2 text-grey-darken-1 mt-1">
+                    Total de editais encontrados:
+                    <strong class="text-grey-darken-3">{{ total }}</strong>
+                </p>
+            </div>
+
+            <div class="flex w-1/3 flex-col items-end justify-end gap-2 text-right">
+                <p class="text-[0.7em] text-grey-darken-1 m-0 !text-justify !pl-40">
+                    Suba a planilha de relatório de pagamentos para exibir os estados dos pagamentos dos projetos
+                </p>
+                <input
+                    ref="uploadInput"
+                    type="file"
+                    accept=".xlsx,.xls,.csv"
+                    class="hidden"
+                    @change="handleFileUpload"
+                />
+                <v-btn
+                    class="!shadow-none !font-bold !bg-[#ffcc05FF] !text-[#2d353fFF] rounded-lg px-4 py-2 text-[11px] shrink-0"
+                    :loading="uploadingInstallment === 1"
+                    @click="openUpload()"
+                >
+                    Subir relatório de pagamentos
+                </v-btn>
+            </div>
+        </div>
         <!-- ── Filtros ────────────────────────────────────────────────────── -->
         <v-row dense class="mb-4">
             <v-col cols="12" md="4">
