@@ -102,7 +102,6 @@ const itens = computed(() => (props.notices.length ? props.notices : noticesMock
 
 const itensFiltrados = computed(() => {
     let lista = itens.value;
-    console.log({ lista });
     if (search.value.trim()) {
         const termo = search.value.toLowerCase();
         lista = lista.filter(

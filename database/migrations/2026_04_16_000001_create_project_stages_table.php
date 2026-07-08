@@ -25,11 +25,6 @@ return new class extends Migration
 
             $table->string('status')->default(ProjectStageStatus::PENDENTE->value);
 
-            $table->foreignId('responsible_user_id')
-                ->nullable()
-                ->constrained('users')
-                ->nullOnDelete();
-
             $table->timestamp('started_at')->nullable();
             $table->timestamp('concluded_at')->nullable();
             $table->timestamp('deadline_at')->nullable();
