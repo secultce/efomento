@@ -4,6 +4,7 @@ import NupDialog from './NupDialog.vue';
 import { router } from '@inertiajs/vue3';
 import { usePermissions } from '@/Composables/usePermissions';
 import { useMask } from '@/Composables/useMask';
+import { useDate } from '@/Composables/useDate';
 
 const props = defineProps({
     notices: {
@@ -83,6 +84,7 @@ const headers = [
     { title: 'Status', key: 'status', align: 'center', sortable: false },
     { title: 'Tipo de instrumento', key: 'type_ins', align: 'center', sortable: false },
     { title: 'Nº do processo mãe', key: 'mae', align: 'center', sortable: false },
+    { title: 'Criado em', key: 'created_at', align: 'center', sortable: false },
     { title: 'Acessar', key: 'acessar', align: 'center', sortable: false },
 ];
 
@@ -100,7 +102,7 @@ const itens = computed(() => (props.notices.length ? props.notices : noticesMock
 
 const itensFiltrados = computed(() => {
     let lista = itens.value;
-
+    console.log({ lista });
     if (search.value.trim()) {
         const termo = search.value.toLowerCase();
         lista = lista.filter(
@@ -146,6 +148,7 @@ const visiblePages = computed(() => {
     return [1, '...', c - 1, c, c + 1, '...', n];
 });
 
+const { formatDate } = useDate();
 // ─── Handlers ────────────────────────────────────────────────────────────────
 
 function onSearch(value) {
@@ -251,7 +254,6 @@ function openDialog(item) {
             </v-col>
         </v-row>
 
-        <!-- ── Tabela ─────────────────────────────────────────────────────── -->
         <v-data-table
             v-model:page="page"
             v-model:items-per-page="itemsPerPage"
@@ -304,6 +306,13 @@ function openDialog(item) {
                     Informe os dados de identificação
                 </v-btn>
             </template>
+
+            <template #item.created_at="{ item }">
+                <span data-cy="notice-created_at-notices-list">
+                    {{ formatDate(item.created_at) }}
+                </span>
+            </template>
+
             <!-- Ícone de acesso -->
             <template #item.acessar="{ item }">
                 <v-btn

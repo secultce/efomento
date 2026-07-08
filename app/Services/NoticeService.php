@@ -26,6 +26,7 @@ class NoticeService
                 'type_ins' => $notice->instrument_type,
                 'status' => $this->resolveStatus($notice),
                 'url' => $notice->notice_url,
+                'created_at' => $notice->created_at,
             ]);
     }
 
