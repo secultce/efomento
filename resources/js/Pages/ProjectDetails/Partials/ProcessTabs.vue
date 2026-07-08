@@ -1,5 +1,5 @@
 <script setup>
-import { ref } from 'vue';
+import { ref, watch } from 'vue';
 import OpeningTab from './Tabs/OpeningTab.vue';
 import LegalAnalysisTab from './Tabs/LegalAnalysisTab.vue';
 import FormalizationTab from './Tabs/FormalizationTab.vue';
@@ -20,6 +20,13 @@ const props = defineProps({
 });
 
 const tab = ref(props.initialTab);
+
+watch(
+    () => props.initialTab,
+    (value) => {
+        tab.value = value;
+    }
+);
 
 const tabs = [
     { value: 'opening', label: 'Abertura' },

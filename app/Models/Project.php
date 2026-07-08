@@ -45,7 +45,7 @@ class Project extends Model implements Auditable
         'current_installment_cycle' => 'integer',
     ];
 
-    protected $appends = ['phase', 'opening_nup'];
+    protected $appends = ['phase', 'phase_slug', 'opening_nup'];
 
     public function notice(): BelongsTo
     {
@@ -75,11 +75,12 @@ class Project extends Model implements Auditable
 
     public function getPhaseAttribute(): string
     {
-        $currentStage = $this->relationLoaded('currentStage')
-            ? $this->currentStage
-            : $this->currentStage()->first();
+        return $this->currentStage?->slug?->label() ?? 'Não Iniciado';
+    }
 
-        return $currentStage?->slug?->label() ?? 'Não Iniciado';
+    public function getPhaseSlugAttribute(): ?string
+    {
+        return $this->currentStage?->slug?->value;
     }
 
     public function getOpeningNupAttribute()
@@ -190,6 +191,26 @@ class Project extends Model implements Auditable
     public function getCurrentStageName(): ?string
     {
         return $this->currentStage?->slug?->label();
+    }
+
+    public function hasCompletedPayment(): bool
+    {
+        if ($this->current_installment_cycle > 1) {
+            return true;
+        }
+
+        $paymentStage = $this->stages->firstWhere('slug', ProjectStageSlug::PAGAMENTO);
+
+        if ($paymentStage?->status === ProjectStageStatus::APROVADO) {
+            return true;
+        }
+
+        return $this->stages->contains(
+            fn (ProjectStage $stage) => in_array($stage->slug, [
+                ProjectStageSlug::MONITORAMENTO,
+                ProjectStageSlug::PRESTACAO_DE_CONTAS,
+            ], true) && $stage->status !== ProjectStageStatus::PENDENTE
+        );
     }
 
     public function getProgressPercentage(): int
