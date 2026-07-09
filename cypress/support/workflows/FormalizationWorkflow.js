@@ -67,6 +67,10 @@ class ForamlizationWorkflow {
         Project.validateDocumentContent(documentType.text);
         Project.clickCancelDocumentButton();
     }
+
+    returnProcessToLealAnalysisTab({ role, notice, project }) {
+        this.accessFormalizationTab({ role, notice, project });
+    }
 }
 
 export default new ForamlizationWorkflow();

@@ -36,4 +36,12 @@ describe('Formalization', () => {
             });
         });
     });
+
+    it.only('should return process to legal analysis phase', function () {
+        FormalizationWorkflow.returnProcessToLealAnalysisTab({
+            role: 'formalization',
+            notice: this.notice,
+            project: this.project,
+        });
+    });
 });

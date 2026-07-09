@@ -473,6 +473,7 @@ const permissionMessage = computed(() => {
                                     : 'Formalização já foi tramitada.',
                             }"
                             class="!shadow-none !font-bold !bg-[#ffcc05FF] !text-[#2d353fFF] rounded-lg text-xs"
+                            data-cy="return-process-button-formalization"
                             @click="showReturnModal = true"
                         >
                             DEVOLVER PROCESSO
