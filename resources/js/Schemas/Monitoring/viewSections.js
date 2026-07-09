@@ -43,7 +43,15 @@ export const viewSections = [
                 label: 'Data do pagamento',
                 compute: (project) => formatDate(getCurrentInstallment(project)?.payment_date),
             },
+            {
+                label: 'Período entre publicação e pagamento',
+                compute: (project) => {
+                    const paymentDate = getCurrentInstallment(project)?.payment_date;
+                    const publishedAt = project.formalizations?.official_gazette_published_at;
 
+                    return daysBetweenDates(publishedAt, paymentDate) + ' dia(s)';
+                },
+            },
             {
                 label: 'Data de início de vigência do instrumento',
                 compute: getDate('formalizations.validity_start_at'),
@@ -54,11 +62,9 @@ export const viewSections = [
             },
             {
                 label: 'Quantidade de dias da vigência inicial',
-                compute: daysBetween('formalizations.validity_start_at', 'formalizations.validity_end_at'),
-            },
-            {
-                label: 'Período entre publica entre publicação e pagamento',
-                key: 'monitoring.date_of_processing_of_the_opinion_via_suite',
+                compute: (project) =>
+                    daysBetween('formalizations.validity_start_at', 'formalizations.validity_end_at')(project) +
+                    ' dia(s)',
             },
             {
                 label: 'Data da publicação do DOE',
@@ -70,7 +76,7 @@ export const viewSections = [
                     const paymentDate = getCurrentInstallment(project)?.payment_date;
                     const signedAt = project.formalizations?.signed_by_office_at;
 
-                    return daysBetweenDates(signedAt, paymentDate);
+                    return daysBetweenDates(signedAt, paymentDate) + ' dias';
                 },
             },
         ],
