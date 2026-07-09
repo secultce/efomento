@@ -1,6 +1,6 @@
 import { useDate } from '@/Composables/useDate';
 
-const { addDaysTo, getDate, daysBetween } = useDate();
+const { addDaysTo, getDate, daysBetween, formatDate } = useDate();
 
 export const viewSections = [
     {
@@ -8,12 +8,31 @@ export const viewSections = [
         fields: [
             {
                 label: 'Data de solicitação do relatório de monitoramento',
-                compute: addDaysTo('sent_timestamp', 120),
+                compute: (project) => {
+                    const installments = project.budgets?.installments ?? [];
+                    const currentInstallment = installments.find(
+                        (installment) =>
+                            Number(installment.installment_number) === Number(project.current_installment_cycle ?? 1)
+                    );
+                    const paymentDate = currentInstallment?.payment_date;
+                    const signedAt = project.formalizations?.signed_by_office_at;
+
+                    if (!paymentDate || !signedAt) return null;
+
+                    const daysBetweenSignedAndPayment = Math.round(
+                        (new Date(paymentDate) - new Date(signedAt)) / (1000 * 60 * 60 * 24)
+                    );
+
+                    const date = new Date(paymentDate);
+                    date.setDate(date.getDate() + 120 + daysBetweenSignedAndPayment);
+
+                    return date;
+                },
                 format: 'datetime',
             },
             {
                 label: 'Data prevista para envio do relatório de monitoramento',
-                compute: addDaysTo('sent_timestamp', 365),
+                compute: addDaysTo('formalizations.validity_end_at', 365),
                 format: 'datetime',
             },
             {
@@ -21,9 +40,17 @@ export const viewSections = [
                 compute: addDaysTo('sent_timestamp', 30),
                 format: 'datetime',
             },
+
             {
-                label: 'Data de pagamento',
-                key: 'monitoring.deadline_for_analysis_and_issuance_of_the_opinion',
+                label: 'Data do pagamento',
+                compute: (project) => {
+                    const installments = project.budgets?.installments ?? [];
+                    const currentInstallment = installments.find(
+                        (installment) =>
+                            Number(installment.installment_number) === Number(project.current_installment_cycle ?? 1)
+                    );
+                    return formatDate(currentInstallment?.payment_date);
+                },
             },
 
             {
