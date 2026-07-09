@@ -1,6 +1,13 @@
 import { useDate } from '@/Composables/useDate';
 
-const { addDaysTo, getDate, daysBetween, formatDate } = useDate();
+const { addDaysTo, getDate, daysBetween, daysBetweenDates, formatDate } = useDate();
+
+function getCurrentInstallment(project) {
+    const installments = project.budgets?.installments ?? [];
+    return installments.find(
+        (installment) => Number(installment.installment_number) === Number(project.current_installment_cycle ?? 1)
+    );
+}
 
 export const viewSections = [
     {
@@ -9,31 +16,22 @@ export const viewSections = [
             {
                 label: 'Data de solicitação do relatório de monitoramento',
                 compute: (project) => {
-                    const installments = project.budgets?.installments ?? [];
-                    const currentInstallment = installments.find(
-                        (installment) =>
-                            Number(installment.installment_number) === Number(project.current_installment_cycle ?? 1)
-                    );
-                    const paymentDate = currentInstallment?.payment_date;
+                    const paymentDate = getCurrentInstallment(project)?.payment_date;
                     const signedAt = project.formalizations?.signed_by_office_at;
 
                     if (!paymentDate || !signedAt) return null;
 
-                    const daysBetweenSignedAndPayment = Math.round(
-                        (new Date(paymentDate) - new Date(signedAt)) / (1000 * 60 * 60 * 24)
-                    );
+                    const daysBetweenSignedAndPayment = daysBetweenDates(signedAt, paymentDate);
 
                     const date = new Date(paymentDate);
                     date.setDate(date.getDate() + 120 + daysBetweenSignedAndPayment);
 
-                    return date;
+                    return formatDate(date);
                 },
-                format: 'datetime',
             },
             {
                 label: 'Data prevista para envio do relatório de monitoramento',
-                compute: addDaysTo('formalizations.validity_end_at', 365),
-                format: 'datetime',
+                compute: (project) => formatDate(addDaysTo('formalizations.validity_end_at', 365)(project)),
             },
             {
                 label: 'Prazo final para análise e emissão do parecer do monitoramento',
@@ -43,14 +41,7 @@ export const viewSections = [
 
             {
                 label: 'Data do pagamento',
-                compute: (project) => {
-                    const installments = project.budgets?.installments ?? [];
-                    const currentInstallment = installments.find(
-                        (installment) =>
-                            Number(installment.installment_number) === Number(project.current_installment_cycle ?? 1)
-                    );
-                    return formatDate(currentInstallment?.payment_date);
-                },
+                compute: (project) => formatDate(getCurrentInstallment(project)?.payment_date),
             },
 
             {
@@ -72,6 +63,15 @@ export const viewSections = [
             {
                 label: 'Data da publicação do DOE',
                 compute: getDate('formalizations.official_gazette_published_at'),
+            },
+            {
+                label: 'Quantidade de dias da vigência inicial prorrogadas por atraso no pagamento',
+                compute: (project) => {
+                    const paymentDate = getCurrentInstallment(project)?.payment_date;
+                    const signedAt = project.formalizations?.signed_by_office_at;
+
+                    return daysBetweenDates(signedAt, paymentDate);
+                },
             },
         ],
     },
