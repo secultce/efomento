@@ -35,8 +35,9 @@ function openNoticeHistory() {
                     <v-card-text class="flex items-start gap-2 text-sm">
                         <v-icon color="success" size="18" class="mt-0.5">mdi-check-circle</v-icon>
                         <span>
-                            <strong>{{ monitoringReportsCount }}</strong> relatórios foram enviados. Você já pode
-                            iniciar suas análises.
+                            <strong>{{ monitoringReportsCount }}</strong>
+                            {{ monitoringReportsCount === 1 ? 'relatório foi enviado.' : 'relatórios foram enviados.' }}
+                            Você já pode iniciar suas análises.
                         </span>
                     </v-card-text>
                 </v-card>
