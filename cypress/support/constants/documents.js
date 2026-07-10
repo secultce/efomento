@@ -17,4 +17,5 @@ export const DOCUMENTS = {
         chip: 'PJ',
         text: 'Texto para o Parecer Jurídico',
     },
+    devolutionMotive: 'Texto para devolução de processo',
 };

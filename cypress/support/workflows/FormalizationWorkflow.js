@@ -1,7 +1,7 @@
 import '../commands.js';
 import Notice from '../../pages/notice/index.js';
 import Project from '../../pages/project/ProjectPage';
-import FormalizationTab from '../../pages/project/formalizationTab/index.js';
+import FormalizationTab from '../../pages/project/formalizationTab/FormalizationTab.js';
 
 class ForamlizationWorkflow {
     accessFormalizationTab({ role, notice, project }) {
@@ -68,8 +68,35 @@ class ForamlizationWorkflow {
         Project.clickCancelDocumentButton();
     }
 
-    returnProcessToLealAnalysisTab({ role, notice, project }) {
+    createLegalOpinion({ role, notice, project, documentType }) {
+        cy.loginByRole(role);
+
+        Notice.visitPage();
+        Notice.searchNoticeByNup(notice.noticeNup);
+        Notice.goToNoticeDetailsPage(notice.noticeNup);
+
+        Project.clickFilterFormalizationPhase();
+        Project.validateFilterFormalizationPhase();
+        Project.findProjectByProjectNup(project.projectNup);
+
+        Project.selectProject();
+
+        Project.clickCreateDocument(documentType.createButton);
+        Project.fillDocument(documentType.text);
+        Project.saveDocument();
+        Project.verifySuccessMessageSaveDocument();
+        Project.validateDocumentCreated(documentType.chip);
+        Project.clickEditDocument(documentType.editButton);
+        Project.validateDocumentContent(documentType.text);
+        Project.clickCancelDocumentButton();
+    }
+
+    returnProcessToLealAnalysisTab({ role, notice, project, documentType }) {
         this.accessFormalizationTab({ role, notice, project });
+        FormalizationTab.clickReturnProcessButton();
+        FormalizationTab.fillReturnMotive(documentType);
+        FormalizationTab.clickSaveReturnMotiveButton();
+        FormalizationTab.displayReturnSuccessMessage();
     }
 }
 

@@ -3,6 +3,8 @@ export const elements = {
     projecNupOpeningTab: '[data-cy=project-nup-opening-tab]',
     rightPanel: '[data-cy=right-panel]',
     returnProcessButton: '[data-cy=return-process-button-formalization]',
+    retunrProcessSentButton: '[data-cy=return-process-sent-button]',
+    returnProcessSuccessMessage: '[data-cy="snack-alert"]',
 };
 
 // Constantes de timeout para melhor manutenibilidade
