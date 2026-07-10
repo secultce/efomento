@@ -16,6 +16,7 @@ import { useSnackbar } from '@/Composables/useSnackbar';
 import { useAlert } from '@/Composables/useAlert';
 import { sanitizeExternalUrl } from '@/Composables/useExternalLink';
 import { usePermissions } from '@/Composables/usePermissions';
+import { useAuth } from '@/Composables/useAuth';
 
 const props = defineProps({
     project: {
@@ -27,8 +28,16 @@ const props = defineProps({
 const { showSnackbar } = useSnackbar();
 const { showAlert } = useAlert();
 const { canManageMonitoring } = usePermissions();
+const { user } = useAuth();
 
-const canUserHandleMonitoring = canManageMonitoring;
+const isPrincipalSupervisor = computed(() => {
+    const supervisors = props.project.opening?.supervisors ?? [];
+    return supervisors.some(
+        (supervisor) => supervisor.type === 'principal' && supervisor.is_active && supervisor.user_id === user.value?.id
+    );
+});
+
+const canUserHandleMonitoring = computed(() => canManageMonitoring.value && isPrincipalSupervisor.value);
 
 const activeViewIndex = ref('all');
 
@@ -244,6 +253,7 @@ function submit() {
                     :project="project"
                     stage="monitoramento"
                     description="Envie mensagem ao agente cultural sobre o relatório de monitoramento (não vale para notificações, comunicados, solicitações etc.)"
+                    :can-send="canUserHandleMonitoring"
                 />
                 <section-form :active-edit-index="'all'" :sections="formSections">
                     <template #header-action="{ section }">
@@ -293,12 +303,12 @@ function submit() {
                         color="primary"
                         class="rounded-lg mt-4"
                         :loading="requestingNextInstallment"
-                        :disabled="requestingNextInstallment"
+                        :disabled="requestingNextInstallment || !canUserHandleMonitoring"
                         @click="requestNextInstallment"
                     >
                         Solicitar próxima parcela
                     </v-btn>
-                    <tramit-button :action="tramit" :loading="tramitLoading" />
+                    <tramit-button :action="tramit" :loading="tramitLoading" :disabled="!canUserHandleMonitoring" />
                 </div>
             </div>
         </template>
