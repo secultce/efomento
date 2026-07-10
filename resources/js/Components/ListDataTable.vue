@@ -60,17 +60,6 @@ const selected = computed({
     set: (value) => emit('update:modelValue', value),
 });
 
-/**
- * Normal layout:
- * - Número do processo
- * - Fase
- *
- * Extended payment layout:
- * - Número do processo
- * - Referência de parcelas
- * - Status do pagamento
- * - Fase
- */
 const hasExtraData = computed(() => props.data.length > 2);
 
 function toggle(item) {
