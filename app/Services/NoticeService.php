@@ -3,18 +3,16 @@
 namespace App\Services;
 
 use App\Models\Notice;
+use App\Models\Project;
 use Illuminate\Support\Collection;
 use InvalidArgumentException;
 
 class NoticeService
 {
-    /**
-     * Retorna as oportunidades formatadas para exibição no dashboard de editais.
-     * Aplica filtro de busca por nome ou NUP quando informado.
-     */
     public function getNoticesForDashboard(?string $search = null): Collection
     {
         return Notice::query()
+            ->with(['projects.stages'])
             ->when($search, function ($query, $search) {
                 $query->where('name', 'ilike', "%{$search}%")
                     ->orWhere('nup', 'ilike', "%{$search}%");
@@ -26,9 +24,24 @@ class NoticeService
                 'titulo' => $notice->name,
                 'mae' => $notice->nup,
                 'type_ins' => $notice->instrument_type,
-                'status' => $notice->nup ? 'Em abertura de processo' : 'Pendente abertura de processo',
+                'status' => $this->resolveStatus($notice),
                 'url' => $notice->notice_url,
+                'created_at' => $notice->created_at,
             ]);
+    }
+
+    private function resolveStatus(Notice $notice): string
+    {
+        if (! $notice->nup) {
+            return 'Pendente de abertura';
+        }
+
+        $allFormalizations = $notice->projects->isNotEmpty()
+            && $notice->projects->every(fn (Project $project) => $project->hasCompletedPayment());
+
+        return $allFormalizations
+            ? 'Processos formalizados'
+            : 'Processos em andamento';
     }
 
     /**
@@ -36,15 +49,20 @@ class NoticeService
      */
     public function getTotals(): array
     {
-        $total = Notice::count();
-        $comCredenciamento = Notice::whereNotNull('creditor_registration_request_date')->count();
-        $semCredenciamento = Notice::whereNull('creditor_registration_nup')->count();
+        $statusCounts = Notice::query()
+            ->with(['projects.stages'])
+            ->get()
+            ->countBy(fn (Notice $notice) => $this->resolveStatus($notice));
+
+        $monitoramento = Notice::whereNotNull('creditor_registration_request_date')
+            ->whereNull('creditor_registration_nup')
+            ->count();
 
         return [
-            'oportunidades' => $total,
-            'pendentes' => $semCredenciamento,
-            'concluidos' => $comCredenciamento,
-            'monitoramento' => $total - $comCredenciamento - $semCredenciamento,
+            'oportunidades' => $statusCounts->get('Processos em andamento', 0),
+            'pendentes' => $statusCounts->get('Pendente de abertura', 0),
+            'concluidos' => $statusCounts->get('Processos formalizados', 0),
+            'monitoramento' => $monitoramento,
         ];
     }
 

@@ -5,6 +5,7 @@ import { router } from '@inertiajs/vue3';
 import { usePermissions } from '@/Composables/usePermissions';
 import { useMask } from '@/Composables/useMask';
 import { useSnackbar } from '@/Composables/useSnackbar.js';
+import { useDate } from '@/Composables/useDate';
 
 const props = defineProps({
     notices: {
@@ -27,41 +28,53 @@ const noticesMock = [
     {
         id: 1,
         titulo: 'EDITAL DE CHAMAMENTO PÚBLICO Nº 005/2025 - PRE...',
-        status: 'Em abertura de processo',
+        status: 'Processos em andamento',
         tipoInstrumento: 'Termo de execução cultural',
         numeroProcessoMae: '000054554654/45457',
     },
     {
         id: 2,
         titulo: 'EDITAL DE CHAMAMENTO PÚBLICO Nº 006/2025 - CICLO CEARENSE CARNAVALESCO',
-        status: 'Em abertura de processo',
+        status: 'Processos em andamento',
         tipoInstrumento: 'Termo de execução cultural',
         numeroProcessoMae: '000054554654/45457',
     },
     {
         id: 3,
         titulo: 'EDITAL DE CHAMAMENTO PÚBLICO Nº 007/2025 - PNAB MÚSICA',
-        status: 'Em abertura de processo',
+        status: 'Processos em andamento',
         tipoInstrumento: 'Termo de execução cultural',
         numeroProcessoMae: '000054554654/45458',
     },
     {
         id: 4,
         titulo: 'EDITAL DE CHAMAMENTO PÚBLICO Nº 008/2025 - CULTURA VIVA',
-        status: 'Em abertura de processo',
+        status: 'Processos em andamento',
         tipoInstrumento: 'Termo de execução cultural',
         numeroProcessoMae: '000054554654/45459',
     },
     {
         id: 5,
         titulo: 'EDITAL DE CHAMAMENTO PÚBLICO Nº 009/2025 - FUNDO DE CULTURA',
-        status: 'Em abertura de processo',
+        status: 'Processos em andamento',
         tipoInstrumento: 'Termo de execução cultural',
         numeroProcessoMae: '000054554654/45460',
     },
 ];
 
 const instrumentOptions = computed(() => props.instrumentTypes);
+
+const statusOptions = ['Processos em andamento', 'Pendente de abertura', 'Processos formalizados'];
+
+const statusColors = {
+    'Pendente de abertura': { text: '#a37600', badge: '#fff1c2' },
+    'Processos em andamento': { text: '#012544', badge: '#c2dbef' },
+    'Processos formalizados': { text: '#006c35', badge: '#c2ecd4' },
+};
+
+function getStatusColor(status) {
+    return statusColors[status] ?? { text: '#1565c0', badge: '#bbdefb' };
+}
 
 const itemsPerPageOptions = [10, 25, 50];
 
@@ -72,6 +85,7 @@ const headers = [
     { title: 'Status', key: 'status', align: 'center', sortable: false },
     { title: 'Tipo de instrumento', key: 'type_ins', align: 'center', sortable: false },
     { title: 'Nº do processo mãe', key: 'mae', align: 'center', sortable: false },
+    { title: 'Criado em', key: 'created_at', align: 'center', sortable: false },
     { title: 'Acessar', key: 'acessar', align: 'center', sortable: false },
 ];
 
@@ -89,7 +103,6 @@ const itens = computed(() => (props.notices.length ? props.notices : noticesMock
 
 const itensFiltrados = computed(() => {
     let lista = itens.value;
-
     if (search.value.trim()) {
         const termo = search.value.toLowerCase();
         lista = lista.filter(
@@ -135,6 +148,7 @@ const visiblePages = computed(() => {
     return [1, '...', c - 1, c, c + 1, '...', n];
 });
 
+const { formatDate } = useDate();
 // ─── Handlers ────────────────────────────────────────────────────────────────
 
 function onSearch(value) {
@@ -321,7 +335,6 @@ async function handleFileUpload(event) {
             </v-col>
         </v-row>
 
-        <!-- ── Tabela ─────────────────────────────────────────────────────── -->
         <v-data-table
             v-model:page="page"
             v-model:items-per-page="itemsPerPage"
@@ -337,8 +350,15 @@ async function handleFileUpload(event) {
 
             <!-- Badge de status -->
             <template #item.status="{ item }">
-                <span class="status-badge" data-cy="process-status-notices-list">
-                    <span class="status-dot">•</span>
+                <span
+                    class="status-badge"
+                    data-cy="process-status-notices-list"
+                    :style="{
+                        backgroundColor: getStatusColor(item.status).badge,
+                        color: getStatusColor(item.status).text,
+                    }"
+                >
+                    <span class="status-dot" :style="{ color: getStatusColor(item.status).text }">•</span>
                     {{ item.status }}
                 </span>
             </template>
@@ -367,6 +387,13 @@ async function handleFileUpload(event) {
                     Informe os dados de identificação
                 </v-btn>
             </template>
+
+            <template #item.created_at="{ item }">
+                <span data-cy="notice-created_at-notices-list">
+                    {{ formatDate(item.created_at) }}
+                </span>
+            </template>
+
             <!-- Ícone de acesso -->
             <template #item.acessar="{ item }">
                 <v-btn
@@ -486,7 +513,7 @@ async function handleFileUpload(event) {
     display: inline-flex;
     align-items: center;
     gap: 4px;
-    background-color: #bbdefb;
+    background-color: #c2dbef;
     color: #1565c0;
     border-radius: 999px;
     padding: 3px 10px;

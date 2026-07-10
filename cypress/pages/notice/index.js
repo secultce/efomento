@@ -17,7 +17,7 @@ class Notice {
 
     verifyAllDashboardMetrics() {
         const expectedMetrics = [
-            'Todos os editais disponíveis',
+            'Editais Pendentes para abertura de processo',
             'Editais com processos em andamento',
             'Processos Finalizados',
         ];
