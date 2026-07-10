@@ -10,6 +10,7 @@ import ReturnProcessModal from '@/Components/ReturnProcessModal.vue';
 import FormField from '@/Components/FormField.vue';
 import TextField from '@/Components/TextField.vue';
 import TramitButton from '@/Pages/ProjectDetails/Partials/Tabs/Actions/TramitButton.vue';
+import SaveButton from '@/Pages/ProjectDetails/Partials/Tabs/Actions/SaveButton.vue';
 
 import { viewSections, formSections } from '@/Schemas/Payment';
 
@@ -389,16 +390,11 @@ const tramit = async () => {
                         <p class="font-bold text-md mt-2 text-black">Links auxiliares</p>
                     </div>
 
-                    <v-btn
-                        variant="outlined"
-                        color="outlineSecondary"
-                        class="rounded-lg"
+                    <SaveButton
                         :loading="remarksForm.processing"
-                        :disabled="remarksForm.processing || !selectedInstallment"
+                        :can-save="canUserHandlePayment && !!selectedInstallment"
                         @click="saveRemarks"
-                    >
-                        Salvar Alterações
-                    </v-btn>
+                    />
                 </div>
 
                 <aux-links />

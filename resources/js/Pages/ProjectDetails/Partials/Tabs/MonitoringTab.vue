@@ -10,10 +10,12 @@ import TextField from '@/Components/TextField.vue';
 import AuxLinks from '@/Components/AuxLinks.vue';
 import DiligenceChat from '@/Components/DiligenceChat.vue';
 import TramitButton from '@/Pages/ProjectDetails/Partials/Tabs/Actions/TramitButton.vue';
+import SaveButton from '@/Pages/ProjectDetails/Partials/Tabs/Actions/SaveButton.vue';
 import { viewSections, formSections } from '@/Schemas/Monitoring';
 import { useSnackbar } from '@/Composables/useSnackbar';
 import { useAlert } from '@/Composables/useAlert';
 import { sanitizeExternalUrl } from '@/Composables/useExternalLink';
+import { usePermissions } from '@/Composables/usePermissions';
 
 const props = defineProps({
     project: {
@@ -24,6 +26,9 @@ const props = defineProps({
 
 const { showSnackbar } = useSnackbar();
 const { showAlert } = useAlert();
+const { canManageMonitoring } = usePermissions();
+
+const canUserHandleMonitoring = canManageMonitoring;
 
 const activeViewIndex = ref('all');
 
@@ -218,15 +223,7 @@ function submit() {
                         <p class="font-bold text-md mt-2 text-black">Links auxiliares</p>
                     </div>
                     <div class="flex gap-2">
-                        <v-btn
-                            variant="outlined"
-                            color="outlineSecondary"
-                            class="rounded-lg"
-                            :loading="form.processing"
-                            @click="submit"
-                        >
-                            Salvar Alterações
-                        </v-btn>
+                        <SaveButton :loading="form.processing" :can-save="canUserHandleMonitoring" @click="submit" />
                     </div>
                 </div>
                 <aux-links />
