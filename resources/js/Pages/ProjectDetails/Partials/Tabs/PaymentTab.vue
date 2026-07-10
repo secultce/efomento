@@ -542,14 +542,6 @@ const tramit = async () => {
                                             />
                                         </FormField>
 
-                                        <FormField label="Data do pagamento">
-                                            <TextField
-                                                :model-value="normalizeDate(selectedInstallment.payment_date)"
-                                                type="date"
-                                                disabled
-                                            />
-                                        </FormField>
-
                                         <div class="col-span-2">
                                             <FormField label="Observações" :error="remarksForm.errors.remarks">
                                                 <v-textarea

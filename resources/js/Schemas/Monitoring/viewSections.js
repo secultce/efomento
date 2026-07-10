@@ -49,7 +49,9 @@ export const viewSections = [
                     const paymentDate = getCurrentInstallment(project)?.payment_date;
                     const publishedAt = project.formalizations?.official_gazette_published_at;
 
-                    return daysBetweenDates(publishedAt, paymentDate) + ' dia(s)';
+                    const days = daysBetweenDates(publishedAt, paymentDate);
+
+                    return days === null ? null : `${days} dia(s)`;
                 },
             },
             {
@@ -62,9 +64,14 @@ export const viewSections = [
             },
             {
                 label: 'Quantidade de dias da vigência inicial',
-                compute: (project) =>
-                    daysBetween('formalizations.validity_start_at', 'formalizations.validity_end_at')(project) +
-                    ' dia(s)',
+                compute: (project) => {
+                    const days = daysBetween(
+                        'formalizations.validity_start_at',
+                        'formalizations.validity_end_at'
+                    )(project);
+
+                    return days === null ? null : `${days} dia(s)`;
+                },
             },
             {
                 label: 'Data da publicação do DOE',
@@ -76,7 +83,9 @@ export const viewSections = [
                     const paymentDate = getCurrentInstallment(project)?.payment_date;
                     const signedAt = project.formalizations?.signed_by_office_at;
 
-                    return daysBetweenDates(signedAt, paymentDate) + ' dias';
+                    const days = daysBetweenDates(signedAt, paymentDate);
+
+                    return days === null ? null : `${days} dias`;
                 },
             },
         ],
