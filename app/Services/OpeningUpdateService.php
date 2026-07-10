@@ -88,6 +88,7 @@ class OpeningUpdateService
             'opening_date' => 'Data de abertura do processo',
             'opened_by' => 'Responsável por abrir o processo',
             'agent_status' => 'Status do agente cultural',
+            'creditor_number' => 'Número do cadastro do credor',
             'allocation_code' => 'Código da dotação',
             'allocation_number' => 'Número completo da dotação',
             'bank' => 'Banco',

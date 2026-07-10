@@ -22,6 +22,8 @@ class OpeningStoreRequest extends FormRequest
             'agent_status' => ['nullable', 'string', 'max:255'],
             'opened_by' => ['nullable', 'string', 'max:255'],
 
+            'creditor_number' => ['nullable', 'string', 'max:255'],
+
             'allocation_code' => ['nullable', 'string', 'max:255'],
             'allocation_number' => ['nullable', 'string', 'max:255'],
 

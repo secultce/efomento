@@ -34,6 +34,8 @@ class OpeningUpdateRequest extends FormRequest
             'opening.agent_status' => ['sometimes', 'nullable', 'string'],
             'opening.opened_by' => ['sometimes', 'nullable', 'string'],
 
+            'opening.creditor_number' => ['sometimes', 'nullable', 'string'],
+
             'opening.allocation_code' => ['sometimes', 'nullable', 'string'],
             'opening.allocation_number' => ['sometimes', 'nullable', 'string'],
 

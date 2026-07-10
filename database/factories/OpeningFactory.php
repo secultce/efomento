@@ -36,6 +36,8 @@ class OpeningFactory extends Factory
             'agent_status' => $this->faker->randomElement(AgentStatus::cases())->value,
             'opened_by' => $this->faker->name(),
 
+            'creditor_number' => $this->faker->numerify(),
+
             'allocation_code' => $this->faker->numerify(),
             'allocation_number' => $this->faker->numerify('#########################################'),
 

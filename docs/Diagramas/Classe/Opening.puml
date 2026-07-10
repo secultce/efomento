@@ -16,6 +16,7 @@ class Opening {
     -opening_date: date [nullable]
     -agent_status: AgentStatus [nullable]
     -opened_by: string [nullable]
+    -creditor_number: string [nullable]
     -allocation_code: string [nullable]
     -allocation_number: string [nullable]
     -bank: string [nullable]

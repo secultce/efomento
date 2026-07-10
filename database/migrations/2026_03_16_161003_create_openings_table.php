@@ -39,6 +39,8 @@ return new class extends Migration
             $table->foreignId('created_by')->nullable()->constrained('users')->nullOnDelete();
             $table->index('created_by');
 
+            $table->string('creditor_number')->nullable();
+
             $table->string('allocation_code')->nullable();
             $table->string('allocation_number')->nullable();
 
