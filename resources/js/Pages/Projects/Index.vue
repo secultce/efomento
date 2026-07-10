@@ -21,6 +21,7 @@ const props = defineProps({
     phases: { type: Array, default: () => [] },
     instrumentTypes: { type: Array, default: () => [] },
     supervisorsAvailable: { type: Array, default: () => [] },
+    monitoringReportsCount: { type: Number, default: 0 },
 });
 
 const search = ref(props.filters?.search ?? '');
@@ -215,6 +216,7 @@ function handleAction({ action, item }) {
                         :selected-projects="selectedProjects"
                         :projects="projects"
                         :notice="notice"
+                        :monitoring-reports-count="monitoringReportsCount"
                     />
                 </div>
             </div>

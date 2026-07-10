@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Models\Monitoring;
 use App\Models\Notice;
 use App\Models\Opening;
 use App\Models\Project;
@@ -76,6 +77,58 @@ class ProjectControllerTest extends TestCase
         $response->assertInertia(fn ($page) => $page
             ->where('filters.search', 'foo')
             ->where('filters.phase', 'opening')
+        );
+    }
+
+    public function test_index_returns_monitoring_reports_count_for_the_given_notice(): void
+    {
+        $notice = Notice::factory()->create();
+        $projectsWithMonitoring = Project::factory()->count(2)->create(['notice_id' => $notice->id]);
+        Project::factory()->create(['notice_id' => $notice->id]); // sem monitoring, não deve contar
+
+        foreach ($projectsWithMonitoring as $project) {
+            Monitoring::factory()->create(['project_id' => $project->id]);
+        }
+
+        $response = $this->actingAs($this->user)
+            ->get(route('notices.projects', $notice));
+
+        $response->assertStatus(200);
+        $response->assertInertia(fn ($page) => $page
+            ->where('monitoringReportsCount', 2)
+        );
+    }
+
+    public function test_index_monitoring_reports_count_ignores_other_notices(): void
+    {
+        $notice = Notice::factory()->create();
+        $otherNotice = Notice::factory()->create();
+
+        $project = Project::factory()->create(['notice_id' => $notice->id]);
+        Monitoring::factory()->create(['project_id' => $project->id]);
+
+        $otherProject = Project::factory()->create(['notice_id' => $otherNotice->id]);
+        Monitoring::factory()->create(['project_id' => $otherProject->id]);
+
+        $response = $this->actingAs($this->user)
+            ->get(route('notices.projects', $notice));
+
+        $response->assertInertia(fn ($page) => $page
+            ->where('monitoringReportsCount', 1)
+        );
+    }
+
+    public function test_index_monitoring_reports_count_is_not_affected_by_phase_filter(): void
+    {
+        $notice = Notice::factory()->create();
+        $project = Project::factory()->create(['notice_id' => $notice->id]);
+        Monitoring::factory()->create(['project_id' => $project->id]);
+
+        $response = $this->actingAs($this->user)
+            ->get(route('notices.projects', $notice).'?phase=opening');
+
+        $response->assertInertia(fn ($page) => $page
+            ->where('monitoringReportsCount', 1)
         );
     }
 

@@ -78,6 +78,8 @@ class ProjectController extends Controller
             'supervisorsAvailable' => User::role(Role::monitoringRoles())
                 ->select('id', 'name')
                 ->get(),
+
+            'monitoringReportsCount' => $notice->projects()->whereHas('monitoring')->count(),
         ]);
     }
 
