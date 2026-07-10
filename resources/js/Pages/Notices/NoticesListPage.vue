@@ -192,6 +192,7 @@ function openDialog(item) {
 }
 
 const uploadInput = ref(null);
+const uploadingInstallment = ref(false);
 
 const { showSnackbar } = useSnackbar();
 
@@ -224,10 +225,12 @@ async function handleFileUpload(event) {
         preserveScroll: true,
 
         onStart: () => {
+            uploadingInstallment.value = true;
             showSnackbar('Importando planilha, aguarde...', 'warning', -1);
         },
 
         onSuccess: (page) => {
+            uploadingInstallment.value = false;
             if (page.props.flash?.error) {
                 showSnackbar(page.props.flash.error, 'error');
                 return;
@@ -239,12 +242,14 @@ async function handleFileUpload(event) {
         },
 
         onError: (errors) => {
+            uploadingInstallment.value = false;
             const message = Object.values(errors).flat().join(', ') || 'Ocorreu um erro ao importar a planilha';
 
             showSnackbar(message, 'error');
         },
 
         onFinish: () => {
+            uploadingInstallment.value = false;
             event.target.value = '';
         },
     });
@@ -280,7 +285,7 @@ async function handleFileUpload(event) {
                 />
                 <v-btn
                     class="!shadow-none !font-bold !bg-[#ffcc05FF] !text-[#2d353fFF] rounded-lg px-4 py-2 text-[11px] shrink-0"
-                    :loading="uploadingInstallment === 1"
+                    :loading="uploadingInstallment == true"
                     @click="openUpload()"
                 >
                     Subir relatório de pagamentos

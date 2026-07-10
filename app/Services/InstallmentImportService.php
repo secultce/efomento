@@ -405,7 +405,7 @@ class InstallmentImportService
         $previousInstallment = $installments
             ->filter(
                 fn (Installment $installment) => $installment->installment_number
-                    < $candidate->installment_number
+                    < $candidate->installment_number && $installment->payment_date
             )
             ->sortByDesc('installment_number')
             ->first();
@@ -413,7 +413,7 @@ class InstallmentImportService
         $nextInstallment = $installments
             ->filter(
                 fn (Installment $installment) => $installment->installment_number
-                    > $candidate->installment_number
+                    > $candidate->installment_number && $installment->payment_date
             )
             ->sortBy('installment_number')
             ->first();
