@@ -186,23 +186,20 @@ const { canManagePayment } = usePermissions();
 const canImportPayments = canManagePayment;
 
 function openUpload() {
-    /*
-        if (!canImportPayments.value) {
-            return;
-        }
-    */
+    if (!canImportPayments.value) {
+        return;
+    }
 
     uploadInput.value?.click();
 }
 
 async function handleFileUpload(event) {
     const file = event.target.files?.[0];
-    /*
+
     if (!file || !canImportPayments.value) {
         event.target.value = '';
         return;
     }
-    */
 
     const formData = new FormData();
 

@@ -9,6 +9,8 @@ import SectionForm from '@/Components/SectionForm.vue';
 import ReturnProcessModal from '@/Components/ReturnProcessModal.vue';
 import FormField from '@/Components/FormField.vue';
 import TextField from '@/Components/TextField.vue';
+import AuxLinks from '@/Components/AuxLinks.vue';
+
 import TramitButton from '@/Pages/ProjectDetails/Partials/Tabs/Actions/TramitButton.vue';
 
 import { viewSections, formSections } from '@/Schemas/Payment';
@@ -17,12 +19,23 @@ import { useAuth } from '@/Composables/useAuth';
 import { useDate } from '@/Composables/useDate';
 import { useSnackbar } from '@/Composables/useSnackbar';
 import { useAlert } from '@/Composables/useAlert';
-import AuxLinks from '@/Components/AuxLinks.vue';
+import { useInstallmentStatus } from '@/Composables/useInstallments';
 
 const props = defineProps({
-    project: { type: Object, required: true },
-    canReturn: { type: Boolean, default: false },
-    currentStage: { type: Object, default: null },
+    project: {
+        type: Object,
+        required: true,
+    },
+
+    canReturn: {
+        type: Boolean,
+        default: false,
+    },
+
+    currentStage: {
+        type: Object,
+        default: null,
+    },
 });
 
 const { hasRole } = useAuth();
@@ -30,12 +43,20 @@ const { normalizeDate } = useDate();
 const { showSnackbar } = useSnackbar();
 const { showAlert } = useAlert();
 
-const canUserHandlePayment = computed(() => hasRole(['super_admin', 'financial', 'coord_financial']));
+const { hasValue, toNumber, getInstallmentStatus } = useInstallmentStatus();
 
-const stage = computed(() => props.project.stages?.find((s) => s.slug === 'pagamento'));
+const canUserHandlePayment = computed(() => {
+    return hasRole(['super_admin', 'financial', 'coord_financial']);
+});
+
+const stage = computed(() => {
+    return props.project.stages?.find((projectStage) => projectStage.slug === 'pagamento');
+});
 
 const paymentStage = computed(() => {
-    return props.currentStage ?? props.project.stages?.find((s) => s.slug === 'pagamento');
+    return (
+        props.currentStage ?? props.project.stages?.find((projectStage) => projectStage.slug === 'pagamento') ?? null
+    );
 });
 
 const showReturnModal = ref(false);
@@ -43,7 +64,9 @@ const activeViewIndex = ref('all');
 const activeEditIndex = ref('all');
 const selectedInstallmentNumber = ref(null);
 
-const budget = computed(() => props.project.budgets ?? null);
+const budget = computed(() => {
+    return props.project.budgets ?? null;
+});
 
 const remarksForm = useForm({
     remarks: '',
@@ -67,40 +90,46 @@ const savedInstallmentsByNumber = computed(() => {
 });
 
 const installments = computed(() => {
-    return Array.from({ length: noticeInstallmentsCount.value }, (_, index) => {
-        const installmentNumber = index + 1;
-        const savedInstallment = savedInstallmentsByNumber.value.get(installmentNumber);
+    return Array.from(
+        {
+            length: noticeInstallmentsCount.value,
+        },
+        (_, index) => {
+            const installmentNumber = index + 1;
 
-        return {
-            exists: !!savedInstallment,
+            const savedInstallment = savedInstallmentsByNumber.value.get(installmentNumber);
 
-            id: savedInstallment?.id ?? null,
-            installment_number: installmentNumber,
+            return {
+                exists: !!savedInstallment,
 
-            amount: savedInstallment?.amount ?? null,
-            request_date: savedInstallment?.request_date ?? null,
-            justification: savedInstallment?.justification ?? null,
-            observations: savedInstallment?.observations ?? null,
-            remarks: savedInstallment?.remarks ?? null,
+                id: savedInstallment?.id ?? null,
+                installment_number: installmentNumber,
 
-            settlement_date: savedInstallment?.settlement_date ?? null,
-            settlement_number: savedInstallment?.settlement_number ?? null,
-            settlement_amount: savedInstallment?.settlement_amount ?? null,
+                amount: savedInstallment?.amount ?? null,
+                request_date: savedInstallment?.request_date ?? null,
+                justification: savedInstallment?.justification ?? null,
+                observations: savedInstallment?.observations ?? null,
+                remarks: savedInstallment?.remarks ?? null,
 
-            payment_date: savedInstallment?.payment_date ?? null,
-            payment_order_number: savedInstallment?.payment_order_number ?? null,
-            payment_amount: savedInstallment?.payment_amount ?? null,
+                settlement_date: savedInstallment?.settlement_date ?? null,
+                settlement_number: savedInstallment?.settlement_number ?? null,
+                settlement_amount: savedInstallment?.settlement_amount ?? null,
 
-            full_source: savedInstallment?.full_source ?? null,
-            expense_nature: savedInstallment?.expense_nature ?? null,
-            process_number: savedInstallment?.process_number ?? null,
-            creditor: savedInstallment?.creditor ?? null,
-            creditor_name: savedInstallment?.creditor_name ?? null,
-            retention_creditor: savedInstallment?.retention_creditor ?? null,
-            origin_bank_domicile: savedInstallment?.origin_bank_domicile ?? null,
-            committed_amount: savedInstallment?.committed_amount ?? null,
-        };
-    });
+                payment_date: savedInstallment?.payment_date ?? null,
+                payment_order_number: savedInstallment?.payment_order_number ?? null,
+                payment_amount: savedInstallment?.payment_amount ?? null,
+
+                full_source: savedInstallment?.full_source ?? null,
+                expense_nature: savedInstallment?.expense_nature ?? null,
+                process_number: savedInstallment?.process_number ?? null,
+                creditor: savedInstallment?.creditor ?? null,
+                creditor_name: savedInstallment?.creditor_name ?? null,
+                retention_creditor: savedInstallment?.retention_creditor ?? null,
+                origin_bank_domicile: savedInstallment?.origin_bank_domicile ?? null,
+                committed_amount: savedInstallment?.committed_amount ?? null,
+            };
+        }
+    );
 });
 
 watch(
@@ -108,25 +137,28 @@ watch(
     (items) => {
         if (!items.length) {
             selectedInstallmentNumber.value = null;
+
             return;
         }
 
-        const selectedStillExists = items.some(
-            (item) => Number(item.installment_number) === Number(selectedInstallmentNumber.value)
-        );
+        const selectedStillExists = items.some((item) => {
+            return Number(item.installment_number) === Number(selectedInstallmentNumber.value);
+        });
 
         if (!selectedStillExists) {
             selectedInstallmentNumber.value = items[0].installment_number;
         }
     },
-    { immediate: true }
+    {
+        immediate: true,
+    }
 );
 
 const selectedInstallment = computed(() => {
     return (
-        installments.value.find(
-            (item) => Number(item.installment_number) === Number(selectedInstallmentNumber.value)
-        ) ?? null
+        installments.value.find((item) => {
+            return Number(item.installment_number) === Number(selectedInstallmentNumber.value);
+        }) ?? null
     );
 });
 
@@ -136,78 +168,13 @@ watch(
         remarksForm.remarks = installment?.remarks ?? '';
         remarksForm.clearErrors();
     },
-    { immediate: true }
+    {
+        immediate: true,
+    }
 );
-
-function hasValue(value) {
-    return value !== null && value !== undefined && value !== '';
-}
-
-function toNumber(value) {
-    const number = Number(value ?? 0);
-
-    return Number.isFinite(number) ? number : 0;
-}
 
 function formatText(value) {
     return hasValue(value) ? value : '—';
-}
-
-function getInstallmentStatus(installment) {
-    const committed = toNumber(installment?.committed_amount);
-    const liquidated = toNumber(installment?.settlement_amount);
-    const paid = toNumber(installment?.payment_amount);
-
-    const hasCommitmentData = committed > 0;
-
-    const hasSettlementData =
-        hasValue(installment?.settlement_date) || hasValue(installment?.settlement_number) || liquidated > 0;
-
-    const hasPaymentData = hasValue(installment?.payment_date) || hasValue(installment?.payment_amount) || paid > 0;
-
-    const isIrregular =
-        (hasPaymentData && !hasSettlementData) ||
-        (hasSettlementData && !hasCommitmentData) ||
-        (hasPaymentData && hasCommitmentData && paid !== committed) ||
-        (liquidated > 0 && committed > 0 && liquidated > committed);
-
-    if (isIrregular) {
-        return {
-            label: 'Irregular',
-            icon: 'mdi-alert-circle',
-            class: 'text-red-700 border-red-200',
-        };
-    }
-
-    if (hasPaymentData) {
-        return {
-            label: 'Pago',
-            icon: 'mdi-check-circle',
-            class: 'text-green-700 border-green-200',
-        };
-    }
-
-    if (hasSettlementData) {
-        return {
-            label: 'Liquidado',
-            icon: 'mdi-file-check-outline',
-            class: 'text-blue-700 border-blue-200',
-        };
-    }
-
-    if (hasCommitmentData) {
-        return {
-            label: 'Empenhado',
-            icon: 'mdi-cash-check',
-            class: 'text-purple-700 border-purple-200',
-        };
-    }
-
-    return {
-        label: 'Pendente',
-        icon: 'mdi-clock-outline',
-        class: 'text-yellow-700 border-yellow-200',
-    };
 }
 
 const hasPaymentData = computed(() => {
@@ -223,8 +190,8 @@ const canTramitPayment = computed(() => {
         canUserHandlePayment.value &&
         !!selectedInstallment.value &&
         hasPaymentData.value &&
-        stage?.value.status !== 'aprovado' &&
-        stage?.value.status !== 'bloqueado'
+        stage.value?.status !== 'aprovado' &&
+        stage.value?.status !== 'bloqueado'
     );
 });
 
@@ -234,6 +201,7 @@ function saveRemarks(options = {}) {
     return new Promise((resolve) => {
         if (!selectedInstallment.value) {
             resolve(false);
+
             return;
         }
 
@@ -244,6 +212,7 @@ function saveRemarks(options = {}) {
             }),
             {
                 preserveScroll: true,
+
                 onSuccess: () => {
                     if (showSuccess) {
                         showSnackbar('Observação salva com sucesso!', 'success');
@@ -251,6 +220,7 @@ function saveRemarks(options = {}) {
 
                     resolve(true);
                 },
+
                 onError: (errors) => {
                     const message =
                         Object.values(errors).flat().filter(Boolean).join(', ') || 'Erro ao salvar observação.';
@@ -281,7 +251,7 @@ function showTramitBlockedMessage() {
         return;
     }
 
-    showSnackbar('Este projeto já foi tramitado ou não é possivel tramitar no momento.', 'error');
+    showSnackbar('Este projeto já foi tramitado ou não é possível tramitar no momento.', 'error');
 }
 
 const tramitLoading = ref(false);
@@ -289,20 +259,25 @@ const tramitLoading = ref(false);
 const tramit = async () => {
     if (!paymentStage.value?.id) {
         showSnackbar('Etapa de pagamento não encontrada.', 'error');
+
         return;
     }
 
     if (!canTramitPayment.value) {
         showTramitBlockedMessage();
+
         return;
     }
 
     tramitLoading.value = true;
 
-    const saved = await saveRemarks({ showSuccess: false });
+    const saved = await saveRemarks({
+        showSuccess: false,
+    });
 
     if (!saved) {
         tramitLoading.value = false;
+
         return;
     }
 
@@ -314,12 +289,16 @@ const tramit = async () => {
         {},
         {
             preserveScroll: true,
+
             onSuccess: () => {
                 showAlert({
                     alertTitle: 'Tarefa marcada como tramitada',
+
                     alertMessage:
                         'As informações foram validadas e as pessoas envolvidas nesse processo foram notificadas.',
+
                     confirmText: 'Entendi',
+
                     action: () => {
                         router.visit(window.location.pathname, {
                             preserveState: false,
@@ -328,10 +307,13 @@ const tramit = async () => {
                     },
                 });
             },
+
             onError: (errors) => {
                 const message = Object.values(errors).flat().join(', ') || 'Erro ao tramitar projeto';
+
                 showSnackbar(message, 'error');
             },
+
             onFinish: () => {
                 tramitLoading.value = false;
             },
@@ -352,6 +334,7 @@ const tramit = async () => {
                             v-if="canReturn && currentStage"
                             v-permission="{
                                 condition: !canUserHandlePayment || stage?.status !== 'aprovado',
+
                                 message: !canUserHandlePayment
                                     ? 'Usuário não tem permissão para devolver processo'
                                     : 'Pagamento já foi tramitado.',
@@ -369,7 +352,7 @@ const tramit = async () => {
                 <SectionChips v-model="activeViewIndex" :sections="viewSections" show-all-option />
 
                 <div class="space-y-8">
-                    <template v-for="(section, index) in viewSections" :key="'view-' + section.title">
+                    <template v-for="(section, index) in viewSections" :key="`view-${section.title}`">
                         <SectionContent
                             v-if="activeViewIndex === 'all' || activeViewIndex === index"
                             :section="section"
@@ -401,7 +384,7 @@ const tramit = async () => {
                     </v-btn>
                 </div>
 
-                <aux-links />
+                <AuxLinks />
 
                 <SectionChips v-model="activeEditIndex" :sections="formSections" />
 
@@ -440,6 +423,7 @@ const tramit = async () => {
                                             </v-icon>
 
                                             Pagamento:
+
                                             <span class="ml-1 font-bold">
                                                 {{ installment.installment_number }}ª parcela
                                             </span>
@@ -572,12 +556,19 @@ const tramit = async () => {
                     </template>
                 </SectionForm>
 
-                <div :class="{ 'cursor-not-allowed': !canTramitPayment }" @click="showTramitBlockedMessage">
+                <div
+                    :class="{
+                        'cursor-not-allowed': !canTramitPayment,
+                    }"
+                    @click="showTramitBlockedMessage"
+                >
                     <TramitButton
                         :action="tramit"
                         :disabled="!canTramitPayment"
                         :loading="tramitLoading"
-                        :class="{ 'pointer-events-none': !canTramitPayment }"
+                        :class="{
+                            'pointer-events-none': !canTramitPayment,
+                        }"
                     />
                 </div>
             </div>

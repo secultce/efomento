@@ -34,6 +34,8 @@ class ProjectController extends Controller
                 'documents',
                 'currentStage',
                 'monitoring',
+                'budgets',
+                'budgets.installments',
             ])
             ->search($request->search);
 
