@@ -177,6 +177,60 @@ function formatText(value) {
     return hasValue(value) ? value : '—';
 }
 
+const statusColorClasses = {
+    Irregular: {
+        base: '!bg-red-50 !text-red-700 !border-red-300',
+        selected: '!bg-red-600 !text-white !border-red-600',
+    },
+
+    Pago: {
+        base: '!bg-green-50 !text-green-700 !border-green-300',
+        selected: '!bg-green-600 !text-white !border-green-600',
+    },
+
+    Liquidado: {
+        base: '!bg-blue-50 !text-blue-700 !border-blue-300',
+        selected: '!bg-blue-600 !text-white !border-blue-600',
+    },
+
+    Empenhado: {
+        base: '!bg-purple-50 !text-purple-700 !border-purple-300',
+        selected: '!bg-purple-600 !text-white !border-purple-600',
+    },
+
+    Pendente: {
+        base: '!bg-amber-50 !text-amber-700 !border-amber-300',
+        selected: '!bg-amber-500 !text-white !border-amber-500',
+    },
+};
+
+function getStatusColor(installment) {
+    const status = getInstallmentStatus(installment);
+
+    return (
+        statusColorClasses[status.label] ?? {
+            base: '!bg-gray-50 !text-gray-700 !border-gray-300',
+            selected: '!bg-gray-600 !text-white !border-gray-600',
+        }
+    );
+}
+
+function isSelectedInstallment(installment) {
+    return Number(selectedInstallmentNumber.value) === Number(installment.installment_number);
+}
+
+function getInstallmentChipClasses(installment) {
+    const colors = getStatusColor(installment);
+
+    return [
+        'font-medium transition-colors',
+        colors.base,
+        {
+            [colors.selected]: isSelectedInstallment(installment),
+        },
+    ];
+}
+
 const hasPaymentData = computed(() => {
     return (
         hasValue(selectedInstallment.value?.payment_date) ||
@@ -405,20 +459,16 @@ const tramit = async () => {
                         <template v-else-if="section.key === 'payment_date'">
                             <div class="space-y-6">
                                 <div v-if="installments.length" class="w-full">
-                                    <v-chip-group
-                                        v-model="selectedInstallmentNumber"
-                                        mandatory
-                                        selected-class="bg-primary text-white"
-                                        column
-                                    >
+                                    <v-chip-group v-model="selectedInstallmentNumber" mandatory column>
                                         <v-chip
                                             v-for="installment in installments"
                                             :key="installment.installment_number"
                                             :value="installment.installment_number"
                                             filter
                                             variant="outlined"
+                                            :class="getInstallmentChipClasses(installment)"
                                         >
-                                            <v-icon start size="16" :class="getInstallmentStatus(installment).class">
+                                            <v-icon start size="16">
                                                 {{ getInstallmentStatus(installment).icon }}
                                             </v-icon>
 
@@ -428,7 +478,7 @@ const tramit = async () => {
                                                 {{ installment.installment_number }}ª parcela
                                             </span>
 
-                                            <span class="ml-2 text-xs opacity-70">
+                                            <span class="ml-2 text-xs">
                                                 {{ getInstallmentStatus(installment).label }}
                                             </span>
                                         </v-chip>
@@ -448,7 +498,7 @@ const tramit = async () => {
 
                                             <span
                                                 class="inline-flex items-center gap-1 rounded-full border px-3 py-1 text-xs font-bold"
-                                                :class="getInstallmentStatus(selectedInstallment).class"
+                                                :class="getStatusColor(selectedInstallment).base"
                                             >
                                                 <v-icon size="16">
                                                     {{ getInstallmentStatus(selectedInstallment).icon }}
