@@ -60,6 +60,19 @@ const selected = computed({
     set: (value) => emit('update:modelValue', value),
 });
 
+/**
+ * Normal layout:
+ * - Número do processo
+ * - Fase
+ *
+ * Extended payment layout:
+ * - Número do processo
+ * - Referência de parcelas
+ * - Status do pagamento
+ * - Fase
+ */
+const hasExtraData = computed(() => props.data.length > 2);
+
 function toggle(item) {
     if (!props.isSelectable(item)) {
         return;
@@ -178,23 +191,42 @@ function getDataByLabel(label) {
 
                 <!-- MIDDLE: Chips + Data -->
                 <div
-                    class="grid w-full min-w-0 grid-cols-2 gap-x-3 gap-y-2 sm:grid-cols-3 lg:flex lg:flex-1 lg:items-start lg:justify-center lg:gap-x-3 lg:gap-y-0 xl:gap-x-6"
+                    class="grid w-full min-w-0 grid-cols-2 gap-x-3 gap-y-2 sm:grid-cols-3 lg:flex lg:flex-1 lg:items-start lg:gap-y-0"
+                    :class="{
+                        /*
+                         * Payment layout: more fields, so use
+                         * smaller and more adaptive spacing.
+                         */
+                        'lg:justify-center lg:gap-x-3 xl:gap-x-6': hasExtraData,
+
+                        /*
+                         * Other phases: restores the more spacious
+                         * appearance of the original component.
+                         */
+                        'lg:justify-center lg:gap-x-[3.5em]': !hasExtraData,
+                    }"
                 >
                     <!-- Chips -->
-                    <div v-if="resolveChips(item).length" class="d-flex flex-col">
-                        <div class="text-caption opacity-0 mb-1">Label</div>
+                    <div
+                        v-if="resolveChips(item).length"
+                        class="col-span-2 flex min-w-0 flex-col sm:col-span-3 lg:col-span-1 lg:w-auto lg:flex-shrink-0"
+                    >
+                        <!-- Keeps chips vertically aligned with data -->
+                        <div class="hidden text-caption opacity-0 lg:block lg:mb-1">Label</div>
 
-                        <div class="d-flex gap-2">
+                        <div class="flex max-w-full flex-wrap gap-2 lg:flex-nowrap">
                             <v-chip
                                 v-for="(chip, index) in resolveChips(item)"
                                 :key="index"
                                 size="small"
                                 rounded="full"
-                                class="h-[2em] ml-[-1.5em]"
+                                class="!h-[2em] max-w-full lg:ml-[-1.5em]"
                                 data-cy="chip-project-list"
                                 :color="resolveChipColor(chip, item)"
                             >
-                                {{ resolveChipLabel(chip, item) }}
+                                <span class="truncate">
+                                    {{ resolveChipLabel(chip, item) }}
+                                </span>
                             </v-chip>
                         </div>
                     </div>
@@ -203,7 +235,19 @@ function getDataByLabel(label) {
                     <div
                         v-for="(dataItem, index) in data"
                         :key="`${dataItem.label}-${index}`"
-                        class="min-w-0 text-left lg:w-[7.5em] lg:flex-shrink lg:text-center xl:w-[9em] 2xl:w-[10em]"
+                        class="min-w-0 text-left lg:text-center"
+                        :class="{
+                            /*
+                             * Payment fields need narrower blocks
+                             * so all four fields continue fitting.
+                             */
+                            'lg:w-[7.5em] lg:flex-shrink xl:w-[9em] 2xl:w-[10em]': hasExtraData,
+
+                            /*
+                             * Normal phases keep the original width.
+                             */
+                            'lg:w-[10em] lg:flex-none': !hasExtraData,
+                        }"
                     >
                         <div class="truncate text-caption leading-tight text-[#3b3b3cFF]" :title="dataItem.label">
                             {{ dataItem.label }}
