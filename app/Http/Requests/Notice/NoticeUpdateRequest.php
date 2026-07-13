@@ -23,6 +23,7 @@ class NoticeUpdateRequest extends FormRequest
 
             'total_notice_amount.numeric' => 'O valor total do edital deve ser um número válido.',
             'total_notice_amount.min' => 'O valor total do edital deve ser maior que zero.',
+            'total_commitment_amount.min' => 'O valor do compromisso deve ser maior ou igual a zero.',
         ];
     }
 
