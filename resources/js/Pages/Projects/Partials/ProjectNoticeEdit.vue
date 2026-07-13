@@ -144,6 +144,8 @@ const saveAll = () => {
                     :disabled="!canManageNotices"
                     label="N° Parcelas:"
                     type="number"
+                    :min="1"
+                    :step="1"
                     data-cy="quota-number-show-all-information"
                 />
                 <EditableField
