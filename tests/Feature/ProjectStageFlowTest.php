@@ -5,6 +5,8 @@ namespace Tests\Feature;
 use App\Enums\ProjectStageSlug;
 use App\Enums\ProjectStageStatus;
 use App\Models\Notice;
+use App\Models\Opening;
+use App\Models\OpeningSupervisor;
 use App\Models\Project;
 use App\Models\ProjectStage;
 use App\Models\User;
@@ -36,6 +38,19 @@ class ProjectStageFlowTest extends TestCase
         }
 
         return $user;
+    }
+
+    private function makePrincipalSupervisor(Project $project, User $user): void
+    {
+        $opening = $project->opening ?? Opening::factory()->create(['project_id' => $project->id]);
+
+        OpeningSupervisor::create([
+            'opening_id' => $opening->id,
+            'user_id' => $user->id,
+            'type' => 'principal',
+            'is_active' => true,
+            'assigned_at' => now(),
+        ]);
     }
 
     public function test_observer_creates_7_stages_on_project_creation(): void
@@ -100,6 +115,8 @@ class ProjectStageFlowTest extends TestCase
             6 => $this->createUserWithRoles('monitoring'),
             7 => $this->createUserWithRoles('monitoring'),
         ];
+
+        $this->makePrincipalSupervisor($project, $userByOrder[6]);
 
         foreach (range(1, 7) as $order) {
             $stage = $project->stages()->where('order', $order)->first();
@@ -277,16 +294,30 @@ class ProjectStageFlowTest extends TestCase
         return $stage->fresh();
     }
 
+    public function test_request_next_installment_throws_when_user_is_not_principal_supervisor(): void
+    {
+        $project = Project::factory()
+            ->for(Notice::factory()->state(['installments' => 2]))
+            ->create(['current_installment_cycle' => 1]);
+
+        $this->expectException(AuthorizationException::class);
+        $this->expectExceptionMessage('Apenas o fiscal titular pode executar esta ação.');
+
+        $this->service->requestNextInstallment($project, User::factory()->create());
+    }
+
     public function test_request_next_installment_throws_when_notice_has_single_installment(): void
     {
         $project = Project::factory()
             ->for(Notice::factory()->state(['installments' => 1]))
             ->create();
+        $user = $this->createUserWithRoles('monitoring');
+        $this->makePrincipalSupervisor($project, $user);
 
         $this->expectException(InvalidArgumentException::class);
         $this->expectExceptionMessage('Projeto não possui múltiplas parcelas.');
 
-        $this->service->requestNextInstallment($project);
+        $this->service->requestNextInstallment($project, $user);
     }
 
     public function test_request_next_installment_throws_when_all_cycles_completed(): void
@@ -294,11 +325,13 @@ class ProjectStageFlowTest extends TestCase
         $project = Project::factory()
             ->for(Notice::factory()->state(['installments' => 2]))
             ->create(['current_installment_cycle' => 2]);
+        $user = $this->createUserWithRoles('monitoring');
+        $this->makePrincipalSupervisor($project, $user);
 
         $this->expectException(InvalidArgumentException::class);
         $this->expectExceptionMessage('Todos os ciclos de parcelas já foram concluídos.');
 
-        $this->service->requestNextInstallment($project);
+        $this->service->requestNextInstallment($project, $user);
     }
 
     public function test_request_next_installment_throws_when_monitoring_not_em_andamento(): void
@@ -306,11 +339,13 @@ class ProjectStageFlowTest extends TestCase
         $project = Project::factory()
             ->for(Notice::factory()->state(['installments' => 2]))
             ->create(['current_installment_cycle' => 1]);
+        $user = $this->createUserWithRoles('monitoring');
+        $this->makePrincipalSupervisor($project, $user);
 
         $this->expectException(InvalidArgumentException::class);
         $this->expectExceptionMessage('A etapa de Monitoramento precisa estar em andamento.');
 
-        $this->service->requestNextInstallment($project);
+        $this->service->requestNextInstallment($project, $user);
     }
 
     public function test_request_next_installment_increments_cycle_and_resets_stages(): void
@@ -321,7 +356,10 @@ class ProjectStageFlowTest extends TestCase
 
         $this->activateStage($project, ProjectStageSlug::MONITORAMENTO);
 
-        $this->service->requestNextInstallment($project);
+        $user = $this->createUserWithRoles('monitoring');
+        $this->makePrincipalSupervisor($project, $user);
+
+        $this->service->requestNextInstallment($project, $user);
 
         $project->refresh();
 
