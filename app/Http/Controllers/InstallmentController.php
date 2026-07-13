@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Notice;
 use App\Models\Project;
 use App\Services\InstallmentImportService;
 use App\Services\InstallmentService;
@@ -13,20 +12,15 @@ class InstallmentController extends Controller
 {
     public function import(
         Request $request,
-        Notice $notice,
         InstallmentImportService $service
     ): RedirectResponse {
         $request->validate([
             'file' => ['required', 'file', 'mimes:xlsx,xls,csv'],
-            'selectedProjects' => ['required', 'array'],
-            'selectedProjects.*' => ['integer'],
         ]);
 
         try {
             $result = $service->import(
-                file: $request->file('file'),
-                notice: $notice,
-                selectedProjects: $request->selectedProjects,
+                file: $request->file('file')
             );
 
             if ($result['updated'] === 0) {
