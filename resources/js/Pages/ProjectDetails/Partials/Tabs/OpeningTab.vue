@@ -443,11 +443,7 @@ const activeEditIndex = ref('all');
                             </template>
                         </template>
                     </section-form>
-                    <tramit-button
-                        :action="tramit"
-                        :disabled="!canUserHandleOpening || !allRequiredFilled"
-                        :loading="tramitLoading"
-                    />
+                    <tramit-button :action="tramit" :disabled="!canUserHandleOpening" :loading="tramitLoading" />
                 </div>
             </div>
         </template>
