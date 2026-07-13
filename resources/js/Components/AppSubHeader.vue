@@ -29,6 +29,12 @@ function goBack() {
     try {
         const targetUrl = new URL(props.backRoute, window.location.origin);
 
+        if (!['http:', 'https:'].includes(targetUrl.protocol)) {
+            console.error('Protocolo não permitido:', targetUrl.protocol);
+            window.history.back();
+            return;
+        }
+
         if (targetUrl.origin !== window.location.origin) {
             window.location.assign(targetUrl.href);
             return;
@@ -45,7 +51,7 @@ function goBack() {
     } catch (error) {
         console.error('Rota de retorno inválida:', props.backRoute, error);
 
-        window.location.assign(props.backRoute);
+        window.history.back();
     }
 }
 </script>
