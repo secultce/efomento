@@ -85,6 +85,11 @@ class Opening extends Model implements Auditable
             ->ofMany(['assigned_at' => 'max'], fn ($q) => $q->where('is_active', true)->where('type', OpeningSupervisor::TYPE_PRINCIPAL));
     }
 
+    public function isPrincipalSupervisor(User $user): bool
+    {
+        return $this->principalSupervisor?->user_id === $user->id;
+    }
+
     public function assignSupervisors(array $supervisors): void
     {
         OpeningSupervisor::where('opening_id', $this->id)

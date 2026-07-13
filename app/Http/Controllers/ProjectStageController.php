@@ -59,9 +59,11 @@ class ProjectStageController extends Controller
     public function requestNextInstallment(Request $request, Project $project)
     {
         try {
-            $this->stageService->requestNextInstallment($project);
+            $this->stageService->requestNextInstallment($project, $request->user());
 
             return back();
+        } catch (AuthorizationException $e) {
+            return back()->withErrors(['message' => $e->getMessage()]);
         } catch (\InvalidArgumentException $e) {
             report($e);
 

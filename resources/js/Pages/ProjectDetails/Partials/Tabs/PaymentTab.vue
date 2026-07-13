@@ -428,7 +428,7 @@ const tramit = async () => {
                     </div>
 
                     <SaveButton
-                        :loading="remarksForm.processing"
+                        :loading="remarksForm.processing || tramitLoading"
                         :can-save="canUserHandlePayment && !!selectedInstallment"
                         @click="saveRemarks"
                     />

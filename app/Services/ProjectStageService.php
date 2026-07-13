@@ -30,6 +30,10 @@ class ProjectStageService
             );
         }
 
+        if ($stage->slug === ProjectStageSlug::MONITORAMENTO) {
+            $this->ensureIsPrincipalSupervisor($stage->project, $user);
+        }
+
         if ($stage->status !== ProjectStageStatus::EM_ANDAMENTO) {
             throw new InvalidArgumentException(
                 'A etapa precisa estar em andamento para ser aprovada.'
@@ -77,8 +81,10 @@ class ProjectStageService
             ->update(['status' => ProjectStageStatus::BLOQUEADO->value]);
     }
 
-    public function requestNextInstallment(Project $project): void
+    public function requestNextInstallment(Project $project, User $user): void
     {
+        $this->ensureIsPrincipalSupervisor($project, $user);
+
         $notice = $project->notice;
 
         if (! $notice || $notice->installments <= 1) {
@@ -141,5 +147,14 @@ class ProjectStageService
         });
 
         return $previousStage->fresh();
+    }
+
+    private function ensureIsPrincipalSupervisor(Project $project, User $user): void
+    {
+        if (! $project->opening?->isPrincipalSupervisor($user)) {
+            throw new AuthorizationException(
+                'Apenas o fiscal titular pode executar esta ação.'
+            );
+        }
     }
 }
