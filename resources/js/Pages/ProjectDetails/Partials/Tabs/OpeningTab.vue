@@ -62,6 +62,9 @@ const form = useForm({
         opening_date: null,
         agent_status: null,
         opened_by: null,
+        creditor_number: null,
+        allocation_code: null,
+        allocation_number: null,
         bank: null,
         account_type: null,
         branch: null,
@@ -100,6 +103,9 @@ onMounted(() => {
         opening_date: normalizeDate(opening.opening_date) ?? null,
         agent_status: opening.agent_status ?? null,
         opened_by: opening.opened_by ?? null,
+        creditor_number: opening.creditor_number ?? null,
+        allocation_code: opening.allocation_code ?? null,
+        allocation_number: (opening.allocation_number ?? '').replace(/\D/g, '') || null,
         bank: opening.bank ?? null,
         account_type: opening.account_type ?? null,
         branch: opening.branch ?? null,
@@ -253,12 +259,16 @@ const allRequiredFilled = computed(() => {
 
     const hasPrincipalSupervisor = (opening.supervisors ?? []).some((s) => s.type === 'principal' && !!s.id);
     const hasValidNup = String(opening.opening_nup ?? '').replace(/\D/g, '').length === 17;
+    const hasValidAllocationNumber = String(opening.allocation_number ?? '').replace(/\D/g, '').length === 41;
 
     return !!(
         hasValidNup &&
+        hasValidAllocationNumber &&
         opening.opening_date &&
         opening.opened_by &&
         opening.agent_status &&
+        opening.creditor_number &&
+        opening.allocation_code &&
         opening.bank &&
         opening.account_type &&
         opening.branch &&
@@ -350,6 +360,27 @@ const activeEditIndex = ref('all');
 
                                     <form-field label="Responsável por abrir o processo" required>
                                         <text-field v-model="form.opening.opened_by" />
+                                    </form-field>
+                                </div>
+                            </template>
+                            <template v-else-if="section.key === 'creditor'">
+                                <div class="grid grid-cols-2 gap-4">
+                                    <form-field label="Número do cadastro do credor">
+                                        <text-field v-model="form.opening.creditor_number" />
+                                    </form-field>
+                                </div>
+                            </template>
+                            <template v-else-if="section.key === 'budget_allocation'">
+                                <div class="grid grid-cols-2 gap-4">
+                                    <form-field label="Código da dotação">
+                                        <text-field v-model="form.opening.allocation_code" />
+                                    </form-field>
+
+                                    <form-field label="Número completo da dotação">
+                                        <text-field
+                                            v-model="form.opening.allocation_number"
+                                            mask="########.##.###.###.#####.##.######.#.##########.#"
+                                        />
                                     </form-field>
                                 </div>
                             </template>
