@@ -220,14 +220,7 @@ onMounted(async () => {
             </p>
             <span v-else />
 
-            <v-btn
-                variant="outlined"
-                color="grey-darken-2"
-                append-icon="mdi-send"
-                :disabled="!canSubmit"
-                :loading="sending"
-                @click="submit"
-            >
+            <v-btn color="primary" append-icon="mdi-send" :disabled="!canSend" :loading="sending" @click="submit">
                 Enviar mensagem
             </v-btn>
         </div>
