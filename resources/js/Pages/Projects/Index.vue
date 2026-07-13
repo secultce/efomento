@@ -20,35 +20,13 @@ import { useSnackbar } from '@/Composables/useSnackbar';
 import { useInstallmentStatus } from '@/Composables/useInstallments';
 
 const props = defineProps({
-    notice: {
-        type: Object,
-        default: null,
-    },
-
-    projects: {
-        type: Array,
-        default: () => [],
-    },
-
-    filters: {
-        type: Object,
-        default: null,
-    },
-
-    phases: {
-        type: Array,
-        default: () => [],
-    },
-
-    instrumentTypes: {
-        type: Array,
-        default: () => [],
-    },
-
-    supervisorsAvailable: {
-        type: Array,
-        default: () => [],
-    },
+    notice: { type: Object, default: null },
+    projects: { type: Array, default: () => [] },
+    filters: { type: Object, default: null },
+    phases: { type: Array, default: () => [] },
+    instrumentTypes: { type: Array, default: () => [] },
+    supervisorsAvailable: { type: Array, default: () => [] },
+    monitoringReportsCount: { type: Number, default: 0 },
 });
 
 const { showSnackbar } = useSnackbar();
@@ -127,9 +105,7 @@ function getChipColor(status) {
 }
 
 const chips = (item) => {
-    if (!Array.isArray(item.documents)) {
-        return [];
-    }
+    if (!Array.isArray(item.documents)) return [];
 
     const uniqueDocuments = Object.values(
         item.documents.reduce((accumulator, document) => {
@@ -435,6 +411,7 @@ function handleAction({ action, item }) {
                         :selected-projects="selectedProjects"
                         :projects="projects"
                         :notice="notice"
+                        :monitoring-reports-count="monitoringReportsCount"
                     />
                 </div>
             </div>
