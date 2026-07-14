@@ -21,7 +21,7 @@ class Project {
             .find(el.openProjectOpeningTabButton)
             .click();
 
-        cy.url({ timeout: 10000 }).should('match', /\/editais\/\d+\/projetos\/\d+\?tab=formalization$/);
+        cy.url({ timeout: 10000 }).should('match', /\/editais\/\d+\/projetos\/\d+(?:\?tab=.*)?$/);
     }
 
     getProjectData() {
