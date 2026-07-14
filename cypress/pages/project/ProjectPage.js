@@ -182,10 +182,6 @@ class Project {
         // Verify success message
         cy.get(el.successAlert, { timeout: 5000 }).contains('Documento salvo com sucesso!').should('be.visible');
     }
-
-    validateRequiredFields({ role, notice, project }) {
-        this.accessFormalizationTab({ role, notice, project });
-    }
 }
 
 export default new Project();

@@ -17,7 +17,7 @@ class FormalizationTab {
         cy.contains('.v-list-item', valueStr).should('be.visible').click();
     }
 
-    fillRequiredFields(reportStatusSelected, termNumber) {
+    fillRequiredFields(reportStatusSelected, termNumber, deliberationOption) {
         cy.get(el.asjurFinalisticProcessingDate).type('01/01/2023');
 
         cy.get(el.asjurProcessReceivedDate).type('10/03/2023');
@@ -48,7 +48,7 @@ class FormalizationTab {
 
         cy.get(el.cgeAtendeTicketInput).should('be.visible').type('123456');
 
-        cy.get(el.deliberationSelect).should('be.visible').click();
+        this.selectDropdownOption(el.deliberationSelect, deliberationOption).should('be.visible').click();
 
         cy.get(el.sentToChiefOfStaffAtInput).should('be.visible').type('10/03/2023');
 
