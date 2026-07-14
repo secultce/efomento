@@ -19,10 +19,9 @@ import { usePermissions } from '@/Composables/usePermissions';
 import { useAuth } from '@/Composables/useAuth';
 
 const props = defineProps({
-    project: {
-        type: Object,
-        default: () => ({}),
-    },
+    project: { type: Object, required: true },
+    canReturn: { type: Boolean, default: false },
+    currentStage: { type: Object, default: null },
 });
 
 const { showSnackbar } = useSnackbar();
@@ -40,6 +39,7 @@ const isPrincipalSupervisor = computed(() => {
 const canUserHandleMonitoring = computed(() => canManageMonitoring.value && isPrincipalSupervisor.value);
 
 const activeViewIndex = ref('all');
+const showReturnModal = ref(false);
 
 const hasMonitoringSnapshot = computed(() => props.project.has_monitoring_snapshot === true);
 const monitoringDialogOpen = ref(false);
@@ -208,13 +208,32 @@ function submit() {
         <template #left-content>
             <div class="space-y-6">
                 <div>
-                    <p class="font-bold text-lg">Dados disponíveis para consulta</p>
+                    <p class="font-bold text-lg d-flex justify-between">
+                        Dados disponíveis para consulta
+
+                        <v-btn
+                            v-if="canReturn && currentStage"
+                            v-permission="{
+                                condition: !canUserHandleMonitoring || monitoringStage?.status !== 'aprovado',
+                                message: !canUserHandleMonitoring
+                                    ? 'Usuário não tem permissão para devolver processo'
+                                    : 'Monitoramento já foi tramitado.',
+                            }"
+                            class="!shadow-none !font-bold !bg-[#ffcc05FF] !text-[#2d353fFF] rounded-lg text-xs"
+                            @click="showReturnModal = true"
+                        >
+                            DEVOLVER PROCESSO
+                        </v-btn>
+                    </p>
+
                     <p class="text-sm text-gray-600">Utilize os filtros abaixo para navegar entre os dados</p>
                 </div>
-                <section-chips v-model="activeViewIndex" :sections="viewSections" show-all-option />
-                <div class="mt-4 space-y-8">
+
+                <SectionChips v-model="activeViewIndex" :sections="viewSections" show-all-option />
+
+                <div class="space-y-8">
                     <template v-for="(section, index) in viewSections" :key="'view-' + section.title">
-                        <section-content
+                        <SectionContent
                             v-if="activeViewIndex === 'all' || activeViewIndex === index"
                             :section="section"
                             :project="project"
@@ -313,6 +332,13 @@ function submit() {
             </div>
         </template>
     </split-screen-tab>
+
+    <ReturnProcessModal
+        v-if="canReturn && currentStage"
+        v-model="showReturnModal"
+        :project-id="project.id"
+        :stage-id="currentStage.id"
+    />
 
     <v-dialog v-model="monitoringDialogOpen" max-width="800" scrollable>
         <v-card class="rounded-lg d-flex flex-column" max-height="85vh">
