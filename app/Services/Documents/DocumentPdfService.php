@@ -88,6 +88,8 @@ class DocumentPdfService
             '[fiscal_matricula]' => $document->project?->opening?->principalSupervisor?->user?->registration_number,
             '[fiscal_name]' => $document->project?->opening?->principalSupervisor?->user?->name,
             '[project_name]' => $document->project?->title_project,
+            '[allocation_code]' => $document->project?->opening?->allocation_code,
+            '[allocation_number]' => $document->project?->opening?->allocation_number,
         ];
 
         return str_replace(

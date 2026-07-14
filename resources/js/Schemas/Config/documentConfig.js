@@ -20,6 +20,8 @@ const placeHoldersDocsSchema = [
     { label: 'Fone do Agente', value: 'agent_phone' },
     { label: 'Matricula do Fiscal', value: 'fiscal_matricula' },
     { label: 'Nome do Fiscal', value: 'fiscal_name' },
+    { label: 'Código da dotação', value: 'allocation_code' },
+    { label: 'Número completo da dotação', value: 'allocation_number' },
 ];
 export const documentConfigs = {
     [DOCUMENT_TYPES.CI]: {
