@@ -1,18 +1,15 @@
 <script setup>
-import { computed, ref } from 'vue';
+import { ref } from 'vue';
 import NoticeHistoryDialog from '@/Pages/Projects/Partials/Actions/NoticeHistoryDialog.vue';
 
-const props = defineProps({
+defineProps({
     selectedProjects: { type: Array, default: () => [] },
     projects: { type: Array, default: () => [] },
     notice: { type: Object, default: null },
+    monitoringReportsCount: { type: Number, default: 0 },
 });
 
 const viewHistory = ref(false);
-
-const selectedProjectsList = computed(() => props.projects.filter((p) => props.selectedProjects.includes(p.id)));
-
-const hasMonitoringReports = computed(() => selectedProjectsList.value.some((p) => p.monitoring != null));
 
 function openNoticeHistory() {
     viewHistory.value = true;
@@ -29,20 +26,24 @@ function openNoticeHistory() {
             <div class="w-full pt-2 flex flex-col gap-2">
                 <p class="font-medium">Status</p>
 
-                <v-card v-if="hasMonitoringReports" class="!shadow-none rounded-lg" color="success" variant="tonal">
+                <v-card
+                    v-if="monitoringReportsCount > 0"
+                    class="!shadow-none rounded-lg"
+                    color="success"
+                    variant="tonal"
+                >
                     <v-card-text class="flex items-start gap-2 text-sm">
                         <v-icon color="success" size="18" class="mt-0.5">mdi-check-circle</v-icon>
                         <span>
-                            Relatórios de monitoramento disponíveis para consulta. Acesse os
-                            <strong>agentes</strong> para conferir.
+                            <strong>{{ monitoringReportsCount }}</strong>
+                            {{ monitoringReportsCount === 1 ? 'relatório foi enviado.' : 'relatórios foram enviados.' }}
+                            Você já pode iniciar suas análises.
                         </span>
                     </v-card-text>
                 </v-card>
 
                 <v-card v-else class="!shadow-none rounded-lg" variant="outlined">
-                    <v-card-text class="text-sm text-gray-600">
-                        O relatório ainda não foi gerado ou as informações não foram carregadas
-                    </v-card-text>
+                    <v-card-text class="text-sm text-gray-600">Nenhum relatório foi enviado.</v-card-text>
                 </v-card>
             </div>
 

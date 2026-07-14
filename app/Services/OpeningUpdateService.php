@@ -12,6 +12,10 @@ use Illuminate\Validation\ValidationException;
 
 class OpeningUpdateService
 {
+    public function __construct(
+        protected ProfileSnapshotService $snapshotService
+    ) {}
+
     public function handle(Project $project, Opening $opening, array $data): void
     {
         try {
@@ -62,18 +66,10 @@ class OpeningUpdateService
 
         $agent = $project->agent;
 
-        $agent->profileSnapshots()->updateOrCreate(
-            [
-                'source' => ProfileSnapshotSource::PROJECT_UPDATE,
-            ],
-            [
-                'name' => $agentData['name'] ?? $agent->name,
-                'cpf_cnpj' => $agentData['cpf_cnpj'] ?? null,
-                'director_position' => $agentData['director_position'] ?? $agent->director_position,
-                'director_email' => $agentData['director_email'] ?? $agent->director_email,
-                ...$agentData,
-                'recorded_at' => now(),
-            ]
+        $this->snapshotService->recordIfChanged(
+            $agent,
+            $agentData,
+            ProfileSnapshotSource::AGENT_UPDATE,
         );
     }
 
@@ -92,6 +88,9 @@ class OpeningUpdateService
             'opening_date' => 'Data de abertura do processo',
             'opened_by' => 'Responsável por abrir o processo',
             'agent_status' => 'Status do agente cultural',
+            'creditor_number' => 'Número do cadastro do credor',
+            'allocation_code' => 'Código da dotação',
+            'allocation_number' => 'Número completo da dotação',
             'bank' => 'Banco',
             'account_type' => 'Tipo de conta',
             'branch' => 'Agência',

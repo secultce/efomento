@@ -232,6 +232,59 @@ class ProjectStageControllerTest extends TestCase
         $this->assertEquals(ProjectStageStatus::EM_ANDAMENTO, $stage->fresh()->status);
     }
 
+    public function test_cannot_advance_monitoring_stage_when_user_is_not_principal_supervisor(): void
+    {
+        $project = Project::factory()->create();
+        $stage = $this->activateStage($project, ProjectStageSlug::MONITORAMENTO);
+
+        $opening = Opening::factory()->create(['project_id' => $project->id]);
+        $principal = User::factory()->create();
+        OpeningSupervisor::create([
+            'opening_id' => $opening->id,
+            'user_id' => $principal->id,
+            'type' => 'principal',
+            'is_active' => true,
+            'assigned_at' => now(),
+        ]);
+
+        $alternate = $this->createUserWithRoles('monitoring');
+        OpeningSupervisor::create([
+            'opening_id' => $opening->id,
+            'user_id' => $alternate->id,
+            'type' => 'alternate',
+            'is_active' => true,
+            'assigned_at' => now(),
+        ]);
+
+        $this->actingAs($alternate)
+            ->patch(route('projects.stages.advance', [$project, $stage]))
+            ->assertSessionHasErrors(['message']);
+
+        $this->assertEquals(ProjectStageStatus::EM_ANDAMENTO, $stage->fresh()->status);
+    }
+
+    public function test_advances_monitoring_stage_when_user_is_principal_supervisor(): void
+    {
+        $project = Project::factory()->create();
+        $stage = $this->activateStage($project, ProjectStageSlug::MONITORAMENTO);
+
+        $opening = Opening::factory()->create(['project_id' => $project->id]);
+        $principal = $this->createUserWithRoles('monitoring');
+        OpeningSupervisor::create([
+            'opening_id' => $opening->id,
+            'user_id' => $principal->id,
+            'type' => 'principal',
+            'is_active' => true,
+            'assigned_at' => now(),
+        ]);
+
+        $this->actingAs($principal)
+            ->patch(route('projects.stages.advance', [$project, $stage]))
+            ->assertSessionHas('success', 'Processo tramitado com sucesso!');
+
+        $this->assertEquals(ProjectStageStatus::APROVADO, $stage->fresh()->status);
+    }
+
     public function test_return_sends_stage_back_to_previous_one(): void
     {
         Role::firstOrCreate(['name' => 'fomentation', 'guard_name' => 'web']);
@@ -326,6 +379,40 @@ class ProjectStageControllerTest extends TestCase
             ->assertSessionHasErrors(['message']);
     }
 
+    public function test_request_next_installment_returns_error_when_user_is_not_principal_supervisor(): void
+    {
+        $project = Project::factory()
+            ->for(Notice::factory()->state(['installments' => 2]))
+            ->create(['current_installment_cycle' => 1]);
+
+        $this->activateStage($project, ProjectStageSlug::MONITORAMENTO);
+
+        $opening = Opening::factory()->create(['project_id' => $project->id]);
+        $principal = User::factory()->create();
+        OpeningSupervisor::create([
+            'opening_id' => $opening->id,
+            'user_id' => $principal->id,
+            'type' => 'principal',
+            'is_active' => true,
+            'assigned_at' => now(),
+        ]);
+
+        $alternate = User::factory()->create();
+        OpeningSupervisor::create([
+            'opening_id' => $opening->id,
+            'user_id' => $alternate->id,
+            'type' => 'alternate',
+            'is_active' => true,
+            'assigned_at' => now(),
+        ]);
+
+        $this->actingAs($alternate)
+            ->patch(route('projects.stages.request-next-installment', $project))
+            ->assertSessionHasErrors(['message']);
+
+        $this->assertEquals(1, $project->fresh()->current_installment_cycle);
+    }
+
     public function test_request_next_installment_redirects_on_success(): void
     {
         $project = Project::factory()
@@ -334,9 +421,17 @@ class ProjectStageControllerTest extends TestCase
 
         $this->activateStage($project, ProjectStageSlug::MONITORAMENTO);
 
-        $user = User::factory()->create();
+        $opening = Opening::factory()->create(['project_id' => $project->id]);
+        $principal = User::factory()->create();
+        OpeningSupervisor::create([
+            'opening_id' => $opening->id,
+            'user_id' => $principal->id,
+            'type' => 'principal',
+            'is_active' => true,
+            'assigned_at' => now(),
+        ]);
 
-        $this->actingAs($user)
+        $this->actingAs($principal)
             ->patch(route('projects.stages.request-next-installment', $project))
             ->assertRedirect()
             ->assertSessionHasNoErrors();

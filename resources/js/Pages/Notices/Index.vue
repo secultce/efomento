@@ -1,6 +1,7 @@
 <script setup>
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
 import NoticesListPage from '@/Pages/Notices/NoticesListPage.vue';
+import { Head } from '@inertiajs/vue3';
 
 defineProps({
     totais: {
@@ -22,13 +23,15 @@ defineProps({
 });
 
 const stats = [
-    { title: 'Todos os editais disponíveis', key: 'pendentes' },
+    { title: 'Editais pendentes para abertura de processo', key: 'pendentes' },
     { title: 'Editais com processos em andamento', key: 'oportunidades' },
     { title: 'Processos Finalizados', key: 'concluidos' },
 ];
 </script>
 
 <template>
+    <Head title="Edital | lista dos editais " />
+
     <AuthenticatedLayout>
         <template #subheader>
             <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">

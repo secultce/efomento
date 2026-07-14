@@ -10,10 +10,13 @@ import TextField from '@/Components/TextField.vue';
 import AuxLinks from '@/Components/AuxLinks.vue';
 import DiligenceChat from '@/Components/DiligenceChat.vue';
 import TramitButton from '@/Pages/ProjectDetails/Partials/Tabs/Actions/TramitButton.vue';
+import SaveButton from '@/Pages/ProjectDetails/Partials/Tabs/Actions/SaveButton.vue';
 import { viewSections, formSections } from '@/Schemas/Monitoring';
 import { useSnackbar } from '@/Composables/useSnackbar';
 import { useAlert } from '@/Composables/useAlert';
 import { sanitizeExternalUrl } from '@/Composables/useExternalLink';
+import { usePermissions } from '@/Composables/usePermissions';
+import { useAuth } from '@/Composables/useAuth';
 
 const props = defineProps({
     project: {
@@ -24,6 +27,17 @@ const props = defineProps({
 
 const { showSnackbar } = useSnackbar();
 const { showAlert } = useAlert();
+const { canManageMonitoring } = usePermissions();
+const { user } = useAuth();
+
+const isPrincipalSupervisor = computed(() => {
+    const supervisors = props.project.opening?.supervisors ?? [];
+    return supervisors.some(
+        (supervisor) => supervisor.type === 'principal' && supervisor.is_active && supervisor.user_id === user.value?.id
+    );
+});
+
+const canUserHandleMonitoring = computed(() => canManageMonitoring.value && isPrincipalSupervisor.value);
 
 const activeViewIndex = ref('all');
 
@@ -218,15 +232,7 @@ function submit() {
                         <p class="font-bold text-md mt-2 text-black">Links auxiliares</p>
                     </div>
                     <div class="flex gap-2">
-                        <v-btn
-                            variant="outlined"
-                            color="outlineSecondary"
-                            class="rounded-lg"
-                            :loading="form.processing"
-                            @click="submit"
-                        >
-                            Salvar Alterações
-                        </v-btn>
+                        <SaveButton :loading="form.processing" :can-save="canUserHandleMonitoring" @click="submit" />
                     </div>
                 </div>
                 <aux-links />
@@ -247,6 +253,7 @@ function submit() {
                     :project="project"
                     stage="monitoramento"
                     description="Envie mensagem ao agente cultural sobre o relatório de monitoramento (não vale para notificações, comunicados, solicitações etc.)"
+                    :can-send="canUserHandleMonitoring"
                 />
                 <section-form :active-edit-index="'all'" :sections="formSections">
                     <template #header-action="{ section }">
@@ -296,12 +303,12 @@ function submit() {
                         color="primary"
                         class="rounded-lg mt-4"
                         :loading="requestingNextInstallment"
-                        :disabled="requestingNextInstallment"
+                        :disabled="requestingNextInstallment || !canUserHandleMonitoring"
                         @click="requestNextInstallment"
                     >
                         Solicitar próxima parcela
                     </v-btn>
-                    <tramit-button :action="tramit" :loading="tramitLoading" />
+                    <tramit-button :action="tramit" :loading="tramitLoading" :disabled="!canUserHandleMonitoring" />
                 </div>
             </div>
         </template>

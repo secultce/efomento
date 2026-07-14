@@ -4,6 +4,8 @@ import NupDialog from './NupDialog.vue';
 import { router } from '@inertiajs/vue3';
 import { usePermissions } from '@/Composables/usePermissions';
 import { useMask } from '@/Composables/useMask';
+import { useSnackbar } from '@/Composables/useSnackbar.js';
+import { useDate } from '@/Composables/useDate';
 
 const props = defineProps({
     notices: {
@@ -26,41 +28,53 @@ const noticesMock = [
     {
         id: 1,
         titulo: 'EDITAL DE CHAMAMENTO PÚBLICO Nº 005/2025 - PRE...',
-        status: 'Em abertura de processo',
+        status: 'Processos em andamento',
         tipoInstrumento: 'Termo de execução cultural',
         numeroProcessoMae: '000054554654/45457',
     },
     {
         id: 2,
         titulo: 'EDITAL DE CHAMAMENTO PÚBLICO Nº 006/2025 - CICLO CEARENSE CARNAVALESCO',
-        status: 'Em abertura de processo',
+        status: 'Processos em andamento',
         tipoInstrumento: 'Termo de execução cultural',
         numeroProcessoMae: '000054554654/45457',
     },
     {
         id: 3,
         titulo: 'EDITAL DE CHAMAMENTO PÚBLICO Nº 007/2025 - PNAB MÚSICA',
-        status: 'Em abertura de processo',
+        status: 'Processos em andamento',
         tipoInstrumento: 'Termo de execução cultural',
         numeroProcessoMae: '000054554654/45458',
     },
     {
         id: 4,
         titulo: 'EDITAL DE CHAMAMENTO PÚBLICO Nº 008/2025 - CULTURA VIVA',
-        status: 'Em abertura de processo',
+        status: 'Processos em andamento',
         tipoInstrumento: 'Termo de execução cultural',
         numeroProcessoMae: '000054554654/45459',
     },
     {
         id: 5,
         titulo: 'EDITAL DE CHAMAMENTO PÚBLICO Nº 009/2025 - FUNDO DE CULTURA',
-        status: 'Em abertura de processo',
+        status: 'Processos em andamento',
         tipoInstrumento: 'Termo de execução cultural',
         numeroProcessoMae: '000054554654/45460',
     },
 ];
 
 const instrumentOptions = computed(() => props.instrumentTypes);
+
+const statusOptions = ['Processos em andamento', 'Pendente de abertura', 'Processos formalizados'];
+
+const statusColors = {
+    'Pendente de abertura': { text: '#a37600', badge: '#fff1c2' },
+    'Processos em andamento': { text: '#012544', badge: '#c2dbef' },
+    'Processos formalizados': { text: '#006c35', badge: '#c2ecd4' },
+};
+
+function getStatusColor(status) {
+    return statusColors[status] ?? { text: '#1565c0', badge: '#bbdefb' };
+}
 
 const itemsPerPageOptions = [10, 25, 50];
 
@@ -71,6 +85,7 @@ const headers = [
     { title: 'Status', key: 'status', align: 'center', sortable: false },
     { title: 'Tipo de instrumento', key: 'type_ins', align: 'center', sortable: false },
     { title: 'Nº do processo mãe', key: 'mae', align: 'center', sortable: false },
+    { title: 'Criado em', key: 'created_at', align: 'center', sortable: false },
     { title: 'Acessar', key: 'acessar', align: 'center', sortable: false },
 ];
 
@@ -88,7 +103,6 @@ const itens = computed(() => (props.notices.length ? props.notices : noticesMock
 
 const itensFiltrados = computed(() => {
     let lista = itens.value;
-
     if (search.value.trim()) {
         const termo = search.value.toLowerCase();
         lista = lista.filter(
@@ -134,6 +148,7 @@ const visiblePages = computed(() => {
     return [1, '...', c - 1, c, c + 1, '...', n];
 });
 
+const { formatDate } = useDate();
 // ─── Handlers ────────────────────────────────────────────────────────────────
 
 function onSearch(value) {
@@ -175,22 +190,108 @@ function openDialog(item) {
     selectedItem.value = item;
     dialog.value = true;
 }
+
+const uploadInput = ref(null);
+const uploadingInstallment = ref(false);
+
+const { showSnackbar } = useSnackbar();
+
+const { canManagePayment } = usePermissions();
+
+const canImportPayments = canManagePayment;
+
+function openUpload() {
+    if (!canImportPayments.value) {
+        return;
+    }
+
+    uploadInput.value?.click();
+}
+
+async function handleFileUpload(event) {
+    const file = event.target.files?.[0];
+
+    if (!file || !canImportPayments.value) {
+        event.target.value = '';
+        return;
+    }
+
+    const formData = new FormData();
+
+    formData.append('file', file);
+
+    router.post(route('installments.import'), formData, {
+        forceFormData: true,
+        preserveScroll: true,
+
+        onStart: () => {
+            uploadingInstallment.value = true;
+            showSnackbar('Importando planilha, aguarde...', 'warning', -1);
+        },
+
+        onSuccess: (page) => {
+            uploadingInstallment.value = false;
+            if (page.props.flash?.error) {
+                showSnackbar(page.props.flash.error, 'error');
+                return;
+            }
+
+            if (page.props.flash?.success) {
+                showSnackbar(page.props.flash.success, 'success');
+            }
+        },
+
+        onError: (errors) => {
+            uploadingInstallment.value = false;
+            const message = Object.values(errors).flat().join(', ') || 'Ocorreu um erro ao importar a planilha';
+
+            showSnackbar(message, 'error');
+        },
+
+        onFinish: () => {
+            uploadingInstallment.value = false;
+            event.target.value = '';
+        },
+    });
+}
 </script>
 
 <template>
     <nup-dialog v-model="dialog" :item="selectedItem" :instrument-types="instrumentTypes" />
     <v-card flat class="pa-6 bg-white" data-cy="table-notice-list">
         <!-- ── Cabeçalho ──────────────────────────────────────────────────── -->
-        <div class="mb-5">
-            <p class="text-subtitle-1 font-weight-bold text-grey-darken-3">
-                Editais disponíveis para acompanhamento abaixo
-            </p>
-            <p class="text-body-2 text-grey-darken-1 mt-1">
-                Total de editais encontrados:
-                <strong class="text-grey-darken-3">{{ total }}</strong>
-            </p>
-        </div>
+        <div class="mb-10 flex justify-between gap-4">
+            <div>
+                <p class="text-subtitle-1 font-weight-bold text-grey-darken-3">
+                    Editais disponíveis para acompanhamento abaixo
+                </p>
 
+                <p class="text-body-2 text-grey-darken-1 mt-1">
+                    Total de editais encontrados:
+                    <strong class="text-grey-darken-3">{{ total }}</strong>
+                </p>
+            </div>
+
+            <div class="flex w-1/3 flex-col items-end justify-end gap-2 text-right">
+                <p class="text-[0.7em] text-grey-darken-1 m-0 !text-justify !pl-40">
+                    Suba a planilha de relatório de pagamentos para exibir os estados dos pagamentos dos projetos
+                </p>
+                <input
+                    ref="uploadInput"
+                    type="file"
+                    accept=".xlsx,.xls,.csv"
+                    class="hidden"
+                    @change="handleFileUpload"
+                />
+                <v-btn
+                    class="!shadow-none !font-bold !bg-[#ffcc05FF] !text-[#2d353fFF] rounded-lg px-4 py-2 text-[11px] shrink-0"
+                    :loading="uploadingInstallment == true"
+                    @click="openUpload()"
+                >
+                    Subir relatório de pagamentos
+                </v-btn>
+            </div>
+        </div>
         <!-- ── Filtros ────────────────────────────────────────────────────── -->
         <v-row dense class="mb-4">
             <v-col cols="12" md="4">
@@ -239,7 +340,6 @@ function openDialog(item) {
             </v-col>
         </v-row>
 
-        <!-- ── Tabela ─────────────────────────────────────────────────────── -->
         <v-data-table
             v-model:page="page"
             v-model:items-per-page="itemsPerPage"
@@ -255,8 +355,15 @@ function openDialog(item) {
 
             <!-- Badge de status -->
             <template #item.status="{ item }">
-                <span class="status-badge" data-cy="process-status-notices-list">
-                    <span class="status-dot">•</span>
+                <span
+                    class="status-badge"
+                    data-cy="process-status-notices-list"
+                    :style="{
+                        backgroundColor: getStatusColor(item.status).badge,
+                        color: getStatusColor(item.status).text,
+                    }"
+                >
+                    <span class="status-dot" :style="{ color: getStatusColor(item.status).text }">•</span>
                     {{ item.status }}
                 </span>
             </template>
@@ -285,6 +392,13 @@ function openDialog(item) {
                     Informe os dados de identificação
                 </v-btn>
             </template>
+
+            <template #item.created_at="{ item }">
+                <span data-cy="notice-created_at-notices-list">
+                    {{ formatDate(item.created_at) }}
+                </span>
+            </template>
+
             <!-- Ícone de acesso -->
             <template #item.acessar="{ item }">
                 <v-btn
@@ -404,7 +518,7 @@ function openDialog(item) {
     display: inline-flex;
     align-items: center;
     gap: 4px;
-    background-color: #bbdefb;
+    background-color: #c2dbef;
     color: #1565c0;
     border-radius: 999px;
     padding: 3px 10px;

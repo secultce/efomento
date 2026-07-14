@@ -73,6 +73,7 @@ class GroupController extends Controller
         $users = User::with('roles')->get()->map(fn ($user) => [
             'id' => $user->id,
             'name' => $user->name,
+            'email' => $user->email,
             'roles' => $user->roles->map(fn ($role) => [
                 'name' => $role->name,
                 'label' => $this->roleLabels[$role->name] ?? $role->name,
