@@ -22,6 +22,10 @@ const props = defineProps({
         type: String,
         default: '',
     },
+    canSend: {
+        type: Boolean,
+        default: true,
+    },
 });
 
 const MIN_BODY_LENGTH = 20;
@@ -55,7 +59,7 @@ const plainBody = computed(() =>
         .trim()
 );
 
-const canSend = computed(() => Boolean(toEmail.value) && plainBody.value.length >= MIN_BODY_LENGTH);
+const canSubmit = computed(() => props.canSend && Boolean(toEmail.value) && plainBody.value.length >= MIN_BODY_LENGTH);
 
 const isHtml = (value) => /<[a-z][\s\S]*>/i.test(value ?? '');
 
@@ -104,7 +108,7 @@ async function scrollToTop() {
 }
 
 async function submit() {
-    if (!canSend.value || sending.value) return;
+    if (!canSubmit.value || sending.value) return;
 
     try {
         await send({
@@ -207,7 +211,10 @@ onMounted(async () => {
         />
 
         <div class="flex items-center justify-between">
-            <p v-if="!toEmail" class="text-xs text-red-600">O agente cultural não possui e-mail cadastrado.</p>
+            <p v-if="!canSend" class="text-xs text-red-600">
+                Você não tem permissão para enviar mensagens nesta etapa.
+            </p>
+            <p v-else-if="!toEmail" class="text-xs text-red-600">O agente cultural não possui e-mail cadastrado.</p>
             <p v-else-if="plainBody.length > 0 && plainBody.length < MIN_BODY_LENGTH" class="text-xs text-gray-500">
                 A mensagem deve ter pelo menos {{ MIN_BODY_LENGTH }} caracteres.
             </p>

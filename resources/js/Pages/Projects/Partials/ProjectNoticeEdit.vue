@@ -96,6 +96,8 @@ const saveAll = () => {
                 :disabled="!canManageNotices"
                 label="Valor total do edital:"
                 type="number"
+                :min="0.01"
+                :step="0.01"
                 :format="
                     (value) =>
                         new Intl.NumberFormat('pt-BR', {
@@ -142,6 +144,8 @@ const saveAll = () => {
                     :disabled="!canManageNotices"
                     label="N° Parcelas:"
                     type="number"
+                    :min="1"
+                    :step="1"
                     data-cy="quota-number-show-all-information"
                 />
                 <EditableField
