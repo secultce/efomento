@@ -1,7 +1,7 @@
 import '../commands.js';
 import Notice from '../../pages/notice/index.js';
 import Project from '../../pages/project/ProjectPage';
-import FormalizationTab from '../../pages/project/formalizationTab/index.js';
+import FormalizationTab from '../../pages/project/formalizationTab/FormalizationTab.js';
 
 class ForamlizationWorkflow {
     accessFormalizationTab({ role, notice, project }) {
@@ -89,6 +89,14 @@ class ForamlizationWorkflow {
         Project.clickEditDocument(documentType.editButton);
         Project.validateDocumentContent(documentType.text);
         Project.clickCancelDocumentButton();
+    }
+
+    returnProcessToLealAnalysisTab({ role, notice, project, documentType }) {
+        this.accessFormalizationTab({ role, notice, project });
+        FormalizationTab.clickReturnProcessButton();
+        FormalizationTab.fillReturnMotive(documentType);
+        FormalizationTab.clickSaveReturnMotiveButton();
+        FormalizationTab.displayReturnSuccessMessage();
     }
 }
 
