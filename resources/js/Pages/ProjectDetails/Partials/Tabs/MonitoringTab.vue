@@ -8,6 +8,7 @@ import SectionForm from '@/Components/SectionForm.vue';
 import FormField from '@/Components/FormField.vue';
 import TextField from '@/Components/TextField.vue';
 import AuxLinks from '@/Components/AuxLinks.vue';
+import ReturnProcessAction from '@/Components/ReturnProcessAction.vue';
 import DiligenceChat from '@/Components/DiligenceChat.vue';
 import TramitButton from '@/Pages/ProjectDetails/Partials/Tabs/Actions/TramitButton.vue';
 import SaveButton from '@/Pages/ProjectDetails/Partials/Tabs/Actions/SaveButton.vue';
@@ -39,7 +40,6 @@ const isPrincipalSupervisor = computed(() => {
 const canUserHandleMonitoring = computed(() => canManageMonitoring.value && isPrincipalSupervisor.value);
 
 const activeViewIndex = ref('all');
-const showReturnModal = ref(false);
 
 const hasMonitoringSnapshot = computed(() => props.project.has_monitoring_snapshot === true);
 const monitoringDialogOpen = ref(false);
@@ -208,23 +208,17 @@ function submit() {
         <template #left-content>
             <div class="space-y-6">
                 <div>
-                    <p class="font-bold text-lg d-flex justify-between">
-                        Dados disponíveis para consulta
+                    <div class="font-bold text-lg d-flex justify-between">
+                        <span>Dados disponíveis para consulta</span>
 
-                        <v-btn
-                            v-if="canReturn && currentStage"
-                            v-permission="{
-                                condition: !canUserHandleMonitoring || monitoringStage?.status !== 'aprovado',
-                                message: !canUserHandleMonitoring
-                                    ? 'Usuário não tem permissão para devolver processo'
-                                    : 'Monitoramento já foi tramitado.',
-                            }"
-                            class="!shadow-none !font-bold !bg-[#ffcc05FF] !text-[#2d353fFF] rounded-lg text-xs"
-                            @click="showReturnModal = true"
-                        >
-                            DEVOLVER PROCESSO
-                        </v-btn>
-                    </p>
+                        <ReturnProcessAction
+                            :project="project"
+                            :current-stage="currentStage"
+                            :can-return="canReturn"
+                            stage-slug="monitoramento"
+                            :can-user-handle="canUserHandleMonitoring"
+                        />
+                    </div>
 
                     <p class="text-sm text-gray-600">Utilize os filtros abaixo para navegar entre os dados</p>
                 </div>
@@ -332,13 +326,6 @@ function submit() {
             </div>
         </template>
     </split-screen-tab>
-
-    <ReturnProcessModal
-        v-if="canReturn && currentStage"
-        v-model="showReturnModal"
-        :project-id="project.id"
-        :stage-id="currentStage.id"
-    />
 
     <v-dialog v-model="monitoringDialogOpen" max-width="800" scrollable>
         <v-card class="rounded-lg d-flex flex-column" max-height="85vh">
