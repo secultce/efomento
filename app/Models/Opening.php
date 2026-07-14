@@ -28,6 +28,9 @@ class Opening extends Model implements Auditable
         'agent_status',
         'opened_by',
         'created_by',
+        'creditor_number',
+        'allocation_code',
+        'allocation_number',
         'bank',
         'account_type',
         'branch',
@@ -80,6 +83,11 @@ class Opening extends Model implements Auditable
     {
         return $this->hasOne(OpeningSupervisor::class)
             ->ofMany(['assigned_at' => 'max'], fn ($q) => $q->where('is_active', true)->where('type', OpeningSupervisor::TYPE_PRINCIPAL));
+    }
+
+    public function isPrincipalSupervisor(User $user): bool
+    {
+        return $this->principalSupervisor?->user_id === $user->id;
     }
 
     public function assignSupervisors(array $supervisors): void

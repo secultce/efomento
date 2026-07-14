@@ -55,11 +55,15 @@ export function useDate() {
         return formatDate(ts);
     };
 
+    const daysBetweenDates = (start, end) => {
+        const normalizedStart = normalizeDate(start);
+        const normalizedEnd = normalizeDate(end);
+        if (!normalizedStart || !normalizedEnd) return null;
+        return dayjs(normalizedEnd).diff(dayjs(normalizedStart), 'day');
+    };
+
     const daysBetween = (startKey, endKey) => (project) => {
-        const start = normalizeDate(resolveKey(startKey, project));
-        const end = normalizeDate(resolveKey(endKey, project));
-        if (!start || !end) return null;
-        return dayjs(end).diff(dayjs(start), 'day');
+        return daysBetweenDates(resolveKey(startKey, project), resolveKey(endKey, project));
     };
 
     return {
@@ -69,5 +73,6 @@ export function useDate() {
         addDaysTo,
         getDate,
         daysBetween,
+        daysBetweenDates,
     };
 }

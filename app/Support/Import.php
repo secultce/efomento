@@ -132,4 +132,19 @@ class Import
 
         return $value !== '' ? $value : null;
     }
+
+    public static function dateKey(mixed $date): string
+    {
+        return Carbon::parse($date)->format('Y-m-d');
+    }
+
+    public static function normalizeMoneyForComparison(mixed $value): string
+    {
+        return number_format(
+            num: (float) $value,
+            decimals: 2,
+            decimal_separator: '.',
+            thousands_separator: ''
+        );
+    }
 }

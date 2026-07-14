@@ -97,10 +97,13 @@ const removeRole = (user, roleName) => {
                         ></v-img>
                     </v-avatar>
                 </v-col>
-                <v-col cols="4">
+                <v-col cols="2">
                     <h4 class="font-weight-bold">{{ user.name }}</h4>
                 </v-col>
-                <v-col cols="4">
+                <v-col cols="3">
+                    <span class="text-body-2">{{ user.email }}</span>
+                </v-col>
+                <v-col cols="2">
                     <v-chip v-if="user.roles.length === 0" size="small" color="grey" variant="tonal" class="mr-1">
                         sem atribuição
                     </v-chip>
