@@ -21,6 +21,8 @@ const props = defineProps({
     label: { type: String, default: '' },
     error: { type: String, default: '' },
     disabled: { type: Boolean, default: false },
+    min: { type: [String, Number], default: undefined },
+    step: { type: [String, Number], default: undefined },
 });
 
 const emit = defineEmits(['update:modelValue']);
@@ -59,6 +61,8 @@ const stopEdit = () => {
                 v-if="type === 'text' || type === 'number' || type === 'email'"
                 :model-value="props.mask ? applyMask(localValue, props.mask) : localValue"
                 :type="type"
+                :min="type === 'number' ? min : undefined"
+                :step="type === 'number' ? step : undefined"
                 density="compact"
                 autofocus
                 hide-details
