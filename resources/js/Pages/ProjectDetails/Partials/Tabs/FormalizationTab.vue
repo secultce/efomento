@@ -680,7 +680,6 @@ const permissionMessage = computed(() => {
                                     <FormField
                                         label="Anexo do documento do Diário Oficial do Estado"
                                         :error="form.errors.official_gazette_file"
-                                        data-cy="official-gazette-file-input"
                                     >
                                         <div
                                             v-if="officialGazetteFile && !form.official_gazette_file"
@@ -733,6 +732,7 @@ const permissionMessage = computed(() => {
                                                 type="file"
                                                 class="hidden"
                                                 accept=".pdf,.doc,.docx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+                                                data-cy="official-gazette-file-input"
                                                 @change="onOfficialGazetteFileSelected"
                                             />
 
