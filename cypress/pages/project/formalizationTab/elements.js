@@ -30,6 +30,9 @@ export const elements = {
     snackbarAlert: '[data-cy=snack-alert]',
     tramitButton: '[data-cy=tramit-button]',
     tramitContainer: '[data-cy=tramit-container]',
+    returnProcessButton: '[data-cy=return-process-button-formalization]',
+    retunrProcessSentButton: '[data-cy=return-process-sent-button]',
+    returnProcessSuccessMessage: '[data-cy="snack-alert"]',
 };
 
 // Constantes de timeout para melhor manutenibilidade

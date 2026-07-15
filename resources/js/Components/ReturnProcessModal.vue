@@ -82,6 +82,7 @@ watch(
                         class="!shadow-none !font-bold !bg-[#ffcc05FF] !text-[#2d353fFF] rounded-lg"
                         :loading="form.processing"
                         :disabled="!form.reason.trim()"
+                        data-cy="return-process-sent-button"
                         @click="handleReturn"
                     >
                         Enviar

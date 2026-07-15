@@ -18,6 +18,7 @@ import MonitoringActions from './Partials/Actions/Monitoring/MonitoringActions.v
 
 import { useSnackbar } from '@/Composables/useSnackbar';
 import { useInstallmentStatus } from '@/Composables/useInstallments';
+import NoStageSelected from './Partials/Actions/noStageSelected.vue';
 
 const props = defineProps({
     notice: { type: Object, default: null },
@@ -376,6 +377,7 @@ function handleAction({ action, item }) {
                 </div>
 
                 <div class="row-span-2 col-start-4 row-start-2">
+                    <NoStageSelected v-if="!selectedPhase" :notice="notice" />
                     <OpeningActions
                         v-if="selectedPhase === 'abertura'"
                         :selected-projects="selectedProjects"

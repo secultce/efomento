@@ -55,4 +55,15 @@ describe('Formalization', () => {
             });
         });
     });
+
+    describe('Tramit and Return Process', () => {
+        it('should return process to legal analysis phase', function () {
+            FormalizationWorkflow.returnProcessToLealAnalysisTab({
+                role: 'formalization',
+                notice: this.notice,
+                project: this.project,
+                documentType: DOCUMENTS.devolutionMotive,
+            });
+        });
+    });
 });

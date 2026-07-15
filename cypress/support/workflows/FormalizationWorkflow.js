@@ -74,6 +74,14 @@ class ForamlizationWorkflow {
         FormalizationTab.clickTramitDisable();
         FormalizationTab.displayRequiredFieldsMessageError();
     }
+
+    returnProcessToLealAnalysisTab({ role, notice, project, documentType }) {
+        this.accessFormalizationTab({ role, notice, project });
+        FormalizationTab.clickReturnProcessButton();
+        FormalizationTab.fillReturnMotive(documentType);
+        FormalizationTab.clickSaveReturnMotiveButton();
+        FormalizationTab.displayReturnSuccessMessage();
+    }
 }
 
 export default new ForamlizationWorkflow();
