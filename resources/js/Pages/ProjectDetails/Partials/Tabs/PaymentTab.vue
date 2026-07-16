@@ -6,7 +6,7 @@ import SplitScreenTab from '@/Components/SplitScreenTab.vue';
 import SectionChips from '@/Components/SectionChips.vue';
 import SectionContent from '@/Components/SectionContent.vue';
 import SectionForm from '@/Components/SectionForm.vue';
-import ReturnProcessModal from '@/Components/ReturnProcessModal.vue';
+import ReturnProcessAction from '@/Components/ReturnProcessAction.vue';
 import FormField from '@/Components/FormField.vue';
 import TextField from '@/Components/TextField.vue';
 import AuxLinks from '@/Components/AuxLinks.vue';
@@ -60,7 +60,6 @@ const paymentStage = computed(() => {
     );
 });
 
-const showReturnModal = ref(false);
 const activeViewIndex = ref('all');
 const activeEditIndex = ref('all');
 const selectedInstallmentNumber = ref(null);
@@ -382,24 +381,17 @@ const tramit = async () => {
         <template #left-content>
             <div class="space-y-6">
                 <div>
-                    <p class="font-bold text-lg d-flex justify-between">
-                        Dados disponíveis para consulta
+                    <div class="font-bold text-lg d-flex justify-between">
+                        <span>Dados disponíveis para consulta</span>
 
-                        <v-btn
-                            v-if="canReturn && currentStage"
-                            v-permission="{
-                                condition: !canUserHandlePayment || stage?.status !== 'aprovado',
-
-                                message: !canUserHandlePayment
-                                    ? 'Usuário não tem permissão para devolver processo'
-                                    : 'Pagamento já foi tramitado.',
-                            }"
-                            class="!shadow-none !font-bold !bg-[#ffcc05FF] !text-[#2d353fFF] rounded-lg text-xs"
-                            @click="showReturnModal = true"
-                        >
-                            DEVOLVER PROCESSO
-                        </v-btn>
-                    </p>
+                        <ReturnProcessAction
+                            :project="project"
+                            :current-stage="currentStage"
+                            :can-return="canReturn"
+                            stage-slug="pagamento"
+                            :can-user-handle="canUserHandlePayment"
+                        />
+                    </div>
 
                     <p class="text-sm text-gray-600">Utilize os filtros abaixo para navegar entre os dados</p>
                 </div>
@@ -620,11 +612,4 @@ const tramit = async () => {
             </div>
         </template>
     </SplitScreenTab>
-
-    <ReturnProcessModal
-        v-if="canReturn && currentStage"
-        v-model="showReturnModal"
-        :project-id="project.id"
-        :stage-id="currentStage.id"
-    />
 </template>

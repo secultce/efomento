@@ -8,7 +8,7 @@ import SectionContent from '@/Components/SectionContent.vue';
 import SectionForm from '@/Components/SectionForm.vue';
 import AuxLinks from '@/Components/AuxLinks.vue';
 import DocumentViewerDialog from '@/Components/DocumentViewerDialog.vue';
-import ReturnProcessModal from '@/Components/ReturnProcessModal.vue';
+import ReturnProcessAction from '@/Components/ReturnProcessAction.vue';
 import FormField from '@/Components/FormField.vue';
 import TextField from '@/Components/TextField.vue';
 import TramitButton from '@/Pages/ProjectDetails/Partials/Tabs/Actions/TramitButton.vue';
@@ -36,7 +36,6 @@ const canUserHandleBudget = canManageBudget;
 
 const stage = computed(() => props.project.stages?.find((s) => s.slug === 'orcamento'));
 
-const showReturnModal = ref(false);
 const activeViewIndex = ref('all');
 const activeEditIndex = ref('all');
 const viewerOpen = ref(false);
@@ -258,23 +257,17 @@ const permissionMessage = computed(() => {
         <template #left-content>
             <div class="space-y-6">
                 <div>
-                    <p class="font-bold text-lg d-flex justify-between">
-                        Dados disponíveis para consulta
+                    <div class="font-bold text-lg d-flex justify-between">
+                        <span>Dados disponíveis para consulta</span>
 
-                        <v-btn
-                            v-if="canReturn && currentStage"
-                            v-permission="{
-                                condition: !canUserHandleBudget || stage?.status !== 'aprovado',
-                                message: !canUserHandleBudget
-                                    ? 'Usuário não tem permissão para devolver processo'
-                                    : 'Orçamento já foi tramitado.',
-                            }"
-                            class="!shadow-none !font-bold !bg-[#ffcc05FF] !text-[#2d353fFF] rounded-lg text-xs"
-                            @click="showReturnModal = true"
-                        >
-                            DEVOLVER PROCESSO
-                        </v-btn>
-                    </p>
+                        <ReturnProcessAction
+                            :project="project"
+                            :current-stage="currentStage"
+                            :can-return="canReturn"
+                            stage-slug="orcamento"
+                            :can-user-handle="canUserHandleBudget"
+                        />
+                    </div>
 
                     <p class="text-sm text-gray-600">Utilize os filtros abaixo para navegar entre os dados</p>
                 </div>
@@ -448,11 +441,4 @@ const permissionMessage = computed(() => {
             </div>
         </template>
     </SplitScreenTab>
-
-    <ReturnProcessModal
-        v-if="canReturn && currentStage"
-        v-model="showReturnModal"
-        :project-id="project.id"
-        :stage-id="currentStage.id"
-    />
 </template>

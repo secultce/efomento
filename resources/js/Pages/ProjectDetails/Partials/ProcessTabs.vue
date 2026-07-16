@@ -77,7 +77,7 @@ const tabs = [
 
                 <PaymentTab :project="project" :can-return="canReturn" :current-stage="currentStage" />
 
-                <MonitoringTab :project="project" />
+                <MonitoringTab :project="project" :can-return="canReturn" :current-stage="currentStage" />
             </v-tabs-window>
         </v-sheet>
     </v-card>

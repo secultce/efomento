@@ -8,6 +8,7 @@ import SectionForm from '@/Components/SectionForm.vue';
 import FormField from '@/Components/FormField.vue';
 import TextField from '@/Components/TextField.vue';
 import AuxLinks from '@/Components/AuxLinks.vue';
+import ReturnProcessAction from '@/Components/ReturnProcessAction.vue';
 import DiligenceChat from '@/Components/DiligenceChat.vue';
 import TramitButton from '@/Pages/ProjectDetails/Partials/Tabs/Actions/TramitButton.vue';
 import SaveButton from '@/Pages/ProjectDetails/Partials/Tabs/Actions/SaveButton.vue';
@@ -19,10 +20,9 @@ import { usePermissions } from '@/Composables/usePermissions';
 import { useAuth } from '@/Composables/useAuth';
 
 const props = defineProps({
-    project: {
-        type: Object,
-        default: () => ({}),
-    },
+    project: { type: Object, required: true },
+    canReturn: { type: Boolean, default: false },
+    currentStage: { type: Object, default: null },
 });
 
 const { showSnackbar } = useSnackbar();
@@ -208,13 +208,26 @@ function submit() {
         <template #left-content>
             <div class="space-y-6">
                 <div>
-                    <p class="font-bold text-lg">Dados disponíveis para consulta</p>
+                    <div class="font-bold text-lg d-flex justify-between">
+                        <span>Dados disponíveis para consulta</span>
+
+                        <ReturnProcessAction
+                            :project="project"
+                            :current-stage="currentStage"
+                            :can-return="canReturn"
+                            stage-slug="monitoramento"
+                            :can-user-handle="canUserHandleMonitoring"
+                        />
+                    </div>
+
                     <p class="text-sm text-gray-600">Utilize os filtros abaixo para navegar entre os dados</p>
                 </div>
-                <section-chips v-model="activeViewIndex" :sections="viewSections" show-all-option />
-                <div class="mt-4 space-y-8">
+
+                <SectionChips v-model="activeViewIndex" :sections="viewSections" show-all-option />
+
+                <div class="space-y-8">
                     <template v-for="(section, index) in viewSections" :key="'view-' + section.title">
-                        <section-content
+                        <SectionContent
                             v-if="activeViewIndex === 'all' || activeViewIndex === index"
                             :section="section"
                             :project="project"

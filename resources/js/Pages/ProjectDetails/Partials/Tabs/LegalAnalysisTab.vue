@@ -5,7 +5,7 @@ import SectionChips from '@/Components/SectionChips.vue';
 import SectionContent from '@/Components/SectionContent.vue';
 import AuxLinks from '@/Components/AuxLinks.vue';
 import DocumentEvaluationList from '@/Components/DocumentEvaluationList.vue';
-import ReturnProcessModal from '@/Components/ReturnProcessModal.vue';
+import ReturnProcessAction from '@/Components/ReturnProcessAction.vue';
 import TramitButton from '@/Pages/ProjectDetails/Partials/Tabs/Actions/TramitButton.vue';
 import { viewSections } from '@/Schemas/Opening';
 import { useLegalAnalysis } from '@/Composables/useLegalAnalysis';
@@ -21,21 +21,10 @@ const { canManageLegalAnalysis } = usePermissions();
 
 const canUserHandleLegalAnalysis = canManageLegalAnalysis;
 
-const showReturnModal = ref(false);
-
 const activeViewIndex = ref('all');
 
-const {
-    groups,
-    statusOptions,
-    loadingFiles,
-    in_progress,
-    allFilesEvaluated,
-    allFilesValid,
-    fetchFiles,
-    onStatusUpdated,
-    process,
-} = useLegalAnalysis(toRef(props, 'project'));
+const { groups, statusOptions, loadingFiles, in_progress, allFilesValid, fetchFiles, onStatusUpdated, process } =
+    useLegalAnalysis(toRef(props, 'project'));
 onMounted(fetchFiles);
 
 const stage = computed(() => props.project.stages?.find((s) => s.slug === 'analise_juridica'));
@@ -45,23 +34,19 @@ const stage = computed(() => props.project.stages?.find((s) => s.slug === 'anali
     <SplitScreenTab value="legal-analysis">
         <template #left-content>
             <div class="space-y-6">
-                <div class="">
-                    <p class="font-bold text-lg d-flex justify-between">
-                        Dados disponíveis para consulta
-                        <v-btn
-                            v-if="canReturn && currentStage"
-                            v-permission="{
-                                condition: !canUserHandleLegalAnalysis || stage?.status !== 'aprovado',
-                                message: !canUserHandleLegalAnalysis
-                                    ? 'Usuário não tem permissão para avaliar documentos'
-                                    : 'Análise jurídica já foi tramitada.',
-                            }"
-                            class="!shadow-none !font-bold !bg-[#ffcc05FF] !text-[#2d353fFF] rounded-lg text-xs"
-                            @click="showReturnModal = true"
-                        >
-                            DEVOLVER PROCESSO
-                        </v-btn>
-                    </p>
+                <div>
+                    <div class="font-bold text-lg d-flex justify-between">
+                        <span>Dados disponíveis para consulta</span>
+
+                        <ReturnProcessAction
+                            :project="project"
+                            :current-stage="currentStage"
+                            :can-return="canReturn"
+                            stage-slug="analise_juridica"
+                            :can-user-handle="canUserHandleLegalAnalysis"
+                        />
+                    </div>
+
                     <p class="text-sm text-gray-600">Utilize os filtros abaixo para navegar entre os dados</p>
                 </div>
 
@@ -119,11 +104,4 @@ const stage = computed(() => props.project.stages?.find((s) => s.slug === 'anali
             </div>
         </template>
     </SplitScreenTab>
-
-    <ReturnProcessModal
-        v-if="canReturn && currentStage"
-        v-model="showReturnModal"
-        :project-id="project.id"
-        :stage-id="currentStage.id"
-    />
 </template>

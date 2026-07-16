@@ -128,7 +128,7 @@ class ProjectController extends Controller
             'openingStatus' => OpeningStatus::options(),
             'currentStage' => $currentStage,
             'canReturn' => $currentStage
-                ? ($currentStage->order > 1 && auth()->user()->hasAnyRole($currentStage->responsible_sector))
+                ? auth()->user()->hasAnyRole($currentStage->responsible_sector)
                 : false,
             'initialTab' => $request->get('tab', 'opening'),
         ]);
