@@ -16,11 +16,11 @@ import SaveButton from '@/Pages/ProjectDetails/Partials/Tabs/Actions/SaveButton.
 
 import { viewSections, formSections } from '@/Schemas/Payment';
 
-import { useAuth } from '@/Composables/useAuth';
 import { useDate } from '@/Composables/useDate';
 import { useSnackbar } from '@/Composables/useSnackbar';
 import { useAlert } from '@/Composables/useAlert';
 import { useInstallmentStatus } from '@/Composables/useInstallments';
+import { useStageAdvance } from '@/Composables/useStageAdvance';
 
 const props = defineProps({
     project: {
@@ -37,18 +37,20 @@ const props = defineProps({
         type: Object,
         default: null,
     },
+
+    canAdvance: {
+        type: Boolean,
+        default: false,
+    },
 });
 
-const { hasRole } = useAuth();
 const { normalizeDate } = useDate();
 const { showSnackbar } = useSnackbar();
 const { showAlert } = useAlert();
 
 const { hasValue, toNumber, getInstallmentStatus } = useInstallmentStatus();
 
-const canUserHandlePayment = computed(() => {
-    return hasRole(['super_admin', 'financial', 'coord_financial']);
-});
+const { canUserHandle: canUserHandlePayment } = useStageAdvance(props, 'pagamento');
 
 const stage = computed(() => {
     return props.project.stages?.find((projectStage) => projectStage.slug === 'pagamento');

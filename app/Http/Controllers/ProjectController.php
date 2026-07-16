@@ -130,6 +130,9 @@ class ProjectController extends Controller
             'canReturn' => $currentStage
                 ? auth()->user()->hasAnyRole($currentStage->responsible_sector)
                 : false,
+            'canAdvance' => $currentStage
+                ? auth()->user()->hasAnyRole($currentStage->responsible_sector)
+                : false,
             'initialTab' => $request->get('tab', 'opening'),
         ]);
     }

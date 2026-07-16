@@ -16,6 +16,7 @@ const props = defineProps({
     accountType: { type: Array, default: () => [] },
     currentStage: { type: Object, default: null },
     canReturn: { type: Boolean, default: false },
+    canAdvance: { type: Boolean, default: false },
     initialTab: { type: String, default: 'opening' },
 });
 
@@ -61,23 +62,46 @@ const tabs = [
                     :agent-status="agentStatus"
                     :report-status="reportStatus"
                     :account-type="accountType"
+                    :current-stage="currentStage"
+                    :can-advance="canAdvance"
                 />
 
-                <LegalAnalysisTab :project="project" :can-return="canReturn" :current-stage="currentStage" />
+                <LegalAnalysisTab
+                    :project="project"
+                    :can-return="canReturn"
+                    :current-stage="currentStage"
+                    :can-advance="canAdvance"
+                />
 
                 <FormalizationTab
                     :project="project"
                     :can-return="canReturn"
                     :current-stage="currentStage"
+                    :can-advance="canAdvance"
                     :report-status="reportStatus"
                     :deliberation="deliberation"
                 />
 
-                <BudgetTab :project="project" :can-return="canReturn" :current-stage="currentStage" />
+                <BudgetTab
+                    :project="project"
+                    :can-return="canReturn"
+                    :current-stage="currentStage"
+                    :can-advance="canAdvance"
+                />
 
-                <PaymentTab :project="project" :can-return="canReturn" :current-stage="currentStage" />
+                <PaymentTab
+                    :project="project"
+                    :can-return="canReturn"
+                    :current-stage="currentStage"
+                    :can-advance="canAdvance"
+                />
 
-                <MonitoringTab :project="project" :can-return="canReturn" :current-stage="currentStage" />
+                <MonitoringTab
+                    :project="project"
+                    :can-return="canReturn"
+                    :current-stage="currentStage"
+                    :can-advance="canAdvance"
+                />
             </v-tabs-window>
         </v-sheet>
     </v-card>

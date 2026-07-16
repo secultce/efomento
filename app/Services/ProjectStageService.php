@@ -24,6 +24,12 @@ class ProjectStageService
         ProjectStage $stage,
         User $user
     ): ?ProjectStage {
+        if ($stage->status !== ProjectStageStatus::EM_ANDAMENTO) {
+            throw new InvalidArgumentException(
+                'A etapa precisa estar em andamento para ser aprovada.'
+            );
+        }
+
         if (! $user->hasAnyRole($stage->responsible_sector)) {
             throw new AuthorizationException(
                 'Você não tem permissão para tramitar esta etapa.'
@@ -32,12 +38,6 @@ class ProjectStageService
 
         if ($stage->slug === ProjectStageSlug::MONITORAMENTO) {
             $this->ensureIsPrincipalSupervisor($stage->project, $user);
-        }
-
-        if ($stage->status !== ProjectStageStatus::EM_ANDAMENTO) {
-            throw new InvalidArgumentException(
-                'A etapa precisa estar em andamento para ser aprovada.'
-            );
         }
 
         if (! $stage->canAdvance()) {
@@ -62,15 +62,15 @@ class ProjectStageService
 
     public function reject(ProjectStage $stage, string $reason, User $user): void
     {
-        if (! $user->hasAnyRole($stage->responsible_sector)) {
-            throw new AuthorizationException(
-                'Você não tem permissão para tramitar esta etapa.'
-            );
-        }
-
         if ($stage->status !== ProjectStageStatus::EM_ANDAMENTO) {
             throw new InvalidArgumentException(
                 'A etapa precisa estar em andamento para ser rejeitada.'
+            );
+        }
+
+        if (! $user->hasAnyRole($stage->responsible_sector)) {
+            throw new AuthorizationException(
+                'Você não tem permissão para tramitar esta etapa.'
             );
         }
 

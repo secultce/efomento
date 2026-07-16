@@ -16,18 +16,18 @@ import { viewSections, formSections } from '@/Schemas/Monitoring';
 import { useSnackbar } from '@/Composables/useSnackbar';
 import { useAlert } from '@/Composables/useAlert';
 import { sanitizeExternalUrl } from '@/Composables/useExternalLink';
-import { usePermissions } from '@/Composables/usePermissions';
 import { useAuth } from '@/Composables/useAuth';
+import { useStageAdvance } from '@/Composables/useStageAdvance';
 
 const props = defineProps({
     project: { type: Object, required: true },
     canReturn: { type: Boolean, default: false },
     currentStage: { type: Object, default: null },
+    canAdvance: { type: Boolean, default: false },
 });
 
 const { showSnackbar } = useSnackbar();
 const { showAlert } = useAlert();
-const { canManageMonitoring } = usePermissions();
 const { user } = useAuth();
 
 const isPrincipalSupervisor = computed(() => {
@@ -37,7 +37,8 @@ const isPrincipalSupervisor = computed(() => {
     );
 });
 
-const canUserHandleMonitoring = computed(() => canManageMonitoring.value && isPrincipalSupervisor.value);
+const { canUserHandle: canAdvanceMonitoringStage } = useStageAdvance(props, 'monitoramento');
+const canUserHandleMonitoring = computed(() => canAdvanceMonitoringStage.value && isPrincipalSupervisor.value);
 
 const activeViewIndex = ref('all');
 

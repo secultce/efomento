@@ -17,14 +17,13 @@ import { useDate } from '@/Composables/useDate';
 import TramitButton from '@/Pages/ProjectDetails/Partials/Tabs/Actions/TramitButton.vue';
 import SaveButton from '@/Pages/ProjectDetails/Partials/Tabs/Actions/SaveButton.vue';
 import { useAlert } from '@/Composables/useAlert';
-import { usePermissions } from '@/Composables/usePermissions';
 import { useSaveShortcut } from '@/Composables/useSaveShortcut';
 import { useMask } from '@/Composables/useMask';
+import { useStageAdvance } from '@/Composables/useStageAdvance';
 
 const { showSnackbar } = useSnackbar();
 const { normalizeDate } = useDate();
 const { showAlert } = useAlert();
-const { canManageNotices } = usePermissions();
 const { maskPhone } = useMask();
 
 const props = defineProps({
@@ -48,11 +47,19 @@ const props = defineProps({
         type: Array,
         default: () => [],
     },
+    currentStage: {
+        type: Object,
+        default: null,
+    },
+    canAdvance: {
+        type: Boolean,
+        default: false,
+    },
 });
 
 const stage = props.project.stages?.find((s) => s.slug === 'abertura');
 
-const canUserHandleOpening = canManageNotices;
+const { canUserHandle: canUserHandleOpening } = useStageAdvance(props, 'abertura');
 
 defineEmits(['update:field']);
 

@@ -16,23 +16,23 @@ import SaveButton from '@/Pages/ProjectDetails/Partials/Tabs/Actions/SaveButton.
 
 import { viewSections, formSections } from '@/Schemas/Budget';
 
-import { usePermissions } from '@/Composables/usePermissions';
 import { useDate } from '@/Composables/useDate';
 import { useSnackbar } from '@/Composables/useSnackbar';
 import { useAlert } from '@/Composables/useAlert';
+import { useStageAdvance } from '@/Composables/useStageAdvance';
 
 const props = defineProps({
     project: { type: Object, required: true },
     canReturn: { type: Boolean, default: false },
     currentStage: { type: Object, default: null },
+    canAdvance: { type: Boolean, default: false },
 });
 
-const { canManageBudget } = usePermissions();
 const { normalizeDate } = useDate();
 const { showSnackbar } = useSnackbar();
 const { showAlert } = useAlert();
 
-const canUserHandleBudget = canManageBudget;
+const { canUserHandle: canUserHandleBudget } = useStageAdvance(props, 'orcamento');
 
 const stage = computed(() => props.project.stages?.find((s) => s.slug === 'orcamento'));
 

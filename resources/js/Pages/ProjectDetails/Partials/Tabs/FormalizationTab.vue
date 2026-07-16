@@ -17,26 +17,26 @@ import SaveButton from '@/Pages/ProjectDetails/Partials/Tabs/Actions/SaveButton.
 import { viewSections } from '@/Schemas/Opening';
 import { formSections } from '@/Schemas/Formalization';
 
-import { usePermissions } from '@/Composables/usePermissions';
 import { useDate } from '@/Composables/useDate';
 import { useSnackbar } from '@/Composables/useSnackbar';
 import { useAlert } from '@/Composables/useAlert';
 import { useSaveShortcut } from '@/Composables/useSaveShortcut';
+import { useStageAdvance } from '@/Composables/useStageAdvance';
 
 const props = defineProps({
     project: { type: Object, required: true },
     canReturn: { type: Boolean, default: false },
     currentStage: { type: Object, default: null },
+    canAdvance: { type: Boolean, default: false },
     reportStatus: { type: Array, default: () => [] },
     deliberation: { type: Array, default: () => [] },
 });
 
-const { canManageFormalization } = usePermissions();
 const { normalizeDate } = useDate();
 const { showSnackbar } = useSnackbar();
 const { showAlert } = useAlert();
 
-const canUserHandleFormalization = canManageFormalization;
+const { canUserHandle: canUserHandleFormalization } = useStageAdvance(props, 'formalizacao');
 
 const stage = computed(() => props.project.stages?.find((s) => s.slug === 'formalizacao'));
 

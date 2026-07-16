@@ -9,17 +9,16 @@ import ReturnProcessAction from '@/Components/ReturnProcessAction.vue';
 import TramitButton from '@/Pages/ProjectDetails/Partials/Tabs/Actions/TramitButton.vue';
 import { viewSections } from '@/Schemas/Opening';
 import { useLegalAnalysis } from '@/Composables/useLegalAnalysis';
-import { usePermissions } from '@/Composables/usePermissions';
+import { useStageAdvance } from '@/Composables/useStageAdvance';
 
 const props = defineProps({
     project: { type: Object, required: true },
     canReturn: { type: Boolean, default: false },
     currentStage: { type: Object, default: null },
+    canAdvance: { type: Boolean, default: false },
 });
 
-const { canManageLegalAnalysis } = usePermissions();
-
-const canUserHandleLegalAnalysis = canManageLegalAnalysis;
+const { canUserHandle: canUserHandleLegalAnalysis } = useStageAdvance(props, 'analise_juridica');
 
 const activeViewIndex = ref('all');
 
