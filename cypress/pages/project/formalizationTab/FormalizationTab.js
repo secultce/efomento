@@ -60,7 +60,9 @@ class FormalizationTab {
     }
 
     displayReturnSuccessMessage() {
-        cy.get(el.returnProcessSuccessMessage, { timeout: 5000 }).contains('Processo devolvido com sucesso!');
+        cy.get(el.returnProcessSuccessMessage, { timeout: 5000 }).contains(
+            'O processo foi devolvido aos responsáveis!'
+        );
     }
 }
 

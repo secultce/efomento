@@ -299,7 +299,7 @@ class ProjectStageControllerTest extends TestCase
             ->post(route('projects.stages.return', [$project, $stage]), [
                 'reason' => 'Documentação incompleta, favor revisar.',
             ])
-            ->assertSessionHas('success', 'Processo devolvido com sucesso.');
+            ->assertSessionHas('success', 'O processo foi devolvido aos responsáveis!');
 
         $this->assertEquals(ProjectStageStatus::REJEITADO, $stage->fresh()->status);
 
