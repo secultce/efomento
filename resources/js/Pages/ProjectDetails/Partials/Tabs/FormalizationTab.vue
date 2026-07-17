@@ -195,7 +195,7 @@ const tramitBlockedMessage = computed(() => {
     }
 
     if (stage.value?.status !== 'em_andamento') {
-        return 'Projeto já foi tramitado e não está mais na fase de Formalização.';
+        return 'Projeto já foi tramitado ou não está na fase de Formalização.';
     }
 
     if (!canUserHandleFormalization.value) {
