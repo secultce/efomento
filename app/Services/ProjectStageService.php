@@ -112,12 +112,11 @@ class ProjectStageService
 
     public function returnStage(ProjectStage $stage, string $reason, User $user): ProjectStage
     {
-
-        $this->ensureUserHasRole($stage, $user, 'Você não tem permissão para devolver esta etapa.');
-
         if ($stage->status !== ProjectStageStatus::EM_ANDAMENTO) {
             throw new InvalidArgumentException('A etapa precisa estar em andamento para ser devolvida.');
         }
+
+        $this->ensureUserHasRole($stage, $user, 'Você não tem permissão para devolver esta etapa.');
 
         $previousStage = $stage->getPreviousStage();
         if (! $previousStage) {
