@@ -295,8 +295,8 @@ function showTramitBlockedMessage() {
         return;
     }
 
-    if (!hasPaymentData.value) {
-        showSnackbar('Os dados de pagamento precisam ser importados antes da tramitação.', 'warning');
+    if (stage.value?.status === 'bloqueado' || stage.value?.status === 'aprovado') {
+        showSnackbar('Este projeto já foi tramitado ou não é possível tramitar no momento.', 'error');
 
         return;
     }
@@ -307,7 +307,9 @@ function showTramitBlockedMessage() {
         return;
     }
 
-    showSnackbar('Este projeto já foi tramitado ou não é possível tramitar no momento.', 'error');
+    if (!hasPaymentData.value) {
+        showSnackbar('Os dados de pagamento precisam ser importados antes da tramitação.', 'warning');
+    }
 }
 
 const tramitLoading = ref(false);

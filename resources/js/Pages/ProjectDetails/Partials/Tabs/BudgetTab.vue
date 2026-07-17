@@ -165,14 +165,14 @@ function showTramitBlockedMessage() {
         return;
     }
 
-    if (!hasRequiredFields.value) {
-        showSnackbar('Preencha todos os campos obrigatórios antes de tramitar.', 'warning');
+    if (stage.value?.status === 'bloqueado') {
+        showSnackbar('Este projeto está bloqueado e não pode receber alterações no momento.', 'warning');
 
         return;
     }
 
-    if (!hasBudgetOpinionDocument.value) {
-        showSnackbar('O parecer orçamentário precisa ser gerado antes da tramitação.', 'warning');
+    if (stage.value?.status !== 'em_andamento') {
+        showSnackbar('Este projeto não pode ser tramitado no momento.', 'warning');
 
         return;
     }
@@ -183,7 +183,15 @@ function showTramitBlockedMessage() {
         return;
     }
 
-    showSnackbar('Este projeto não pode ser tramitado no momento.', 'warning');
+    if (!hasRequiredFields.value) {
+        showSnackbar('Preencha todos os campos obrigatórios antes de tramitar.', 'warning');
+
+        return;
+    }
+
+    if (!hasBudgetOpinionDocument.value) {
+        showSnackbar('O parecer orçamentário precisa ser gerado antes da tramitação.', 'warning');
+    }
 }
 
 const tramitLoading = ref(false);
@@ -242,15 +250,15 @@ const tramit = async () => {
 };
 
 const permissionMessage = computed(() => {
-    if (!canUserHandleBudget.value) {
-        return 'Usuário não tem permissão para fazer alterações no Orçamento.';
-    }
-
     if (stage.value?.status === 'bloqueado') {
         return 'Este projeto está bloqueado e não pode receber alterações no momento.';
     }
 
-    return 'Projeto já foi tramitado e não está mais na fase de Orçamento.';
+    if (stage.value?.status !== 'em_andamento') {
+        return 'Projeto já foi tramitado e não está mais na fase de Orçamento.';
+    }
+
+    return 'Usuário não tem permissão para fazer alterações no Orçamento.';
 });
 </script>
 

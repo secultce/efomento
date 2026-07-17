@@ -29,6 +29,14 @@ const { groups, statusOptions, loadingFiles, in_progress, allFilesValid, fetchFi
 onMounted(fetchFiles);
 
 const stage = computed(() => props.project.stages?.find((s) => s.slug === STAGE_SLUG));
+
+const tramitBlockedMessage = computed(() => {
+    if (stage.value?.status === 'aprovado') {
+        return 'Análise jurídica já foi tramitada.';
+    }
+
+    return 'Usuário não tem permissão para avaliar documentos';
+});
 </script>
 
 <template>
@@ -94,9 +102,7 @@ const stage = computed(() => props.project.stages?.find((s) => s.slug === STAGE_
                 <TramitButton
                     v-permission="{
                         condition: !canUserHandleLegalAnalysis || stage?.status !== 'aprovado',
-                        message: !canUserHandleLegalAnalysis
-                            ? 'Usuário não tem permissão para avaliar documentos'
-                            : 'Análise jurídica já foi tramitada.',
+                        message: tramitBlockedMessage,
                     }"
                     :action="process"
                     :disabled="!canUserHandleLegalAnalysis || !allFilesValid"

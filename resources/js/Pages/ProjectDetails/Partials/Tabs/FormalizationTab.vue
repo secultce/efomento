@@ -190,6 +190,14 @@ const canTramitFormalization = computed(() => {
 });
 
 const tramitBlockedMessage = computed(() => {
+    if (stage.value?.status === 'bloqueado') {
+        return 'Este projeto está bloqueado e não pode receber alterações no momento.';
+    }
+
+    if (stage.value?.status !== 'em_andamento') {
+        return 'Projeto já foi tramitado e não está mais na fase de Formalização.';
+    }
+
     if (!canUserHandleFormalization.value) {
         return 'Usuário não tem permissão para tramitar a Formalização.';
     }
@@ -445,15 +453,15 @@ const tramit = async () => {
 };
 
 const permissionMessage = computed(() => {
-    if (!canUserHandleFormalization.value) {
-        return 'Usuário não tem permissão para fazer alterações na Formalização.';
-    }
-
     if (stage.value?.status === 'bloqueado') {
         return 'Este projeto está bloqueado e não pode receber alterações no momento.';
     }
 
-    return 'Projeto já foi tramitado e não está mais na fase de Formalização.';
+    if (stage.value?.status !== 'em_andamento') {
+        return 'Projeto já foi tramitado e não está mais na fase de Formalização.';
+    }
+
+    return 'Usuário não tem permissão para fazer alterações na Formalização.';
 });
 </script>
 
