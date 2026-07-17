@@ -1,6 +1,6 @@
 <script setup>
-import { ref, computed } from 'vue';
-import { useSnackbar } from '@/Composables/useSnackbar';
+import { computed, ref } from 'vue';
+import { useAlert } from '@/Composables/useAlert';
 import ReturnProcessModal from '@/Components/ReturnProcessModal.vue';
 
 const props = defineProps({
@@ -11,13 +11,16 @@ const props = defineProps({
     canUserHandle: { type: Boolean, default: false },
 });
 
-const { showSnackbar } = useSnackbar();
+const { showAlert } = useAlert();
+
 const showReturnModal = ref(false);
 
-const stage = computed(() => props.project.stages?.find((s) => s.slug === props.stageSlug));
+const stage = computed(() => {
+    return props.project.stages?.find((projectStage) => projectStage.slug === props.stageSlug);
+});
 
 const isCurrentStage = computed(() => {
-    return !!(props.currentStage && stage.value && props.currentStage.id === stage.value.id);
+    return Boolean(props.currentStage && stage.value && props.currentStage.id === stage.value.id);
 });
 
 const cannotReturn = computed(() => {
@@ -28,19 +31,42 @@ const returnPermissionMessage = computed(() => {
     if (!props.canUserHandle) {
         return 'Usuário não tem permissão para devolver o processo.';
     }
+
     if (stage.value?.status === 'aprovado') {
         return 'O processo já foi tramitado.';
     }
+
     if (!isCurrentStage.value) {
         return 'O processo não está atualmente nesta fase.';
     }
+
+    if (!props.canReturn) {
+        return 'Não é possível devolver o processo nesta fase.';
+    }
+
     return '';
 });
 
-const showReturnBlockedMessage = () => {
-    if (!cannotReturn.value) return;
-    showSnackbar(returnPermissionMessage.value, 'warning');
-};
+function showReturnBlockedMessage() {
+    if (!cannotReturn.value) {
+        return;
+    }
+
+    showAlert({
+        alertTitle: 'Não é possível devolver o processo',
+        alertMessage: returnPermissionMessage.value,
+        confirmText: 'Entendi',
+    });
+}
+
+function openReturnModal() {
+    if (cannotReturn.value) {
+        showReturnBlockedMessage();
+        return;
+    }
+
+    showReturnModal.value = true;
+}
 </script>
 
 <template>
@@ -49,7 +75,7 @@ const showReturnBlockedMessage = () => {
             :disabled="cannotReturn"
             class="!shadow-none !font-bold !bg-[#ffcc05FF] !text-[#2d353fFF] rounded-lg text-xs"
             :class="{ 'pointer-events-none': cannotReturn }"
-            @click.stop="showReturnModal = true"
+            @click.stop="openReturnModal"
         >
             DEVOLVER PROCESSO
         </v-btn>
