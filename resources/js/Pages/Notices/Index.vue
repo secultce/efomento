@@ -25,7 +25,7 @@ defineProps({
 const stats = [
     { title: 'Editais pendentes para abertura de processo', key: 'pendentes' },
     { title: 'Editais com processos em andamento', key: 'oportunidades' },
-    { title: 'Processos Finalizados', key: 'concluidos' },
+    { title: 'Processos Formalizados', key: 'concluidos' },
 ];
 </script>
 
