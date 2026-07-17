@@ -6,7 +6,7 @@ const { isOpen, title, message, buttonText, cancelText, confirm, cancel } = useA
 
 <template>
     <v-dialog v-model="isOpen" max-width="22rem" persistent>
-        <v-card :class="['rounded-xl', cancelText ? '!px-5 !pt-4 !pb-4' : '!px-4 !pt-3 !pb-2']">
+        <v-card :class="['rounded-lg', cancelText ? '!px-5 !pt-4 !pb-4' : '!px-4 !pt-3 !pb-2']">
             <v-card-title
                 :class="['!p-0 !font-bold text-center whitespace-normal', cancelText ? '!text-base' : '!text-sm']"
             >

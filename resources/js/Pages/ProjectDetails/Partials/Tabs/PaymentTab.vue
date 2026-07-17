@@ -346,10 +346,9 @@ const tramit = async () => {
 
             onSuccess: () => {
                 showAlert({
-                    alertTitle: 'Tarefa marcada como tramitada',
+                    alertTitle: 'Tramitação realizada',
 
-                    alertMessage:
-                        'As informações foram validadas e as pessoas envolvidas nesse processo foram notificadas.',
+                    alertMessage: 'O processo seguirá com outro setor a partir de agora.',
 
                     confirmText: 'Entendi',
 
