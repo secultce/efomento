@@ -32,9 +32,11 @@ const { normalizeDate } = useDate();
 const { showSnackbar } = useSnackbar();
 const { showAlert } = useAlert();
 
-const { canUserHandle: canUserHandleBudget } = useStageAdvance(props, 'orcamento');
+const STAGE_SLUG = 'orcamento';
 
-const stage = computed(() => props.project.stages?.find((s) => s.slug === 'orcamento'));
+const { canUserHandle: canUserHandleBudget } = useStageAdvance(props, STAGE_SLUG);
+
+const stage = computed(() => props.project.stages?.find((s) => s.slug === STAGE_SLUG));
 
 const activeViewIndex = ref('all');
 const activeEditIndex = ref('all');
@@ -264,7 +266,7 @@ const permissionMessage = computed(() => {
                             :project="project"
                             :current-stage="currentStage"
                             :can-return="canReturn"
-                            stage-slug="orcamento"
+                            :stage-slug="STAGE_SLUG"
                             :can-user-handle="canUserHandleBudget"
                         />
                     </div>

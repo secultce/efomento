@@ -36,9 +36,11 @@ const { normalizeDate } = useDate();
 const { showSnackbar } = useSnackbar();
 const { showAlert } = useAlert();
 
-const { canUserHandle: canUserHandleFormalization } = useStageAdvance(props, 'formalizacao');
+const STAGE_SLUG = 'formalizacao';
 
-const stage = computed(() => props.project.stages?.find((s) => s.slug === 'formalizacao'));
+const { canUserHandle: canUserHandleFormalization } = useStageAdvance(props, STAGE_SLUG);
+
+const stage = computed(() => props.project.stages?.find((s) => s.slug === STAGE_SLUG));
 
 useSaveShortcut(
     () => submit(),
@@ -467,7 +469,7 @@ const permissionMessage = computed(() => {
                             :project="project"
                             :current-stage="currentStage"
                             :can-return="canReturn"
-                            stage-slug="formalizacao"
+                            :stage-slug="STAGE_SLUG"
                             :can-user-handle="canUserHandleFormalization"
                         />
                     </div>

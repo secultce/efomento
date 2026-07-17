@@ -50,16 +50,16 @@ const { showAlert } = useAlert();
 
 const { hasValue, toNumber, getInstallmentStatus } = useInstallmentStatus();
 
-const { canUserHandle: canUserHandlePayment } = useStageAdvance(props, 'pagamento');
+const STAGE_SLUG = 'pagamento';
+
+const { canUserHandle: canUserHandlePayment } = useStageAdvance(props, STAGE_SLUG);
 
 const stage = computed(() => {
-    return props.project.stages?.find((projectStage) => projectStage.slug === 'pagamento');
+    return props.project.stages?.find((projectStage) => projectStage.slug === STAGE_SLUG);
 });
 
 const paymentStage = computed(() => {
-    return (
-        props.currentStage ?? props.project.stages?.find((projectStage) => projectStage.slug === 'pagamento') ?? null
-    );
+    return props.currentStage ?? props.project.stages?.find((projectStage) => projectStage.slug === STAGE_SLUG) ?? null;
 });
 
 const activeViewIndex = ref('all');
@@ -390,7 +390,7 @@ const tramit = async () => {
                             :project="project"
                             :current-stage="currentStage"
                             :can-return="canReturn"
-                            stage-slug="pagamento"
+                            :stage-slug="STAGE_SLUG"
                             :can-user-handle="canUserHandlePayment"
                         />
                     </div>

@@ -37,7 +37,9 @@ const isPrincipalSupervisor = computed(() => {
     );
 });
 
-const { canUserHandle: canAdvanceMonitoringStage } = useStageAdvance(props, 'monitoramento');
+const STAGE_SLUG = 'monitoramento';
+
+const { canUserHandle: canAdvanceMonitoringStage } = useStageAdvance(props, STAGE_SLUG);
 const canUserHandleMonitoring = computed(() => canAdvanceMonitoringStage.value && isPrincipalSupervisor.value);
 
 const activeViewIndex = ref('all');
@@ -82,7 +84,7 @@ function parseFieldValue(raw) {
     }
 }
 
-const monitoringStage = computed(() => props.project.stages?.find((s) => s.slug === 'monitoramento') ?? null);
+const monitoringStage = computed(() => props.project.stages?.find((s) => s.slug === STAGE_SLUG) ?? null);
 
 const canRequestNextInstallment = computed(() => {
     const installments = props.project.notice?.installments ?? 1;
@@ -216,7 +218,7 @@ function submit() {
                             :project="project"
                             :current-stage="currentStage"
                             :can-return="canReturn"
-                            stage-slug="monitoramento"
+                            :stage-slug="STAGE_SLUG"
                             :can-user-handle="canUserHandleMonitoring"
                         />
                     </div>
@@ -265,7 +267,7 @@ function submit() {
                 </v-btn>
                 <diligence-chat
                     :project="project"
-                    stage="monitoramento"
+                    :stage="STAGE_SLUG"
                     description="Envie mensagem ao agente cultural sobre o relatório de monitoramento (não vale para notificações, comunicados, solicitações etc.)"
                     :can-send="canUserHandleMonitoring"
                 />

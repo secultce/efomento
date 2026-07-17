@@ -18,7 +18,9 @@ const props = defineProps({
     canAdvance: { type: Boolean, default: false },
 });
 
-const { canUserHandle: canUserHandleLegalAnalysis } = useStageAdvance(props, 'analise_juridica');
+const STAGE_SLUG = 'analise_juridica';
+
+const { canUserHandle: canUserHandleLegalAnalysis } = useStageAdvance(props, STAGE_SLUG);
 
 const activeViewIndex = ref('all');
 
@@ -26,7 +28,7 @@ const { groups, statusOptions, loadingFiles, in_progress, allFilesValid, fetchFi
     useLegalAnalysis(toRef(props, 'project'));
 onMounted(fetchFiles);
 
-const stage = computed(() => props.project.stages?.find((s) => s.slug === 'analise_juridica'));
+const stage = computed(() => props.project.stages?.find((s) => s.slug === STAGE_SLUG));
 </script>
 
 <template>
@@ -41,7 +43,7 @@ const stage = computed(() => props.project.stages?.find((s) => s.slug === 'anali
                             :project="project"
                             :current-stage="currentStage"
                             :can-return="canReturn"
-                            stage-slug="analise_juridica"
+                            :stage-slug="STAGE_SLUG"
                             :can-user-handle="canUserHandleLegalAnalysis"
                         />
                     </div>

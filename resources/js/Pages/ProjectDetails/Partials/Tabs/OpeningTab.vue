@@ -57,9 +57,11 @@ const props = defineProps({
     },
 });
 
-const stage = props.project.stages?.find((s) => s.slug === 'abertura');
+const STAGE_SLUG = 'abertura';
 
-const { canUserHandle: canUserHandleOpening } = useStageAdvance(props, 'abertura');
+const stage = props.project.stages?.find((s) => s.slug === STAGE_SLUG);
+
+const { canUserHandle: canUserHandleOpening } = useStageAdvance(props, STAGE_SLUG);
 
 defineEmits(['update:field']);
 

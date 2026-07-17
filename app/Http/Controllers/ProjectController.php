@@ -15,6 +15,7 @@ use App\Enums\Role;
 use App\Http\Resources\ProjectResource;
 use App\Models\Notice;
 use App\Models\Project;
+use App\Models\ProjectStage;
 use App\Models\User;
 use App\Services\ProjectDocumentService;
 use App\Services\ProjectSupervisorService;
@@ -127,12 +128,8 @@ class ProjectController extends Controller
             'deliberation' => DeliberationType::options(),
             'openingStatus' => OpeningStatus::options(),
             'currentStage' => $currentStage,
-            'canReturn' => $currentStage
-                ? auth()->user()->hasAnyRole($currentStage->responsible_sector)
-                : false,
-            'canAdvance' => $currentStage
-                ? auth()->user()->hasAnyRole($currentStage->responsible_sector)
-                : false,
+            'canReturn' => $this->userCanActOnStage($currentStage),
+            'canAdvance' => $this->userCanActOnStage($currentStage),
             'initialTab' => $request->get('tab', 'opening'),
         ]);
     }
@@ -210,5 +207,12 @@ class ProjectController extends Controller
                 'message' => $e->getMessage() ?: 'Erro ao criar documento. Tente novamente.',
             ]);
         }
+    }
+
+    private function userCanActOnStage(?ProjectStage $currentStage): bool
+    {
+        return $currentStage
+            ? auth()->user()->hasAnyRole($currentStage->responsible_sector)
+            : false;
     }
 }
