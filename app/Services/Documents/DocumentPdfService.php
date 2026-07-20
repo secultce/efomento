@@ -11,10 +11,12 @@ class DocumentPdfService
 {
     private const RELATIONS = [
         'images',
-        'project.agent.latestSnapshot',
-        'project.notice',
-        'project.opening.principalSupervisor.user',
+        ...DocumentPlaceholderResolver::RELATIONS,
     ];
+
+    public function __construct(
+        private readonly DocumentPlaceholderResolver $placeholderResolver,
+    ) {}
 
     public function download(Document $document, ?string $type = null): Response
     {
@@ -25,7 +27,7 @@ class DocumentPdfService
         $type = $type ?? $document->type->value;
 
         $document->loadMissing(self::RELATIONS);
-        $document->body = $this->replacePlaceholders($document);
+        $document->body = $this->placeholderResolver->resolve($document);
 
         return Pdf::loadView('pdf.document', ['document' => $document])
             ->setPaper('a4', 'portrait')
@@ -48,7 +50,7 @@ class DocumentPdfService
         $zip->open($tempFile, ZipArchive::CREATE | ZipArchive::OVERWRITE);
 
         foreach ($documents as $document) {
-            $document->body = $this->replacePlaceholders($document);
+            $document->body = $this->placeholderResolver->resolve($document);
 
             $pdf = Pdf::loadView('pdf.document', ['document' => $document])
                 ->setPaper('a4', 'portrait');
@@ -67,37 +69,5 @@ class DocumentPdfService
         $agentName = $document->project?->agent?->name ?? 'documento';
 
         return strtoupper($type).'_'.str($agentName)->slug('_').'_'.$document->created_at->format('Y-m-d').'_'.$document->created_at->timestamp.'.pdf';
-    }
-
-    public function replacePlaceholders(Document $document): string
-    {
-        $document->loadMissing(self::RELATIONS);
-
-        $replacements = [
-            '[notice_name]' => $document->project?->notice?->name,
-            '[nup_mother]' => $document->project?->notice?->nup,
-            '[project_nup]' => $document->project?->opening->opening_nup,
-            '[agent_name]' => $document->project?->agent?->name,
-            '[agent_cpf]' => $document->project?->agent?->latestSnapshot?->cpf_cnpj,
-            '[agent_address]' => $document->project?->agent?->latestSnapshot?->street.', '.
-                $document->project?->agent?->latestSnapshot?->number.' - '.
-                $document->project?->agent?->latestSnapshot?->neighborhood.' - '.
-                $document->project?->agent?->latestSnapshot?->city.'/'.
-                $document->project?->agent?->latestSnapshot?->state,
-            '[agent_email]' => $document->project?->agent?->latestSnapshot?->email,
-            '[agent_phone]' => $document->project?->agent?->latestSnapshot?->phone,
-            '[finality]' => $document->project?->notice?->instrument_type,
-            '[fiscal_matricula]' => $document->project?->opening?->principalSupervisor?->user?->registration_number,
-            '[fiscal_name]' => $document->project?->opening?->principalSupervisor?->user?->name,
-            '[project_name]' => $document->project?->title_project,
-            '[allocation_code]' => $document->project?->opening?->allocation_code,
-            '[allocation_number]' => $document->project?->opening?->allocation_number,
-        ];
-
-        return str_replace(
-            array_keys($replacements),
-            array_values($replacements),
-            $document->body
-        );
     }
 }

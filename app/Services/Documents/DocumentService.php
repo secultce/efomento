@@ -13,13 +13,12 @@ class DocumentService
 {
     private const PREVIEW_RELATIONS = [
         'images',
-        'project.agent.latestSnapshot',
-        'project.notice',
-        'project.opening.principalSupervisor.user',
+        ...DocumentPlaceholderResolver::RELATIONS,
     ];
 
     public function __construct(
-        private readonly DocumentTypeRegistry $registry
+        private readonly DocumentTypeRegistry $registry,
+        private readonly DocumentPlaceholderResolver $placeholderResolver,
     ) {}
 
     public function create(array $data, int $createdBy): Document
@@ -43,7 +42,7 @@ class DocumentService
             $this->syncImages($document, $data['images']);
         }
 
-        return $document;
+        return $this->placeholderResolver->prepare($document);
     }
 
     public function update(Document $document, array $data): Document
@@ -57,7 +56,7 @@ class DocumentService
             $this->syncImages($document, $data['images']);
         }
 
-        return $document->fresh();
+        return $this->placeholderResolver->prepare($document->fresh());
     }
 
     public function getByContext(
@@ -72,7 +71,8 @@ class DocumentService
             ->when($type, fn ($q) => $q->where('type', $type))
             ->when($phase, fn ($q) => $q->where('phase', $phase))
             ->with(self::PREVIEW_RELATIONS)
-            ->get();
+            ->get()
+            ->each(fn (Document $document) => $this->placeholderResolver->prepare($document));
     }
 
     private function syncImages(Document $document, array $images): void

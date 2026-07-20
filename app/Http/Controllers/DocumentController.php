@@ -7,6 +7,7 @@ use App\Http\Requests\Document\DocumentUpdateRequest;
 use App\Http\Resources\DocumentResource;
 use App\Models\Document;
 use App\Services\Documents\DocumentPdfService;
+use App\Services\Documents\DocumentPlaceholderResolver;
 use App\Services\Documents\DocumentService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -19,6 +20,7 @@ class DocumentController extends Controller
     public function __construct(
         private readonly DocumentService $documentService,
         private readonly DocumentPdfService $documentPdfService,
+        private readonly DocumentPlaceholderResolver $placeholderResolver,
     ) {}
 
     public function index(Request $request): AnonymousResourceCollection
@@ -44,12 +46,14 @@ class DocumentController extends Controller
 
     public function show(Document $document): DocumentResource
     {
-        return DocumentResource::make($document->load([
+        $document->load([
             'images',
             'project.agent.latestSnapshot',
             'project.notice',
             'project.opening.principalSupervisor.user',
-        ]));
+        ]);
+
+        return DocumentResource::make($this->placeholderResolver->prepare($document));
     }
 
     public function update(DocumentUpdateRequest $request, Document $document): DocumentResource

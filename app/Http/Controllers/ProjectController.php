@@ -16,6 +16,7 @@ use App\Http\Resources\ProjectResource;
 use App\Models\Notice;
 use App\Models\Project;
 use App\Models\User;
+use App\Services\Documents\DocumentPlaceholderResolver;
 use App\Services\ProjectDocumentService;
 use App\Services\ProjectSupervisorService;
 use Illuminate\Http\Request;
@@ -23,6 +24,10 @@ use Inertia\Inertia;
 
 class ProjectController extends Controller
 {
+    public function __construct(
+        private readonly DocumentPlaceholderResolver $placeholderResolver,
+    ) {}
+
     public function index(Request $request, Notice $notice)
     {
         $projectsQuery = $notice->projects()
@@ -49,11 +54,15 @@ class ProjectController extends Controller
 
         $projectsQuery->filterPhase($request->phase);
 
+        $projects = $projectsQuery->get();
+        $projects->flatMap->documents
+            ->each(fn ($document) => $this->placeholderResolver->prepare($document));
+
         return Inertia::render('Projects', [
             'notice' => $notice,
 
             'projects' => ProjectResource::collection(
-                $projectsQuery->get()
+                $projects
             )->resolve(),
 
             'filters' => $request->only([
@@ -116,6 +125,9 @@ class ProjectController extends Controller
             'monitoringSnapshot',
             'stages',
         ]);
+
+        $project->documents
+            ->each(fn ($document) => $this->placeholderResolver->prepare($document));
 
         $availableSupervisors = User::role(Role::monitoringRoles())
             ->select('id', 'name', 'registration_number')
