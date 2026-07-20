@@ -33,7 +33,7 @@ class DocumentPlaceholderResolver
             '[project_nup]' => $opening?->opening_nup ?? '',
             '[agent_name]' => $document->project?->agent?->name ?? '',
             '[agent_cpf]' => $snapshot?->cpf_cnpj ?? '',
-            '[agent_address]' => $snapshot 
+            '[agent_address]' => $snapshot
                 ? "{$snapshot->street}, {$snapshot->number} - {$snapshot->neighborhood} - {$snapshot->city}/{$snapshot->state}"
                 : '',
             '[agent_email]' => $snapshot?->email ?? '',
