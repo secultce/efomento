@@ -76,11 +76,7 @@ class ProfileSnapshotService
         $payload = $this->onlySnapshotFields($data);
 
         if ($source === ProfileSnapshotSource::PROJECT_REGISTRATION) {
-            return $model->profileSnapshots()->create([
-                ...$payload,
-                'source' => $source,
-                'recorded_at' => now(),
-            ]);
+            return $this->record($model, $payload, $source);
         }
 
         $existing = $model->profileSnapshots()
@@ -89,22 +85,14 @@ class ProfileSnapshotService
             ->first();
 
         if ($existing === null) {
-            return $model->profileSnapshots()->create([
-                ...$payload,
-                'source' => $source,
-                'recorded_at' => now(),
-            ]);
+            return $this->record($model, $payload, $source);
         }
 
         if ($this->isSameData($existing, $payload)) {
             return null;
         }
 
-        return $model->profileSnapshots()->create([
-            ...$payload,
-            'source' => $source,
-            'recorded_at' => now(),
-        ]);
+        return $this->record($model, $payload, $source);
     }
 
     public function recordMapasAgentIfChanged(
@@ -161,15 +149,21 @@ class ProfileSnapshotService
 
     private function isSameData(ProfileSnapshot $snapshot, array $incoming): bool
     {
-        foreach ($incoming as $field => $value) {
-            $stored = $snapshot->getRawOriginal($field);
-            $normalized = $value instanceof BackedEnum ? $value->value : $value;
+        $clone = clone $snapshot;
 
-            if ($stored !== $normalized) {
-                return false;
+        $normalizedIncoming = collect($incoming)->map(function ($value) {
+            if ($value === '') {
+                return null;
             }
-        }
+            if ($value instanceof BackedEnum) {
+                return $value->value;
+            }
 
-        return true;
+            return $value;
+        })->toArray();
+
+        $clone->forceFill($normalizedIncoming);
+
+        return ! $clone->isDirty(array_keys($normalizedIncoming));
     }
 }
