@@ -38,11 +38,7 @@ function close() {
     isOpen.value = false;
 }
 
-function handleReturn() {
-    if (!form.reason.trim()) {
-        return;
-    }
-
+function submitReturn() {
     returnProcess(
         props.projectId,
         props.stageId,
@@ -85,6 +81,20 @@ function handleReturn() {
             },
         }
     );
+}
+
+function handleReturn() {
+    if (!form.reason.trim()) {
+        return;
+    }
+
+    showAlert({
+        alertTitle: 'Confirmar envio?',
+        alertMessage: 'A devolução deixará de ser editável e as pessoas responsáveis receberão sua notificação.',
+        confirmText: 'Sim',
+        cancelButtonText: 'Cancelar',
+        action: submitReturn,
+    });
 }
 
 watch(isOpen, (open) => {

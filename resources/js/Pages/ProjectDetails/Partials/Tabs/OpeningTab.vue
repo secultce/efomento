@@ -191,9 +191,8 @@ const advanceStage = () => {
             preserveScroll: true,
             onSuccess: () => {
                 showAlert({
-                    alertTitle: 'Tarefa marcada como tramitada',
-                    alertMessage:
-                        'As informações foram validadas e as pessoas envolvidas nesse processo foram notificadas.',
+                    alertTitle: 'Tramitação realizada',
+                    alertMessage: 'O processo seguirá com outro setor a partir de agora.',
                     confirmText: 'Entendi',
                     action: () => {
                         router.visit(window.location.pathname, {
