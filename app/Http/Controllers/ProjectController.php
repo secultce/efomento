@@ -126,9 +126,10 @@ class ProjectController extends Controller
             'stages',
         ]);
 
-        $project->documents
-            ->each(fn ($document) => $this->placeholderResolver->prepare($document));
-
+        $project->documents->each(function ($document) use ($project) {
+            $document->setRelation('project', $project);
+            $this->placeholderResolver->prepare($document);
+        });
         $availableSupervisors = User::role(Role::monitoringRoles())
             ->select('id', 'name', 'registration_number')
             ->get();
