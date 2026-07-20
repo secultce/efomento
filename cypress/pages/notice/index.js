@@ -19,7 +19,7 @@ class Notice {
         const expectedMetrics = [
             'Editais Pendentes para abertura de processo',
             'Editais com processos em andamento',
-            'Processos Finalizados',
+            'Processos Formalizados',
         ];
 
         expectedMetrics.forEach((metric) => {

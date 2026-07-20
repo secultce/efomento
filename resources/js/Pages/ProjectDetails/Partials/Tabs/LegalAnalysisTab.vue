@@ -9,17 +9,18 @@ import ReturnProcessAction from '@/Components/ReturnProcessAction.vue';
 import TramitButton from '@/Pages/ProjectDetails/Partials/Tabs/Actions/TramitButton.vue';
 import { viewSections } from '@/Schemas/Opening';
 import { useLegalAnalysis } from '@/Composables/useLegalAnalysis';
-import { usePermissions } from '@/Composables/usePermissions';
+import { useStageAdvance } from '@/Composables/useStageAdvance';
 
 const props = defineProps({
     project: { type: Object, required: true },
     canReturn: { type: Boolean, default: false },
     currentStage: { type: Object, default: null },
+    canAdvance: { type: Boolean, default: false },
 });
 
-const { canManageLegalAnalysis } = usePermissions();
+const STAGE_SLUG = 'analise_juridica';
 
-const canUserHandleLegalAnalysis = canManageLegalAnalysis;
+const { canUserHandle: canUserHandleLegalAnalysis } = useStageAdvance(props, STAGE_SLUG);
 
 const activeViewIndex = ref('all');
 
@@ -27,7 +28,15 @@ const { groups, statusOptions, loadingFiles, in_progress, allFilesValid, fetchFi
     useLegalAnalysis(toRef(props, 'project'));
 onMounted(fetchFiles);
 
-const stage = computed(() => props.project.stages?.find((s) => s.slug === 'analise_juridica'));
+const stage = computed(() => props.project.stages?.find((s) => s.slug === STAGE_SLUG));
+
+const tramitBlockedMessage = computed(() => {
+    if (stage.value?.status === 'aprovado') {
+        return 'Análise jurídica já foi tramitada.';
+    }
+
+    return 'Usuário não tem permissão para avaliar documentos';
+});
 </script>
 
 <template>
@@ -42,7 +51,7 @@ const stage = computed(() => props.project.stages?.find((s) => s.slug === 'anali
                             :project="project"
                             :current-stage="currentStage"
                             :can-return="canReturn"
-                            stage-slug="analise_juridica"
+                            :stage-slug="STAGE_SLUG"
                             :can-user-handle="canUserHandleLegalAnalysis"
                         />
                     </div>
@@ -93,9 +102,7 @@ const stage = computed(() => props.project.stages?.find((s) => s.slug === 'anali
                 <TramitButton
                     v-permission="{
                         condition: !canUserHandleLegalAnalysis || stage?.status !== 'aprovado',
-                        message: !canUserHandleLegalAnalysis
-                            ? 'Usuário não tem permissão para avaliar documentos'
-                            : 'Análise jurídica já foi tramitada.',
+                        message: tramitBlockedMessage,
                     }"
                     :action="process"
                     :disabled="!canUserHandleLegalAnalysis || !allFilesValid"

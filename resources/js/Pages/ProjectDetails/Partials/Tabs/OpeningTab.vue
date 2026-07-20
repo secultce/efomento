@@ -17,14 +17,13 @@ import { useDate } from '@/Composables/useDate';
 import TramitButton from '@/Pages/ProjectDetails/Partials/Tabs/Actions/TramitButton.vue';
 import SaveButton from '@/Pages/ProjectDetails/Partials/Tabs/Actions/SaveButton.vue';
 import { useAlert } from '@/Composables/useAlert';
-import { usePermissions } from '@/Composables/usePermissions';
 import { useSaveShortcut } from '@/Composables/useSaveShortcut';
 import { useMask } from '@/Composables/useMask';
+import { useStageAdvance } from '@/Composables/useStageAdvance';
 
 const { showSnackbar } = useSnackbar();
 const { normalizeDate } = useDate();
 const { showAlert } = useAlert();
-const { canManageNotices } = usePermissions();
 const { maskPhone } = useMask();
 
 const props = defineProps({
@@ -48,11 +47,21 @@ const props = defineProps({
         type: Array,
         default: () => [],
     },
+    currentStage: {
+        type: Object,
+        default: null,
+    },
+    canAdvance: {
+        type: Boolean,
+        default: false,
+    },
 });
 
-const stage = props.project.stages?.find((s) => s.slug === 'abertura');
+const STAGE_SLUG = 'abertura';
 
-const canUserHandleOpening = canManageNotices;
+const stage = props.project.stages?.find((s) => s.slug === STAGE_SLUG);
+
+const { canUserHandle: canUserHandleOpening } = useStageAdvance(props, STAGE_SLUG);
 
 defineEmits(['update:field']);
 
@@ -237,19 +246,23 @@ const tramit = () => {
 };
 
 const permissionMessage = computed(() => {
-    if (!canUserHandleOpening.value) {
-        return 'Usuário não tem permissão para fazer alterações na Abertura';
-    }
-
     if (stage?.status === 'bloqueado') {
         return 'Este projeto está bloqueado e não pode receber alterações no momento.';
+    }
+
+    if (stage?.status !== 'em_andamento') {
+        return 'Projeto já foi tramitado e não está mais na fase de Abertura. Aguarde a resposta da Análise Jurídica ou entre em contato com o setor responsável para solicitar a devolução.';
+    }
+
+    if (!canUserHandleOpening.value) {
+        return 'Usuário não tem permissão para fazer alterações na Abertura';
     }
 
     if (!allRequiredFilled.value) {
         return 'Preencha e salve todos os campos obrigatórios antes de tramitar.';
     }
 
-    return 'Projeto já foi tramitado e não está mais na fase de Abertura. Aguarde a resposta da Análise Jurídica ou entre em contato com o setor responsável para solicitar a devolução.';
+    return '';
 });
 
 const allRequiredFilled = computed(() => {

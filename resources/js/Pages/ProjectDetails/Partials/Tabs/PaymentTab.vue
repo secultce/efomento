@@ -16,11 +16,11 @@ import SaveButton from '@/Pages/ProjectDetails/Partials/Tabs/Actions/SaveButton.
 
 import { viewSections, formSections } from '@/Schemas/Payment';
 
-import { useAuth } from '@/Composables/useAuth';
 import { useDate } from '@/Composables/useDate';
 import { useSnackbar } from '@/Composables/useSnackbar';
 import { useAlert } from '@/Composables/useAlert';
 import { useInstallmentStatus } from '@/Composables/useInstallments';
+import { useStageAdvance } from '@/Composables/useStageAdvance';
 
 const props = defineProps({
     project: {
@@ -37,27 +37,29 @@ const props = defineProps({
         type: Object,
         default: null,
     },
+
+    canAdvance: {
+        type: Boolean,
+        default: false,
+    },
 });
 
-const { hasRole } = useAuth();
 const { normalizeDate } = useDate();
 const { showSnackbar } = useSnackbar();
 const { showAlert } = useAlert();
 
 const { hasValue, toNumber, getInstallmentStatus } = useInstallmentStatus();
 
-const canUserHandlePayment = computed(() => {
-    return hasRole(['super_admin', 'financial', 'coord_financial']);
-});
+const STAGE_SLUG = 'pagamento';
+
+const { canUserHandle: canUserHandlePayment } = useStageAdvance(props, STAGE_SLUG);
 
 const stage = computed(() => {
-    return props.project.stages?.find((projectStage) => projectStage.slug === 'pagamento');
+    return props.project.stages?.find((projectStage) => projectStage.slug === STAGE_SLUG);
 });
 
 const paymentStage = computed(() => {
-    return (
-        props.currentStage ?? props.project.stages?.find((projectStage) => projectStage.slug === 'pagamento') ?? null
-    );
+    return props.currentStage ?? props.project.stages?.find((projectStage) => projectStage.slug === STAGE_SLUG) ?? null;
 });
 
 const activeViewIndex = ref('all');
@@ -293,8 +295,8 @@ function showTramitBlockedMessage() {
         return;
     }
 
-    if (!hasPaymentData.value) {
-        showSnackbar('Os dados de pagamento precisam ser importados antes da tramitação.', 'warning');
+    if (stage.value?.status === 'bloqueado' || stage.value?.status === 'aprovado') {
+        showSnackbar('Este projeto já foi tramitado ou não é possível tramitar no momento.', 'error');
 
         return;
     }
@@ -305,7 +307,9 @@ function showTramitBlockedMessage() {
         return;
     }
 
-    showSnackbar('Este projeto já foi tramitado ou não é possível tramitar no momento.', 'error');
+    if (!hasPaymentData.value) {
+        showSnackbar('Os dados de pagamento precisam ser importados antes da tramitação.', 'warning');
+    }
 }
 
 const tramitLoading = ref(false);
@@ -387,7 +391,7 @@ const tramit = async () => {
                             :project="project"
                             :current-stage="currentStage"
                             :can-return="canReturn"
-                            stage-slug="pagamento"
+                            :stage-slug="STAGE_SLUG"
                             :can-user-handle="canUserHandlePayment"
                         />
                     </div>
