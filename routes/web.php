@@ -16,6 +16,7 @@ use App\Http\Controllers\ProjectController;
 use App\Http\Controllers\ProjectStageController;
 use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Route;
+use Inertia\Inertia;
 
 Route::get('/', function () {
     return redirect()->route('login');
@@ -134,6 +135,12 @@ Route::middleware(['auth', 'verified'])->group(function () {
         ->name('diligences.index');
     Route::post('/projetos/{project}/diligencias/{stage}', [DiligenceMessageController::class, 'store'])
         ->name('diligences.store');
+
+    // Rota temporária para demonstrar a abstração de campos condicionais da issue #319
+    // (ver docs/prestacao-de-contas-campos-condicionais.md). Remover quando a feature real for implementada.
+    Route::get('/demo/prestacao-de-contas', function () {
+        return Inertia::render('Demo/AccountabilityConditionalFieldsDemo');
+    })->name('demo.accountability-conditional-fields');
 });
 
 Route::middleware('auth')->group(function () {

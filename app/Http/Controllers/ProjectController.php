@@ -59,9 +59,9 @@ class ProjectController extends Controller
             'instrumentTypes' => InstrumentType::values(),
 
             'phases' => collect(ProjectStageSlug::cases())
-                ->reject(function ($stage) {
-                    return $stage === ProjectStageSlug::PRESTACAO_DE_CONTAS;
-                })
+//                ->reject(function ($stage) {
+//                    return $stage === ProjectStageSlug::PRESTACAO_DE_CONTAS;
+//                })
                 ->map(function ($stage) use ($phaseCountQuery) {
                     return [
                         'value' => $stage->value,

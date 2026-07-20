@@ -1,0 +1,168 @@
+[
+    {
+        "key": "in_person_visit",
+        "label": "Foi realizada visita presencial?",
+        "section": "visit",
+        "type": "radio",
+        "options": [
+            { "label": "Sim", "value": "yes" },
+            { "label": "Não", "value": "no" }
+        ],
+        "required": true
+    },
+    {
+        "key": "visit_technical_opinion_number",
+        "label": "Qual o número do Parecer Técnico da Visita Presencial no Suite?",
+        "section": "visit",
+        "type": "text",
+        "required": true,
+        "visibleWhen": { "field": "in_person_visit", "equals": "yes" }
+    },
+    {
+        "key": "visit_technical_opinion_date",
+        "label": "Qual a data do Parecer Técnico da Visita Presencial no Suite?",
+        "section": "visit",
+        "type": "date",
+        "required": true,
+        "visibleWhen": { "field": "in_person_visit", "equals": "yes" }
+    },
+    {
+        "key": "visit_result",
+        "label": "Qual o resultado da visita presencial?",
+        "section": "visit",
+        "type": "select",
+        "options": [
+            { "label": "Necessidade de apresentação de documentação complementar", "value": "needs_documentation" },
+            { "label": "Cumprimento integral ou parcial verificado", "value": "compliance_verified" }
+        ],
+        "required": true,
+        "visibleWhen": { "field": "in_person_visit", "equals": "yes" }
+    },
+    {
+        "key": "technical_opinion_number",
+        "label": "Qual o número do Parecer Técnico no Suite?",
+        "section": "analysis",
+        "type": "text",
+        "required": true,
+        "visibleWhen": {
+            "any": [
+                { "field": "in_person_visit", "equals": "no" },
+                { "field": "visit_result", "equals": "needs_documentation" }
+            ]
+        }
+    },
+    {
+        "key": "technical_opinion_date",
+        "label": "Qual a data do Parecer Técnico no Suite?",
+        "section": "analysis",
+        "type": "date",
+        "required": true,
+        "visibleWhen": {
+            "any": [
+                { "field": "in_person_visit", "equals": "no" },
+                { "field": "visit_result", "equals": "needs_documentation" }
+            ]
+        }
+    },
+    {
+        "key": "analysis_result",
+        "label": "Qual o resultado da Análise do Relatório de Execução do Objeto?",
+        "section": "analysis",
+        "type": "select",
+        "options": [
+            { "label": "Cumprimento Parcial do Objeto", "value": "partial" },
+            { "label": "Cumprimento Integral do Objeto", "value": "full" }
+        ],
+        "required": true,
+        "visibleWhen": {
+            "any": [
+                { "field": "in_person_visit", "equals": "no" },
+                { "field": "visit_result", "equals": "needs_documentation" }
+            ]
+        }
+    },
+    {
+        "key": "analysis_forwarding",
+        "label": "Encaminhamento da Análise",
+        "section": "analysis",
+        "type": "select",
+        "options": [
+            { "label": "Necessita Solicitar Documentação", "value": "needs_documentation" },
+            { "label": "É sugerido solicitar Relatório de Execução Financeira", "value": "suggest_financial_report" },
+            { "label": "Não necessita de diligência", "value": "no_diligence_needed" }
+        ],
+        "required": true,
+        "visibleWhen": { "field": "analysis_result", "equals": "partial" }
+    },
+    {
+        "key": "authority_submission_date",
+        "label": "Qual a data de envio para Autoridade Julgadora?",
+        "section": "authority",
+        "type": "date",
+        "required": true,
+        "visibleWhen": {
+            "any": [
+                { "field": "analysis_result", "equals": "full" },
+                { "field": "visit_result", "equals": "compliance_verified" },
+                { "field": "analysis_forwarding", "equals": "no_diligence_needed" },
+                { "field": "analysis_forwarding", "equals": "suggest_financial_report" }
+            ]
+        }
+    },
+    {
+        "key": "needs_financial_report",
+        "label": "Necessita de Relatório Financeiro?",
+        "section": "authority",
+        "type": "radio",
+        "options": [
+            { "label": "Sim", "value": "yes" },
+            { "label": "Não", "value": "no" }
+        ],
+        "required": true,
+        "visibleWhen": {
+            "any": [
+                { "field": "analysis_result", "equals": "full" },
+                { "field": "visit_result", "equals": "compliance_verified" },
+                { "field": "analysis_forwarding", "equals": "no_diligence_needed" },
+                { "field": "analysis_forwarding", "equals": "suggest_financial_report" }
+            ]
+        }
+    },
+    {
+        "key": "conclusive_opinion_result",
+        "label": "Qual o Resultado do Parecer Conclusivo?",
+        "section": "conclusion",
+        "type": "select",
+        "options": [
+            { "label": "Aprovado", "value": "approved" },
+            { "label": "Aprovado com ressalva", "value": "approved_with_reservation" },
+            { "label": "Rejeitado parcialmente ou totalmente", "value": "rejected" }
+        ],
+        "required": true,
+        "visibleWhen": { "field": "needs_financial_report", "equals": "no" }
+    },
+    {
+        "key": "sanction_applied",
+        "label": "Será aplicada Sanção?",
+        "section": "conclusion",
+        "type": "radio",
+        "options": [
+            { "label": "Sim", "value": "yes" },
+            { "label": "Não", "value": "no" }
+        ],
+        "required": true,
+        "visibleWhen": { "field": "conclusive_opinion_result", "equals": "approved_with_reservation" }
+    },
+    {
+        "key": "appropriate_measure_notes",
+        "label": "Observações da Medida Cabíveis",
+        "section": "conclusion",
+        "type": "textarea",
+        "visibleWhen": {
+            "any": [
+                { "field": "conclusive_opinion_result", "equals": "rejected" },
+                { "field": "sanction_applied", "equals": "yes" }
+            ]
+        }
+    }
+]
