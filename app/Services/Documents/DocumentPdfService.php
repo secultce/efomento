@@ -11,7 +11,7 @@ class DocumentPdfService
 {
     private const RELATIONS = [
         'images',
-        'project.agent',
+        'project.agent.latestSnapshot',
         'project.notice',
         'project.opening.principalSupervisor.user',
     ];
@@ -71,12 +71,14 @@ class DocumentPdfService
 
     public function replacePlaceholders(Document $document): string
     {
+        $document->loadMissing(self::RELATIONS);
+
         $replacements = [
             '[notice_name]' => $document->project?->notice?->name,
             '[nup_mother]' => $document->project?->notice?->nup,
             '[project_nup]' => $document->project?->opening->opening_nup,
             '[agent_name]' => $document->project?->agent?->name,
-            '[agent_cpf]' => $document->project?->agent?->latestSnapshot?->cpf,
+            '[agent_cpf]' => $document->project?->agent?->latestSnapshot?->cpf_cnpj,
             '[agent_address]' => $document->project?->agent?->latestSnapshot?->street.', '.
                 $document->project?->agent?->latestSnapshot?->number.' - '.
                 $document->project?->agent?->latestSnapshot?->neighborhood.' - '.

@@ -44,7 +44,12 @@ class DocumentController extends Controller
 
     public function show(Document $document): DocumentResource
     {
-        return DocumentResource::make($document->load('images'));
+        return DocumentResource::make($document->load([
+            'images',
+            'project.agent.latestSnapshot',
+            'project.notice',
+            'project.opening.principalSupervisor.user',
+        ]));
     }
 
     public function update(DocumentUpdateRequest $request, Document $document): DocumentResource

@@ -18,6 +18,10 @@ const title = computed(
 );
 
 const resolvedBody = computed(() => {
+    if (props.document?.resolved_body != null) {
+        return props.document.resolved_body;
+    }
+
     const body = props.document?.body;
     const project = props.document?.project;
     if (!body || !project) return body ?? '';

@@ -11,6 +11,13 @@ use Illuminate\Support\Collection;
 
 class DocumentService
 {
+    private const PREVIEW_RELATIONS = [
+        'images',
+        'project.agent.latestSnapshot',
+        'project.notice',
+        'project.opening.principalSupervisor.user',
+    ];
+
     public function __construct(
         private readonly DocumentTypeRegistry $registry
     ) {}
@@ -64,7 +71,7 @@ class DocumentService
             ->when($projectId, fn ($q) => $q->where('project_id', $projectId))
             ->when($type, fn ($q) => $q->where('type', $type))
             ->when($phase, fn ($q) => $q->where('phase', $phase))
-            ->with('images')
+            ->with(self::PREVIEW_RELATIONS)
             ->get();
     }
 

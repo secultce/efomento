@@ -28,10 +28,15 @@ class ProjectController extends Controller
         $projectsQuery = $notice->projects()
             ->with([
                 'agent',
+                'agent.latestSnapshot',
                 'category',
                 'opening',
                 'opening.supervisors',
+                'opening.principalSupervisor.user',
                 'documents',
+                'documents.project.agent.latestSnapshot',
+                'documents.project.notice',
+                'documents.project.opening.principalSupervisor.user',
                 'currentStage',
                 'monitoring',
                 'budgets',
