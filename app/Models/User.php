@@ -62,4 +62,17 @@ class User extends Authenticatable implements Auditable
     {
         return $this->hasMany(OpeningSupervisor::class, 'assigned_by');
     }
+
+    public function avatarFile(): ?File
+    {
+        // User não participa do morph map global (isso quebraria o notifiable_type
+        // das notificações nativas do Laravel, que usa o mesmo morph map) — o alias
+        // 'user' é o mesmo que o FileService gera via fallback (Str::snake(class_basename())).
+        return File::query()
+            ->where('object_type', 'user')
+            ->where('object_id', $this->getKey())
+            ->where('grp', 'avatar')
+            ->latest()
+            ->first();
+    }
 }

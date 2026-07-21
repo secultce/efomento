@@ -62,7 +62,7 @@ class FileService
 
     private function getMorphAlias(Model $entity): string
     {
-        $map = Relation::getMorphMap();
+        $map = Relation::morphMap();
         $class = get_class($entity);
         $alias = array_search($class, $map, true);
 
