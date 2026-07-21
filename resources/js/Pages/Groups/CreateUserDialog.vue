@@ -168,7 +168,7 @@ async function submit() {
                                 />
                             </FormField>
                         </v-col>
-                        <v-col cols="12" class="d-flex flex-column align-center">
+                        <v-col cols="12" class="d-flex flex-column">
                             <label class="text-xs font-weight-bold d-block align-self-start mb-2">
                                 Insira a foto do usuário
                             </label>
@@ -196,14 +196,14 @@ async function submit() {
                 </v-card-text>
 
                 <v-card-actions class="justify-end gap-2 pb-4 px-4">
-                    <v-btn variant="outlined" rounded="lg" class="px-6" @click="close">Cancelar</v-btn>
+                    <v-btn variant="outlined" color="primary" rounded="lg" class="px-6" @click="close">Cancelar </v-btn>
 
                     <v-btn
                         rounded="lg"
-                        class="px-6 !bg-[#ffcc05FF] !text-[#2d353fFF] font-weight-bold"
-                        prepend-icon="mdi-plus"
+                        class="!shadow-none !font-bold !bg-[#ffcc05FF] !text-[#2d353fFF] px-6"
                         :loading="form.processing"
                         :disabled="form.processing"
+                        title="Cadastrar usuário"
                         @click="submit"
                     >
                         Cadastrar
