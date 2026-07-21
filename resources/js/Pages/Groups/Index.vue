@@ -131,7 +131,7 @@ const items = [
                                 </v-col>
                                 <v-col>
                                     <v-row>
-                                        <v-col cols="6">
+                                        <v-col cols="12">
                                             <v-btn
                                                 rounded="lg"
                                                 variant="outlined"
@@ -140,11 +140,6 @@ const items = [
                                                 @click="createUserDialog = true"
                                             >
                                                 <h6 class="text-[#008344FF] text-md-body-2">cadastrar novo usuário</h6>
-                                            </v-btn>
-                                        </v-col>
-                                        <v-col cols="6">
-                                            <v-btn rounded="lg" block color="secundary">
-                                                <h4 class="">cadastrar novo grupo</h4>
                                             </v-btn>
                                         </v-col>
                                     </v-row>
