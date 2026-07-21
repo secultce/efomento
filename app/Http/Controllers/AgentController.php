@@ -2,8 +2,11 @@
 
 namespace App\Http\Controllers;
 
+use App\Enums\AccountType;
+use App\Http\Resources\ProjectResource;
 use App\Models\Agent;
 use Illuminate\Http\Request;
+use Inertia\Inertia;
 
 class AgentController extends Controller
 {
@@ -26,9 +29,39 @@ class AgentController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(Agent $agent)
+    public function show(Request $request, Agent $agent)
     {
-        //
+        $agent->load('latestSnapshot');
+
+        $projects = $agent->projects()
+            ->with([
+                'notice',
+                'category',
+                'opening',
+                'currentStage',
+                'budgets.installments',
+            ])
+            ->latest()
+            ->get();
+
+        $participations = ProjectResource::collection($projects)->resolve();
+
+        foreach ($participations as $index => $participation) {
+            $participations[$index]['received_amount'] = $projects[$index]
+                ->budgets?->installments
+                ?->sum(fn ($installment) => (float) ($installment->payment_amount ?? 0)) ?? 0;
+        }
+
+        $sourceProject = $projects->firstWhere('id', $request->integer('project'));
+
+        return Inertia::render('Agents/Participations', [
+            'agent' => $agent,
+            'participations' => $participations,
+            'accountTypes' => AccountType::options(),
+            'backUrl' => $sourceProject
+                ? route('notices.projects.show', [$sourceProject->notice_id, $sourceProject->id], absolute: false)
+                : route('notices.index', absolute: false),
+        ]);
     }
 
     /**

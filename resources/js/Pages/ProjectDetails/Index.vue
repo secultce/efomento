@@ -24,7 +24,10 @@ defineProps({
 <template>
     <Head :title="`Projetos`" />
     <AuthenticatedLayout>
-        <AppSubHeader show-back="true">
+        <AppSubHeader
+            show-back="true"
+            :back-route="project?.notice?.id ? route('notices.projects', project.notice.id) : '/editais'"
+        >
             <div class="grid grid-cols-[1fr_1fr_1fr_auto] items-start lg:w-10/12 gap-x-4 gap-y-2">
                 <div class="col-span-3 col-start-1">
                     <h1>
