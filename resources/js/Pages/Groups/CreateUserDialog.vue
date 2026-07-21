@@ -84,13 +84,22 @@ async function submit() {
     form.post(route('users.store'), {
         forceFormData: true,
         preserveScroll: true,
-        onSuccess: () => {
+        onSuccess: (page) => {
             showAlert({
                 alertTitle: 'Usuário cadastrado',
-                alertMessage: 'O usuário foi cadastrado com sucesso.',
+                alertMessage: page.props.flash?.success ?? 'O usuário foi cadastrado com sucesso.',
                 confirmText: 'Entendi',
             });
             close();
+        },
+        onError: (errors) => {
+            if (errors.general) {
+                showAlert({
+                    alertTitle: 'Erro ao cadastrar',
+                    alertMessage: errors.general,
+                    confirmText: 'Entendi',
+                });
+            }
         },
     });
 }

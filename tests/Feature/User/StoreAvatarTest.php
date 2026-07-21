@@ -4,9 +4,11 @@ namespace Tests\Feature\User;
 
 use App\Enums\Role as RoleEnum;
 use App\Models\User;
+use App\Services\FileService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
+use RuntimeException;
 use Spatie\Permission\Models\Role;
 use Tests\TestCase;
 
@@ -91,5 +93,28 @@ class StoreAvatarTest extends TestCase
         $this->actingAs($this->admin)
             ->post(route('users.store'), $this->validPayload(['photo' => $bigPhoto]))
             ->assertSessionHasErrors('photo');
+    }
+
+    public function test_user_is_still_created_when_avatar_upload_fails(): void
+    {
+        $this->mock(FileService::class, function ($mock) {
+            $mock->shouldReceive('upload')->andThrow(new RuntimeException('disco cheio'));
+        });
+
+        $photo = UploadedFile::fake()->image('avatar.jpg');
+
+        $response = $this->actingAs($this->admin)
+            ->post(route('users.store'), $this->validPayload(['photo' => $photo]));
+
+        $response->assertRedirect(route('groups.index'));
+        $response->assertSessionHasNoErrors();
+        $response->assertSessionHas('success', 'Usuário cadastrado com sucesso, mas não foi possível salvar a foto enviada.');
+
+        $user = User::where('email', 'maria.teste@example.com')->firstOrFail();
+
+        $this->assertDatabaseMissing('files', [
+            'object_type' => 'user',
+            'object_id' => $user->id,
+        ]);
     }
 }

@@ -10,7 +10,7 @@ const props = defineProps({
 
 const { showAlert } = useAlert();
 
-const initial = (name) => name?.trim().charAt(0).toUpperCase() ?? '?';
+const initial = (name) => name?.trim().charAt(0).toUpperCase() || '?';
 
 const dialog = ref(false);
 const selectedUser = ref(null);

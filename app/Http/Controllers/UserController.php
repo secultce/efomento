@@ -20,11 +20,16 @@ class UserController extends Controller
     public function store(StoreUserRequest $request): RedirectResponse
     {
         try {
-            $this->userService->create($request->validated(), $request->file('photo'));
+            $user = $this->userService->create($request->validated(), $request->file('photo'));
         } catch (Throwable $e) {
             report($e);
 
             return back()->withErrors(['general' => 'Não foi possível cadastrar o usuário. Tente novamente.']);
+        }
+
+        if ($request->hasFile('photo') && ! $user->avatarFile()) {
+            return redirect()->route('groups.index')
+                ->with('success', 'Usuário cadastrado com sucesso, mas não foi possível salvar a foto enviada.');
         }
 
         return redirect()->route('groups.index')->with('success', 'Usuário cadastrado com sucesso.');
