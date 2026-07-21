@@ -47,6 +47,7 @@
     "@mdi/font": "^7.4.47",
     "@tinymce/tinymce-vue": "^6.3.0",
     "dayjs": "^1.11.20",
+    "dompurify": "^3.4.12",
     "dotenv": "^17.3.1",
     "extenso": "^2.1.0",
     "pluralize": "^8.0.0",
