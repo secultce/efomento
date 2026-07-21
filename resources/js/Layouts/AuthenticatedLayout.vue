@@ -4,6 +4,7 @@ import AppHeader from '@/Components/AppHeader.vue';
 import AppSubHeader from '@/Components/AppSubHeader.vue';
 import AppSnackbar from '@/Components/AppSnackbar.vue';
 import AppAlert from '@/Components/AppAlert.vue';
+import AppFooter from '@/Components/AppFooter.vue';
 import { computed, onMounted, onUnmounted, ref, watch } from 'vue';
 
 const page = usePage();
@@ -53,5 +54,6 @@ onUnmounted(() => {
                 <slot />
             </div>
         </v-main>
+        <AppFooter />
     </v-app>
 </template>
