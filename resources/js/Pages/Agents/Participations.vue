@@ -106,13 +106,15 @@ function goBack() {
     <Head title="Histórico de participações" />
 
     <AuthenticatedLayout>
-        <div class="participations-page">
+        <div
+            class="grid grid-cols-1 gap-4 py-6 max-[900px]:mx-4 min-[901px]:ml-[10.5%] min-[901px]:w-[72%] min-[901px]:grid-cols-[70px_minmax(0,1fr)]"
+        >
             <v-btn
                 type="button"
                 color="#3b3b3c"
                 variant="outlined"
                 size="small"
-                class="back-button"
+                class="!h-[30px] !w-[70px] !min-w-[70px] self-start !rounded-[6px] !border-[#bdbdbd] !px-2 !text-[0.6875rem] !tracking-normal !shadow-none [&_.v-btn__content]:!gap-1.5 max-[900px]:justify-self-start"
                 data-cy="btnVoltar"
                 @click="goBack"
             >
@@ -120,18 +122,20 @@ function goBack() {
                 <span>Voltar</span>
             </v-btn>
 
-            <main class="participations-content">
-                <v-card color="subheader" class="profile-card rounded-lg !text-white !shadow-none">
-                    <h1 class="profile-name">{{ agent.name }}</h1>
+            <main class="min-w-0">
+                <v-card color="subheader" class="rounded-lg !p-5 !text-white !shadow-none">
+                    <h1 class="mb-1 text-lg font-bold">{{ agent.name }}</h1>
 
-                    <div class="profile-summary">
+                    <div class="flex flex-wrap gap-x-7 gap-y-1 text-sm">
                         <p><strong>CPF/CNPJ:</strong> {{ snapshot.cpf_cnpj ?? '-' }}</p>
                         <p><strong>NUP:</strong> {{ participations[0]?.notice?.creditor_registration_nup ?? '-' }}</p>
                         <p><strong>Endereço:</strong> {{ address }}</p>
                     </div>
 
-                    <h2 class="bank-title">Dados bancários</h2>
-                    <div class="bank-grid">
+                    <h2 class="mb-1 mt-[18px] font-bold">Dados bancários</h2>
+                    <div
+                        class="grid grid-cols-1 gap-x-6 gap-y-1 text-sm min-[641px]:grid-cols-[repeat(4,minmax(70px,max-content))]"
+                    >
                         <p>
                             <span class="block">Banco</span><strong>{{ latestOpening.bank ?? '-' }}</strong>
                         </p>
@@ -148,10 +152,10 @@ function goBack() {
                     </div>
                 </v-card>
 
-                <section class="history-section">
+                <section class="mt-6">
                     <h2 class="mb-3 text-lg font-bold">Histórico de participações em editais</h2>
 
-                    <div class="filters">
+                    <div class="mb-3 grid grid-cols-1 gap-3 min-[641px]:grid-cols-3">
                         <v-text-field
                             v-model="noticeFilter"
                             label="Filtre por edital"
@@ -189,94 +193,3 @@ function goBack() {
         </div>
     </AuthenticatedLayout>
 </template>
-
-<style scoped>
-.participations-page {
-    display: grid;
-    grid-template-columns: 70px minmax(0, 1fr);
-    gap: 16px;
-    width: 72%;
-    margin-left: 10.5%;
-    padding: 24px 0;
-}
-
-.back-button {
-    align-self: start;
-    width: 70px;
-    min-width: 70px;
-    height: 30px;
-    padding: 0 8px;
-    border-color: #bdbdbd;
-    border-radius: 6px;
-    box-shadow: none;
-    font-size: 0.6875rem;
-    letter-spacing: 0;
-}
-
-.back-button :deep(.v-btn__content) {
-    gap: 6px;
-}
-
-.participations-content {
-    min-width: 0;
-}
-
-.profile-card {
-    padding: 20px;
-}
-
-.profile-name {
-    margin-bottom: 4px;
-    font-size: 1.125rem;
-    font-weight: 700;
-}
-
-.profile-summary {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 4px 28px;
-    font-size: 0.875rem;
-}
-
-.bank-title {
-    margin: 18px 0 4px;
-    font-weight: 700;
-}
-
-.bank-grid {
-    display: grid;
-    grid-template-columns: repeat(4, minmax(70px, max-content));
-    gap: 4px 24px;
-    font-size: 0.875rem;
-}
-
-.history-section {
-    margin-top: 24px;
-}
-
-.filters {
-    display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: 12px;
-    margin-bottom: 12px;
-}
-
-@media (max-width: 900px) {
-    .participations-page {
-        grid-template-columns: 1fr;
-        width: auto;
-        margin: 0 16px;
-    }
-
-    .back-button {
-        justify-self: start;
-    }
-}
-
-@media (max-width: 640px) {
-    .bank-grid,
-    .filters {
-        grid-template-columns: 1fr;
-    }
-}
-</style>
