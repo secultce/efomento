@@ -114,8 +114,6 @@ const requiredFields = {
     sent_to_office_at: 'Data de envio para Gabinete',
     signed_by_office_at: 'Data de assinatura do termo pelo Gabinete',
     sacc_number: 'Número do SACC',
-    cge_atende_ticket: 'Chamado CGE atende',
-    deliberation: 'Deliberação',
     sent_to_chief_of_staff_at: 'Data de envio para Casa Civil',
     official_gazette_published_at: 'Data de Publicação do Diário Oficial do Estado',
     validity_start_at: 'Data de início da vigência do instrumento',
@@ -429,9 +427,8 @@ const tramit = async () => {
             preserveScroll: true,
             onSuccess: () => {
                 showAlert({
-                    alertTitle: 'Tarefa marcada como tramitada',
-                    alertMessage:
-                        'As informações foram validadas e as pessoas envolvidas nesse processo foram notificadas.',
+                    alertTitle: 'Tramitação realizada',
+                    alertMessage: 'O processo seguirá com outro setor a partir de agora.',
                     confirmText: 'Entendi',
                     action: () => {
                         router.visit(window.location.pathname, {

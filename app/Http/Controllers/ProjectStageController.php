@@ -98,7 +98,7 @@ class ProjectStageController extends Controller
                 $request->user()
             );
 
-            return back()->with('success', 'Processo devolvido com sucesso.');
+            return back()->with('success', 'O processo foi devolvido aos responsáveis!');
         } catch (AuthorizationException $e) {
             \Sentry\captureException($e);
 

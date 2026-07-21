@@ -325,27 +325,18 @@ function handleAction({ action, item }) {
         return;
     }
 
-    if (action === 'open') {
-        const tab = phaseToTab[item.phase_slug] ?? 'opening';
-        router.get(
-            route('notices.projects.show', {
-                notice: props.notice.id,
-                project: item.id,
-            }),
-            { tab }
-        );
+    if (action !== 'open') {
+        return;
     }
 
-    const tab = phaseToTab[item.phase] ?? 'opening';
+    const tab = phaseToTab[item.phase_slug] ?? 'opening';
 
     router.get(
         route('notices.projects.show', {
             notice: props.notice.id,
             project: item.id,
         }),
-        {
-            tab,
-        }
+        { tab }
     );
 }
 </script>
