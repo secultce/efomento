@@ -74,6 +74,7 @@ class GroupController extends Controller
             'id' => $user->id,
             'name' => $user->name,
             'email' => $user->email,
+            'avatar_url' => $user->avatarUrl(),
             'roles' => $user->roles->map(fn ($role) => [
                 'name' => $role->name,
                 'label' => $this->roleLabels[$role->name] ?? $role->name,

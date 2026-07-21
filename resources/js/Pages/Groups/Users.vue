@@ -10,6 +10,8 @@ const props = defineProps({
 
 const { showAlert } = useAlert();
 
+const initial = (name) => name?.trim().charAt(0).toUpperCase() ?? '?';
+
 const dialog = ref(false);
 const selectedUser = ref(null);
 const selectedRole = ref(null);
@@ -90,11 +92,9 @@ const removeRole = (user, roleName) => {
                     <v-checkbox-btn></v-checkbox-btn>
                 </v-col>
                 <v-col cols="1">
-                    <v-avatar size="25">
-                        <v-img
-                            alt="Avatar"
-                            :src="`https://avatars0.githubusercontent.com/u/${user.id}?v=4&s=460`"
-                        ></v-img>
+                    <v-avatar size="25" color="primary">
+                        <v-img v-if="user.avatar_url" :src="user.avatar_url" :alt="user.name"></v-img>
+                        <span v-else class="text-caption font-weight-bold text-white">{{ initial(user.name) }}</span>
                     </v-avatar>
                 </v-col>
                 <v-col cols="2">

@@ -75,4 +75,9 @@ class User extends Authenticatable implements Auditable
             ->latest()
             ->first();
     }
+
+    public function avatarUrl(): ?string
+    {
+        return $this->avatarFile()?->url;
+    }
 }
