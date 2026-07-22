@@ -18,6 +18,7 @@ class DocumentResource extends JsonResource
             'type_name' => $this->type->fullLabel(),
             'phase' => $this->phase,
             'body' => $this->body,
+            'resolved_body' => $this->resource->resolvedBody,
             'status' => $this->status,
             'created_by' => $this->created_by,
             'images' => DocumentImageResource::collection($this->images)->resolve(),

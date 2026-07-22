@@ -10,6 +10,7 @@ use App\Models\DocumentImage;
 use App\Models\Notice;
 use App\Models\Project;
 use App\Models\User;
+use App\Services\Documents\DocumentPlaceholderResolver;
 use App\Services\Documents\DocumentService;
 use App\Services\Documents\DocumentTypeRegistry;
 use Illuminate\Database\QueryException;
@@ -32,7 +33,7 @@ class DocumentTest extends TestCase
     {
         parent::setUp();
 
-        $this->service = new DocumentService(new DocumentTypeRegistry);
+        $this->service = new DocumentService(new DocumentTypeRegistry, new DocumentPlaceholderResolver);
         $this->user = User::factory()->create();
         $this->notice = Notice::factory()->create();
         $this->project = Project::factory()->create();

@@ -11,8 +11,14 @@ use Illuminate\Support\Collection;
 
 class DocumentService
 {
+    private const PREVIEW_RELATIONS = [
+        'images',
+        ...DocumentPlaceholderResolver::RELATIONS,
+    ];
+
     public function __construct(
-        private readonly DocumentTypeRegistry $registry
+        private readonly DocumentTypeRegistry $registry,
+        private readonly DocumentPlaceholderResolver $placeholderResolver,
     ) {}
 
     public function create(array $data, int $createdBy): Document
@@ -36,7 +42,7 @@ class DocumentService
             $this->syncImages($document, $data['images']);
         }
 
-        return $document;
+        return $this->placeholderResolver->prepare($document);
     }
 
     public function update(Document $document, array $data): Document
@@ -50,7 +56,7 @@ class DocumentService
             $this->syncImages($document, $data['images']);
         }
 
-        return $document->fresh();
+        return $this->placeholderResolver->prepare($document->fresh());
     }
 
     public function getByContext(
@@ -64,8 +70,9 @@ class DocumentService
             ->when($projectId, fn ($q) => $q->where('project_id', $projectId))
             ->when($type, fn ($q) => $q->where('type', $type))
             ->when($phase, fn ($q) => $q->where('phase', $phase))
-            ->with('images')
-            ->get();
+            ->with(self::PREVIEW_RELATIONS)
+            ->get()
+            ->each(fn (Document $document) => $this->placeholderResolver->prepare($document));
     }
 
     private function syncImages(Document $document, array $images): void
