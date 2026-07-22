@@ -47,7 +47,8 @@ class DocumentTest extends TestCase
         $this->assertSame('tc', DocumentType::TC->value);
         $this->assertSame('et', DocumentType::ET->value);
         $this->assertSame('pj', DocumentType::PJ->value);
-        $this->assertSame('d', DocumentType::D->value);
+        $this->assertSame('do', DocumentType::DO->value);
+        $this->assertSame('dp', DocumentType::DP->value);
 
         $this->assertSame('draft', DocumentStatus::DRAFT->value);
         $this->assertSame('pending_signature', DocumentStatus::PENDING_SIGNATURE->value);
@@ -249,7 +250,7 @@ class DocumentTest extends TestCase
     {
         [$typeA, $phaseA] = $this->getRandomTypeAndPhase();
 
-        $typeB = collect(DocumentType::cases())->reject(fn ($t) => $t === $typeA)->random() ?? DocumentType::D;
+        $typeB = collect(DocumentType::cases())->reject(fn ($t) => $t === $typeA)->random() ?? DocumentType::DP;
         $phaseB = $typeB->phase();
 
         Document::factory()->count(2)->create([

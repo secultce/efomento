@@ -298,7 +298,7 @@ watch(
                     :items="config.placeholders"
                     item-title="label"
                     item-value="value"
-                    label="Inserir placeholder no documento"
+                    label="Inserir campo de preenchimento automático no documento"
                     chips
                     closable-chips
                     multiple
