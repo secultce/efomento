@@ -32,22 +32,22 @@ const selectedProjectsList = computed(() => {
 
 const selectedDocuments = computed(() =>
     selectedProjectsList.value.flatMap((p) =>
-        (p.documents ?? []).filter((d) => d.type?.toLowerCase() === 'd').map((d) => ({ ...d, project: p }))
+        (p.documents ?? []).filter((d) => d.type?.toLowerCase() === 'dp').map((d) => ({ ...d, project: p }))
     )
 );
 
 const anyProjectsHasDispatch = computed(() => {
-    return selectedProjectsList.value.some((p) => p.documents?.some((d) => d.type?.toLowerCase() === 'd'));
+    return selectedProjectsList.value.some((p) => p.documents?.some((d) => d.type?.toLowerCase() === 'dp'));
 });
 
 const selectedDispatch = computed(() => {
     const projectWithDispatch = selectedProjectsList.value.find((p) =>
-        p.documents?.some((d) => d.type?.toLowerCase() === 'd')
+        p.documents?.some((d) => d.type?.toLowerCase() === 'dp')
     );
 
     if (!projectWithDispatch) return null;
 
-    const dispatchDocument = projectWithDispatch.documents.find((d) => d.type?.toLowerCase() === 'd');
+    const dispatchDocument = projectWithDispatch.documents.find((d) => d.type?.toLowerCase() === 'dp');
 
     return {
         content: dispatchDocument.body,
@@ -82,7 +82,7 @@ function openDispatchDialog() {
 
     <HandleDocumentsDialog
         v-model="dispatchDialog"
-        type="d"
+        type="dp"
         :project-ids="selectedProjects"
         :edit-data="selectedDispatch"
         @saved="$emit('saved')"
@@ -103,7 +103,7 @@ function openDispatchDialog() {
                 class="w-full pt-2 flex flex-col gap-1"
             >
                 <template v-if="anyProjectsHasDispatch">
-                    <p>Editar Despacho (D)</p>
+                    <p>Editar Despacho de Pagamento (DP)</p>
 
                     <v-btn
                         class="w-full !shadow-none !font-bold !border-gray-300 !bg-white !text-[#2d353fFF] rounded-lg text-xs gap-6"
@@ -111,7 +111,7 @@ function openDispatchDialog() {
                         variant="outlined"
                         @click="openDispatchDialog"
                     >
-                        <span class="w-full text-left">Editar Despacho (D)</span>
+                        <span class="w-full text-left">Editar Despacho de Pagamento (DP)</span>
 
                         <template #append>
                             <v-icon size="18">mdi-pencil</v-icon>
@@ -120,7 +120,7 @@ function openDispatchDialog() {
                 </template>
 
                 <template v-else>
-                    <p>Criar Despacho</p>
+                    <p>Criar Despacho de Pagamento</p>
 
                     <v-btn
                         class="w-full !shadow-none !font-bold !bg-[#ffcc05FF] !text-[#2d353fFF] rounded-lg px-4 py-2 text-xs"

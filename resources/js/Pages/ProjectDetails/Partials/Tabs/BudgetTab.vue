@@ -73,7 +73,7 @@ const budgetLocked = computed(() => {
 });
 
 const budgetOpinionDocument = computed(
-    () => props.project.documents?.find((document) => document.phase === 'budget' && document.type === 'po') ?? null
+    () => props.project.documents?.find((document) => document.phase === 'budget' && document.type === 'do') ?? null
 );
 
 function downloadDocument(document) {

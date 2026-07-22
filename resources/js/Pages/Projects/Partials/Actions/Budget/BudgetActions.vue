@@ -61,7 +61,7 @@ const selectedDocuments = computed(() => {
 });
 
 const availableDocuments = computed(() =>
-    [DOCUMENT_TYPES.PO]
+    [DOCUMENT_TYPES.DO]
         .filter((type) => documentConfigs[type])
         .map((type) => ({
             type,
