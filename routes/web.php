@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\AgentController;
 use App\Http\Controllers\BudgetController;
 use App\Http\Controllers\DiligenceMessageController;
 use App\Http\Controllers\DocumentController;
@@ -18,7 +19,9 @@ use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
-    return redirect()->route('login');
+    return auth()->check()
+        ? redirect()->route('notices.index')
+        : redirect()->route('login');
 });
 
 Route::middleware(['auth', 'verified'])->group(function () {
@@ -38,6 +41,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
         ]);
     Route::get('/editais/{notice}/audits', [NoticeController::class, 'audits'])
         ->name('notices.audits');
+
+    Route::get('/agentes/{agent}/participacoes', [AgentController::class, 'show'])
+        ->name('agents.participations');
 
     Route::resource('projetos', ProjectController::class)
         ->parameters([

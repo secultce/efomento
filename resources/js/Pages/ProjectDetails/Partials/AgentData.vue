@@ -1,4 +1,5 @@
 <script setup>
+import { Link } from '@inertiajs/vue3';
 import { useEnums } from '@/Composables/useEnums';
 import { useMask } from '@/Composables/useMask';
 
@@ -18,7 +19,18 @@ const props = defineProps({
             <div>
                 <p>Nome do agente cultural</p>
                 <p class="font-bold">{{ props.project?.agent?.name.toUpperCase() }}</p>
-                <p class="text-primary hover:cursor-pointer hover:underline">Conferir histórico de participações</p>
+                <Link
+                    v-if="props.project?.agent?.id"
+                    :href="
+                        route('agents.participations', {
+                            agent: props.project.agent.id,
+                            project: props.project.id,
+                        })
+                    "
+                    class="text-primary hover:underline"
+                >
+                    Conferir histórico de participações
+                </Link>
             </div>
             <div>
                 <p>Número do processo</p>
