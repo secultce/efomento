@@ -88,13 +88,8 @@ class OpeningUpdateService
         }
 
         $requiredOpeningFields = [
-            'opening_nup' => 'Número do processo',
-            'opening_date' => 'Data de abertura do processo',
-            'opened_by' => 'Responsável por abrir o processo',
-            'agent_status' => 'Status do agente cultural',
             'creditor_number' => 'Número do cadastro do credor',
             'allocation_code' => 'Código da dotação',
-            'allocation_number' => 'Número completo da dotação',
             'bank' => 'Banco',
             'account_type' => 'Tipo de conta',
             'branch' => 'Agência',
@@ -105,24 +100,21 @@ class OpeningUpdateService
             ->filter(fn ($label, $field) => blank($opening->{$field}))
             ->values();
 
-        $hasPrincipalSupervisor = $opening->principalSupervisor()->exists();
+        if (strlen(preg_replace('/\D/', '', (string) $opening->opening_nup)) !== 17) {
+            $missingFields->prepend('Número do processo (deve conter 17 dígitos)');
+        }
 
-        if (! $hasPrincipalSupervisor) {
+        if (strlen(preg_replace('/\D/', '', (string) $opening->allocation_number)) !== 41) {
+            $missingFields->push('Número completo da dotação (deve conter 41 dígitos)');
+        }
+
+        if (! $opening->principalSupervisor()->exists()) {
             $missingFields->push('Fiscal titular');
         }
 
-        $formalization = $project->formalizations;
-
-        $requiredFormalizationFields = [
-            'report_status' => 'Regularidade e inadimplência',
-            'eparcerias_certificate_date' => 'Data da certidão',
-        ];
-
-        $missingFormalizationFields = collect($requiredFormalizationFields)
-            ->filter(fn ($label, $field) => ! $formalization || blank($formalization->{$field}))
-            ->values();
-
-        $missingFields = $missingFields->merge($missingFormalizationFields);
+        if (! $opening->alternateSupervisor()->exists()) {
+            $missingFields->push('Fiscal suplente');
+        }
 
         if ($missingFields->isNotEmpty()) {
             throw ValidationException::withMessages([

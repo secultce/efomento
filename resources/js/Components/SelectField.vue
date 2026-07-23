@@ -25,6 +25,7 @@ const rules = computed(() => {
         :rules="rules"
         :clearable="clearable"
         variant="outlined"
+        class="mt-2"
         @update:model-value="emit('update:modelValue', $event)"
     />
 </template>

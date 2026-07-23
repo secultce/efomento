@@ -41,7 +41,7 @@ const rules = computed(() => {
         item-title="name"
         item-value="id"
         menu-icon="null"
-        class="no-arrow"
+        class="no-arrow mt-2"
         @update:model-value="emit('update:modelValue', $event)"
     >
         <template #append-inner>
