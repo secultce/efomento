@@ -110,7 +110,8 @@ function resolveChipColor(chip, item) {
 }
 
 function resolveDataValue(dataItem, item) {
-    const value = typeof dataItem.value === 'function' ? dataItem.value(item) : (dataItem.value ?? '-');
+    const resolvedValue = typeof dataItem.value === 'function' ? dataItem.value(item) : dataItem.value;
+    const value = resolvedValue ?? '-';
 
     if (dataItem.label === 'Número do processo') {
         return maskProcessNumber(value) || value;
