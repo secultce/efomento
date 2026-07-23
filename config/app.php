@@ -56,6 +56,21 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Application Version
+    |--------------------------------------------------------------------------
+    |
+    | Versão semântica da aplicação, lida do arquivo VERSION na raiz do
+    | projeto. Esse arquivo é atualizado automaticamente pelo release-please
+    | a cada release. Ver docs/release.md.
+    |
+    */
+
+    'version' => is_file(base_path('VERSION'))
+        ? trim(file_get_contents(base_path('VERSION')))
+        : 'dev',
+
+    /*
+    |--------------------------------------------------------------------------
     | Application Timezone
     |--------------------------------------------------------------------------
     |

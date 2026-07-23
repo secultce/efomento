@@ -11,6 +11,7 @@ const page = usePage();
 
 const user = computed(() => page.props.auth.user);
 const notificationsCount = computed(() => page.props.allUnreadCount);
+const appVersion = computed(() => page.props.appVersion);
 const previousCount = ref(notificationsCount.value);
 
 const audio = new Audio('/sounds/notification.mp3');
@@ -54,6 +55,6 @@ onUnmounted(() => {
                 <slot />
             </div>
         </v-main>
-        <AppFooter />
+        <AppFooter :version="appVersion" />
     </v-app>
 </template>
