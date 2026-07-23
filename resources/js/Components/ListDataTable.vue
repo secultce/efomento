@@ -1,5 +1,8 @@
 <script setup>
 import { computed } from 'vue';
+import { useMask } from '@/Composables/useMask';
+
+const { maskProcessNumber } = useMask();
 
 const props = defineProps({
     items: {
@@ -107,11 +110,13 @@ function resolveChipColor(chip, item) {
 }
 
 function resolveDataValue(dataItem, item) {
-    if (typeof dataItem.value === 'function') {
-        return dataItem.value(item);
+    const value = typeof dataItem.value === 'function' ? dataItem.value(item) : (dataItem.value ?? '-');
+
+    if (dataItem.label === 'Número do processo') {
+        return maskProcessNumber(value) || value;
     }
 
-    return dataItem.value ?? '-';
+    return value;
 }
 
 function runAction(action, item) {
