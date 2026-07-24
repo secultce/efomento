@@ -106,6 +106,7 @@ const installments = computed(() => {
 
                 id: savedInstallment?.id ?? null,
                 installment_number: installmentNumber,
+                notice_installment_number: savedInstallment?.notice_installment_number ?? null,
 
                 amount: savedInstallment?.amount ?? null,
                 request_date: savedInstallment?.request_date ?? null,
@@ -501,6 +502,13 @@ const tramit = async () => {
                                     </div>
 
                                     <div class="grid grid-cols-2 gap-4">
+                                        <FormField label="Nº da parcela no edital">
+                                            <TextField
+                                                :model-value="formatText(selectedInstallment.notice_installment_number)"
+                                                disabled
+                                            />
+                                        </FormField>
+
                                         <FormField label="Valor da parcela">
                                             <TextField :model-value="selectedInstallment.amount" money disabled />
                                         </FormField>

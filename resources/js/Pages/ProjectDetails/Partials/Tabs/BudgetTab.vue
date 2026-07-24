@@ -46,6 +46,7 @@ const viewerDocument = ref(null);
 const form = useForm({
     processing_date_for_codip: null,
     processing_date_for_coafi: null,
+    notice_installment_number: null,
     installment_amount: null,
     installment_request_date: null,
     installment_justification: null,
@@ -62,6 +63,7 @@ onMounted(() => {
 
     form.processing_date_for_codip = normalizeDate(budget.processing_date_for_codip) ?? null;
     form.processing_date_for_coafi = normalizeDate(budget.processing_date_for_coafi) ?? null;
+    form.notice_installment_number = currentInstallment?.notice_installment_number ?? null;
     form.installment_amount = currentInstallment?.amount ?? null;
     form.installment_request_date = normalizeDate(currentInstallment?.request_date) ?? null;
     form.installment_justification = currentInstallment?.justification ?? null;
@@ -401,6 +403,18 @@ const permissionMessage = computed(() => {
 
                             <template v-else-if="section.key === 'installments'">
                                 <div class="grid grid-cols-2 gap-4">
+                                    <FormField
+                                        label="Nº da parcela no edital"
+                                        :error="form.errors.notice_installment_number"
+                                    >
+                                        <TextField
+                                            v-model="form.notice_installment_number"
+                                            type="number"
+                                            min="1"
+                                            step="1"
+                                        />
+                                    </FormField>
+
                                     <FormField
                                         :label="`Valor da ${project.current_installment_cycle}ª parcela`"
                                         :error="form.errors.installment_amount"

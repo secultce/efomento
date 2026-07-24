@@ -16,11 +16,14 @@ class InstallmentTest extends TestCase
     {
         $installment = Installment::factory()->create([
             'installment_number' => 1,
+            'notice_installment_number' => 3,
         ]);
 
         $this->assertDatabaseHas('installments', [
             'id' => $installment->id,
+            'notice_installment_number' => 3,
         ]);
+        $this->assertSame(3, $installment->notice_installment_number);
     }
 
     public function test_it_belongs_to_a_budget()
