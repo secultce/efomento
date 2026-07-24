@@ -59,7 +59,7 @@ export const documentConfigs = {
     [DOCUMENT_TYPES.DO]: {
         name: 'Despacho Orçamentário',
         titleCreate: 'Criar Despacho Orçamentário (DO)',
-        titleEdit: 'Editar Despacho Orçamentário',
+        titleEdit: 'Editar Despacho Orçamentário (DO)',
         save: 'do',
         placeholders: placeHoldersDocsSchema,
     },

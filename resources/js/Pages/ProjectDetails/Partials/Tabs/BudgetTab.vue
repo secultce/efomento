@@ -190,7 +190,7 @@ function showTramitBlockedMessage() {
     }
 
     if (!hasBudgetOpinionDocument.value) {
-        showSnackbar('O parecer orçamentário precisa ser gerado antes da tramitação.', 'warning');
+        showSnackbar('O despacho orçamentário precisa ser gerado antes da tramitação.', 'warning');
     }
 }
 
@@ -345,7 +345,7 @@ const permissionMessage = computed(() => {
                                 <DocumentViewerDialog v-model="viewerOpen" :document="viewerDocument" />
 
                                 <div v-if="budgetOpinionDocument" class="grid grid-cols-2 gap-4">
-                                    <FormField label="Parecer orçamentário">
+                                    <FormField label="Despacho orçamentário">
                                         <div class="d-flex items-center justify-between border rounded-lg px-4 py-2">
                                             <span class="text-sm text-[#3b3b3c] font-medium truncate">
                                                 {{
@@ -379,7 +379,7 @@ const permissionMessage = computed(() => {
                                         </div>
                                     </FormField>
 
-                                    <FormField label="Data do parecer orçamentário">
+                                    <FormField label="Data do despacho orçamentário">
                                         <TextField
                                             :model-value="normalizeDate(budgetOpinionDocument.created_at)"
                                             type="date"
@@ -389,9 +389,9 @@ const permissionMessage = computed(() => {
                                 </div>
 
                                 <div v-else class="grid grid-cols-2 gap-4">
-                                    <FormField label="Parecer orçamentário">
+                                    <FormField label="Despacho orçamentário">
                                         <div class="border rounded-lg px-4 py-3 mt-2 flex items-center justify-between">
-                                            <span class="text-sm font-bold"> O parecer ainda não foi gerado </span>
+                                            <span class="text-sm font-bold"> O despacho ainda não foi gerado </span>
 
                                             <v-icon color="warning" size="20"> mdi-alert-circle </v-icon>
                                         </div>
