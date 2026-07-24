@@ -55,7 +55,7 @@
   },
   "name": "efomento",
   "version": "1.0.0",
-  "description": "Sistema web de gerenciamento de processos de fomento cultural da **Secretaria da Cultura do Ceará (SECULT-CE)**, construído em Laravel 12.",
+  "description": "Sistema web de gerenciamento de processos de fomento cultural da **Secretaria da Cultura do Ceará (SECULT-CE)**, construído em Laravel 13.",
   "main": "postcss.config.js",
   "directories": {
     "doc": "docs"
