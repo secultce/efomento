@@ -10,6 +10,7 @@ class DocumentPlaceholderResolver
         'project.agent.latestSnapshot',
         'project.notice',
         'project.opening.principalSupervisor.user',
+        'project.budgets.installments',
     ];
 
     public function prepare(Document $document): Document
@@ -26,6 +27,8 @@ class DocumentPlaceholderResolver
         $snapshot = $document->project?->agent?->latestSnapshot;
         $opening = $document->project?->opening;
         $supervisor = $opening?->principalSupervisor?->user;
+        $currentInstallment = $document->project?->budgets?->installments
+            ?->firstWhere('installment_number', $document->project?->current_installment_cycle);
 
         $replacements = [
             '[notice_name]' => $document->project?->notice?->name ?? '',
@@ -44,6 +47,7 @@ class DocumentPlaceholderResolver
             '[project_name]' => $document->project?->title_project ?? '',
             '[allocation_code]' => $opening?->allocation_code ?? '',
             '[allocation_number]' => $opening?->allocation_number ?? '',
+            '[notice_installment_number]' => $currentInstallment?->notice_installment_number ?? '',
         ];
 
         return str_replace(array_keys($replacements), array_values($replacements), (string) $document->body);

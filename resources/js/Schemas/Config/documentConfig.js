@@ -23,6 +23,12 @@ const placeHoldersDocsSchema = [
     { label: 'Código da dotação', value: 'allocation_code' },
     { label: 'Número completo da dotação', value: 'allocation_number' },
 ];
+
+const installmentPlaceHoldersDocsSchema = [
+    ...placeHoldersDocsSchema,
+    { label: 'Número da parcela para este agente', value: 'notice_installment_number' },
+];
+
 export const documentConfigs = {
     [DOCUMENT_TYPES.CI]: {
         name: 'Comunicação Interna',
@@ -61,7 +67,7 @@ export const documentConfigs = {
         titleCreate: 'Criar Despacho Orçamentário (DO)',
         titleEdit: 'Editar Despacho Orçamentário (DO)',
         save: 'do',
-        placeholders: placeHoldersDocsSchema,
+        placeholders: installmentPlaceHoldersDocsSchema,
     },
 
     [DOCUMENT_TYPES.DP]: {
@@ -69,6 +75,6 @@ export const documentConfigs = {
         titleCreate: 'Criar Despacho de Pagamento (DP)',
         titleEdit: 'Editar Despacho de Pagamento (DP)',
         save: 'dp',
-        placeholders: placeHoldersDocsSchema,
+        placeholders: installmentPlaceHoldersDocsSchema,
     },
 };
