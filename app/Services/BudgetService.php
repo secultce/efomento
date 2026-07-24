@@ -78,6 +78,7 @@ class BudgetService
     private function installmentData(array $data): array
     {
         return [
+            'notice_installment_number' => $data['notice_installment_number'] ?? null,
             'amount' => $data['installment_amount'] ?? null,
             'request_date' => $data['installment_request_date'] ?? null,
             'justification' => $data['installment_justification'] ?? null,

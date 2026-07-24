@@ -21,6 +21,7 @@ class Installment extends Model implements Auditable
         'justification',
         'observations',
         'installment_number',
+        'notice_installment_number',
 
         'commitment_number',
         'commitment_date',
@@ -53,6 +54,8 @@ class Installment extends Model implements Auditable
         'payment_amount' => 'decimal:2',
         'committed_amount' => 'decimal:2',
         'settlement_amount' => 'decimal:2',
+        'installment_number' => 'integer',
+        'notice_installment_number' => 'integer',
         'request_date' => 'date',
         'commitment_date' => 'date',
         'settlement_date' => 'date',
