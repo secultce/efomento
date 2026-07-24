@@ -2,7 +2,7 @@
 
 [![codecov](https://codecov.io/gh/secultce/efomento/graph/badge.svg?token=B8H2FVK1PN)](https://codecov.io/gh/secultce/efomento)
 
-Sistema web de gerenciamento de processos de fomento cultural da **Secretaria da Cultura do Ceará (SECULT-CE)**, construído em Laravel 12.
+Sistema web de gerenciamento de processos de fomento cultural da **Secretaria da Cultura do Ceará (SECULT-CE)**, construído em Laravel 13.
 
 Substitui a planilha compartilhada "Planilão" por um fluxo digital estruturado, seguro e auditável para acompanhar editais culturais pós-seleção no Mapa Cultural do Ceará. Gerencia o ciclo completo de projetos aprovados em editais (ex: Ciclo Cearense Carnavalesco, PNAB), desde a abertura do processo até o pagamento final e monitoramento.
 
@@ -10,7 +10,7 @@ Substitui a planilha compartilhada "Planilão" por um fluxo digital estruturado,
 
 | Camada                 | Tecnologia                                      |
 |------------------------|--------------------------------------------------|
-| Backend                | Laravel 12 (PHP 8.3+)                           |
+| Backend                | Laravel 13 (PHP 8.3+)                           |
 | Banco de dados         | PostgreSQL (JSONB para campos flexíveis)         |
 | Admin interno          | Filament PHP (acesso direto aos models)          |
 | Frontend usuário final | Vue.js + Vuetify + Tailwind CSS (via API RESTful)|
