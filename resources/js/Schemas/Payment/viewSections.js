@@ -10,7 +10,7 @@ export const viewSections = [
             { label: 'Título do projeto', key: 'title_project' },
             { label: 'N° da inscrição', key: 'registration_id' },
             { label: 'Endereço completo', key: 'agent.latest_snapshot.address' },
-            { label: 'Macrorregião', key: 'agent.latest_snapshot.macrorregion' },
+            { label: 'Macrorregião', key: 'agent.latest_snapshot.macroregion' },
             { label: 'CEP', key: 'agent.latest_snapshot.postal_code' },
             { label: 'Município', key: 'agent.latest_snapshot.city' },
         ],
