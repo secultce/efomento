@@ -28,13 +28,13 @@ class DocumentTypeRegistry
             'requires_sign' => true,
             'requires_legal' => true,
         ],
-        'po+budget' => [
-            'label' => 'Parecer Orçamentário',
+        'do+budget' => [
+            'label' => 'Despacho Orçamentário',
             'requires_sign' => true,
             'requires_legal' => true,
         ],
-        'd+payment' => [
-            'label' => 'Despacho',
+        'dp+payment' => [
+            'label' => 'Despacho de Pagamento',
             'requires_sign' => false,
             'requires_legal' => false,
         ],
