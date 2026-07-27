@@ -6,7 +6,7 @@ import SplitScreenTab from '@/Components/SplitScreenTab.vue';
 import SectionChips from '@/Components/SectionChips.vue';
 import SectionContent from '@/Components/SectionContent.vue';
 import SectionForm from '@/Components/SectionForm.vue';
-import ReturnProcessModal from '@/Components/ReturnProcessModal.vue';
+import ReturnProcessAction from '@/Components/ReturnProcessAction.vue';
 import FormField from '@/Components/FormField.vue';
 import TextField from '@/Components/TextField.vue';
 import AuxLinks from '@/Components/AuxLinks.vue';
@@ -16,11 +16,11 @@ import SaveButton from '@/Pages/ProjectDetails/Partials/Tabs/Actions/SaveButton.
 
 import { viewSections, formSections } from '@/Schemas/Payment';
 
-import { useAuth } from '@/Composables/useAuth';
 import { useDate } from '@/Composables/useDate';
 import { useSnackbar } from '@/Composables/useSnackbar';
 import { useAlert } from '@/Composables/useAlert';
 import { useInstallmentStatus } from '@/Composables/useInstallments';
+import { useStageAdvance } from '@/Composables/useStageAdvance';
 
 const props = defineProps({
     project: {
@@ -37,30 +37,31 @@ const props = defineProps({
         type: Object,
         default: null,
     },
+
+    canAdvance: {
+        type: Boolean,
+        default: false,
+    },
 });
 
-const { hasRole } = useAuth();
 const { normalizeDate } = useDate();
 const { showSnackbar } = useSnackbar();
 const { showAlert } = useAlert();
 
 const { hasValue, toNumber, getInstallmentStatus } = useInstallmentStatus();
 
-const canUserHandlePayment = computed(() => {
-    return hasRole(['super_admin', 'financial', 'coord_financial']);
-});
+const STAGE_SLUG = 'pagamento';
+
+const { canUserHandle: canUserHandlePayment } = useStageAdvance(props, STAGE_SLUG);
 
 const stage = computed(() => {
-    return props.project.stages?.find((projectStage) => projectStage.slug === 'pagamento');
+    return props.project.stages?.find((projectStage) => projectStage.slug === STAGE_SLUG);
 });
 
 const paymentStage = computed(() => {
-    return (
-        props.currentStage ?? props.project.stages?.find((projectStage) => projectStage.slug === 'pagamento') ?? null
-    );
+    return props.currentStage ?? props.project.stages?.find((projectStage) => projectStage.slug === STAGE_SLUG) ?? null;
 });
 
-const showReturnModal = ref(false);
 const activeViewIndex = ref('all');
 const activeEditIndex = ref('all');
 const selectedInstallmentNumber = ref(null);
@@ -294,8 +295,8 @@ function showTramitBlockedMessage() {
         return;
     }
 
-    if (!hasPaymentData.value) {
-        showSnackbar('Os dados de pagamento precisam ser importados antes da tramitação.', 'warning');
+    if (stage.value?.status === 'bloqueado' || stage.value?.status === 'aprovado') {
+        showSnackbar('Este projeto já foi tramitado ou não é possível tramitar no momento.', 'error');
 
         return;
     }
@@ -306,7 +307,9 @@ function showTramitBlockedMessage() {
         return;
     }
 
-    showSnackbar('Este projeto já foi tramitado ou não é possível tramitar no momento.', 'error');
+    if (!hasPaymentData.value) {
+        showSnackbar('Os dados de pagamento precisam ser importados antes da tramitação.', 'warning');
+    }
 }
 
 const tramitLoading = ref(false);
@@ -347,10 +350,9 @@ const tramit = async () => {
 
             onSuccess: () => {
                 showAlert({
-                    alertTitle: 'Tarefa marcada como tramitada',
+                    alertTitle: 'Tramitação realizada',
 
-                    alertMessage:
-                        'As informações foram validadas e as pessoas envolvidas nesse processo foram notificadas.',
+                    alertMessage: 'O processo seguirá com outro setor a partir de agora.',
 
                     confirmText: 'Entendi',
 
@@ -382,24 +384,17 @@ const tramit = async () => {
         <template #left-content>
             <div class="space-y-6">
                 <div>
-                    <p class="font-bold text-lg d-flex justify-between">
-                        Dados disponíveis para consulta
+                    <div class="font-bold text-lg d-flex justify-between">
+                        <span>Dados disponíveis para consulta</span>
 
-                        <v-btn
-                            v-if="canReturn && currentStage"
-                            v-permission="{
-                                condition: !canUserHandlePayment || stage?.status !== 'aprovado',
-
-                                message: !canUserHandlePayment
-                                    ? 'Usuário não tem permissão para devolver processo'
-                                    : 'Pagamento já foi tramitado.',
-                            }"
-                            class="!shadow-none !font-bold !bg-[#ffcc05FF] !text-[#2d353fFF] rounded-lg text-xs"
-                            @click="showReturnModal = true"
-                        >
-                            DEVOLVER PROCESSO
-                        </v-btn>
-                    </p>
+                        <ReturnProcessAction
+                            :project="project"
+                            :current-stage="currentStage"
+                            :can-return="canReturn"
+                            :stage-slug="STAGE_SLUG"
+                            :can-user-handle="canUserHandlePayment"
+                        />
+                    </div>
 
                     <p class="text-sm text-gray-600">Utilize os filtros abaixo para navegar entre os dados</p>
                 </div>
@@ -620,11 +615,4 @@ const tramit = async () => {
             </div>
         </template>
     </SplitScreenTab>
-
-    <ReturnProcessModal
-        v-if="canReturn && currentStage"
-        v-model="showReturnModal"
-        :project-id="project.id"
-        :stage-id="currentStage.id"
-    />
 </template>

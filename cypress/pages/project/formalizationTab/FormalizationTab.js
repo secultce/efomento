@@ -70,7 +70,7 @@ class FormalizationTab {
             .should('exist')
             .and(
                 'contain.text',
-                'Preencha os campos obrigatórios antes de tramitar: Data de tramitação da finalística para a ASJUR, Data de recebimento do processo pela ASJUR, Processo distribuído para, Data de tramitação na ASJUR, Responsável (Distribuido para), Número do termo, Data do envio para assinatura do termo, Data da assinatura do termo, Data de envio para Gabinete, Data de assinatura do termo pelo Gabinete, Número do SACC, Chamado CGE atende, Data de envio para Casa Civil, Data de Publicação do Diário Oficial do Estado, Data de início da vigência do instrumento, Data de término da vigência do instrumento, Data do parecer jurídico, Anexo do documento do Diário Oficial do Estado.'
+                'Preencha os campos obrigatórios antes de tramitar: Data de tramitação da finalística para a ASJUR, Data de recebimento do processo pela ASJUR, Processo distribuído para, Data de tramitação na ASJUR, Responsável (Distribuido para), Número do termo, Data do envio para assinatura do termo, Data da assinatura do termo, Data de envio para Gabinete, Data de assinatura do termo pelo Gabinete, Número do SACC, Data de envio para Casa Civil, Data de Publicação do Diário Oficial do Estado, Data de início da vigência do instrumento, Data de término da vigência do instrumento, Data do parecer jurídico, Anexo do documento do Diário Oficial do Estado.'
             );
     }
 
@@ -106,6 +106,10 @@ class FormalizationTab {
 
     clickSaveReturnMotiveButton() {
         cy.get(el.retunrProcessSentButton).contains('Enviar').click();
+    }
+
+    clickTramimtButton() {
+        cy.get(el.tramitButton).click();
     }
 
     displayReturnSuccessMessage() {

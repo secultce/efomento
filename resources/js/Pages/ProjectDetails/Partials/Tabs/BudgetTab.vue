@@ -8,7 +8,7 @@ import SectionContent from '@/Components/SectionContent.vue';
 import SectionForm from '@/Components/SectionForm.vue';
 import AuxLinks from '@/Components/AuxLinks.vue';
 import DocumentViewerDialog from '@/Components/DocumentViewerDialog.vue';
-import ReturnProcessModal from '@/Components/ReturnProcessModal.vue';
+import ReturnProcessAction from '@/Components/ReturnProcessAction.vue';
 import FormField from '@/Components/FormField.vue';
 import TextField from '@/Components/TextField.vue';
 import TramitButton from '@/Pages/ProjectDetails/Partials/Tabs/Actions/TramitButton.vue';
@@ -16,27 +16,28 @@ import SaveButton from '@/Pages/ProjectDetails/Partials/Tabs/Actions/SaveButton.
 
 import { viewSections, formSections } from '@/Schemas/Budget';
 
-import { usePermissions } from '@/Composables/usePermissions';
 import { useDate } from '@/Composables/useDate';
 import { useSnackbar } from '@/Composables/useSnackbar';
 import { useAlert } from '@/Composables/useAlert';
+import { useStageAdvance } from '@/Composables/useStageAdvance';
 
 const props = defineProps({
     project: { type: Object, required: true },
     canReturn: { type: Boolean, default: false },
     currentStage: { type: Object, default: null },
+    canAdvance: { type: Boolean, default: false },
 });
 
-const { canManageBudget } = usePermissions();
 const { normalizeDate } = useDate();
 const { showSnackbar } = useSnackbar();
 const { showAlert } = useAlert();
 
-const canUserHandleBudget = canManageBudget;
+const STAGE_SLUG = 'orcamento';
 
-const stage = computed(() => props.project.stages?.find((s) => s.slug === 'orcamento'));
+const { canUserHandle: canUserHandleBudget } = useStageAdvance(props, STAGE_SLUG);
 
-const showReturnModal = ref(false);
+const stage = computed(() => props.project.stages?.find((s) => s.slug === STAGE_SLUG));
+
 const activeViewIndex = ref('all');
 const activeEditIndex = ref('all');
 const viewerOpen = ref(false);
@@ -164,14 +165,14 @@ function showTramitBlockedMessage() {
         return;
     }
 
-    if (!hasRequiredFields.value) {
-        showSnackbar('Preencha todos os campos obrigatórios antes de tramitar.', 'warning');
+    if (stage.value?.status === 'bloqueado') {
+        showSnackbar('Este projeto está bloqueado e não pode receber alterações no momento.', 'warning');
 
         return;
     }
 
-    if (!hasBudgetOpinionDocument.value) {
-        showSnackbar('O parecer orçamentário precisa ser gerado antes da tramitação.', 'warning');
+    if (stage.value?.status !== 'em_andamento') {
+        showSnackbar('Este projeto não pode ser tramitado no momento.', 'warning');
 
         return;
     }
@@ -182,7 +183,15 @@ function showTramitBlockedMessage() {
         return;
     }
 
-    showSnackbar('Este projeto não pode ser tramitado no momento.', 'warning');
+    if (!hasRequiredFields.value) {
+        showSnackbar('Preencha todos os campos obrigatórios antes de tramitar.', 'warning');
+
+        return;
+    }
+
+    if (!hasBudgetOpinionDocument.value) {
+        showSnackbar('O parecer orçamentário precisa ser gerado antes da tramitação.', 'warning');
+    }
 }
 
 const tramitLoading = ref(false);
@@ -217,9 +226,8 @@ const tramit = async () => {
             preserveScroll: true,
             onSuccess: () => {
                 showAlert({
-                    alertTitle: 'Tarefa marcada como tramitada',
-                    alertMessage:
-                        'As informações foram validadas e as pessoas envolvidas nesse processo foram notificadas.',
+                    alertTitle: 'Tramitação realizada',
+                    alertMessage: 'O processo seguirá com outro setor a partir de agora.',
                     confirmText: 'Entendi',
                     action: () => {
                         router.visit(window.location.pathname, {
@@ -241,15 +249,15 @@ const tramit = async () => {
 };
 
 const permissionMessage = computed(() => {
-    if (!canUserHandleBudget.value) {
-        return 'Usuário não tem permissão para fazer alterações no Orçamento.';
-    }
-
     if (stage.value?.status === 'bloqueado') {
         return 'Este projeto está bloqueado e não pode receber alterações no momento.';
     }
 
-    return 'Projeto já foi tramitado e não está mais na fase de Orçamento.';
+    if (stage.value?.status !== 'em_andamento') {
+        return 'Projeto já foi tramitado e não está mais na fase de Orçamento.';
+    }
+
+    return 'Usuário não tem permissão para fazer alterações no Orçamento.';
 });
 </script>
 
@@ -258,23 +266,17 @@ const permissionMessage = computed(() => {
         <template #left-content>
             <div class="space-y-6">
                 <div>
-                    <p class="font-bold text-lg d-flex justify-between">
-                        Dados disponíveis para consulta
+                    <div class="font-bold text-lg d-flex justify-between">
+                        <span>Dados disponíveis para consulta</span>
 
-                        <v-btn
-                            v-if="canReturn && currentStage"
-                            v-permission="{
-                                condition: !canUserHandleBudget || stage?.status !== 'aprovado',
-                                message: !canUserHandleBudget
-                                    ? 'Usuário não tem permissão para devolver processo'
-                                    : 'Orçamento já foi tramitado.',
-                            }"
-                            class="!shadow-none !font-bold !bg-[#ffcc05FF] !text-[#2d353fFF] rounded-lg text-xs"
-                            @click="showReturnModal = true"
-                        >
-                            DEVOLVER PROCESSO
-                        </v-btn>
-                    </p>
+                        <ReturnProcessAction
+                            :project="project"
+                            :current-stage="currentStage"
+                            :can-return="canReturn"
+                            :stage-slug="STAGE_SLUG"
+                            :can-user-handle="canUserHandleBudget"
+                        />
+                    </div>
 
                     <p class="text-sm text-gray-600">Utilize os filtros abaixo para navegar entre os dados</p>
                 </div>
@@ -448,11 +450,4 @@ const permissionMessage = computed(() => {
             </div>
         </template>
     </SplitScreenTab>
-
-    <ReturnProcessModal
-        v-if="canReturn && currentStage"
-        v-model="showReturnModal"
-        :project-id="project.id"
-        :stage-id="currentStage.id"
-    />
 </template>

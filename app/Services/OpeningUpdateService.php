@@ -65,10 +65,14 @@ class OpeningUpdateService
         }
 
         $agent = $project->agent;
+        $latestSnapshot = $agent->latestSnapshot;
+
+        $previousData = $latestSnapshot ? $latestSnapshot->makeVisible($latestSnapshot->getHidden())->toArray() : [];
+        $mergedData = array_merge($previousData, $agentData);
 
         $this->snapshotService->recordIfChanged(
             $agent,
-            $agentData,
+            $mergedData,
             ProfileSnapshotSource::AGENT_UPDATE,
         );
     }

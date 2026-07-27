@@ -89,8 +89,6 @@ class FormalizationService
             'signed_by_office_at' => 'Data de assinatura do termo pelo Gabinete',
 
             'sacc_number' => 'Número do SACC',
-            'cge_atende_ticket' => 'Chamado CGE atende',
-            'deliberation' => 'Deliberação',
 
             'sent_to_chief_of_staff_at' => 'Data de envio para Casa Civil',
             'official_gazette_published_at' => 'Data de Publicação do Diário Oficial do Estado',

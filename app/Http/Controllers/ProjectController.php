@@ -15,7 +15,9 @@ use App\Enums\Role;
 use App\Http\Resources\ProjectResource;
 use App\Models\Notice;
 use App\Models\Project;
+use App\Models\ProjectStage;
 use App\Models\User;
+use App\Services\Documents\DocumentPlaceholderResolver;
 use App\Services\ProjectDocumentService;
 use App\Services\ProjectSupervisorService;
 use Illuminate\Http\Request;
@@ -23,15 +25,24 @@ use Inertia\Inertia;
 
 class ProjectController extends Controller
 {
+    public function __construct(
+        private readonly DocumentPlaceholderResolver $placeholderResolver,
+    ) {}
+
     public function index(Request $request, Notice $notice)
     {
         $projectsQuery = $notice->projects()
             ->with([
                 'agent',
+                'agent.latestSnapshot',
                 'category',
                 'opening',
                 'opening.supervisors',
+                'opening.principalSupervisor.user',
                 'documents',
+                'documents.project.agent.latestSnapshot',
+                'documents.project.notice',
+                'documents.project.opening.principalSupervisor.user',
                 'currentStage',
                 'monitoring',
                 'budgets',
@@ -44,11 +55,15 @@ class ProjectController extends Controller
 
         $projectsQuery->filterPhase($request->phase);
 
+        $projects = $projectsQuery->get();
+        $projects->flatMap->documents
+            ->each(fn ($document) => $this->placeholderResolver->prepare($document));
+
         return Inertia::render('Projects', [
             'notice' => $notice,
 
             'projects' => ProjectResource::collection(
-                $projectsQuery->get()
+                $projects
             )->resolve(),
 
             'filters' => $request->only([
@@ -112,6 +127,10 @@ class ProjectController extends Controller
             'stages',
         ]);
 
+        $project->documents->each(function ($document) use ($project) {
+            $document->setRelation('project', $project);
+            $this->placeholderResolver->prepare($document);
+        });
         $availableSupervisors = User::role(Role::monitoringRoles())
             ->select('id', 'name', 'registration_number')
             ->get();
@@ -127,9 +146,8 @@ class ProjectController extends Controller
             'deliberation' => DeliberationType::options(),
             'openingStatus' => OpeningStatus::options(),
             'currentStage' => $currentStage,
-            'canReturn' => $currentStage
-                ? ($currentStage->order > 1 && auth()->user()->hasAnyRole($currentStage->responsible_sector))
-                : false,
+            'canReturn' => $this->userCanActOnStage($currentStage),
+            'canAdvance' => $this->userCanActOnStage($currentStage),
             'initialTab' => $request->get('tab', 'opening'),
         ]);
     }
@@ -207,5 +225,12 @@ class ProjectController extends Controller
                 'message' => $e->getMessage() ?: 'Erro ao criar documento. Tente novamente.',
             ]);
         }
+    }
+
+    private function userCanActOnStage(?ProjectStage $currentStage): bool
+    {
+        return $currentStage
+            ? auth()->user()->hasAnyRole($currentStage->responsible_sector)
+            : false;
     }
 }

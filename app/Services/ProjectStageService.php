@@ -24,20 +24,16 @@ class ProjectStageService
         ProjectStage $stage,
         User $user
     ): ?ProjectStage {
-        if (! $user->hasAnyRole($stage->responsible_sector)) {
-            throw new AuthorizationException(
-                'Você não tem permissão para tramitar esta etapa.'
-            );
-        }
-
-        if ($stage->slug === ProjectStageSlug::MONITORAMENTO) {
-            $this->ensureIsPrincipalSupervisor($stage->project, $user);
-        }
-
         if ($stage->status !== ProjectStageStatus::EM_ANDAMENTO) {
             throw new InvalidArgumentException(
                 'A etapa precisa estar em andamento para ser aprovada.'
             );
+        }
+
+        $this->ensureUserHasRole($stage, $user, 'Você não tem permissão para tramitar esta etapa.');
+
+        if ($stage->slug === ProjectStageSlug::MONITORAMENTO) {
+            $this->ensureIsPrincipalSupervisor($stage->project, $user);
         }
 
         if (! $stage->canAdvance()) {
@@ -62,17 +58,13 @@ class ProjectStageService
 
     public function reject(ProjectStage $stage, string $reason, User $user): void
     {
-        if (! $user->hasAnyRole($stage->responsible_sector)) {
-            throw new AuthorizationException(
-                'Você não tem permissão para tramitar esta etapa.'
-            );
-        }
-
         if ($stage->status !== ProjectStageStatus::EM_ANDAMENTO) {
             throw new InvalidArgumentException(
                 'A etapa precisa estar em andamento para ser rejeitada.'
             );
         }
+
+        $this->ensureUserHasRole($stage, $user, 'Você não tem permissão para tramitar esta etapa.');
 
         $stage->markRejected($reason);
 
@@ -120,14 +112,11 @@ class ProjectStageService
 
     public function returnStage(ProjectStage $stage, string $reason, User $user): ProjectStage
     {
-
-        if (! $user->hasAnyRole($stage->responsible_sector)) {
-            throw new AuthorizationException('Você não tem permissão para devolver esta etapa.');
-        }
-
         if ($stage->status !== ProjectStageStatus::EM_ANDAMENTO) {
             throw new InvalidArgumentException('A etapa precisa estar em andamento para ser devolvida.');
         }
+
+        $this->ensureUserHasRole($stage, $user, 'Você não tem permissão para devolver esta etapa.');
 
         $previousStage = $stage->getPreviousStage();
         if (! $previousStage) {
@@ -155,6 +144,13 @@ class ProjectStageService
             throw new AuthorizationException(
                 'Apenas o fiscal titular pode executar esta ação.'
             );
+        }
+    }
+
+    private function ensureUserHasRole(ProjectStage $stage, User $user, string $message): void
+    {
+        if (! $user->hasAnyRole($stage->responsible_sector)) {
+            throw new AuthorizationException($message);
         }
     }
 }

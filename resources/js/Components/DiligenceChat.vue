@@ -2,6 +2,7 @@
 import { computed, nextTick, onMounted, ref, watch } from 'vue';
 import dayjs from 'dayjs';
 import AppTextEditor from '@/Components/AppTextEditor.vue';
+import SanitizedHtml from '@/Components/SanitizedHtml.vue';
 import { useDiligenceMessages } from '@/Composables/useDiligenceMessages';
 import { useSnackbar } from '@/Composables/useSnackbar';
 
@@ -181,13 +182,11 @@ onMounted(async () => {
                             class="max-w-[85%] rounded-lg p-3 text-sm shadow-sm"
                             :class="message.direction === 'OUTBOUND' ? 'bg-white' : 'bg-amber-50'"
                         >
-                            <!-- eslint-disable vue/no-v-html -->
-                            <div
+                            <SanitizedHtml
                                 v-if="message.direction === 'OUTBOUND' && isHtml(message.body)"
+                                :content="message.body"
                                 class="text-gray-800 message-body"
-                                v-html="message.body"
                             />
-                            <!-- eslint-enable vue/no-v-html -->
                             <p v-else class="whitespace-pre-line text-gray-800">{{ message.body }}</p>
                             <p class="text-xs text-gray-500 text-right mt-2 font-semibold">
                                 {{ message.direction === 'OUTBOUND' ? 'Enviada em' : 'Recebida em' }}

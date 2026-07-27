@@ -47,6 +47,14 @@ class ProjectStageController extends Controller
             return back()->with('success', 'Processo tramitado com sucesso!');
         } catch (ValidationException $e) {
             throw $e;
+        } catch (AuthorizationException $e) {
+            \Sentry\captureException($e);
+
+            return back()->withErrors(['message' => $e->getMessage()]);
+        } catch (\InvalidArgumentException $e) {
+            report($e);
+
+            return back()->withErrors(['message' => $e->getMessage()]);
         } catch (\Throwable $e) {
             report($e);
 
@@ -90,7 +98,7 @@ class ProjectStageController extends Controller
                 $request->user()
             );
 
-            return back()->with('success', 'Processo devolvido com sucesso.');
+            return back()->with('success', 'O processo foi devolvido aos responsáveis!');
         } catch (AuthorizationException $e) {
             \Sentry\captureException($e);
 

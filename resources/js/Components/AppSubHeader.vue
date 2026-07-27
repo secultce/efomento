@@ -21,17 +21,15 @@ const props = defineProps({
 });
 
 function goBack() {
-    if (!props.backRoute) {
-        window.history.back();
-        return;
-    }
+    const fallbackRoute = '/editais';
+    const destination = props.backRoute || fallbackRoute;
 
     try {
-        const targetUrl = new URL(props.backRoute, window.location.origin);
+        const targetUrl = new URL(destination, window.location.origin);
 
         if (!['http:', 'https:'].includes(targetUrl.protocol)) {
             console.error('Protocolo não permitido:', targetUrl.protocol);
-            window.history.back();
+            router.visit(fallbackRoute);
             return;
         }
 
@@ -49,9 +47,9 @@ function goBack() {
             replace: true,
         });
     } catch (error) {
-        console.error('Rota de retorno inválida:', props.backRoute, error);
+        console.error('Rota de retorno inválida:', destination, error);
 
-        window.history.back();
+        router.visit(fallbackRoute);
     }
 }
 </script>

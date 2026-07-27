@@ -18,6 +18,8 @@ class Document extends Model implements Auditable
 {
     use AuditableTrait, HasCreatedBy, HasFactory, SoftDeletes;
 
+    public ?string $resolvedBody = null;
+
     protected $fillable = [
         'notice_id',
         'project_id',

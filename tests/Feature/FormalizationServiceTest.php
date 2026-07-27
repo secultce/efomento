@@ -222,4 +222,17 @@ class FormalizationServiceTest extends TestCase
 
         $this->assertTrue(true);
     }
+
+    public function test_ensure_can_advance_without_cge_atende_ticket_and_deliberation(): void
+    {
+        $formalization = Formalization::factory()->create([
+            'cge_atende_ticket' => null,
+            'deliberation' => null,
+        ]);
+        $this->createRequiredDocuments($formalization->project);
+
+        $this->service->ensureCanAdvance($formalization->project);
+
+        $this->assertTrue(true);
+    }
 }

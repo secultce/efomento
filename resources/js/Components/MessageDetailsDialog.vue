@@ -1,47 +1,39 @@
 <script setup>
-import { computed } from 'vue';
+import SanitizedHtml from '@/Components/SanitizedHtml.vue';
 
-const props = defineProps({
+defineProps({
     modelValue: {
         type: Boolean,
         default: false,
     },
-
     title: {
         type: String,
         default: 'Detalhes',
     },
-
     sentAt: {
         type: String,
         default: '',
     },
-
     messageLabel: {
         type: String,
         default: 'Mensagem enviada',
     },
-
     message: {
         type: String,
         default: '',
     },
-
     messageHtml: {
         type: Boolean,
         default: false,
     },
-
     cancelLabel: {
         type: String,
         default: 'Fechar',
     },
-
     confirmLabel: {
         type: String,
         default: 'Confirmar',
     },
-
     showConfirm: {
         type: Boolean,
         default: true,
@@ -49,33 +41,6 @@ const props = defineProps({
 });
 
 const emit = defineEmits(['update:modelValue', 'confirm']);
-
-const sanitizedMessage = computed(() => {
-    if (!props.messageHtml || !props.message) {
-        return props.message;
-    }
-
-    const template = document.createElement('template');
-
-    template.innerHTML = props.message;
-
-    template.content
-        .querySelectorAll('script, iframe, object, embed, style, link, meta')
-        .forEach((element) => element.remove());
-
-    template.content.querySelectorAll('*').forEach((element) => {
-        [...element.attributes].forEach((attribute) => {
-            const name = attribute.name.toLowerCase();
-            const value = attribute.value.toLowerCase();
-
-            if (name.startsWith('on') || value.includes('javascript:') || value.includes('data:text/html')) {
-                element.removeAttribute(attribute.name);
-            }
-        });
-    });
-
-    return template.innerHTML;
-});
 
 const close = () => {
     emit('update:modelValue', false);
@@ -103,14 +68,14 @@ const confirm = () => {
                 </p>
 
                 <div class="border border-primary rounded-lg min-h-[260px] p-4 text-sm overflow-auto">
-                    <div
+                    <SanitizedHtml
                         v-if="message && messageHtml"
+                        :content="message"
                         class="max-w-none [&_p]:mb-3 [&_ul]:list-disc [&_ul]:pl-5 [&_ol]:list-decimal [&_ol]:pl-5 [&_strong]:font-bold [&_em]:italic"
-                        v-html="sanitizedMessage"
                     />
 
                     <div v-else-if="message" class="whitespace-pre-line">
-                        {{ sanitizedMessage }}
+                        {{ message }}
                     </div>
 
                     <div v-else>Nenhuma mensagem informada.</div>

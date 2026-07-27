@@ -69,9 +69,8 @@ export function useLegalAnalysis(project) {
                         return;
                     }
                     showAlert({
-                        alertTitle: 'Análise jurídica tramitada',
-                        alertMessage:
-                            'Os documentos foram avaliados e as pessoas envolvidas nesse processo foram notificadas.',
+                        alertTitle: 'Tramitação realizada',
+                        alertMessage: 'O processo seguirá com outro setor a partir de agora.',
                         confirmText: 'Entendi',
                         action: () => {
                             router.visit(window.location.pathname, {

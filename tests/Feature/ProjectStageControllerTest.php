@@ -227,9 +227,35 @@ class ProjectStageControllerTest extends TestCase
 
         $this->actingAs($user)
             ->patch(route('projects.stages.advance', [$project, $stage]))
-            ->assertSessionHasErrors(['message']);
+            ->assertSessionHasErrors(['message' => 'Você não tem permissão para tramitar esta etapa.']);
 
         $this->assertEquals(ProjectStageStatus::EM_ANDAMENTO, $stage->fresh()->status);
+    }
+
+    public function test_advance_returns_specific_message_when_stage_not_em_andamento(): void
+    {
+        $project = Project::factory()->create();
+        $stage = $project->stages()
+            ->where('slug', ProjectStageSlug::ANALISE_JURIDICA->value)
+            ->firstOrFail();
+        $user = $this->createUserWithRoles('legal_analysis');
+
+        $this->actingAs($user)
+            ->patch(route('projects.stages.advance', [$project, $stage]))
+            ->assertSessionHasErrors(['message' => 'A etapa precisa estar em andamento para ser aprovada.']);
+    }
+
+    public function test_advance_prioritizes_status_error_over_role_error(): void
+    {
+        $project = Project::factory()->create();
+        $stage = $project->stages()
+            ->where('slug', ProjectStageSlug::ANALISE_JURIDICA->value)
+            ->firstOrFail();
+        $user = User::factory()->create();
+
+        $this->actingAs($user)
+            ->patch(route('projects.stages.advance', [$project, $stage]))
+            ->assertSessionHasErrors(['message' => 'A etapa precisa estar em andamento para ser aprovada.']);
     }
 
     public function test_cannot_advance_monitoring_stage_when_user_is_not_principal_supervisor(): void
@@ -299,7 +325,7 @@ class ProjectStageControllerTest extends TestCase
             ->post(route('projects.stages.return', [$project, $stage]), [
                 'reason' => 'Documentação incompleta, favor revisar.',
             ])
-            ->assertSessionHas('success', 'Processo devolvido com sucesso.');
+            ->assertSessionHas('success', 'O processo foi devolvido aos responsáveis!');
 
         $this->assertEquals(ProjectStageStatus::REJEITADO, $stage->fresh()->status);
 

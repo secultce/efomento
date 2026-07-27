@@ -1,4 +1,6 @@
 <script setup>
+import { useAlert } from '@/Composables/useAlert';
+
 const props = defineProps({
     action: {
         type: Function,
@@ -20,6 +22,18 @@ const props = defineProps({
         default: '',
     },
 });
+
+const { showAlert } = useAlert();
+
+const confirmTramit = () => {
+    showAlert({
+        alertTitle: 'Deseja realizar a tramitação?',
+        alertMessage: 'As informações serão validadas e o processo será passado adiante, notificando os responsáveis.',
+        confirmText: 'Confirmar',
+        cancelButtonText: 'Cancelar',
+        action: props.action,
+    });
+};
 </script>
 
 <template>
@@ -29,7 +43,7 @@ const props = defineProps({
             :loading="props.loading"
             :disabled="props.disabled || props.loading"
             data-cy="tramit-button"
-            @click="props.action"
+            @click="confirmTramit"
         >
             <slot>tramitar</slot>
         </v-btn>

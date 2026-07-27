@@ -8,6 +8,7 @@ import SectionForm from '@/Components/SectionForm.vue';
 import FormField from '@/Components/FormField.vue';
 import TextField from '@/Components/TextField.vue';
 import AuxLinks from '@/Components/AuxLinks.vue';
+import ReturnProcessAction from '@/Components/ReturnProcessAction.vue';
 import DiligenceChat from '@/Components/DiligenceChat.vue';
 import TramitButton from '@/Pages/ProjectDetails/Partials/Tabs/Actions/TramitButton.vue';
 import SaveButton from '@/Pages/ProjectDetails/Partials/Tabs/Actions/SaveButton.vue';
@@ -15,19 +16,18 @@ import { viewSections, formSections } from '@/Schemas/Monitoring';
 import { useSnackbar } from '@/Composables/useSnackbar';
 import { useAlert } from '@/Composables/useAlert';
 import { sanitizeExternalUrl } from '@/Composables/useExternalLink';
-import { usePermissions } from '@/Composables/usePermissions';
 import { useAuth } from '@/Composables/useAuth';
+import { useStageAdvance } from '@/Composables/useStageAdvance';
 
 const props = defineProps({
-    project: {
-        type: Object,
-        default: () => ({}),
-    },
+    project: { type: Object, required: true },
+    canReturn: { type: Boolean, default: false },
+    currentStage: { type: Object, default: null },
+    canAdvance: { type: Boolean, default: false },
 });
 
 const { showSnackbar } = useSnackbar();
 const { showAlert } = useAlert();
-const { canManageMonitoring } = usePermissions();
 const { user } = useAuth();
 
 const isPrincipalSupervisor = computed(() => {
@@ -37,7 +37,10 @@ const isPrincipalSupervisor = computed(() => {
     );
 });
 
-const canUserHandleMonitoring = computed(() => canManageMonitoring.value && isPrincipalSupervisor.value);
+const STAGE_SLUG = 'monitoramento';
+
+const { canUserHandle: canAdvanceMonitoringStage } = useStageAdvance(props, STAGE_SLUG);
+const canUserHandleMonitoring = computed(() => canAdvanceMonitoringStage.value && isPrincipalSupervisor.value);
 
 const activeViewIndex = ref('all');
 
@@ -81,7 +84,7 @@ function parseFieldValue(raw) {
     }
 }
 
-const monitoringStage = computed(() => props.project.stages?.find((s) => s.slug === 'monitoramento') ?? null);
+const monitoringStage = computed(() => props.project.stages?.find((s) => s.slug === STAGE_SLUG) ?? null);
 
 const canRequestNextInstallment = computed(() => {
     const installments = props.project.notice?.installments ?? 1;
@@ -124,9 +127,8 @@ const tramit = () => {
             preserveScroll: true,
             onSuccess: () => {
                 showAlert({
-                    alertTitle: 'Tarefa marcada como tramitada',
-                    alertMessage:
-                        'As informações foram validadas e as pessoas envolvidas nesse processo foram notificadas.',
+                    alertTitle: 'Tramitação realizada',
+                    alertMessage: 'O processo seguirá com outro setor a partir de agora.',
                     confirmText: 'Entendi',
                     action: () => {
                         router.visit(window.location.pathname, {
@@ -208,13 +210,26 @@ function submit() {
         <template #left-content>
             <div class="space-y-6">
                 <div>
-                    <p class="font-bold text-lg">Dados disponíveis para consulta</p>
+                    <div class="font-bold text-lg d-flex justify-between">
+                        <span>Dados disponíveis para consulta</span>
+
+                        <ReturnProcessAction
+                            :project="project"
+                            :current-stage="currentStage"
+                            :can-return="canReturn"
+                            :stage-slug="STAGE_SLUG"
+                            :can-user-handle="canUserHandleMonitoring"
+                        />
+                    </div>
+
                     <p class="text-sm text-gray-600">Utilize os filtros abaixo para navegar entre os dados</p>
                 </div>
-                <section-chips v-model="activeViewIndex" :sections="viewSections" show-all-option />
-                <div class="mt-4 space-y-8">
+
+                <SectionChips v-model="activeViewIndex" :sections="viewSections" show-all-option />
+
+                <div class="space-y-8">
                     <template v-for="(section, index) in viewSections" :key="'view-' + section.title">
-                        <section-content
+                        <SectionContent
                             v-if="activeViewIndex === 'all' || activeViewIndex === index"
                             :section="section"
                             :project="project"
@@ -251,7 +266,7 @@ function submit() {
                 </v-btn>
                 <diligence-chat
                     :project="project"
-                    stage="monitoramento"
+                    :stage="STAGE_SLUG"
                     description="Envie mensagem ao agente cultural sobre o relatório de monitoramento (não vale para notificações, comunicados, solicitações etc.)"
                     :can-send="canUserHandleMonitoring"
                 />

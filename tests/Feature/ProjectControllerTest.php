@@ -188,6 +188,35 @@ class ProjectControllerTest extends TestCase
         );
     }
 
+    public function test_project_detail_can_advance_is_true_when_user_has_current_stage_role(): void
+    {
+        Role::firstOrCreate(['name' => 'fomentation', 'guard_name' => 'web']);
+
+        $notice = Notice::factory()->create();
+        $project = Project::factory()->create(['notice_id' => $notice->id]);
+        $this->user->assignRole('fomentation');
+
+        $response = $this->actingAs($this->user)
+            ->get(route('notices.projects.show', [$notice, $project]));
+
+        $response->assertInertia(fn ($page) => $page
+            ->where('canAdvance', true)
+        );
+    }
+
+    public function test_project_detail_can_advance_is_false_when_user_lacks_current_stage_role(): void
+    {
+        $notice = Notice::factory()->create();
+        $project = Project::factory()->create(['notice_id' => $notice->id]);
+
+        $response = $this->actingAs($this->user)
+            ->get(route('notices.projects.show', [$notice, $project]));
+
+        $response->assertInertia(fn ($page) => $page
+            ->where('canAdvance', false)
+        );
+    }
+
     // -------------------------------------------------------------------------
     // assignProjectSupervisor
     // -------------------------------------------------------------------------

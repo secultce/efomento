@@ -1,5 +1,6 @@
 <script setup>
 import { computed } from 'vue';
+import SanitizedHtml from '@/Components/SanitizedHtml.vue';
 
 const props = defineProps({
     modelValue: { type: Boolean, default: false },
@@ -18,6 +19,10 @@ const title = computed(
 );
 
 const resolvedBody = computed(() => {
+    if (props.document?.resolved_body != null) {
+        return props.document.resolved_body;
+    }
+
     const body = props.document?.body;
     const project = props.document?.project;
     if (!body || !project) return body ?? '';
@@ -63,8 +68,11 @@ function close() {
             <v-divider />
 
             <v-card-text class="flex-grow-1 overflow-y-auto pa-6">
-                <!-- eslint-disable-next-line vue/no-v-html -->
-                <div v-if="resolvedBody" class="text-sm text-[#3b3b3c] leading-relaxed" v-html="resolvedBody" />
+                <SanitizedHtml
+                    v-if="resolvedBody"
+                    :content="resolvedBody"
+                    class="text-sm text-[#3b3b3c] leading-relaxed"
+                />
                 <div v-else class="text-center text-gray-400 py-6">Sem conteúdo disponível.</div>
             </v-card-text>
 
