@@ -68,27 +68,11 @@ class ForamlizationWorkflow {
         Project.clickCancelDocumentButton();
     }
 
-    createLegalOpinion({ role, notice, project, documentType }) {
-        cy.loginByRole(role);
+    tramitWithRequiredFieldsEmpty({ role, notice, project }) {
+        this.accessFormalizationTab({ role, notice, project });
 
-        Notice.visitPage();
-        Notice.searchNoticeByNup(notice.noticeNup);
-        Notice.goToNoticeDetailsPage(notice.noticeNup);
-
-        Project.clickFilterFormalizationPhase();
-        Project.validateFilterFormalizationPhase();
-        Project.findProjectByProjectNup(project.projectNup);
-
-        Project.selectProject();
-
-        Project.clickCreateDocument(documentType.createButton);
-        Project.fillDocument(documentType.text);
-        Project.saveDocument();
-        Project.verifySuccessMessageSaveDocument();
-        Project.validateDocumentCreated(documentType.chip);
-        Project.clickEditDocument(documentType.editButton);
-        Project.validateDocumentContent(documentType.text);
-        Project.clickCancelDocumentButton();
+        FormalizationTab.clickTramitDisable();
+        FormalizationTab.displayRequiredFieldsMessageError();
     }
 
     returnProcessToLealAnalysisTab({ role, notice, project, documentType }) {

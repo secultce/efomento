@@ -526,16 +526,27 @@ const permissionMessage = computed(() => {
                             <template v-if="section.key === 'dates_and_status_process'">
                                 <div class="grid grid-cols-2 gap-4">
                                     <FormField label="Data de tramitação da finalística para a ASJUR">
-                                        <TextField v-model="form.asjur_finalistic_processing_date" type="date" />
+                                        <TextField
+                                            v-model="form.asjur_finalistic_processing_date"
+                                            type="date"
+                                            data-cy="asjur-finalistic-processing-date"
+                                        />
                                     </FormField>
 
                                     <FormField label="Data de recebimento do processo pela ASJUR">
-                                        <TextField v-model="form.asjur_received_at" type="date" />
+                                        <TextField
+                                            v-model="form.asjur_received_at"
+                                            type="date"
+                                            data-cy="asjur-process-received-date"
+                                        />
                                     </FormField>
 
                                     <div class="col-span-2 grid grid-cols-2 gap-4">
                                         <FormField label="Processo distribuído para">
-                                            <TextField v-model="form.process_assigned_to" />
+                                            <TextField
+                                                v-model="form.process_assigned_to"
+                                                data-cy="process-assigned-to"
+                                            />
                                         </FormField>
 
                                         <div></div>
@@ -548,11 +559,16 @@ const permissionMessage = computed(() => {
                                             item-title="label"
                                             item-value="value"
                                             placeholder="Selecione um status"
+                                            data-cy="report-status-select"
                                         />
                                     </FormField>
 
                                     <FormField label="Data da certidão">
-                                        <TextField v-model="form.eparcerias_certificate_date" type="date" />
+                                        <TextField
+                                            v-model="form.eparcerias_certificate_date"
+                                            type="date"
+                                            data-cy="eparcerias-certificate-date"
+                                        />
                                     </FormField>
                                 </div>
                             </template>
@@ -560,15 +576,22 @@ const permissionMessage = computed(() => {
                             <template v-else-if="section.key === 'signature_form'">
                                 <div class="grid grid-cols-2 gap-4">
                                     <FormField label="Data de tramitação na ASJUR">
-                                        <TextField v-model="form.asjur_processing_date" type="date" />
+                                        <TextField
+                                            v-model="form.asjur_processing_date"
+                                            type="date"
+                                            data-cy="asjur-processing-date-input"
+                                        />
                                     </FormField>
 
                                     <FormField label="Responsável (Distribuido para)">
-                                        <TextField v-model="form.responsible_at_asjur" />
+                                        <TextField
+                                            v-model="form.responsible_at_asjur"
+                                            data-cy="responsible-at-asjur-input"
+                                        />
                                     </FormField>
 
                                     <FormField label="Número do termo">
-                                        <TextField v-model="form.term_number" />
+                                        <TextField v-model="form.term_number" data-cy="term-number-input" />
                                     </FormField>
                                 </div>
                             </template>
@@ -576,19 +599,35 @@ const permissionMessage = computed(() => {
                             <template v-else-if="section.key === 'signing_term'">
                                 <div class="grid grid-cols-2 gap-4">
                                     <FormField label="Data do envio para assinatura do termo">
-                                        <TextField v-model="form.term_signature_sent_at" type="date" />
+                                        <TextField
+                                            v-model="form.term_signature_sent_at"
+                                            type="date"
+                                            data-cy="term-signature-sent-at-input"
+                                        />
                                     </FormField>
 
                                     <FormField label="Data da assinatura do termo">
-                                        <TextField v-model="form.term_signed_at" type="date" />
+                                        <TextField
+                                            v-model="form.term_signed_at"
+                                            type="date"
+                                            data-cy="term-signed-at-input"
+                                        />
                                     </FormField>
 
                                     <FormField label="Data de envio para Gabinete">
-                                        <TextField v-model="form.sent_to_office_at" type="date" />
+                                        <TextField
+                                            v-model="form.sent_to_office_at"
+                                            type="date"
+                                            data-cy="sent-to-office-at-input"
+                                        />
                                     </FormField>
 
                                     <FormField label="Data de assinatura do termo pelo Gabinete">
-                                        <TextField v-model="form.signed_by_office_at" type="date" />
+                                        <TextField
+                                            v-model="form.signed_by_office_at"
+                                            type="date"
+                                            data-cy="signed-by-office-at-input"
+                                        />
                                     </FormField>
                                 </div>
                             </template>
@@ -597,14 +636,14 @@ const permissionMessage = computed(() => {
                                 <div class="grid grid-cols-2 gap-4">
                                     <div class="col-span-2 grid grid-cols-2 gap-4">
                                         <FormField label="Número do SACC">
-                                            <TextField v-model="form.sacc_number" />
+                                            <TextField v-model="form.sacc_number" data-cy="sacc-number-input" />
                                         </FormField>
 
                                         <div></div>
                                     </div>
 
                                     <FormField label="Chamado CGE atende">
-                                        <TextField v-model="form.cge_atende_ticket" />
+                                        <TextField v-model="form.cge_atende_ticket" data-cy="cge-atende-ticket-input" />
                                     </FormField>
 
                                     <FormField label="Deliberação">
@@ -614,6 +653,7 @@ const permissionMessage = computed(() => {
                                             item-title="label"
                                             item-value="value"
                                             placeholder="Selecione um status"
+                                            data-cy="deliberation-select"
                                         />
                                     </FormField>
                                 </div>
@@ -622,11 +662,19 @@ const permissionMessage = computed(() => {
                             <template v-else-if="section.key === 'official_gazette'">
                                 <div class="grid grid-cols-2 gap-4">
                                     <FormField label="Data de envio para Casa Civil">
-                                        <TextField v-model="form.sent_to_chief_of_staff_at" type="date" />
+                                        <TextField
+                                            v-model="form.sent_to_chief_of_staff_at"
+                                            type="date"
+                                            data-cy="sent-to-chief-of-staff-at-input"
+                                        />
                                     </FormField>
 
                                     <FormField label="Data de Publicação do Diário Oficial do Estado">
-                                        <TextField v-model="form.official_gazette_published_at" type="date" />
+                                        <TextField
+                                            v-model="form.official_gazette_published_at"
+                                            type="date"
+                                            data-cy="official-gazette-published-at-input"
+                                        />
                                     </FormField>
 
                                     <FormField
@@ -645,6 +693,7 @@ const permissionMessage = computed(() => {
                                                 <button
                                                     type="button"
                                                     title="Remover arquivo"
+                                                    data-cy="remove-official-gazette-file-button"
                                                     @click="removeOfficialGazetteFile"
                                                 >
                                                     <v-icon size="20">mdi-trash-can-outline</v-icon>
@@ -653,6 +702,7 @@ const permissionMessage = computed(() => {
                                                 <button
                                                     type="button"
                                                     title="Visualizar arquivo"
+                                                    data-cy="view-official-gazette-file-button"
                                                     @click="viewOfficialGazetteFile"
                                                 >
                                                     <v-icon size="20">mdi-eye-outline</v-icon>
@@ -661,6 +711,7 @@ const permissionMessage = computed(() => {
                                                 <button
                                                     type="button"
                                                     title="Baixar arquivo"
+                                                    data-cy="download-official-gazette-file-button"
                                                     @click="downloadOfficialGazetteFile"
                                                 >
                                                     <v-icon size="20">mdi-download-box</v-icon>
@@ -681,12 +732,14 @@ const permissionMessage = computed(() => {
                                                 type="file"
                                                 class="hidden"
                                                 accept=".pdf,.doc,.docx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+                                                data-cy="official-gazette-file-input"
                                                 @change="onOfficialGazetteFileSelected"
                                             />
 
                                             <button
                                                 type="button"
                                                 class="mr-3 px-3 py-1 rounded-full bg-[#ffcc05FF] text-[#2d353fFF] text-xs font-bold"
+                                                data-cy="attach-official-gazette-file-button"
                                                 @click="officialGazetteFileInput?.click()"
                                             >
                                                 anexar
@@ -699,11 +752,19 @@ const permissionMessage = computed(() => {
                             <template v-else-if="section.key === 'validity_instrument'">
                                 <div class="grid grid-cols-2 gap-4">
                                     <FormField label="Data de início da vigência do instrumento">
-                                        <TextField v-model="form.validity_start_at" type="date" />
+                                        <TextField
+                                            v-model="form.validity_start_at"
+                                            type="date"
+                                            data-cy="instrument-validity-start-at-input"
+                                        />
                                     </FormField>
 
                                     <FormField label="Data de término da vigência do instrumento">
-                                        <TextField v-model="form.validity_end_at" type="date" />
+                                        <TextField
+                                            v-model="form.validity_end_at"
+                                            type="date"
+                                            data-cy="instrument-validity-end-at-input"
+                                        />
                                     </FormField>
                                 </div>
                             </template>
@@ -711,14 +772,22 @@ const permissionMessage = computed(() => {
                             <template v-else-if="section.key === 'legal_opinion'">
                                 <div class="grid grid-cols-2 gap-4">
                                     <FormField label="Data do parecer jurídico">
-                                        <TextField v-model="form.legal_opinion_date" type="date" />
+                                        <TextField
+                                            v-model="form.legal_opinion_date"
+                                            type="date"
+                                            data-cy="legal-opinion-date-input"
+                                        />
                                     </FormField>
                                 </div>
                             </template>
                         </template>
                     </SectionForm>
 
-                    <div :class="{ 'cursor-not-allowed': !canTramitFormalization }" @click="showTramitBlockedMessage">
+                    <div
+                        data-cy="tramit-container"
+                        :class="{ 'cursor-not-allowed': !canTramitFormalization }"
+                        @click="showTramitBlockedMessage"
+                    >
                         <TramitButton
                             :action="tramit"
                             :disabled="!canTramitFormalization"

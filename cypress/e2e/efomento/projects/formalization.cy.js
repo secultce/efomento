@@ -17,6 +17,16 @@ describe('Formalization', () => {
         });
     });
 
+    describe('Validations', () => {
+        it('should display a a message error when tramit process with required fields empty', function () {
+            FormalizationWorkflow.tramitWithRequiredFieldsEmpty({
+                role: 'formalization',
+                notice: this.notice,
+                project: this.project,
+            });
+        });
+    });
+
     describe('Document Generation', () => {
         it('should create cultural execution term', function () {
             FormalizationWorkflow.createCulturalExecutionTerm({
