@@ -2,8 +2,10 @@
 
 namespace App\Models;
 
+use App\Enums\CearaMacroregion;
 use App\Enums\ProfileSnapshotSource;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
@@ -11,6 +13,10 @@ use Illuminate\Database\Eloquent\Relations\MorphTo;
 class ProfileSnapshot extends Model
 {
     use HasFactory;
+
+    protected $appends = [
+        'macroregion',
+    ];
 
     protected $fillable = [
         'object_id',
@@ -51,5 +57,12 @@ class ProfileSnapshot extends Model
     public function scopeLatestSnapshot(Builder $query): Builder
     {
         return $query->orderByDesc('recorded_at');
+    }
+
+    protected function macroregion(): Attribute
+    {
+        return Attribute::get(
+            fn (): ?string => CearaMacroregion::forCity($this->city)?->value
+        );
     }
 }
