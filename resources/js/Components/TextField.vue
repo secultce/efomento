@@ -118,6 +118,7 @@ function handleKeypress(e) {
         :inputmode="money ? 'decimal' : undefined"
         :clearable="clearable"
         variant="outlined"
+        class="mt-2"
         @update:model-value="handleInput"
         @keypress="handleKeypress"
     />
