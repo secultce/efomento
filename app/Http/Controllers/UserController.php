@@ -27,7 +27,7 @@ class UserController extends Controller
             return back()->withErrors(['general' => 'Não foi possível cadastrar o usuário. Tente novamente.']);
         }
 
-        if ($request->hasFile('photo') && ! $user->avatarFile()) {
+        if ($request->hasFile('photo') && ! $user->avatarFile) {
             return redirect()->route('groups.index')
                 ->with('success', 'Usuário cadastrado com sucesso, mas não foi possível salvar a foto enviada.');
         }

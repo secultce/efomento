@@ -6,6 +6,7 @@ namespace App\Models;
 use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use OwenIt\Auditing\Auditable as AuditableTrait;
@@ -63,22 +64,20 @@ class User extends Authenticatable implements Auditable
         return $this->hasMany(OpeningSupervisor::class, 'assigned_by');
     }
 
-    public function avatarFile(): ?File
+    public function avatarFile(): HasOne
     {
         // User não participa do morph map global (isso quebraria o notifiable_type
         // das notificações nativas do Laravel, que usa o mesmo morph map) — o alias
         // 'user' é o mesmo que o FileService gera via fallback (Str::snake(class_basename())).
         // documentar depois na Wiki secult
-        return File::query()
+        return $this->hasOne(File::class, 'object_id')
             ->where('object_type', 'user')
-            ->where('object_id', $this->getKey())
             ->where('grp', 'avatar')
-            ->latest()
-            ->first();
+            ->latestOfMany();
     }
 
     public function avatarUrl(): ?string
     {
-        return $this->avatarFile()?->url;
+        return $this->avatarFile?->url;
     }
 }

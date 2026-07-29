@@ -70,7 +70,7 @@ class GroupController extends Controller
             ->map(fn ($label, $key) => ['key' => $key, 'label' => $label])
             ->values();
 
-        $users = User::with('roles')->get()->map(fn ($user) => [
+        $users = User::with(['roles', 'avatarFile'])->get()->map(fn ($user) => [
             'id' => $user->id,
             'name' => $user->name,
             'email' => $user->email,
