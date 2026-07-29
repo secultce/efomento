@@ -31,6 +31,7 @@ fi
 
 php artisan key:generate --force
 php artisan migrate --force
+php artisan storage:link
 
 # Iniciar PHP-FPM
 exec php-fpm

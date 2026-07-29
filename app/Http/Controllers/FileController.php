@@ -16,7 +16,7 @@ class FileController extends Controller
 
     public function store(FileRequest $request, string $objectType, int $objectId): FileResource
     {
-        $map = Relation::getMorphMap();
+        $map = Relation::morphMap();
 
         abort_unless(isset($map[$objectType]), 422, 'Tipo de entidade inválido.');
 

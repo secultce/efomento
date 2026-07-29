@@ -69,118 +69,111 @@ function changePassword() {
                 <v-container class="mb-6">
                     <v-row align="start" no-gutters>
                         <v-col cols="3" class="pa-2">
-                            <v-row align="start" no-gutters>
-                                <v-col cols="3">
-                                    <v-avatar size="50">
-                                        <v-img v-if="user.avatar" :src="user.avatar" :alt="user.name" />
-                                        <span v-else class="text-primary text-caption font-weight-bold">
-                                            {{ iniciais(user.name) }}
-                                        </span>
-                                    </v-avatar>
-                                </v-col>
-                                <v-col cols="9">
-                                    <h3 class="text-[#008344FF] font-weight-bold mt-2">
-                                        {{ user.name }}
-                                    </h3>
-                                </v-col>
-                                <v-card class="mx-auto mt-4" width="100%" variant="flat">
-                                    <v-list density="compact">
-                                        <v-list-item
-                                            :value="'info'"
-                                            color="primary"
-                                            :active="activeTab === 'info'"
-                                            @click="activeTab = 'info'"
-                                        >
-                                            <template #prepend>
-                                                <v-icon icon="mdi-account" />
-                                            </template>
-                                            <v-list-item-title>Minhas informações</v-list-item-title>
-                                        </v-list-item>
-                                        <v-list-item
-                                            :value="'password'"
-                                            color="primary"
-                                            :active="activeTab === 'password'"
-                                            @click="activeTab = 'password'"
-                                        >
-                                            <template #prepend>
-                                                <v-icon icon="mdi-key" />
-                                            </template>
-                                            <v-list-item-title>Senha</v-list-item-title>
-                                        </v-list-item>
-                                    </v-list>
-                                </v-card>
-                            </v-row>
+                            <div class="d-flex align-center">
+                                <v-avatar size="50">
+                                    <v-img v-if="user.avatar" :src="user.avatar" :alt="user.name" />
+                                    <span v-else class="text-primary text-caption font-weight-bold">
+                                        {{ iniciais(user.name) }}
+                                    </span>
+                                </v-avatar>
+                                <h3 class="text-primary font-weight-bold ml-3">
+                                    {{ user.name }}
+                                </h3>
+                            </div>
+
+                            <v-card class="mt-4 pa-2" width="100%" variant="flat" color="#f5f5f5">
+                                <v-list density="compact" bg-color="transparent">
+                                    <v-list-item
+                                        :value="'info'"
+                                        rounded="lg"
+                                        :class="activeTab === 'info' ? 'bg-white font-weight-bold' : ''"
+                                        :active="false"
+                                        @click="activeTab = 'info'"
+                                    >
+                                        <template #prepend>
+                                            <v-icon icon="mdi-account" />
+                                        </template>
+                                        <v-list-item-title>Minhas informações</v-list-item-title>
+                                    </v-list-item>
+                                    <v-list-item
+                                        :value="'password'"
+                                        rounded="lg"
+                                        :class="activeTab === 'password' ? 'bg-white font-weight-bold' : ''"
+                                        :active="false"
+                                        @click="activeTab = 'password'"
+                                    >
+                                        <template #prepend>
+                                            <v-icon icon="mdi-key" />
+                                        </template>
+                                        <v-list-item-title>Senha</v-list-item-title>
+                                    </v-list-item>
+                                </v-list>
+                            </v-card>
                         </v-col>
 
-                        <v-col cols="9">
+                        <v-col cols="9" class="pa-2">
                             <template v-if="activeTab === 'info'">
-                                <v-row class="mb-2 p-2">
-                                    <v-col>
-                                        <h3>Minhas informações</h3>
-                                    </v-col>
-                                </v-row>
-                                <v-card>
-                                    <div class="pa-6">
-                                        <v-text-field
-                                            v-model="profileForm.name"
-                                            label="Nome"
-                                            variant="outlined"
-                                            :error-messages="profileForm.errors.name"
-                                            class="mb-2"
-                                        />
-                                        <v-text-field
-                                            v-model="profileForm.email"
-                                            label="E-mail"
-                                            type="email"
-                                            variant="outlined"
-                                            :error-messages="profileForm.errors.email"
-                                            class="mb-2"
-                                        />
-                                        <v-btn
-                                            rounded="lg"
-                                            variant="outlined"
-                                            :loading="profileForm.processing"
-                                            @click="saveProfile"
-                                        >
-                                            salvar
-                                        </v-btn>
-                                    </div>
+                                <h3 class="text-h5 font-weight-bold mb-4">Minhas informações</h3>
+                                <v-card variant="outlined" rounded="lg" class="pa-6">
+                                    <v-text-field
+                                        v-model="profileForm.name"
+                                        label="Nome"
+                                        variant="outlined"
+                                        rounded="lg"
+                                        :error-messages="profileForm.errors.name"
+                                        class="mb-2"
+                                    />
+                                    <v-text-field
+                                        v-model="profileForm.email"
+                                        label="E-mail"
+                                        type="email"
+                                        variant="outlined"
+                                        rounded="lg"
+                                        :error-messages="profileForm.errors.email"
+                                        class="mb-2"
+                                    />
+                                    <v-btn
+                                        rounded="lg"
+                                        variant="outlined"
+                                        color="outlineSecondary"
+                                        :loading="profileForm.processing"
+                                        @click="saveProfile"
+                                    >
+                                        salvar
+                                    </v-btn>
                                 </v-card>
                             </template>
 
                             <template v-if="activeTab === 'password'">
-                                <v-row class="mb-2 p-2">
-                                    <v-col>
-                                        <h3>Senha</h3>
-                                    </v-col>
-                                </v-row>
-                                <v-card>
-                                    <div class="pa-6">
-                                        <v-text-field
-                                            v-model="passwordForm.password"
-                                            label="Nova senha"
-                                            type="password"
-                                            variant="outlined"
-                                            :error-messages="passwordForm.errors.password"
-                                            class="mb-2"
-                                        />
-                                        <v-text-field
-                                            v-model="passwordForm.password_confirmation"
-                                            label="Confirme a nova senha"
-                                            type="password"
-                                            variant="outlined"
-                                            :error-messages="passwordForm.errors.password_confirmation"
-                                            class="mb-2"
-                                        />
-                                        <v-btn
-                                            rounded="lg"
-                                            variant="outlined"
-                                            :loading="passwordForm.processing"
-                                            @click="changePassword"
-                                        >
-                                            alterar senha
-                                        </v-btn>
-                                    </div>
+                                <h3 class="text-h5 font-weight-bold mb-4">Senha</h3>
+                                <v-card variant="outlined" rounded="lg" class="pa-6">
+                                    <v-text-field
+                                        v-model="passwordForm.password"
+                                        label="Nova senha"
+                                        type="password"
+                                        variant="outlined"
+                                        rounded="lg"
+                                        :error-messages="passwordForm.errors.password"
+                                        class="mb-2"
+                                    />
+                                    <v-text-field
+                                        v-model="passwordForm.password_confirmation"
+                                        label="Confirme a nova senha"
+                                        type="password"
+                                        variant="outlined"
+                                        rounded="lg"
+                                        :error-messages="passwordForm.errors.password_confirmation"
+                                        class="mb-2"
+                                    />
+                                    <v-btn
+                                        rounded="lg"
+                                        variant="outlined"
+                                        color="outlineSecondary"
+                                        :loading="passwordForm.processing"
+                                        @click="changePassword"
+                                    >
+                                        alterar senha
+                                    </v-btn>
                                 </v-card>
                             </template>
                         </v-col>
