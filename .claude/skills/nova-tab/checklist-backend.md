@@ -5,7 +5,8 @@ Use este checklist apenas quando o usuário confirmar que quer criar o backend d
 1. **Migration** — tabela `<etapas>` (plural snake_case) com `project_id` FK, campos de data como `date`, `created_by`, `softDeletes`, timestamps. Referência: migration da tabela `formalizations` em `database/migrations/`.
 
 2. **Model** — `app/Models/<Etapa>.php`. Referência: `app/Models/Formalization.php`:
-   - `implements Auditable` + traits `AuditableTrait, HasCreatedBy, HasFactory, HasFiles, SoftDeletes`
+   - `implements Auditable` + traits `AuditableTrait, HasCreatedBy, HasFactory, SoftDeletes`
+   - `HasFiles` **somente se a etapa tiver upload de arquivo** — não adicione o trait (nem os campos/relação de files) em etapas sem upload
    - `$fillable` completo, `$casts` com `'campo' => 'date'` para datas e enums com classe
    - relação `project()` (`belongsTo`)
 

@@ -44,7 +44,7 @@ Criar `resources/js/Schemas/<Etapa>/`:
      - `getDate('relacao.campo')` — formata data
      - `addDaysTo('campo', dias)` — data + N dias (combine com `format: 'datetime'`)
      - `daysBetween('relacao.inicio', 'relacao.fim')` — dias entre duas datas
-   - Atenção: a relação de formalização chama-se **`formalizations`** (plural) no JSON.
+   - Exceção conhecida: a relação de **Formalization** chama-se **`formalizations`** (plural, mesmo sendo `HasOne`) no JSON — use esse nome só para essa etapa. Para todas as outras etapas, use o nome de relação definido com o usuário no Passo 1 (`props.project.<relacao>`), nunca `formalizations`.
 2. **`formSections.js`** — `export const formSections = [{ title: '...', key: 'slug-da-secao' }]`
 3. **`index.js`** — barrel export: `export { viewSections } from './viewSections'; export { formSections } from './formSections';`
 
