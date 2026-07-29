@@ -5,9 +5,11 @@ namespace Tests\Feature\User;
 use App\Enums\Role as RoleEnum;
 use App\Models\User;
 use App\Services\FileService;
+use Illuminate\Contracts\Filesystem\Filesystem;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
+use Mockery;
 use RuntimeException;
 use Spatie\Permission\Models\Role;
 use Tests\TestCase;
@@ -100,6 +102,33 @@ class StoreAvatarTest extends TestCase
         $this->mock(FileService::class, function ($mock) {
             $mock->shouldReceive('upload')->andThrow(new RuntimeException('disco cheio'));
         });
+
+        $photo = UploadedFile::fake()->image('avatar.jpg');
+
+        $response = $this->actingAs($this->admin)
+            ->post(route('users.store'), $this->validPayload(['photo' => $photo]));
+
+        $response->assertRedirect(route('groups.index'));
+        $response->assertSessionHasNoErrors();
+        $response->assertSessionHas('success', 'Usuário cadastrado com sucesso, mas não foi possível salvar a foto enviada.');
+
+        $user = User::where('email', 'maria.teste@example.com')->firstOrFail();
+
+        $this->assertDatabaseMissing('files', [
+            'object_type' => 'user',
+            'object_id' => $user->id,
+        ]);
+    }
+
+    public function test_user_is_still_created_when_disk_fails_to_store_avatar_without_throwing(): void
+    {
+        $disk = config('efomento.file_disk', 'public');
+
+        Storage::shouldReceive('disk')
+            ->with($disk)
+            ->andReturn(tap(Mockery::mock(Filesystem::class), function ($mock) {
+                $mock->shouldReceive('putFileAs')->once()->andReturn(false);
+            }));
 
         $photo = UploadedFile::fake()->image('avatar.jpg');
 
