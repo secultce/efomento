@@ -155,7 +155,7 @@ async function submit() {
                         </v-col>
 
                         <v-col cols="12" md="6">
-                            <FormField label="CPF" :error="form.errors.cpf" required>
+                            <FormField label="CPF" :error="form.errors.cpf">
                                 <TextField v-model="cpfModel" placeholder="Insira o CPF" maxlength="14" />
                             </FormField>
                         </v-col>
