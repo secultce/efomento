@@ -188,6 +188,7 @@ const submit = () => {
 };
 
 const tramitLoading = ref(false);
+const showValidationErrors = ref(false);
 
 const advanceStage = () => {
     router.patch(
@@ -223,6 +224,13 @@ const advanceStage = () => {
 };
 
 const tramit = () => {
+    if (!allRequiredFilled.value) {
+        showValidationErrors.value = true;
+        showSnackbar('Preencha e salve todos os campos obrigatórios em destaque antes de tramitar.', 'error');
+        return;
+    }
+
+    showValidationErrors.value = false;
     tramitLoading.value = true;
 
     form.patch(
@@ -245,6 +253,55 @@ const tramit = () => {
     );
 };
 
+const isNupValid = computed(() => String(form.opening.opening_nup ?? '').replace(/\D/g, '').length === 17);
+const isAllocationNumberValid = computed(
+    () => String(form.opening.allocation_number ?? '').replace(/\D/g, '').length === 41
+);
+const hasPrincipalSupervisor = computed(() =>
+    (form.opening.supervisors ?? []).some((s) => s.type === 'principal' && !!s.id)
+);
+const hasAlternateSupervisor = computed(() =>
+    (form.opening.supervisors ?? []).some((s) => s.type === 'alternate' && !!s.id)
+);
+
+const hasText = (value) => String(value ?? '').trim().length > 0;
+
+const allRequiredFilled = computed(() => {
+    const opening = form.opening ?? {};
+
+    return !!(
+        isNupValid.value &&
+        hasText(opening.creditor_number) &&
+        hasText(opening.allocation_code) &&
+        isAllocationNumberValid.value &&
+        hasText(opening.bank) &&
+        opening.account_type &&
+        hasText(opening.branch) &&
+        hasText(opening.account) &&
+        hasPrincipalSupervisor.value &&
+        hasAlternateSupervisor.value
+    );
+});
+
+const errors = computed(() => {
+    if (!showValidationErrors.value) return {};
+
+    const standardMessage = 'Preencha este campo';
+
+    return {
+        nup: !isNupValid.value ? 'Preencha o número do processo (17 dígitos)' : null,
+        creditorNumber: !hasText(form.opening.creditor_number) ? standardMessage : null,
+        allocationCode: !hasText(form.opening.allocation_code) ? standardMessage : null,
+        allocationNumber: !isAllocationNumberValid.value ? 'Preencha a dotação completa (41 dígitos)' : null,
+        bank: !hasText(form.opening.bank) ? standardMessage : null,
+        accountType: !form.opening.account_type ? standardMessage : null,
+        branch: !hasText(form.opening.branch) ? standardMessage : null,
+        account: !hasText(form.opening.account) ? standardMessage : null,
+        principalSupervisor: !hasPrincipalSupervisor.value ? standardMessage : null,
+        alternateSupervisor: !hasAlternateSupervisor.value ? standardMessage : null,
+    };
+});
+
 const permissionMessage = computed(() => {
     if (stage?.status === 'bloqueado') {
         return 'Este projeto está bloqueado e não pode receber alterações no momento.';
@@ -263,32 +320,6 @@ const permissionMessage = computed(() => {
     }
 
     return '';
-});
-
-const allRequiredFilled = computed(() => {
-    const opening = form.opening ?? {};
-    const formalization = form.formalization ?? {};
-
-    const hasPrincipalSupervisor = (opening.supervisors ?? []).some((s) => s.type === 'principal' && !!s.id);
-    const hasValidNup = String(opening.opening_nup ?? '').replace(/\D/g, '').length === 17;
-    const hasValidAllocationNumber = String(opening.allocation_number ?? '').replace(/\D/g, '').length === 41;
-
-    return !!(
-        hasValidNup &&
-        hasValidAllocationNumber &&
-        opening.opening_date &&
-        opening.opened_by &&
-        opening.agent_status &&
-        opening.creditor_number &&
-        opening.allocation_code &&
-        opening.bank &&
-        opening.account_type &&
-        opening.branch &&
-        opening.account &&
-        hasPrincipalSupervisor &&
-        formalization.report_status &&
-        formalization.eparcerias_certificate_date
-    );
 });
 
 const secondaryPhoneModel = computed({
@@ -348,16 +379,22 @@ const activeEditIndex = ref('all');
                         <template #default="{ section }">
                             <template v-if="section.key === 'opening'">
                                 <div class="grid grid-cols-2 gap-4">
-                                    <form-field label="Número do processo*" required>
+                                    <form-field label="Número do processo" required :error="errors.nup">
                                         <text-field
                                             v-model="form.opening.opening_nup"
                                             mask="#####.######/####-##"
+                                            label="Insira aqui o número do processo"
                                             data-cy="project-nup-opening-tab"
+                                            :error="errors.nup"
                                         />
                                     </form-field>
 
-                                    <form-field label="Data de abertura do processo" required>
-                                        <text-field v-model="form.opening.opening_date" type="date" />
+                                    <form-field label="Data de abertura do processo">
+                                        <text-field
+                                            v-model="form.opening.opening_date"
+                                            type="date"
+                                            label="Insira a data de abertura"
+                                        />
                                     </form-field>
 
                                     <form-field label="Status do agente cultural">
@@ -366,32 +403,53 @@ const activeEditIndex = ref('all');
                                             :items="props.agentStatus"
                                             item-title="label"
                                             item-value="value"
-                                            placeholder="Selecione um tipo"
+                                            label="Selecione um status"
                                         />
                                     </form-field>
 
-                                    <form-field label="Responsável por abrir o processo" required>
-                                        <text-field v-model="form.opening.opened_by" />
+                                    <form-field label="Responsável por abrir o processo">
+                                        <text-field
+                                            v-model="form.opening.opened_by"
+                                            label="Insira o nome do responsável"
+                                        />
                                     </form-field>
                                 </div>
                             </template>
                             <template v-else-if="section.key === 'creditor'">
                                 <div class="grid grid-cols-2 gap-4">
-                                    <form-field label="Número do cadastro do credor">
-                                        <text-field v-model="form.opening.creditor_number" />
+                                    <form-field
+                                        label="Número do cadastro do credor"
+                                        required
+                                        :error="errors.creditorNumber"
+                                    >
+                                        <text-field
+                                            v-model="form.opening.creditor_number"
+                                            label="Insira aqui o número"
+                                            :error="errors.creditorNumber"
+                                        />
                                     </form-field>
                                 </div>
                             </template>
                             <template v-else-if="section.key === 'budget_allocation'">
                                 <div class="grid grid-cols-2 gap-4">
-                                    <form-field label="Código da dotação">
-                                        <text-field v-model="form.opening.allocation_code" />
+                                    <form-field label="Código da dotação" required :error="errors.allocationCode">
+                                        <text-field
+                                            v-model="form.opening.allocation_code"
+                                            label="Insira aqui o código reduzido da dotação"
+                                            :error="errors.allocationCode"
+                                        />
                                     </form-field>
 
-                                    <form-field label="Número completo da dotação">
+                                    <form-field
+                                        label="Número completo da dotação"
+                                        required
+                                        :error="errors.allocationNumber"
+                                    >
                                         <text-field
                                             v-model="form.opening.allocation_number"
                                             mask="########.##.###.###.#####.##.######.#.##########.#"
+                                            label="Insira aqui o número"
+                                            :error="errors.allocationNumber"
                                         />
                                     </form-field>
                                 </div>
@@ -404,13 +462,14 @@ const activeEditIndex = ref('all');
                                             :items="props.reportStatus"
                                             item-title="label"
                                             item-value="value"
-                                            placeholder="Selecione um tipo"
+                                            label="Selecione um status"
                                         />
                                     </form-field>
 
                                     <form-field label="Data da certidão">
                                         <text-field
                                             v-model="form.formalization.eparcerias_certificate_date"
+                                            label="Insira a data em que a certidão foi gerada no e-parcerias"
                                             type="date"
                                         />
                                     </form-field>
@@ -418,54 +477,71 @@ const activeEditIndex = ref('all');
                             </template>
                             <template v-else-if="section.key === 'bank'">
                                 <div class="grid grid-cols-2 gap-4">
-                                    <form-field label="Banco">
-                                        <text-field v-model="form.opening.bank" />
+                                    <form-field label="Banco" required :error="errors.bank">
+                                        <text-field
+                                            v-model="form.opening.bank"
+                                            label="Nome do banco"
+                                            :error="errors.bank"
+                                        />
                                     </form-field>
-                                    <form-field label="Tipo de conta">
+                                    <form-field label="Tipo de conta" required :error="errors.accountType">
                                         <select-field
                                             v-model="form.opening.account_type"
                                             item-title="label"
                                             item-value="value"
                                             :items="props.accountType"
-                                            placeholder="Selecione um tipo"
+                                            label="Selecione um tipo"
+                                            :error="errors.accountType"
                                         />
                                     </form-field>
-                                    <form-field label="Agência">
-                                        <text-field v-model="form.opening.branch" />
+                                    <form-field label="Agência" required :error="errors.branch">
+                                        <text-field
+                                            v-model="form.opening.branch"
+                                            label="Insira aqui a agência"
+                                            :error="errors.branch"
+                                        />
                                     </form-field>
-                                    <form-field label="Conta">
-                                        <text-field v-model="form.opening.account" />
+                                    <form-field label="Conta" required :error="errors.account">
+                                        <text-field
+                                            v-model="form.opening.account"
+                                            label="Insira aqui o número da conta"
+                                            :error="errors.account"
+                                        />
                                     </form-field>
                                 </div>
                             </template>
                             <template v-else-if="section.key === 'supervisors'">
                                 <div class="grid grid-cols-2 gap-4">
-                                    <form-field label="Fiscal titular">
+                                    <form-field label="Fiscal titular" required :error="errors.principalSupervisor">
                                         <user-autocomplete-field
                                             v-model="form.opening.supervisors[0].id"
+                                            label="Selecione o fiscal titular"
                                             variant="outlined"
                                             :items="availablePrincipal"
+                                            :error="errors.principalSupervisor"
                                             @update:model-value="() => syncSupervisor(0)"
                                         />
                                     </form-field>
 
-                                    <form-field label="Matrícula titular">
+                                    <form-field label="Matrícula do fiscal titular">
                                         <text-field
                                             v-model="form.opening.supervisors[0].registration_number"
                                             :disabled="!form.opening.supervisors[0].id"
                                         />
                                     </form-field>
 
-                                    <form-field label="Fiscal suplente">
+                                    <form-field label="Fiscal suplente" required :error="errors.alternateSupervisor">
                                         <user-autocomplete-field
                                             v-model="form.opening.supervisors[1].id"
+                                            label="Selecione o fiscal suplente"
                                             variant="outlined"
                                             :items="availableAlternate"
+                                            :error="errors.alternateSupervisor"
                                             @update:model-value="() => syncSupervisor(1)"
                                         />
                                     </form-field>
 
-                                    <form-field label="Matrícula suplente">
+                                    <form-field label="Matrícula do fiscal suplente">
                                         <text-field
                                             v-model="form.opening.supervisors[1].registration_number"
                                             :disabled="!form.opening.supervisors[1].id"
@@ -476,11 +552,19 @@ const activeEditIndex = ref('all');
                             <template v-else-if="section.key === 'agent'">
                                 <div class="grid grid-cols-2 gap-4">
                                     <form-field label="Email secundário">
-                                        <text-field v-model="form.agent.secondary_email" type="email" />
+                                        <text-field
+                                            v-model="form.agent.secondary_email"
+                                            type="email"
+                                            label="Insira o email secundário do agente"
+                                        />
                                     </form-field>
 
                                     <form-field label="Telefone secundário">
-                                        <text-field v-model="secondaryPhoneModel" maxlength="15" />
+                                        <text-field
+                                            v-model="secondaryPhoneModel"
+                                            maxlength="15"
+                                            label="Insira o telefone secundário do agente"
+                                        />
                                     </form-field>
                                 </div>
                             </template>

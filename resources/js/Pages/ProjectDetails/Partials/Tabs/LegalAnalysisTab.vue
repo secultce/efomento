@@ -30,12 +30,22 @@ onMounted(fetchFiles);
 
 const stage = computed(() => props.project.stages?.find((s) => s.slug === STAGE_SLUG));
 
-const tramitBlockedMessage = computed(() => {
+const canEditLegalAnalysis = computed(() => canUserHandleLegalAnalysis.value && stage.value?.status === 'em_andamento');
+
+const permissionMessage = computed(() => {
     if (stage.value?.status === 'aprovado') {
-        return 'Análise jurídica já foi tramitada.';
+        return 'Projeto já foi tramitado e não está mais na fase de Análise Jurídica.';
     }
 
-    return 'Usuário não tem permissão para avaliar documentos';
+    if (!canUserHandleLegalAnalysis.value && stage.value?.status === 'em_andamento') {
+        return 'Usuário não tem permissão para fazer alterações na Análise Jurídica';
+    }
+
+    if (stage.value?.status !== 'aprovado' && stage.value?.status !== 'em_andamento') {
+        return 'Este projeto não está disponível nessa fase no momento.';
+    }
+
+    return '';
 });
 </script>
 
@@ -84,30 +94,38 @@ const tramitBlockedMessage = computed(() => {
                     <AuxLinks />
                 </div>
 
-                <div>
-                    <p class="font-bold text-sm mb-3">Avalie os documentos</p>
-                    <v-progress-linear v-if="loadingFiles" indeterminate color="primary" class="mb-4" />
-
-                    <DocumentEvaluationList
-                        v-else-if="groups.length > 0"
-                        :groups="groups"
-                        :project="project"
-                        :status-options="statusOptions"
-                        @status-updated="onStatusUpdated"
-                    />
-
-                    <p v-else class="text-sm text-gray-400">Nenhum documento encontrado para avaliação.</p>
-                </div>
-
-                <TramitButton
+                <div
                     v-permission="{
-                        condition: !canUserHandleLegalAnalysis || stage?.status !== 'aprovado',
-                        message: tramitBlockedMessage,
+                        condition: canEditLegalAnalysis,
+                        message: permissionMessage,
                     }"
-                    :action="process"
-                    :disabled="!canUserHandleLegalAnalysis || !allFilesValid"
-                    :loading="in_progress"
-                />
+                    class="mt-4"
+                >
+                    <div>
+                        <p class="font-bold text-sm mb-3">Avalie os documentos</p>
+                        <v-progress-linear v-if="loadingFiles" indeterminate color="primary" class="mb-4" />
+
+                        <DocumentEvaluationList
+                            v-else-if="groups.length > 0"
+                            :groups="groups"
+                            :project="project"
+                            :status-options="statusOptions"
+                            @status-updated="onStatusUpdated"
+                        />
+
+                        <p v-else class="text-sm text-gray-400">Nenhum documento encontrado para avaliação.</p>
+                    </div>
+
+                    <TramitButton
+                        v-permission="{
+                            condition: canEditLegalAnalysis,
+                            message: permissionMessage,
+                        }"
+                        :action="process"
+                        :disabled="!canEditLegalAnalysis || !allFilesValid"
+                        :loading="in_progress"
+                    />
+                </div>
             </div>
         </template>
     </SplitScreenTab>

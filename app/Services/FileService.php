@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Relations\Relation;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
+use RuntimeException;
 
 class FileService
 {
@@ -22,11 +23,15 @@ class FileService
     {
         $path = $this->buildPath($entity, $file);
 
-        Storage::disk($this->disk)->putFileAs(
+        $stored = Storage::disk($this->disk)->putFileAs(
             dirname($path),
             $file,
             basename($path)
         );
+
+        if ($stored === false) {
+            throw new RuntimeException("Falha ao salvar arquivo em disco: {$path}");
+        }
 
         return File::create([
             'mime_type' => $file->getMimeType() ?? $file->getClientMimeType(),
@@ -62,7 +67,7 @@ class FileService
 
     private function getMorphAlias(Model $entity): string
     {
-        $map = Relation::getMorphMap();
+        $map = Relation::morphMap();
         $class = get_class($entity);
         $alias = array_search($class, $map, true);
 

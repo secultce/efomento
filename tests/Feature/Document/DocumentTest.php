@@ -15,6 +15,7 @@ use App\Services\Documents\DocumentService;
 use App\Services\Documents\DocumentTypeRegistry;
 use Illuminate\Database\QueryException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\DB;
 use Tests\TestCase;
 
 class DocumentTest extends TestCase
@@ -48,7 +49,8 @@ class DocumentTest extends TestCase
         $this->assertSame('tc', DocumentType::TC->value);
         $this->assertSame('et', DocumentType::ET->value);
         $this->assertSame('pj', DocumentType::PJ->value);
-        $this->assertSame('d', DocumentType::D->value);
+        $this->assertSame('do', DocumentType::DO->value);
+        $this->assertSame('dp', DocumentType::DP->value);
 
         $this->assertSame('draft', DocumentStatus::DRAFT->value);
         $this->assertSame('pending_signature', DocumentStatus::PENDING_SIGNATURE->value);
@@ -103,6 +105,18 @@ class DocumentTest extends TestCase
         $this->assertSame('Parecer Jurídico', $result['label']);
         $this->assertTrue($result['requires_sign']);
         $this->assertTrue($result['requires_legal']);
+
+        $result = $registry->resolve(DocumentType::DO, DocumentPhase::BUDGET);
+
+        $this->assertSame('Despacho Orçamentário', $result['label']);
+        $this->assertTrue($result['requires_sign']);
+        $this->assertTrue($result['requires_legal']);
+
+        $result = $registry->resolve(DocumentType::DP, DocumentPhase::PAYMENT);
+
+        $this->assertSame('Despacho de Pagamento', $result['label']);
+        $this->assertFalse($result['requires_sign']);
+        $this->assertFalse($result['requires_legal']);
     }
 
     public function test_registry_throws_on_invalid_combination(): void
@@ -110,6 +124,37 @@ class DocumentTest extends TestCase
         $this->expectException(\InvalidArgumentException::class);
 
         (new DocumentTypeRegistry)->resolve(DocumentType::TC, DocumentPhase::PAYMENT);
+    }
+
+    public function test_migration_converts_legacy_document_types(): void
+    {
+        $budgetDocument = Document::factory()->create([
+            'type' => DocumentType::DO,
+            'phase' => DocumentPhase::BUDGET,
+        ]);
+        $paymentDocument = Document::factory()->create([
+            'type' => DocumentType::DP,
+            'phase' => DocumentPhase::PAYMENT,
+        ]);
+
+        DB::table('documents')
+            ->where('id', $budgetDocument->id)
+            ->update(['type' => 'po']);
+        DB::table('documents')
+            ->where('id', $paymentDocument->id)
+            ->update(['type' => 'd']);
+
+        $migration = require database_path('migrations/2026_07_24_000001_migrate_legacy_document_types.php');
+        $migration->up();
+
+        $this->assertDatabaseHas('documents', [
+            'id' => $budgetDocument->id,
+            'type' => DocumentType::DO->value,
+        ]);
+        $this->assertDatabaseHas('documents', [
+            'id' => $paymentDocument->id,
+            'type' => DocumentType::DP->value,
+        ]);
     }
 
     // -------------------------------------------------------------------------
@@ -250,7 +295,7 @@ class DocumentTest extends TestCase
     {
         [$typeA, $phaseA] = $this->getRandomTypeAndPhase();
 
-        $typeB = collect(DocumentType::cases())->reject(fn ($t) => $t === $typeA)->random() ?? DocumentType::D;
+        $typeB = collect(DocumentType::cases())->reject(fn ($t) => $t === $typeA)->random() ?? DocumentType::DP;
         $phaseB = $typeB->phase();
 
         Document::factory()->count(2)->create([

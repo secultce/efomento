@@ -29,6 +29,7 @@ class BudgetControllerTest extends TestCase
                 'processing_date_for_codip' => '2026-01-10',
                 'processing_date_for_coafi' => '2026-01-15',
 
+                'notice_installment_number' => 3,
                 'installment_amount' => 1000.50,
                 'installment_request_date' => '2026-01-20',
                 'installment_justification' => 'Justificativa teste',
@@ -59,6 +60,7 @@ class BudgetControllerTest extends TestCase
             'budget_id' => $budget->id,
             'amount' => 1000.50,
             'installment_number' => 1,
+            'notice_installment_number' => 3,
             'created_by' => $user->id,
         ]);
     }
@@ -94,6 +96,7 @@ class BudgetControllerTest extends TestCase
                 'processing_date_for_codip' => '2026-02-10',
                 'processing_date_for_coafi' => '2026-02-15',
 
+                'notice_installment_number' => 4,
                 'installment_amount' => 1500,
                 'installment_request_date' => '2026-02-20',
                 'installment_justification' => 'Nova justificativa',
@@ -110,6 +113,7 @@ class BudgetControllerTest extends TestCase
         $this->assertEquals('2026-02-15', $budget->processing_date_for_coafi->format('Y-m-d'));
 
         $this->assertEquals(1500, $installment->amount);
+        $this->assertEquals(4, $installment->notice_installment_number);
         $this->assertEquals('Nova justificativa', $installment->justification);
         $this->assertEquals('Nova observação', $installment->observations);
     }
@@ -179,6 +183,7 @@ class BudgetControllerTest extends TestCase
                 'budget' => $budget,
             ]),
             [
+                'notice_installment_number' => 5,
                 'installment_amount' => 2000,
                 'installment_request_date' => '2026-03-01',
                 'installment_justification' => 'Segunda parcela',
@@ -191,6 +196,7 @@ class BudgetControllerTest extends TestCase
         $this->assertDatabaseHas('installments', [
             'budget_id' => $budget->id,
             'installment_number' => 2,
+            'notice_installment_number' => 5,
             'amount' => 2000,
             'created_by' => $user->id,
         ]);
@@ -222,6 +228,7 @@ class BudgetControllerTest extends TestCase
                 'budget' => $budget,
             ]),
             [
+                'notice_installment_number' => 6,
                 'installment_amount' => 9999,
                 'installment_request_date' => '2026-04-01',
                 'installment_justification' => 'Atualizada',
@@ -232,7 +239,25 @@ class BudgetControllerTest extends TestCase
         $installment->refresh();
 
         $this->assertEquals(9999, $installment->amount);
+        $this->assertEquals(6, $installment->notice_installment_number);
         $this->assertEquals('Atualizada', $installment->justification);
         $this->assertEquals('Atualizada', $installment->observations);
+    }
+
+    public function test_store_rejects_invalid_notice_installment_number(): void
+    {
+        $user = User::factory()->create();
+        $project = Project::factory()->create();
+
+        $response = $this->actingAs($user)->post(
+            route('projects.budgets.store', $project),
+            [
+                'notice_installment_number' => 0,
+            ]
+        );
+
+        $response->assertSessionHasErrors('notice_installment_number');
+        $this->assertDatabaseCount('budgets', 0);
+        $this->assertDatabaseCount('installments', 0);
     }
 }

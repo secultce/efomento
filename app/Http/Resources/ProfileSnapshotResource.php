@@ -31,6 +31,7 @@ class ProfileSnapshotResource extends JsonResource
             'neighborhood' => $this->neighborhood,
             'city' => $this->city,
             'state' => $this->state,
+            'macroregion' => $this->macroregion,
 
             'source' => $this->source->value,
             'recorded_at' => $this->recorded_at?->toISOString(),

@@ -16,9 +16,9 @@ class GroupController extends Controller
         'legal_term' => 'Termo Jurídico',
         'term_summary' => 'Extrato do Termo Jurídico',
         'ci' => 'CI',
-        'dispatch' => 'Despacho',
+        'dispatch' => 'Despacho de Pagamento',
         'legal_opinion' => 'Parecer Jurídico',
-        'budget_opinion' => 'Parecer Orçamentário',
+        'budget_opinion' => 'Despacho Orçamentário',
         'opening' => 'Abertura',
         'LegalAnalysis' => 'Análise Jurídica',
         'formalization' => 'Formalização',
@@ -70,10 +70,11 @@ class GroupController extends Controller
             ->map(fn ($label, $key) => ['key' => $key, 'label' => $label])
             ->values();
 
-        $users = User::with('roles')->get()->map(fn ($user) => [
+        $users = User::with(['roles', 'avatarFile'])->get()->map(fn ($user) => [
             'id' => $user->id,
             'name' => $user->name,
             'email' => $user->email,
+            'avatar_url' => $user->avatarUrl(),
             'roles' => $user->roles->map(fn ($role) => [
                 'name' => $role->name,
                 'label' => $this->roleLabels[$role->name] ?? $role->name,

@@ -3,8 +3,8 @@ export const DOCUMENT_TYPES = {
     TC: 'tc',
     PJ: 'pj',
     ET: 'et',
-    PO: 'po',
-    D: 'd',
+    DO: 'do',
+    DP: 'dp',
 };
 
 const placeHoldersDocsSchema = [
@@ -56,19 +56,19 @@ export const documentConfigs = {
         placeholders: placeHoldersDocsSchema,
     },
 
-    [DOCUMENT_TYPES.PO]: {
-        name: 'Parecer Orçamentário',
-        titleCreate: 'Criar Parecer Orçamentário (PO)',
-        titleEdit: 'Editar Parecer Orçamentário',
-        save: 'po',
+    [DOCUMENT_TYPES.DO]: {
+        name: 'Despacho Orçamentário',
+        titleCreate: 'Criar Despacho Orçamentário (DO)',
+        titleEdit: 'Editar Despacho Orçamentário (DO)',
+        save: 'do',
         placeholders: placeHoldersDocsSchema,
     },
 
-    [DOCUMENT_TYPES.D]: {
-        name: 'Despacho',
-        titleCreate: 'Criar Despacho (D)',
-        titleEdit: 'Editar Despacho (D)',
-        save: 'd',
+    [DOCUMENT_TYPES.DP]: {
+        name: 'Despacho de Pagamento',
+        titleCreate: 'Criar Despacho de Pagamento (DP)',
+        titleEdit: 'Editar Despacho de Pagamento (DP)',
+        save: 'dp',
         placeholders: placeHoldersDocsSchema,
     },
 };

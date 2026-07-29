@@ -90,20 +90,42 @@ class Opening extends Model implements Auditable
         return $this->principalSupervisor?->user_id === $user->id;
     }
 
+    public function alternateSupervisor(): HasOne
+    {
+        return $this->hasOne(OpeningSupervisor::class)
+            ->ofMany(['assigned_at' => 'max'], fn ($q) => $q->where('is_active', true)->where('type', OpeningSupervisor::TYPE_ALTERNATE));
+    }
+
     public function assignSupervisors(array $supervisors): void
     {
-        OpeningSupervisor::where('opening_id', $this->id)
-            ->where('is_active', true)
-            ->update([
-                'is_active' => false,
-                'removed_at' => now(),
-            ]);
-
         foreach ($supervisors as $supervisor) {
+            $type = $supervisor['type'] ?? null;
+            $newUserId = $supervisor['id'] ?? null;
+
+            if (! $type || ! $newUserId) {
+                continue;
+            }
+
+            $currentActive = OpeningSupervisor::where('opening_id', $this->id)
+                ->where('type', $type)
+                ->where('is_active', true)
+                ->first();
+
+            if ($currentActive && (int) $currentActive->user_id === (int) $newUserId) {
+                continue;
+            }
+
+            if ($currentActive) {
+                $currentActive->update([
+                    'is_active' => false,
+                    'removed_at' => now(),
+                ]);
+            }
+
             OpeningSupervisor::create([
                 'opening_id' => $this->id,
-                'user_id' => $supervisor['id'],
-                'type' => $supervisor['type'] ?? null,
+                'user_id' => $newUserId,
+                'type' => $type,
                 'assigned_by' => Auth::id(),
                 'assigned_at' => now(),
                 'is_active' => true,

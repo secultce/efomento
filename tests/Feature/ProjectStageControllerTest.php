@@ -59,11 +59,20 @@ class ProjectStageControllerTest extends TestCase
     {
         $opening = Opening::factory()->create(['project_id' => $project->id]);
 
-        $supervisor = User::factory()->create();
+        $principal = User::factory()->create();
         OpeningSupervisor::create([
             'opening_id' => $opening->id,
-            'user_id' => $supervisor->id,
+            'user_id' => $principal->id,
             'type' => 'principal',
+            'is_active' => true,
+            'assigned_at' => now(),
+        ]);
+
+        $alternate = User::factory()->create();
+        OpeningSupervisor::create([
+            'opening_id' => $opening->id,
+            'user_id' => $alternate->id,
+            'type' => 'alternate',
             'is_active' => true,
             'assigned_at' => now(),
         ]);
