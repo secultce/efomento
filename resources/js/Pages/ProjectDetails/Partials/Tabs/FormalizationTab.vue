@@ -42,9 +42,11 @@ const { canUserHandle: canUserHandleFormalization } = useStageAdvance(props, STA
 
 const stage = computed(() => props.project.stages?.find((s) => s.slug === STAGE_SLUG));
 
+const canEditFormalization = computed(() => canUserHandleFormalization.value && stage.value?.status === 'em_andamento');
+
 useSaveShortcut(
     () => submit(),
-    computed(() => canUserHandleFormalization.value && !form.processing)
+    computed(() => canEditFormalization.value && !form.processing)
 );
 
 const activeViewIndex = ref('all');
@@ -70,7 +72,6 @@ const form = useForm({
     official_gazette_published_at: null,
     validity_start_at: null,
     validity_end_at: null,
-    legal_opinion_date: null,
     official_gazette_file: null,
     _method: null,
 });
@@ -97,31 +98,9 @@ onMounted(() => {
     form.official_gazette_published_at = normalizeDate(formalization.official_gazette_published_at) ?? null;
     form.validity_start_at = normalizeDate(formalization.validity_start_at) ?? null;
     form.validity_end_at = normalizeDate(formalization.validity_end_at) ?? null;
-    form.legal_opinion_date = normalizeDate(formalization.legal_opinion_date) ?? null;
 });
 
-const requiredFields = {
-    asjur_finalistic_processing_date: 'Data de tramitação da finalística para a ASJUR',
-    asjur_received_at: 'Data de recebimento do processo pela ASJUR',
-    process_assigned_to: 'Processo distribuído para',
-    report_status: 'Informe regularidade e inadimplência',
-    eparcerias_certificate_date: 'Data da certidão',
-    asjur_processing_date: 'Data de tramitação na ASJUR',
-    responsible_at_asjur: 'Responsável (Distribuido para)',
-    term_number: 'Número do termo',
-    term_signature_sent_at: 'Data do envio para assinatura do termo',
-    term_signed_at: 'Data da assinatura do termo',
-    sent_to_office_at: 'Data de envio para Gabinete',
-    signed_by_office_at: 'Data de assinatura do termo pelo Gabinete',
-    sacc_number: 'Número do SACC',
-    sent_to_chief_of_staff_at: 'Data de envio para Casa Civil',
-    official_gazette_published_at: 'Data de Publicação do Diário Oficial do Estado',
-    validity_start_at: 'Data de início da vigência do instrumento',
-    validity_end_at: 'Data de término da vigência do instrumento',
-    legal_opinion_date: 'Data do parecer jurídico',
-};
-
-const isBlank = (value) => value === null || value === undefined || value === '';
+const hasText = (value) => String(value ?? '').trim().length > 0;
 
 const requiredFormalizationDocuments = {
     tc: 'Termo de execução cultural',
@@ -168,57 +147,6 @@ const missingGeneratedDocuments = computed(() => {
 
 const hasGeneratedRequiredDocuments = computed(() => missingGeneratedDocuments.value.length === 0);
 
-const missingRequiredFields = computed(() => {
-    const missing = Object.entries(requiredFields)
-        .filter(([field]) => isBlank(form[field]))
-        .map(([, message]) => message);
-
-    // Verifica se não há anexo selecionado na tela nem salvo no banco
-    if (!form.official_gazette_file && !officialGazetteFile.value) {
-        missing.push('Anexo do documento do Diário Oficial do Estado');
-    }
-
-    return missing;
-});
-
-const hasRequiredFieldsFilled = computed(() => missingRequiredFields.value.length === 0);
-
-const canTramitFormalization = computed(() => {
-    return canUserHandleFormalization.value && hasRequiredFieldsFilled.value && hasGeneratedRequiredDocuments.value;
-});
-
-const tramitBlockedMessage = computed(() => {
-    if (stage.value?.status === 'bloqueado') {
-        return 'Este projeto está bloqueado e não pode receber alterações no momento.';
-    }
-
-    if (stage.value?.status !== 'em_andamento') {
-        return 'Projeto já foi tramitado ou não está na fase de Formalização.';
-    }
-
-    if (!canUserHandleFormalization.value) {
-        return 'Usuário não tem permissão para tramitar a Formalização.';
-    }
-
-    if (!hasRequiredFieldsFilled.value) {
-        return `Preencha os campos obrigatórios antes de tramitar: ${missingRequiredFields.value.join(', ')}.`;
-    }
-
-    if (!hasGeneratedRequiredDocuments.value) {
-        return `Gere os documentos obrigatórios antes de tramitar: ${missingGeneratedDocuments.value.join(', ')}.`;
-    }
-
-    return '';
-});
-
-const showTramitBlockedMessage = () => {
-    if (canTramitFormalization.value || tramitLoading.value) {
-        return;
-    }
-
-    showSnackbar(tramitBlockedMessage.value, 'warning');
-};
-
 const officialGazetteFileInput = ref(null);
 
 const officialGazetteFile = computed(() => {
@@ -247,6 +175,42 @@ const officialGazetteFile = computed(() => {
     }
 
     return null;
+});
+
+const hasOfficialGazetteFile = computed(() => {
+    return !!(form.official_gazette_file || officialGazetteFile.value);
+});
+
+const hasRequiredFieldsFilled = computed(() => {
+    return (
+        hasText(form.term_number) &&
+        hasText(form.term_signed_at) &&
+        hasText(form.signed_by_office_at) &&
+        hasText(form.sacc_number) &&
+        hasText(form.official_gazette_published_at) &&
+        hasOfficialGazetteFile.value &&
+        hasText(form.validity_start_at) &&
+        hasText(form.validity_end_at)
+    );
+});
+
+const showValidationErrors = ref(false);
+
+const errors = computed(() => {
+    if (!showValidationErrors.value) return {};
+
+    const standardMessage = 'Preencha este campo';
+
+    return {
+        term_number: !hasText(form.term_number) ? standardMessage : null,
+        term_signed_at: !hasText(form.term_signed_at) ? standardMessage : null,
+        signed_by_office_at: !hasText(form.signed_by_office_at) ? standardMessage : null,
+        sacc_number: !hasText(form.sacc_number) ? standardMessage : null,
+        official_gazette_published_at: !hasText(form.official_gazette_published_at) ? standardMessage : null,
+        official_gazette_file: !hasOfficialGazetteFile.value ? 'Anexe o documento' : null,
+        validity_start_at: !hasText(form.validity_start_at) ? standardMessage : null,
+        validity_end_at: !hasText(form.validity_end_at) ? standardMessage : null,
+    };
 });
 
 const officialGazetteFileLabel = computed(() => {
@@ -403,11 +367,26 @@ const tramit = async () => {
         return;
     }
 
-    if (!canTramitFormalization.value) {
-        showSnackbar(tramitBlockedMessage.value, 'warning');
+    if (!canEditFormalization.value) {
+        showSnackbar(permissionMessage.value || 'Você não tem permissão para alterar ou tramitar esta etapa.', 'error');
         return;
     }
 
+    if (!hasRequiredFieldsFilled.value) {
+        showValidationErrors.value = true;
+        showSnackbar('Preencha e salve todos os campos obrigatórios em destaque antes de tramitar.', 'error');
+        return;
+    }
+
+    if (!hasGeneratedRequiredDocuments.value) {
+        showSnackbar(
+            `Gere os documentos obrigatórios antes de tramitar: ${missingGeneratedDocuments.value.join(', ')}.`,
+            'error'
+        );
+        return;
+    }
+
+    showValidationErrors.value = false;
     tramitLoading.value = true;
 
     const saved = await saveFormalization({ showSuccess: false });
@@ -450,15 +429,19 @@ const tramit = async () => {
 };
 
 const permissionMessage = computed(() => {
-    if (stage.value?.status === 'bloqueado') {
-        return 'Este projeto está bloqueado e não pode receber alterações no momento.';
-    }
-
-    if (stage.value?.status !== 'em_andamento') {
+    if (stage.value?.status === 'aprovado') {
         return 'Projeto já foi tramitado e não está mais na fase de Formalização.';
     }
 
-    return 'Usuário não tem permissão para fazer alterações na Formalização.';
+    if (!canUserHandleFormalization.value && stage.value?.status === 'em_andamento') {
+        return 'Usuário não tem permissão para fazer alterações na Formalização';
+    }
+
+    if (stage.value?.status !== 'aprovado' && stage.value?.status !== 'em_andamento') {
+        return 'Este projeto não está disponível nessa fase no momento.';
+    }
+
+    return '';
 });
 </script>
 
@@ -505,7 +488,7 @@ const permissionMessage = computed(() => {
                         <p class="font-bold text-md mt-2 text-black">Links auxiliares</p>
                     </div>
 
-                    <SaveButton :loading="form.processing" :can-save="canUserHandleFormalization" @click="submit" />
+                    <SaveButton :loading="form.processing" :can-save="canEditFormalization" @click="submit" />
                 </div>
 
                 <AuxLinks />
@@ -514,9 +497,7 @@ const permissionMessage = computed(() => {
 
                 <div
                     v-permission="{
-                        condition:
-                            !canUserHandleFormalization ||
-                            (stage?.status !== 'aprovado' && stage?.status !== 'bloqueado'),
+                        condition: canEditFormalization,
                         message: permissionMessage,
                     }"
                     class="mt-4"
@@ -529,6 +510,7 @@ const permissionMessage = computed(() => {
                                         <TextField
                                             v-model="form.asjur_finalistic_processing_date"
                                             type="date"
+                                            label="Insira a data"
                                             data-cy="asjur-finalistic-processing-date"
                                         />
                                     </FormField>
@@ -537,6 +519,7 @@ const permissionMessage = computed(() => {
                                         <TextField
                                             v-model="form.asjur_received_at"
                                             type="date"
+                                            label="Insira a data"
                                             data-cy="asjur-process-received-date"
                                         />
                                     </FormField>
@@ -545,11 +528,10 @@ const permissionMessage = computed(() => {
                                         <FormField label="Processo distribuído para">
                                             <TextField
                                                 v-model="form.process_assigned_to"
+                                                label="Insira a pessoa responsável pela análise do processo"
                                                 data-cy="process-assigned-to"
                                             />
                                         </FormField>
-
-                                        <div></div>
                                     </div>
 
                                     <FormField label="Informe regularidade e inadimplência">
@@ -559,6 +541,7 @@ const permissionMessage = computed(() => {
                                             item-title="label"
                                             item-value="value"
                                             placeholder="Selecione um status"
+                                            label="Selecione um status"
                                             data-cy="report-status-select"
                                         />
                                     </FormField>
@@ -567,6 +550,7 @@ const permissionMessage = computed(() => {
                                         <TextField
                                             v-model="form.eparcerias_certificate_date"
                                             type="date"
+                                            label="Insira a data em que a certidão foi gerada no e-parcerias"
                                             data-cy="eparcerias-certificate-date"
                                         />
                                     </FormField>
@@ -579,6 +563,7 @@ const permissionMessage = computed(() => {
                                         <TextField
                                             v-model="form.asjur_processing_date"
                                             type="date"
+                                            label="Insira a data de tramitação para a ASJUR"
                                             data-cy="asjur-processing-date-input"
                                         />
                                     </FormField>
@@ -586,12 +571,18 @@ const permissionMessage = computed(() => {
                                     <FormField label="Responsável (Distribuido para)">
                                         <TextField
                                             v-model="form.responsible_at_asjur"
+                                            label="Informe o responsável do projeto na ASJUR"
                                             data-cy="responsible-at-asjur-input"
                                         />
                                     </FormField>
 
-                                    <FormField label="Número do termo">
-                                        <TextField v-model="form.term_number" data-cy="term-number-input" />
+                                    <FormField label="Número do termo" required :error="errors.term_number">
+                                        <TextField
+                                            v-model="form.term_number"
+                                            label="Insira aqui o número do termo"
+                                            :error="errors.term_number"
+                                            data-cy="term-number-input"
+                                        />
                                     </FormField>
                                 </div>
                             </template>
@@ -602,15 +593,22 @@ const permissionMessage = computed(() => {
                                         <TextField
                                             v-model="form.term_signature_sent_at"
                                             type="date"
+                                            label="Insira a data de envio para o proponente"
                                             data-cy="term-signature-sent-at-input"
                                         />
                                     </FormField>
 
-                                    <FormField label="Data da assinatura do termo">
+                                    <FormField
+                                        label="Data da assinatura do termo"
+                                        required
+                                        :error="errors.term_signed_at"
+                                    >
                                         <TextField
                                             v-model="form.term_signed_at"
                                             type="date"
+                                            label="Insira a data de assinatura do proponente"
                                             data-cy="term-signed-at-input"
+                                            :error="errors.term_signed_at"
                                         />
                                     </FormField>
 
@@ -618,15 +616,22 @@ const permissionMessage = computed(() => {
                                         <TextField
                                             v-model="form.sent_to_office_at"
                                             type="date"
+                                            label="Insira a data de envio para o gabinete"
                                             data-cy="sent-to-office-at-input"
                                         />
                                     </FormField>
 
-                                    <FormField label="Data de assinatura do termo pelo Gabinete">
+                                    <FormField
+                                        label="Data de assinatura do termo pelo Gabinete"
+                                        required
+                                        :error="errors.signed_by_office_at"
+                                    >
                                         <TextField
                                             v-model="form.signed_by_office_at"
                                             type="date"
+                                            label="Insira a data da assinatura pelo o gabinete"
                                             data-cy="signed-by-office-at-input"
+                                            :error="errors.signed_by_office_at"
                                         />
                                     </FormField>
                                 </div>
@@ -635,15 +640,22 @@ const permissionMessage = computed(() => {
                             <template v-else-if="section.key === 'sacc'">
                                 <div class="grid grid-cols-2 gap-4">
                                     <div class="col-span-2 grid grid-cols-2 gap-4">
-                                        <FormField label="Número do SACC">
-                                            <TextField v-model="form.sacc_number" data-cy="sacc-number-input" />
+                                        <FormField label="Número do SACC" required :error="errors.sacc_number">
+                                            <TextField
+                                                v-model="form.sacc_number"
+                                                label="Insira aqui o número do SACC"
+                                                data-cy="sacc-number-input"
+                                                :error="errors.sacc_number"
+                                            />
                                         </FormField>
-
-                                        <div></div>
                                     </div>
 
                                     <FormField label="Chamado CGE atende">
-                                        <TextField v-model="form.cge_atende_ticket" data-cy="cge-atende-ticket-input" />
+                                        <TextField
+                                            v-model="form.cge_atende_ticket"
+                                            label="Insira o chamado"
+                                            data-cy="cge-atende-ticket-input"
+                                        />
                                     </FormField>
 
                                     <FormField label="Deliberação">
@@ -652,7 +664,7 @@ const permissionMessage = computed(() => {
                                             :items="deliberation"
                                             item-title="label"
                                             item-value="value"
-                                            placeholder="Selecione um status"
+                                            label="Selecione um status"
                                             data-cy="deliberation-select"
                                         />
                                     </FormField>
@@ -661,29 +673,39 @@ const permissionMessage = computed(() => {
 
                             <template v-else-if="section.key === 'official_gazette'">
                                 <div class="grid grid-cols-2 gap-4">
-                                    <FormField label="Data de envio para Casa Civil">
-                                        <TextField
-                                            v-model="form.sent_to_chief_of_staff_at"
-                                            type="date"
-                                            data-cy="sent-to-chief-of-staff-at-input"
-                                        />
-                                    </FormField>
+                                    <div class="col-span-2 grid grid-cols-2 gap-4">
+                                        <FormField label="Data de envio para Casa Civil">
+                                            <TextField
+                                                v-model="form.sent_to_chief_of_staff_at"
+                                                label="Insira a data"
+                                                data-cy="sent-to-chief-of-staff-at-input"
+                                                type="date"
+                                            />
+                                        </FormField>
+                                    </div>
 
-                                    <FormField label="Data de Publicação do Diário Oficial do Estado">
+                                    <FormField
+                                        label="Data de Publicação do Diário Oficial do Estado"
+                                        required
+                                        :error="errors.official_gazette_published_at"
+                                    >
                                         <TextField
                                             v-model="form.official_gazette_published_at"
                                             type="date"
+                                            label="Insira a data"
                                             data-cy="official-gazette-published-at-input"
+                                            :error="errors.official_gazette_published_at"
                                         />
                                     </FormField>
 
                                     <FormField
                                         label="Anexo do documento do Diário Oficial do Estado"
-                                        :error="form.errors.official_gazette_file"
+                                        :error="form.errors.official_gazette_file || errors.official_gazette_file"
+                                        required
                                     >
                                         <div
                                             v-if="officialGazetteFile && !form.official_gazette_file"
-                                            class="flex items-center h-[44px] border border-gray-300 rounded-lg bg-white px-4 shadow-sm"
+                                            class="flex items-center h-[44px] border border-gray-300 rounded-lg bg-white mt-2 px-3 py-7 shadow-sm"
                                         >
                                             <span class="flex-1 text-sm font-bold text-black truncate">
                                                 {{ officialGazetteFile.name }}
@@ -721,7 +743,7 @@ const permissionMessage = computed(() => {
 
                                         <div
                                             v-else
-                                            class="flex items-center h-[44px] border border-gray-400 rounded bg-white overflow-hidden"
+                                            class="flex items-center h-[44px] border border-gray-400 rounded bg-white overflow-hidden mt-2 mb-5 py-7"
                                         >
                                             <span class="flex-1 px-4 text-sm text-gray-600 truncate">
                                                 {{ officialGazetteFileLabel }}
@@ -751,31 +773,31 @@ const permissionMessage = computed(() => {
 
                             <template v-else-if="section.key === 'validity_instrument'">
                                 <div class="grid grid-cols-2 gap-4">
-                                    <FormField label="Data de início da vigência do instrumento">
+                                    <FormField
+                                        label="Data de início da vigência do instrumento"
+                                        required
+                                        :error="errors.validity_start_at"
+                                    >
                                         <TextField
                                             v-model="form.validity_start_at"
                                             type="date"
+                                            label="Insira a data"
                                             data-cy="instrument-validity-start-at-input"
+                                            :error="errors.validity_start_at"
                                         />
                                     </FormField>
 
-                                    <FormField label="Data de término da vigência do instrumento">
+                                    <FormField
+                                        label="Data de término da vigência do instrumento"
+                                        required
+                                        :error="errors.validity_end_at"
+                                    >
                                         <TextField
                                             v-model="form.validity_end_at"
                                             type="date"
+                                            label="Insira a data"
                                             data-cy="instrument-validity-end-at-input"
-                                        />
-                                    </FormField>
-                                </div>
-                            </template>
-
-                            <template v-else-if="section.key === 'legal_opinion'">
-                                <div class="grid grid-cols-2 gap-4">
-                                    <FormField label="Data do parecer jurídico">
-                                        <TextField
-                                            v-model="form.legal_opinion_date"
-                                            type="date"
-                                            data-cy="legal-opinion-date-input"
+                                            :error="errors.validity_end_at"
                                         />
                                     </FormField>
                                 </div>
@@ -783,18 +805,12 @@ const permissionMessage = computed(() => {
                         </template>
                     </SectionForm>
 
-                    <div
-                        data-cy="tramit-container"
-                        :class="{ 'cursor-not-allowed': !canTramitFormalization }"
-                        @click="showTramitBlockedMessage"
-                    >
-                        <TramitButton
-                            :action="tramit"
-                            :disabled="!canTramitFormalization"
-                            :loading="tramitLoading"
-                            :class="{ 'pointer-events-none': !canTramitFormalization }"
-                        />
-                    </div>
+                    <TramitButton
+                        :action="tramit"
+                        :disabled="!canEditFormalization"
+                        :loading="tramitLoading"
+                        data-cy="tramit-button"
+                    />
                 </div>
             </div>
         </template>
