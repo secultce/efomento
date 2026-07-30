@@ -32,6 +32,8 @@ class ProjectStageService
 
         $this->ensureUserHasRole($stage, $user, 'Você não tem permissão para tramitar esta etapa.');
 
+        $this->validateStageAdvance($stage, $stage->project);
+
         if ($stage->slug === ProjectStageSlug::MONITORAMENTO) {
             $this->ensureIsPrincipalSupervisor($stage->project, $user);
         }
@@ -54,6 +56,20 @@ class ProjectStageService
         }
 
         return $next?->fresh();
+    }
+
+    public function validateStageAdvance(ProjectStage $stage, Project $project): void
+    {
+        $validatorClass = match ($stage->slug) {
+            ProjectStageSlug::ABERTURA => OpeningUpdateService::class,
+            ProjectStageSlug::FORMALIZACAO => FormalizationService::class,
+            ProjectStageSlug::ORCAMENTO => BudgetService::class,
+            default => null,
+        };
+
+        if ($validatorClass) {
+            app($validatorClass)->ensureCanAdvance($project);
+        }
     }
 
     public function reject(ProjectStage $stage, string $reason, User $user): void
