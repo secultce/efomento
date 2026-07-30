@@ -35,7 +35,6 @@ class FormalizationFactory extends Factory
             'official_gazette_published_at' => $this->faker->date(),
             'validity_start_at' => $this->faker->date(),
             'validity_end_at' => $this->faker->date(),
-            'legal_opinion_date' => $this->faker->date(),
         ];
     }
 

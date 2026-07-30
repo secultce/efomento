@@ -149,6 +149,7 @@ Route::middleware('auth')->group(function () {
     Route::middleware('role:super_admin')->group(function () {
         Route::get('/grupos', [GroupController::class, 'index'])->name('groups.index');
         Route::put('/grupos', [GroupController::class, 'update'])->name('groups.update');
+        Route::post('/usuarios', [UserController::class, 'store'])->name('users.store');
         Route::post('/add-user/{user}/{role}', [UserController::class, 'assignRole'])
             ->name('users.assign-role');
         Route::delete('/remove-user-role/{user}/{role}', [UserController::class, 'removeRole'])

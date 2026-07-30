@@ -42,8 +42,6 @@ return new class extends Migration
             $table->date('validity_start_at')->nullable();
             $table->date('validity_end_at')->nullable();
 
-            $table->date('legal_opinion_date')->nullable();
-
             $table->date('data_sign_gabinete')->nullable();
             $table->foreignId('created_by')->nullable()->constrained('users')->nullOnDelete();
             $table->index('created_by');

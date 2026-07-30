@@ -3,8 +3,10 @@
 namespace Tests\Feature;
 
 use App\Enums\Role as RoleEnum;
+use App\Models\File;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\DB;
 use Spatie\Permission\Models\Role;
 use Tests\TestCase;
 
@@ -117,5 +119,31 @@ class UserRoleTest extends TestCase
             ->post(route('users.assign-role', ['user' => 999999, 'role' => RoleEnum::FOMENTATION->value]));
 
         $response->assertNotFound();
+    }
+
+    public function test_groups_index_does_not_n_plus_one_query_avatar_files(): void
+    {
+        $users = User::factory()->count(5)->create();
+
+        foreach ($users as $user) {
+            File::factory()->create([
+                'object_type' => 'user',
+                'object_id' => $user->id,
+                'grp' => 'avatar',
+            ]);
+        }
+
+        DB::enableQueryLog();
+
+        $response = $this->actingAs($this->admin)->get(route('groups.index'));
+
+        $filesQueries = collect(DB::getQueryLog())
+            ->filter(fn ($query) => str_contains($query['query'], '"files"') || str_contains($query['query'], '`files`'))
+            ->count();
+
+        DB::disableQueryLog();
+
+        $response->assertOk();
+        $this->assertSame(1, $filesQueries, 'A listagem deve buscar os avatares em uma única consulta, sem N+1.');
     }
 }

@@ -16,6 +16,11 @@ const props = defineProps({
         type: Boolean,
         default: false,
     },
+
+    phase: {
+        type: String,
+        default: '',
+    },
 });
 
 const { showAlert } = useAlert();
@@ -37,6 +42,7 @@ const confirmTramit = () => {
             class="w-1/2 mt-4 !shadow-none !font-bold !bg-[#ffcc05FF] !text-[#2d353fFF] rounded-lg text-xs"
             :loading="props.loading"
             :disabled="props.disabled || props.loading"
+            data-cy="tramit-button"
             @click="confirmTramit"
         >
             <slot>tramitar</slot>

@@ -73,30 +73,13 @@ class FormalizationService
     private function validateRequiredFields(Formalization $formalization): void
     {
         $requiredFields = [
-            'asjur_finalistic_processing_date' => 'Data de tramitação da finalística para a ASJUR',
-            'asjur_received_at' => 'Data de recebimento do processo pela ASJUR',
-            'process_assigned_to' => 'Processo distribuído para',
-            'report_status' => 'Informe regularidade e inadimplência',
-            'eparcerias_certificate_date' => 'Data da certidão',
-
-            'asjur_processing_date' => 'Data de tramitação na ASJUR',
-            'responsible_at_asjur' => 'Responsável (Distribuido para)',
             'term_number' => 'Número do termo',
-
-            'term_signature_sent_at' => 'Data do envio para assinatura do termo',
             'term_signed_at' => 'Data da assinatura do termo',
-            'sent_to_office_at' => 'Data de envio para Gabinete',
             'signed_by_office_at' => 'Data de assinatura do termo pelo Gabinete',
-
             'sacc_number' => 'Número do SACC',
-
-            'sent_to_chief_of_staff_at' => 'Data de envio para Casa Civil',
             'official_gazette_published_at' => 'Data de Publicação do Diário Oficial do Estado',
-
             'validity_start_at' => 'Data de início da vigência do instrumento',
             'validity_end_at' => 'Data de término da vigência do instrumento',
-
-            'legal_opinion_date' => 'Data do parecer jurídico',
         ];
 
         $missingFields = collect($requiredFields)

@@ -2,58 +2,138 @@
 
 namespace App\Http\Requests\Opening;
 
+use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 
 class OpeningUpdateRequest extends FormRequest
 {
+    /**
+     * Determine if the user is authorized to make this request.
+     */
     public function authorize(): bool
     {
         return true;
     }
 
+    /**
+     * Prepare inputs for validation (clean non-numeric characters if needed).
+     */
     protected function prepareForValidation(): void
     {
-        $opening = $this->input('opening', []);
+        $this->sanitizeNumericOpeningFields(['opening_nup', 'allocation_number']);
+    }
 
-        if (isset($opening['opening_nup'])) {
-            $opening['opening_nup'] = preg_replace('/\D/', '', $opening['opening_nup']) ?: null;
+    /**
+     * Limpa caracteres não numéricos de campos específicos do bloco 'opening'.
+     *
+     * @param  array<int, string>  $fields
+     */
+    private function sanitizeNumericOpeningFields(array $fields): void
+    {
+        if (! $this->has('opening')) {
+            return;
         }
 
-        if (isset($opening['allocation_number'])) {
-            $opening['allocation_number'] = preg_replace('/\D/', '', $opening['allocation_number']) ?: null;
+        $opening = $this->input('opening', []);
+
+        foreach ($fields as $field) {
+            if (! empty($opening[$field])) {
+                $opening[$field] = preg_replace('/\D/', '', $opening[$field]);
+            }
         }
 
         $this->merge(['opening' => $opening]);
     }
 
+    /**
+     * Get the validation rules that apply to the request.
+     *
+     * @return array<string, ValidationRule|array<mixed>|string>
+     */
     public function rules(): array
     {
         return [
-            'opening.opening_nup' => ['sometimes', 'nullable', 'digits:17'],
-            'opening.opening_date' => ['sometimes', 'nullable', 'date'],
-            'opening.agent_status' => ['sometimes', 'nullable', 'string'],
-            'opening.opened_by' => ['sometimes', 'nullable', 'string'],
+            // Dados da Abertura
+            'opening.opening_nup' => ['nullable', 'string', 'size:17'],
+            'opening.opening_date' => ['nullable', 'date'],
+            'opening.agent_status' => ['nullable', 'string', 'max:255'],
+            'opening.opened_by' => ['nullable', 'string', 'max:255'],
 
-            'opening.creditor_number' => ['sometimes', 'nullable', 'string'],
+            // Credor
+            'opening.creditor_number' => ['nullable', 'string', 'max:255'],
 
-            'opening.allocation_code' => ['sometimes', 'nullable', 'string'],
-            'opening.allocation_number' => ['sometimes', 'nullable', 'string'],
+            // Dotação Orçamentária
+            'opening.allocation_code' => ['nullable', 'string', 'max:255'],
+            'opening.allocation_number' => ['nullable', 'string', 'size:41'],
 
-            'opening.bank' => ['sometimes', 'nullable', 'string'],
-            'opening.account_type' => ['sometimes', 'nullable', 'string'],
-            'opening.branch' => ['sometimes', 'nullable', 'string'],
-            'opening.account' => ['sometimes', 'nullable', 'string'],
+            // Dados Bancários
+            'opening.bank' => ['nullable', 'string', 'max:255'],
+            'opening.account_type' => ['nullable', 'string', 'max:255'],
+            'opening.branch' => ['nullable', 'string', 'max:255'],
+            'opening.account' => ['nullable', 'string', 'max:255'],
 
-            'opening.supervisors' => ['array'],
-            'opening.supervisors.*.id' => ['nullable', 'exists:users,id'],
+            // Fiscais
+            'opening.supervisors' => ['nullable', 'array'],
+            'opening.supervisors.*.id' => ['nullable', 'integer', 'exists:users,id'],
+            'opening.supervisors.*.registration_number' => ['nullable', 'string', 'max:255'],
             'opening.supervisors.*.type' => ['nullable', 'string', 'in:principal,alternate'],
-            'opening.supervisors.*.registration_number' => ['nullable', 'string'],
 
-            'formalization.report_status' => ['nullable', 'string'],
+            // Formalização
+            'formalization.report_status' => ['nullable', 'string', 'max:255'],
             'formalization.eparcerias_certificate_date' => ['nullable', 'date'],
 
-            'agent.secondary_email' => ['nullable', 'email'],
-            'agent.secondary_phone' => ['nullable', 'string'],
+            // Agente
+            'agent.secondary_email' => ['nullable', 'email:rfc', 'max:255'],
+            'agent.secondary_phone' => ['nullable', 'string', 'max:20'],
+        ];
+    }
+
+    /**
+     * Get custom messages for validator errors.
+     *
+     * @return array<string, string>
+     */
+    public function messages(): array
+    {
+        return [
+            'opening.opening_nup.size' => 'O Número do Processo deve conter exatamente 17 dígitos.',
+            'opening.opening_date.date' => 'A Data de abertura do processo deve ser uma data válida.',
+            'opening.allocation_number.size' => 'O Número completo da dotação deve conter exatamente 41 dígitos.',
+
+            'opening.supervisors.*.id.exists' => 'O fiscal selecionado não foi encontrado no sistema.',
+            'opening.supervisors.*.type.in' => 'O tipo de fiscal deve ser titular ou suplente.',
+
+            'formalization.eparcerias_certificate_date.date' => 'A Data da certidão deve ser uma data válida.',
+
+            'agent.secondary_email.email' => 'Insira um endereço de e-mail secundário válido.',
+        ];
+    }
+
+    /**
+     * Get custom attributes for validator errors.
+     *
+     * @return array<string, string>
+     */
+    public function attributes(): array
+    {
+        return [
+            'opening.opening_nup' => 'número do processo',
+            'opening.opening_date' => 'data de abertura do processo',
+            'opening.agent_status' => 'status do agente cultural',
+            'opening.opened_by' => 'responsável por abrir o processo',
+            'opening.creditor_number' => 'número do cadastro do credor',
+            'opening.allocation_code' => 'código da dotação',
+            'opening.allocation_number' => 'número completo da dotação',
+            'opening.bank' => 'banco',
+            'opening.account_type' => 'tipo de conta',
+            'opening.branch' => 'agência',
+            'opening.account' => 'conta',
+            'opening.supervisors.*.id' => 'fiscal',
+            'opening.supervisors.*.registration_number' => 'matrícula do fiscal',
+            'formalization.report_status' => 'regularidade e inadimplência',
+            'formalization.eparcerias_certificate_date' => 'data da certidão',
+            'agent.secondary_email' => 'e-mail secundário',
+            'agent.secondary_phone' => 'telefone secundário',
         ];
     }
 }

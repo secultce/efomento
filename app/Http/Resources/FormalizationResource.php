@@ -38,8 +38,6 @@ class FormalizationResource extends JsonResource
             'validity_start_at' => $this->validity_start_at,
             'validity_end_at' => $this->validity_end_at,
 
-            'legal_opinion_date' => $this->legal_opinion_date,
-
             'files' => $this->whenLoaded('files', function () {
                 return $this->files
                     ->groupBy('grp')

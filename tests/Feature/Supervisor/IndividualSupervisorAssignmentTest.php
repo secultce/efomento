@@ -90,7 +90,7 @@ class IndividualSupervisorAssignmentTest extends TestCase
         ]);
     }
 
-    public function test_assign_supervisors_stores_null_type_when_not_provided(): void
+    public function test_assign_supervisors_ignores_entries_without_type(): void
     {
         $opening = Opening::factory()->create();
         $user = User::factory()->create();
@@ -99,12 +99,7 @@ class IndividualSupervisorAssignmentTest extends TestCase
             ['id' => $user->id, 'type' => null],
         ]);
 
-        $this->assertDatabaseHas('opening_supervisor', [
-            'opening_id' => $opening->id,
-            'user_id' => $user->id,
-            'type' => null,
-            'is_active' => true,
-        ]);
+        $this->assertDatabaseCount('opening_supervisor', 0);
     }
 
     public function test_assign_supervisors_does_not_create_records_when_list_is_empty(): void

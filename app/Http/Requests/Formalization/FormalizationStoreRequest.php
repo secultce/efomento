@@ -44,8 +44,6 @@ class FormalizationStoreRequest extends FormRequest
             'validity_start_at' => ['nullable', 'date'],
             'validity_end_at' => ['nullable', 'date', 'after_or_equal:validity_start_at'],
 
-            'legal_opinion_date' => ['nullable', 'date'],
-
             'official_gazette_file' => ['nullable', 'file', 'mimes:pdf,doc,docx', 'max:'.self::OFFICIAL_GAZETTE_FILE_MAX_SIZE],
         ];
     }

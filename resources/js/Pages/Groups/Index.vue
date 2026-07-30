@@ -1,6 +1,7 @@
 <script setup>
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
 import Users from '@/Pages/Groups/Users.vue';
+import CreateUserDialog from '@/Pages/Groups/CreateUserDialog.vue';
 import { Head, router } from '@inertiajs/vue3';
 import { reactive, ref } from 'vue';
 
@@ -15,6 +16,7 @@ const props = defineProps({
 const mainTab = ref('grupos');
 const saving = ref(false);
 const flash = ref('');
+const createUserDialog = ref(false);
 
 const matrix = reactive({});
 
@@ -129,14 +131,15 @@ const items = [
                                 </v-col>
                                 <v-col>
                                     <v-row>
-                                        <v-col cols="6">
-                                            <v-btn rounded="lg" variant="outlined" color="primary" block>
+                                        <v-col cols="12">
+                                            <v-btn
+                                                rounded="lg"
+                                                variant="outlined"
+                                                color="primary"
+                                                block
+                                                @click="createUserDialog = true"
+                                            >
                                                 <h6 class="text-[#008344FF] text-md-body-2">cadastrar novo usuário</h6>
-                                            </v-btn>
-                                        </v-col>
-                                        <v-col cols="6">
-                                            <v-btn rounded="lg" block color="secundary">
-                                                <h4 class="">cadastrar novo grupo</h4>
                                             </v-btn>
                                         </v-col>
                                     </v-row>
@@ -243,5 +246,7 @@ const items = [
                 </v-container>
             </div>
         </div>
+
+        <CreateUserDialog v-model="createUserDialog" :roles="roles" />
     </AuthenticatedLayout>
 </template>

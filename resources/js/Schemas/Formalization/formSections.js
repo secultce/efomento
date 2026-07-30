@@ -5,5 +5,4 @@ export const formSections = [
     { title: 'SACC', key: 'sacc' },
     { title: 'Diário oficial', key: 'official_gazette' },
     { title: 'Vigência do instrumento', key: 'validity_instrument' },
-    { title: 'Parecer jurídico', key: 'legal_opinion' },
 ];

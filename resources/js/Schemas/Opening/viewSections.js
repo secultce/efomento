@@ -15,7 +15,7 @@ export const viewSections = [
         title: 'Endereço',
         fields: [
             { label: 'Endereço completo', key: 'agent.latest_snapshot.address' },
-            { label: 'Macrorregião', key: 'agent.latest_snapshot.macrorregion' },
+            { label: 'Macrorregião', key: 'agent.latest_snapshot.macroregion' },
             { label: 'CEP', key: 'agent.latest_snapshot.postal_code' },
             { label: 'Município', key: 'agent.latest_snapshot.city' },
         ],
