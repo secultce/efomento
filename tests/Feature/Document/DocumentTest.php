@@ -5,8 +5,10 @@ namespace Tests\Feature\Document;
 use App\Enums\DocumentPhase;
 use App\Enums\DocumentStatus;
 use App\Enums\DocumentType;
+use App\Models\Budget;
 use App\Models\Document;
 use App\Models\DocumentImage;
+use App\Models\Installment;
 use App\Models\Notice;
 use App\Models\Project;
 use App\Models\User;
@@ -155,6 +157,55 @@ class DocumentTest extends TestCase
             'id' => $paymentDocument->id,
             'type' => DocumentType::DP->value,
         ]);
+    }
+
+    public function test_resolver_replaces_notice_installment_number_for_current_cycle(): void
+    {
+        $project = Project::factory()->create([
+            'current_installment_cycle' => 2,
+        ]);
+        $budget = Budget::factory()->create([
+            'project_id' => $project->id,
+        ]);
+        Installment::factory()->create([
+            'budget_id' => $budget->id,
+            'installment_number' => 1,
+            'notice_installment_number' => 3,
+        ]);
+        Installment::factory()->create([
+            'budget_id' => $budget->id,
+            'installment_number' => 2,
+            'notice_installment_number' => 5,
+        ]);
+        $document = Document::factory()->create([
+            'project_id' => $project->id,
+            'notice_id' => $project->notice_id,
+            'type' => DocumentType::DO,
+            'phase' => DocumentPhase::BUDGET,
+            'body' => 'Número da parcela: [notice_installment_number]',
+        ]);
+
+        $resolvedBody = (new DocumentPlaceholderResolver)->resolve($document);
+
+        $this->assertSame('Número da parcela: 5', $resolvedBody);
+    }
+
+    public function test_resolver_clears_notice_installment_number_when_current_installment_is_missing(): void
+    {
+        $project = Project::factory()->create([
+            'current_installment_cycle' => 2,
+        ]);
+        $document = Document::factory()->create([
+            'project_id' => $project->id,
+            'notice_id' => $project->notice_id,
+            'type' => DocumentType::DO,
+            'phase' => DocumentPhase::BUDGET,
+            'body' => 'Número da parcela: [notice_installment_number]',
+        ]);
+
+        $resolvedBody = (new DocumentPlaceholderResolver)->resolve($document);
+
+        $this->assertSame('Número da parcela: ', $resolvedBody);
     }
 
     // -------------------------------------------------------------------------
