@@ -68,10 +68,33 @@ class ForamlizationWorkflow {
         Project.clickCancelDocumentButton();
     }
 
+    createLegalOpinion({ role, notice, project, documentType }) {
+        cy.loginByRole(role);
+
+        Notice.visitPage();
+        Notice.searchNoticeByNup(notice.noticeNup);
+        Notice.goToNoticeDetailsPage(notice.noticeNup);
+
+        Project.clickFilterFormalizationPhase();
+        Project.validateFilterFormalizationPhase();
+        Project.findProjectByProjectNup(project.projectNup);
+
+        Project.selectProject();
+
+        Project.clickCreateDocument(documentType.createButton);
+        Project.fillDocument(documentType.text);
+        Project.saveDocument();
+        Project.verifySuccessMessageSaveDocument();
+        Project.validateDocumentCreated(documentType.chip);
+        Project.clickEditDocument(documentType.editButton);
+        Project.validateDocumentContent(documentType.text);
+        Project.clickCancelDocumentButton();
+    }
+
     tramitWithRequiredFieldsEmpty({ role, notice, project }) {
         this.accessFormalizationTab({ role, notice, project });
-
-        FormalizationTab.clickTramitDisable();
+        FormalizationTab.clickTramitButton();
+        FormalizationTab.displayModalConfirmTramit();
         FormalizationTab.displayRequiredFieldsMessageError();
     }
 
@@ -80,7 +103,37 @@ class ForamlizationWorkflow {
         FormalizationTab.clickReturnProcessButton();
         FormalizationTab.fillReturnMotive(documentType);
         FormalizationTab.clickSaveReturnMotiveButton();
-        FormalizationTab.displayReturnSuccessMessage();
+        FormalizationTab.displayModalConfirmReturn();
+        FormalizationTab.displayProcessReturnedSuccessMessage();
+    }
+
+    tramitProcessWithSuccessToBudget({ role, notice, project }) {
+        this.accessFormalizationTab({ role, notice, project });
+        FormalizationTab.fillRequiredFields({
+            asjurFinalisticProcessingDate: project.asjurFinalisticProcessingDate,
+            asjurProcessReceivedDate: project.asjurProcessReceivedDate,
+            processAssignedTo: project.processAssignedTo,
+            reportStatusSelected: project.reportStatusSelected,
+            eparceriasCertificateDate: project.eparceriasCertificateDate,
+            asjurProcessingDate: project.asjurProcessingDate,
+            responsibleAtAsjur: project.responsibleAtAsjur,
+            termNumber: project.termNumber,
+            termSignatureSentAt: project.termSignatureSentAt,
+            termSignedAt: project.termSignedAt,
+            sentToOfficeAt: project.sentToOfficeAt,
+            signedByOfficeAt: project.signedByOfficeAt,
+            saccNumber: project.saccNumber,
+            cgeAtendeTicket: project.cgeAtendeTicket,
+            deliberationOption: project.deliberationOption,
+            sentToChiefOfStaffAt: project.sentToChiefOfStaffAt,
+            officialGazettePublishedAt: project.officialGazettePublishedAt,
+            officialGazetteFile: project.officialGazetteFile,
+            instrumentValidityStartAt: project.instrumentValidityStartAt,
+            instrumentValidityEndAt: project.instrumentValidityEndAt,
+        });
+        FormalizationTab.clickTramitButton();
+        FormalizationTab.displayModalConfirmTramit();
+        FormalizationTab.displayModalTramitedProcess();
     }
 }
 

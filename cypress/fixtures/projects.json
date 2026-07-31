@@ -1,4 +1,24 @@
 {
     "title": "Projects",
-    "projectNup": "12345678901234569"
+    "projectNup": "12345678901234569",
+    "asjurFinalisticProcessingDate": "2026-01-20",
+    "asjurProcessReceivedDate": "2026-01-24",
+    "processAssignedTo": "Fulano de Tal",
+    "reportStatusSelected": "Irregular e Adimplente",
+    "eparceriasCertificateDate": "2026-01-30",
+    "asjurProcessingDate": "2026-02-03",
+    "responsibleAtAsjur": "Sicrano de Tal",
+    "termNumber": "987654321987654",
+    "termSignatureSentAt": "2026-02-07",
+    "termSignedAt": "2026-02-09",
+    "sentToOfficeAt": "2026-02-12",
+    "signedByOfficeAt": "2026-02-15",
+    "saccNumber": "14785236914785236914785236914785236914785369",
+    "cgeAtendeTicket": "9632587419632587413258741",
+    "deliberationOption": "Lote CGE",
+    "sentToChiefOfStaffAt": "2026-03-18",
+    "officialGazettePublishedAt": "2026-04-10",
+    "instrumentValidityStartAt": "2026-05-03",
+    "instrumentValidityEndAt": "2026-05-20",
+    "legalOpinionDate": "2026-05-30"
 }

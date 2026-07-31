@@ -17,61 +17,80 @@ class FormalizationTab {
         cy.contains('.v-list-item', valueStr).should('be.visible').click();
     }
 
-    fillRequiredFields(reportStatusSelected, termNumber, deliberationOption) {
-        cy.get(el.asjurFinalisticProcessingDate).type('01/01/2023');
+    fillRequiredFields({
+        asjurFinalisticProcessingDate,
+        asjurProcessReceivedDate,
+        processAssignedTo,
+        reportStatusSelected,
+        eparceriasCertificateDate,
+        asjurProcessingDate,
+        responsibleAtAsjur,
+        termNumber,
+        termSignatureSentAt,
+        termSignedAt,
+        sentToOfficeAt,
+        signedByOfficeAt,
+        saccNumber,
+        cgeAtendeTicket,
+        deliberationOption,
+        sentToChiefOfStaffAt,
+        officialGazettePublishedAt,
+        instrumentValidityStartAt,
+        instrumentValidityEndAt,
+    }) {
+        cy.get(el.asjurFinalisticProcessingDate).find('input').type(asjurFinalisticProcessingDate);
 
-        cy.get(el.asjurProcessReceivedDate).type('10/03/2023');
+        cy.get(el.asjurProcessReceivedDate).type(asjurProcessReceivedDate);
 
-        cy.get(el.processAssignedToInput).type('João da Silva');
+        cy.get(el.processAssignedToInput).type(processAssignedTo);
+
+        cy.log(reportStatusSelected);
 
         this.selectDropdownOption(el.reportStatusSelect, reportStatusSelected);
 
-        cy.get(el.eparceriasCertificateDate).type('10/03/2023');
+        cy.get(el.eparceriasCertificateDate).type(eparceriasCertificateDate);
 
-        cy.get(el.responsibleAtAsjurInput).type('Maria da Silva');
+        cy.get(el.responsibleAtAsjurInput).type(responsibleAtAsjur);
 
-        cy.get(el.asjurProcessingDateInput).type('10/03/2023');
+        cy.get(el.asjurProcessingDateInput).type(asjurProcessingDate);
 
         cy.get(el.termNumberInput).should('be.visible').clear();
 
         cy.get(el.termNumberInput).should('be.visible').type(termNumber);
 
-        cy.get(el.termSignatureSentAtInput).should('be.visible').type('10/03/2023');
+        cy.get(el.termSignatureSentAtInput).should('be.visible').type(termSignatureSentAt);
 
-        cy.get(el.termSignedAtInput).type('10/03/2023');
+        cy.get(el.termSignedAtInput).type(termSignedAt);
 
-        cy.get(el.sentToOfficeAt).should('be.visible').type('10/03/2023');
+        cy.get(el.sentToOfficeAt).should('be.visible').type(sentToOfficeAt);
 
-        cy.get(el.signedByOfficeAtInput).should('be.visible').type('10/03/2023');
+        cy.get(el.signedByOfficeAtInput).should('be.visible').type(signedByOfficeAt);
 
-        cy.get(el.saccNumberInput).should('be.visible').type('123456');
+        cy.get(el.saccNumberInput).should('be.visible').type(saccNumber);
 
-        cy.get(el.cgeAtendeTicketInput).should('be.visible').type('123456');
+        cy.get(el.cgeAtendeTicketInput).should('be.visible').type(cgeAtendeTicket);
 
         this.selectDropdownOption(el.deliberationSelect, deliberationOption);
 
-        cy.get(el.sentToChiefOfStaffAtInput).should('be.visible').type('10/03/2023');
+        cy.get(el.sentToChiefOfStaffAtInput).should('be.visible').type(sentToChiefOfStaffAt);
 
-        cy.get(el.officialGazettePublishedAtInput).should('be.visible').type('10/03/2023');
+        cy.get(el.officialGazettePublishedAtInput).should('be.visible').type(officialGazettePublishedAt);
 
-        cy.get(el.officialGazetteFileInput).should('be.visible').attachFile('test.pdf');
+        cy.get(el.officialGazetteFileInput).selectFile('cypress/fixtures/teste.pdf', { force: true });
 
-        cy.get(el.instrumentValidityStartAtInput).should('be.visible').type('10/03/2023');
+        cy.get(el.instrumentValidityStartAtInput).should('be.visible').type(instrumentValidityStartAt);
 
-        cy.get(el.instrumentValidityEndAtInput).type('10/03/2023');
-
-        cy.get(el.legalOpinionDateInput).should('be.visible').type('10/03/2023');
-
-        cy.get(el.tramitButton).should('be.visible').click();
+        cy.get(el.instrumentValidityEndAtInput).type(instrumentValidityEndAt);
     }
 
     displayRequiredFieldsMessageError() {
         cy.get(el.snackbarAlert, { timeout: 5000 })
             .should('exist')
-            .and(
-                'contain.text',
-                'Preencha os campos obrigatórios antes de tramitar: Data de tramitação da finalística para a ASJUR, Data de recebimento do processo pela ASJUR, Processo distribuído para, Data de tramitação na ASJUR, Responsável (Distribuido para), Número do termo, Data do envio para assinatura do termo, Data da assinatura do termo, Data de envio para Gabinete, Data de assinatura do termo pelo Gabinete, Número do SACC, Data de envio para Casa Civil, Data de Publicação do Diário Oficial do Estado, Data de início da vigência do instrumento, Data de término da vigência do instrumento, Data do parecer jurídico, Anexo do documento do Diário Oficial do Estado.'
-            );
+            .and('contain.text', 'Preencha e salve todos os campos obrigatórios em destaque antes de tramitar.');
+    }
+
+    clickTramitButton() {
+        cy.get(el.tramitButton).should('be.visible').click();
     }
 
     clickTramitDisable() {
@@ -108,12 +127,50 @@ class FormalizationTab {
         cy.get(el.retunrProcessSentButton).contains('Enviar').click();
     }
 
-    clickTramimtButton() {
-        cy.get(el.tramitButton).click();
+    displayModalConfirmReturn() {
+        cy.contains('Confirmar envio?')
+            .closest('.v-card')
+            .within(() => {
+                cy.contains(
+                    'A devolução deixará de ser editável e as pessoas responsáveis receberão sua notificação.'
+                ).should('be.visible');
+
+                cy.contains('button', /^Sim$/).should('be.visible').click();
+            });
+
+        // cy.contains('Confirmar envio?').should('be.visible');
+
+        // cy.contains('A devolução deixará de ser editável e as pessoas responsáveis receberão sua notificação.').should('be.visible');
+
+        // cy.contains('Sim').should('be.visible').click();
     }
 
-    displayReturnSuccessMessage() {
-        cy.get(el.returnProcessSuccessMessage, { timeout: 5000 }).contains('Processo devolvido com sucesso!');
+    displayProcessReturnedSuccessMessage() {
+        cy.contains('Devolução realizada')
+            .closest('.v-card')
+            .within(() => {
+                cy.contains('O processo foi devolvido aos responsáveis!').should('be.visible');
+
+                cy.contains('button', 'Entendi').should('be.visible').click();
+            });
+    }
+
+    displayModalConfirmTramit() {
+        cy.contains('Deseja realizar a tramitação?').should('be.visible');
+
+        cy.contains(
+            'As informações serão validadas e o processo será passado adiante, notificando os responsáveis.'
+        ).should('be.visible');
+
+        cy.contains('Confirmar').should('be.visible').click();
+    }
+
+    displayModalTramitedProcess() {
+        cy.contains('Tramitação realizada').should('be.visible');
+
+        cy.contains('O processo seguirá com outro setor a partir de agora.').should('be.visible');
+
+        cy.contains('Entendi').should('be.visible').click();
     }
 }
 

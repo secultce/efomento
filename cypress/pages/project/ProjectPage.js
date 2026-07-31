@@ -15,11 +15,15 @@ class Project {
     goToProjectDetailsPage(projectNup) {
         const expectedNup = Notice.normalizeNup(projectNup);
 
-        cy.get(el.rowTableProjectList)
-            .contains(el.projectNupProjectList, expectedNup)
-            .closest(el.rowTableProjectList)
-            .find(el.openProjectOpeningTabButton)
-            .click();
+        cy.get(el.projectNupProjectList).each(($element) => {
+            const currentNup = Notice.normalizeNup($element.text());
+
+            if (currentNup === expectedNup) {
+                cy.wrap($element).closest(el.rowTableProjectList).find(el.openProjectOpeningTabButton).click();
+
+                return false; // interrompe o .each()
+            }
+        });
 
         cy.url({ timeout: 10000 }).should('match', /\/editais\/\d+\/projetos\/\d+(?:\?tab=.*)?$/);
     }
@@ -55,24 +59,23 @@ class Project {
 
             cy.get(el.projectList).within(() => {
                 cy.get(el.projectNupProjectList, { timeout: TIMEOUTS.SEARCH })
-                    .contains(projectNup)
-                    .should('be.visible');
+                    .invoke('text')
+                    .then((text) => {
+                        const formattedNup = text.replace(/\D/g, '');
+                        expect(formattedNup).to.equal(projectNup);
+                    });
             });
         } else {
             this.getProjectData().then((data) => {
                 const projectNup = data.projectNup;
 
-                // cy.log('projectNup', projectNup);
-
                 cy.get(`${el.findProjectPageInput} input`, { timeout: TIMEOUTS.DEFAULT }).should('be.visible').clear();
 
                 cy.get(`${el.findProjectPageInput} input`).type(projectNup);
 
-                cy.get(el.projectList).within(() => {
-                    cy.get(el.projectNupProjectList, { timeout: TIMEOUTS.SEARCH })
-                        .contains(projectNup)
-                        .should('be.visible');
-                });
+                cy.contains(el.projectNupProjectList, Notice.normalizeNup(projectNup), {
+                    timeout: TIMEOUTS.SEARCH,
+                }).should('be.visible');
             });
         }
     }
