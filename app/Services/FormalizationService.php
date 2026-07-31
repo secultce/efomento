@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Contracts\StageValidatorInterface;
 use App\Enums\DocumentPhase;
 use App\Enums\DocumentType;
 use App\Models\File;
@@ -12,7 +13,7 @@ use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\ValidationException;
 
-class FormalizationService
+class FormalizationService implements StageValidatorInterface
 {
     private const OFFICIAL_GAZETTE_FILE_GROUP = 'official_gazette';
 

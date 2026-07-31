@@ -2,11 +2,15 @@
 
 namespace App\Services;
 
+use App\Contracts\StageValidatorInterface;
+use App\Enums\DocumentPhase;
+use App\Enums\DocumentType;
 use App\Models\Budget;
 use App\Models\Project;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\ValidationException;
 
-class BudgetService
+class BudgetService implements StageValidatorInterface
 {
     public function create(Project $project, array $data): Budget
     {
@@ -84,5 +88,58 @@ class BudgetService
             'justification' => $data['installment_justification'] ?? null,
             'observations' => $data['installment_observations'] ?? null,
         ];
+    }
+
+    public function ensureCanAdvance(Project $project): void
+    {
+        $budget = $project->budgets;
+
+        if (! $budget) {
+            throw ValidationException::withMessages([
+                'budget' => 'Preencha e salve os dados do orçamento antes de tramitar.',
+            ]);
+        }
+
+        $this->validateRequiredFields($project, $budget);
+        $this->validateRequiredDocuments($project);
+    }
+
+    private function validateRequiredFields(Project $project, Budget $budget): void
+    {
+        $currentInstallment = $budget->installments()
+            ->where('installment_number', $project->current_installment_cycle)
+            ->first();
+
+        $missingFields = collect();
+
+        if (blank($currentInstallment?->notice_installment_number)) {
+            $missingFields->push('Nº da parcela no edital');
+        }
+
+        if (blank($currentInstallment?->amount)) {
+            $missingFields->push('Valor da parcela');
+        }
+
+        if ($missingFields->isNotEmpty()) {
+            throw ValidationException::withMessages([
+                'budget' => 'Preencha todos os campos obrigatórios antes de tramitar: '
+                    .$missingFields->join(', ')
+                    .'.',
+            ]);
+        }
+    }
+
+    private function validateRequiredDocuments(Project $project): void
+    {
+        $hasBudgetOpinion = $project->documents()
+            ->where('phase', DocumentPhase::BUDGET->value ?? 'budget')
+            ->where('type', DocumentType::DO->value ?? 'do')
+            ->exists();
+
+        if (! $hasBudgetOpinion) {
+            throw ValidationException::withMessages([
+                'documents' => 'O despacho orçamentário precisa ser gerado antes da tramitação.',
+            ]);
+        }
     }
 }

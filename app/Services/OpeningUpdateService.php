@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Contracts\StageValidatorInterface;
 use App\Enums\ProfileSnapshotSource;
 use App\Models\Opening;
 use App\Models\Project;
@@ -10,7 +11,7 @@ use Exception;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
-class OpeningUpdateService
+class OpeningUpdateService implements StageValidatorInterface
 {
     public function __construct(
         protected ProfileSnapshotService $snapshotService

@@ -19,6 +19,7 @@ import { viewSections, formSections } from '@/Schemas/Budget';
 import { useDate } from '@/Composables/useDate';
 import { useSnackbar } from '@/Composables/useSnackbar';
 import { useAlert } from '@/Composables/useAlert';
+import { useSaveShortcut } from '@/Composables/useSaveShortcut';
 import { useStageAdvance } from '@/Composables/useStageAdvance';
 
 const props = defineProps({
@@ -37,6 +38,13 @@ const STAGE_SLUG = 'orcamento';
 const { canUserHandle: canUserHandleBudget } = useStageAdvance(props, STAGE_SLUG);
 
 const stage = computed(() => props.project.stages?.find((s) => s.slug === STAGE_SLUG));
+
+const canEditBudget = computed(() => canUserHandleBudget.value && stage.value?.status === 'em_andamento');
+
+useSaveShortcut(
+    () => submit(),
+    computed(() => canEditBudget.value && !form.processing)
+);
 
 const activeViewIndex = ref('all');
 const activeEditIndex = ref('all');
@@ -146,55 +154,31 @@ const submit = () => {
     saveBudget();
 };
 
-const hasRequiredFields = computed(() => {
-    return Boolean(
-        form.processing_date_for_codip &&
-        form.processing_date_for_coafi &&
-        form.installment_amount &&
-        form.installment_request_date &&
-        form.installment_justification
-    );
-});
+const hasText = (value) => value !== null && value !== undefined && String(value).trim().length > 0;
 
 const hasBudgetOpinionDocument = computed(() => !!budgetOpinionDocument.value);
 
-const canTramitBudget = computed(() => {
-    return canUserHandleBudget.value && hasRequiredFields.value && hasBudgetOpinionDocument.value;
+const hasRequiredFieldsFilled = computed(() => {
+    return (
+        hasText(form.notice_installment_number) && hasText(form.installment_amount) && hasBudgetOpinionDocument.value
+    );
 });
 
-function showTramitBlockedMessage() {
-    if (canTramitBudget.value) {
-        return;
-    }
+const showValidationErrors = ref(false);
 
-    if (stage.value?.status === 'bloqueado') {
-        showSnackbar('Este projeto está bloqueado e não pode receber alterações no momento.', 'warning');
+const errors = computed(() => {
+    if (!showValidationErrors.value) return {};
 
-        return;
-    }
+    const standardMessage = 'Preencha este campo';
 
-    if (stage.value?.status !== 'em_andamento') {
-        showSnackbar('Este projeto não pode ser tramitado no momento.', 'warning');
-
-        return;
-    }
-
-    if (!canUserHandleBudget.value) {
-        showSnackbar('Usuário não tem permissão para tramitar orçamento.', 'warning');
-
-        return;
-    }
-
-    if (!hasRequiredFields.value) {
-        showSnackbar('Preencha todos os campos obrigatórios antes de tramitar.', 'warning');
-
-        return;
-    }
-
-    if (!hasBudgetOpinionDocument.value) {
-        showSnackbar('O despacho orçamentário precisa ser gerado antes da tramitação.', 'warning');
-    }
-}
+    return {
+        notice_installment_number: !hasText(form.notice_installment_number) ? standardMessage : null,
+        installment_amount: !hasText(form.installment_amount) ? standardMessage : null,
+        budget_opinion_document: !hasBudgetOpinionDocument.value
+            ? 'O despacho orçamentário precisa ser gerado antes de tramitar'
+            : null,
+    };
+});
 
 const tramitLoading = ref(false);
 
@@ -204,11 +188,18 @@ const tramit = async () => {
         return;
     }
 
-    if (!canTramitBudget.value) {
-        showTramitBlockedMessage();
+    if (!canEditBudget.value) {
+        showSnackbar(permissionMessage.value || 'Você não tem permissão para alterar ou tramitar esta etapa.', 'error');
         return;
     }
 
+    if (!hasRequiredFieldsFilled.value) {
+        showValidationErrors.value = true;
+        showSnackbar('Preencha e salve todos os campos obrigatórios em destaque antes de tramitar.', 'error');
+        return;
+    }
+
+    showValidationErrors.value = false;
     tramitLoading.value = true;
 
     const saved = await saveBudget({ showSuccess: false });
@@ -255,11 +246,19 @@ const permissionMessage = computed(() => {
         return 'Este projeto está bloqueado e não pode receber alterações no momento.';
     }
 
+    if (!canUserHandleBudget.value) {
+        return 'Usuário não tem permissão para fazer alterações no Orçamento.';
+    }
+
     if (stage.value?.status !== 'em_andamento') {
         return 'Projeto já foi tramitado e não está mais na fase de Orçamento.';
     }
 
-    return 'Usuário não tem permissão para fazer alterações no Orçamento.';
+    if (!hasRequiredFieldsFilled.value) {
+        return 'Preencha e salve todos os campos obrigatórios antes de tramitar.';
+    }
+
+    return '';
 });
 </script>
 
@@ -306,7 +305,7 @@ const permissionMessage = computed(() => {
                         <p class="font-bold text-md mt-2 text-black">Links auxiliares</p>
                     </div>
 
-                    <SaveButton :loading="form.processing" :can-save="canUserHandleBudget" @click="submit" />
+                    <SaveButton :loading="form.processing" :can-save="canEditBudget" @click="submit" />
                 </div>
 
                 <AuxLinks />
@@ -315,8 +314,7 @@ const permissionMessage = computed(() => {
 
                 <div
                     v-permission="{
-                        condition:
-                            !canUserHandleBudget || (stage?.status !== 'aprovado' && stage?.status !== 'bloqueado'),
+                        condition: canEditBudget,
                         message: permissionMessage,
                     }"
                     class="mt-4"
@@ -329,6 +327,7 @@ const permissionMessage = computed(() => {
                                         <TextField
                                             v-model="form.processing_date_for_codip"
                                             type="date"
+                                            label="Insira a data"
                                             :disabled="budgetLocked"
                                         />
                                     </FormField>
@@ -337,6 +336,7 @@ const permissionMessage = computed(() => {
                                         <TextField
                                             v-model="form.processing_date_for_coafi"
                                             type="date"
+                                            label="Insira a data"
                                             :disabled="budgetLocked"
                                         />
                                     </FormField>
@@ -347,8 +347,10 @@ const permissionMessage = computed(() => {
                                 <DocumentViewerDialog v-model="viewerOpen" :document="viewerDocument" />
 
                                 <div v-if="budgetOpinionDocument" class="grid grid-cols-2 gap-4">
-                                    <FormField label="Despacho orçamentário">
-                                        <div class="d-flex items-center justify-between border rounded-lg px-4 py-2">
+                                    <FormField label="Despacho orçamentário" required>
+                                        <div
+                                            class="d-flex items-center justify-between border rounded-lg px-4 py-2 mt-2"
+                                        >
                                             <span class="text-sm text-[#3b3b3c] font-medium truncate">
                                                 {{
                                                     budgetOpinionDocument.type_name ??
@@ -391,8 +393,14 @@ const permissionMessage = computed(() => {
                                 </div>
 
                                 <div v-else class="grid grid-cols-2 gap-4">
-                                    <FormField label="Despacho orçamentário">
-                                        <div class="border rounded-lg px-4 py-3 mt-2 flex items-center justify-between">
+                                    <FormField
+                                        label="Despacho orçamentário"
+                                        required
+                                        :error="errors.budget_opinion_document"
+                                    >
+                                        <div
+                                            class="border rounded-lg px-4 py-3 mt-2 flex items-center justify-between mb-5"
+                                        >
                                             <span class="text-sm font-bold"> O despacho ainda não foi gerado </span>
 
                                             <v-icon color="warning" size="20"> mdi-alert-circle </v-icon>
@@ -405,26 +413,43 @@ const permissionMessage = computed(() => {
                                 <div class="grid grid-cols-2 gap-4">
                                     <FormField
                                         label="Nº da parcela no edital"
-                                        :error="form.errors.notice_installment_number"
+                                        required
+                                        :error="
+                                            form.errors.notice_installment_number || errors.notice_installment_number
+                                        "
                                     >
                                         <TextField
                                             v-model="form.notice_installment_number"
                                             type="number"
                                             min="1"
                                             step="1"
+                                            label="Informe o número da parcela"
+                                            :error="errors.notice_installment_number"
                                         />
                                     </FormField>
 
                                     <FormField
                                         :label="`Valor da ${project.current_installment_cycle}ª parcela`"
-                                        :error="form.errors.installment_amount"
+                                        required
+                                        :error="form.errors.installment_amount || errors.installment_amount"
                                     >
-                                        <TextField v-model="form.installment_amount" money />
+                                        <TextField
+                                            v-model="form.installment_amount"
+                                            money
+                                            label="Insira o valor em reais"
+                                            :error="errors.installment_amount"
+                                        />
                                     </FormField>
 
-                                    <FormField label="Data de solicitação da parcela">
-                                        <TextField v-model="form.installment_request_date" type="date" />
-                                    </FormField>
+                                    <div class="col-span-2 grid grid-cols-2 gap-4">
+                                        <FormField label="Data de solicitação da parcela">
+                                            <TextField
+                                                v-model="form.installment_request_date"
+                                                type="date"
+                                                label="Insira a data"
+                                            />
+                                        </FormField>
+                                    </div>
 
                                     <FormField label="Justificativa da parcela">
                                         <v-textarea
@@ -452,14 +477,7 @@ const permissionMessage = computed(() => {
                         </template>
                     </SectionForm>
 
-                    <div :class="{ 'cursor-not-allowed': !canTramitBudget }" @click="showTramitBlockedMessage">
-                        <TramitButton
-                            :action="tramit"
-                            :disabled="!canTramitBudget"
-                            :loading="tramitLoading"
-                            :class="{ 'pointer-events-none': !canTramitBudget }"
-                        />
-                    </div>
+                    <TramitButton :action="tramit" :disabled="!canEditBudget" :loading="tramitLoading" />
                 </div>
             </div>
         </template>
