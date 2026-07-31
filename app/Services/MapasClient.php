@@ -13,6 +13,8 @@ use Throwable;
 
 class MapasClient
 {
+    private const SERVICE_NAME = 'Mapas Cultural';
+
     private const AGENT_SELECT_FIELDS = [
         'id',
         'name',
@@ -120,21 +122,25 @@ class MapasClient
         $response = $this->request($authenticated)->get($path, $query);
 
         if ($response->failed()) {
-            throw new ExternalServiceException(sprintf(
-                'Erro na API Mapas [%s] %s: %s',
-                $response->status(),
-                $path,
-                (string) str($response->body())->limit(500)
-            ), httpStatus: 503, context: ['service' => 'Mapas Cultural', 'path' => $path]);
+            throw ExternalServiceException::fromFailedResponse(
+                self::SERVICE_NAME,
+                sprintf(
+                    'Erro na API Mapas [%s] %s: %s',
+                    $response->status(),
+                    $path,
+                    (string) str($response->body())->limit(500)
+                ),
+                ['path' => $path],
+            );
         }
 
         $json = $response->json();
 
         if (! is_array($json)) {
-            throw new ExternalServiceException(
+            throw ExternalServiceException::fromFailedResponse(
+                self::SERVICE_NAME,
                 "Resposta inválida da API Mapas: {$path}",
-                httpStatus: 503,
-                context: ['service' => 'Mapas Cultural', 'path' => $path],
+                ['path' => $path],
             );
         }
 
@@ -198,11 +204,15 @@ class MapasClient
         if ($response->failed()) {
             @unlink($absolutePath);
 
-            throw new ExternalServiceException(sprintf(
-                'Erro ao baixar arquivo do Mapas [%s]: %s',
-                $response->status(),
-                $url
-            ), httpStatus: 503, context: ['service' => 'Mapas Cultural', 'url' => $url]);
+            throw ExternalServiceException::fromFailedResponse(
+                self::SERVICE_NAME,
+                sprintf(
+                    'Erro ao baixar arquivo do Mapas [%s]: %s',
+                    $response->status(),
+                    $url
+                ),
+                ['url' => $url],
+            );
         }
 
         $mimeType = $this->resolveDownloadedMimeType(
@@ -213,10 +223,10 @@ class MapasClient
         if ($mimeType === 'text/html') {
             @unlink($absolutePath);
 
-            throw new ExternalServiceException(
+            throw ExternalServiceException::fromFailedResponse(
+                self::SERVICE_NAME,
                 "Download inválido: o Mapas retornou HTML em vez de arquivo. URL: {$url}",
-                httpStatus: 503,
-                context: ['service' => 'Mapas Cultural', 'url' => $url],
+                ['url' => $url],
             );
         }
 

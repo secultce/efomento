@@ -73,6 +73,10 @@ class ProjectStageController extends Controller
 
             return back()->with('success', 'O processo foi devolvido aos responsáveis!');
         } catch (AppException $e) {
+            if ($e->shouldReport()) {
+                report($e);
+            }
+
             return back()->with('error', $e->getMessage());
         }
     }
