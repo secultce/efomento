@@ -2,15 +2,12 @@
 
 namespace App\Http\Controllers;
 
-use App\Enums\ProjectStageSlug;
 use App\Enums\Role;
 use App\Exceptions\AppException;
 use App\Http\Requests\Stages\ReturnStageRequest;
 use App\Models\Project;
 use App\Models\ProjectStage;
-use App\Services\FormalizationService;
 use App\Services\NotificationService;
-use App\Services\OpeningUpdateService;
 use App\Services\ProjectStageService;
 use Illuminate\Http\Request;
 
@@ -19,8 +16,6 @@ class ProjectStageController extends Controller
     public function __construct(
         private ProjectStageService $stageService,
         private NotificationService $notificationService,
-        private FormalizationService $formalizationService,
-        private OpeningUpdateService $openingUpdateService,
     ) {}
 
     public function advance(
@@ -29,14 +24,6 @@ class ProjectStageController extends Controller
         ProjectStage $stage
     ) {
         $stage->load('project');
-
-        if ($stage->slug === ProjectStageSlug::ABERTURA) {
-            $this->openingUpdateService->ensureCanAdvance($project);
-        }
-
-        if ($stage->slug === ProjectStageSlug::FORMALIZACAO) {
-            $this->formalizationService->ensureCanAdvance($project);
-        }
 
         $nextStage = $this->stageService->advance($stage, $request->user());
 

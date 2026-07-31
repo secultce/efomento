@@ -2,6 +2,9 @@
 
 namespace Tests\Feature;
 
+use App\Enums\AccountType;
+use App\Enums\DocumentPhase;
+use App\Enums\DocumentType;
 use App\Enums\ProjectStageSlug;
 use App\Enums\ProjectStageStatus;
 use App\Exceptions\Domain\BusinessRuleException;
@@ -51,6 +54,96 @@ class ProjectStageFlowTest extends TestCase
             'type' => 'principal',
             'is_active' => true,
             'assigned_at' => now(),
+        ]);
+    }
+
+    private function createValidOpening(Project $project): Opening
+    {
+        $opening = Opening::factory()->create([
+            'project_id' => $project->id,
+            'creditor_number' => '123456',
+            'allocation_code' => '123456',
+            'bank' => 'Banco do Brasil',
+            'account_type' => AccountType::cases()[0]->value,
+            'branch' => '1234',
+            'account' => '12345-6',
+            'opening_nup' => '12345678901234567',
+            'allocation_number' => '12345678901234567890123456789012345678901',
+        ]);
+
+        OpeningSupervisor::create([
+            'opening_id' => $opening->id,
+            'user_id' => User::factory()->create()->id,
+            'type' => 'principal',
+            'is_active' => true,
+            'assigned_at' => now(),
+        ]);
+
+        OpeningSupervisor::create([
+            'opening_id' => $opening->id,
+            'user_id' => User::factory()->create()->id,
+            'type' => 'alternate',
+            'is_active' => true,
+            'assigned_at' => now(),
+        ]);
+
+        return $opening;
+    }
+
+    private function createValidFormalization(Project $project): void
+    {
+        $formalization = $project->formalizations()->create([
+            'term_number' => '001/2026',
+            'term_signed_at' => now(),
+            'signed_by_office_at' => now(),
+            'sacc_number' => '12345',
+            'official_gazette_published_at' => now(),
+            'validity_start_at' => now(),
+            'validity_end_at' => now()->addYear(),
+        ]);
+
+        $formalization->files()->create([
+            'mime_type' => 'application/pdf',
+            'name' => 'gazette.pdf',
+            'source' => 'upload',
+            'grp' => 'official_gazette',
+            'title' => 'Anexo do documento do Diário Oficial do Estado',
+            'path' => 'projects/gazette.pdf',
+            'private' => true,
+        ]);
+
+        foreach (DocumentType::requiredForFormalizationAdvance() as $type) {
+            $project->documents()->create([
+                'notice_id' => $project->notice_id,
+                'created_by' => User::factory()->create()->id,
+                'phase' => DocumentPhase::FORMALIZATION->value,
+                'type' => $type->value,
+                'name' => $type->fullLabel(),
+            ]);
+        }
+    }
+
+    private function createValidBudget(Project $project): void
+    {
+        $userId = User::factory()->create()->id;
+
+        $budget = $project->budgets()->create([
+            'created_by' => $userId,
+        ]);
+
+        $budget->installments()->create([
+            'installment_number' => $project->current_installment_cycle ?? 1,
+            'notice_installment_number' => 1,
+            'amount' => 1000.00,
+            'created_by' => $userId,
+        ]);
+
+        $project->documents()->create([
+            'notice_id' => $project->notice_id,
+            'created_by' => $userId,
+            'phase' => DocumentPhase::BUDGET->value ?? 'budget',
+            'type' => DocumentType::DO->value ?? 'do',
+            'name' => 'Despacho Orçamentário',
         ]);
     }
 
@@ -106,6 +199,10 @@ class ProjectStageFlowTest extends TestCase
     public function test_full_happy_path_flow(): void
     {
         $project = Project::factory()->create();
+
+        $this->createValidOpening($project);
+        $this->createValidFormalization($project);
+        $this->createValidBudget($project);
 
         $userByOrder = [
             1 => $this->createUserWithRoles('fomentation'),
@@ -185,6 +282,7 @@ class ProjectStageFlowTest extends TestCase
     public function test_reject_flow_blocks_all_subsequent_stages(): void
     {
         $project = Project::factory()->create();
+        $this->createValidOpening($project);
 
         $first = $project->stages()->where('order', 1)->first();
         $this->service->advance($first, $this->createUserWithRoles('fomentation'));
@@ -230,6 +328,7 @@ class ProjectStageFlowTest extends TestCase
     public function test_progress_percentage_updates_after_approvals(): void
     {
         $project = Project::factory()->create();
+        $this->createValidOpening($project);
 
         $first = $project->stages()->where('order', 1)->first();
         $this->service->advance($first, $this->createUserWithRoles('fomentation'));
