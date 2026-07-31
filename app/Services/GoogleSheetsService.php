@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Exceptions\Integration\ExternalServiceException;
 use App\Models\Budget;
 use App\Models\Formalization;
 use App\Models\Project;
@@ -35,7 +36,7 @@ class GoogleSheetsService
                 ->throw()
                 ->body();
         } catch (RequestException $e) {
-            throw new RuntimeException("Failed to fetch Google Sheet: {$e->getMessage()}", previous: $e);
+            throw ExternalServiceException::unavailable('Google Sheets', $e);
         }
         $json = $this->stripSecurityPrefix($raw);
 
@@ -215,7 +216,7 @@ class GoogleSheetsService
                 ->throw()
                 ->body();
         } catch (RequestException $e) {
-            throw new RuntimeException("Failed to fetch Google Sheet: {$e->getMessage()}", previous: $e);
+            throw ExternalServiceException::unavailable('Google Sheets', $e);
         }
 
         $table = $this->decodeTable($this->stripSecurityPrefix($raw));

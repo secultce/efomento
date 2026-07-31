@@ -2,13 +2,13 @@
 
 namespace App\Services;
 
+use App\Exceptions\Integration\ExternalServiceException;
 use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Http\Client\PendingRequest;
 use Illuminate\Http\Client\RequestException;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
-use RuntimeException;
 use Throwable;
 
 class MapasClient
@@ -120,18 +120,22 @@ class MapasClient
         $response = $this->request($authenticated)->get($path, $query);
 
         if ($response->failed()) {
-            throw new RuntimeException(sprintf(
+            throw new ExternalServiceException(sprintf(
                 'Erro na API Mapas [%s] %s: %s',
                 $response->status(),
                 $path,
                 (string) str($response->body())->limit(500)
-            ));
+            ), httpStatus: 503, context: ['service' => 'Mapas Cultural', 'path' => $path]);
         }
 
         $json = $response->json();
 
         if (! is_array($json)) {
-            throw new RuntimeException("Resposta inválida da API Mapas: {$path}");
+            throw new ExternalServiceException(
+                "Resposta inválida da API Mapas: {$path}",
+                httpStatus: 503,
+                context: ['service' => 'Mapas Cultural', 'path' => $path],
+            );
         }
 
         return $json;
@@ -194,11 +198,11 @@ class MapasClient
         if ($response->failed()) {
             @unlink($absolutePath);
 
-            throw new RuntimeException(sprintf(
+            throw new ExternalServiceException(sprintf(
                 'Erro ao baixar arquivo do Mapas [%s]: %s',
                 $response->status(),
                 $url
-            ));
+            ), httpStatus: 503, context: ['service' => 'Mapas Cultural', 'url' => $url]);
         }
 
         $mimeType = $this->resolveDownloadedMimeType(
@@ -209,8 +213,10 @@ class MapasClient
         if ($mimeType === 'text/html') {
             @unlink($absolutePath);
 
-            throw new RuntimeException(
-                "Download inválido: o Mapas retornou HTML em vez de arquivo. URL: {$url}"
+            throw new ExternalServiceException(
+                "Download inválido: o Mapas retornou HTML em vez de arquivo. URL: {$url}",
+                httpStatus: 503,
+                context: ['service' => 'Mapas Cultural', 'url' => $url],
             );
         }
 
