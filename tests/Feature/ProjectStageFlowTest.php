@@ -4,6 +4,9 @@ namespace Tests\Feature;
 
 use App\Enums\ProjectStageSlug;
 use App\Enums\ProjectStageStatus;
+use App\Exceptions\Domain\BusinessRuleException;
+use App\Exceptions\Domain\DomainAuthorizationException;
+use App\Exceptions\Domain\StageTransitionException;
 use App\Models\Notice;
 use App\Models\Opening;
 use App\Models\OpeningSupervisor;
@@ -11,10 +14,8 @@ use App\Models\Project;
 use App\Models\ProjectStage;
 use App\Models\User;
 use App\Services\ProjectStageService;
-use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Database\QueryException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use InvalidArgumentException;
 use Spatie\Permission\Models\Role;
 use Tests\TestCase;
 
@@ -139,7 +140,7 @@ class ProjectStageFlowTest extends TestCase
         $first = $project->stages()->where('order', 1)->first();
         $user = User::factory()->create();
 
-        $this->expectException(AuthorizationException::class);
+        $this->expectException(DomainAuthorizationException::class);
         $this->expectExceptionMessage('Você não tem permissão para tramitar esta etapa.');
 
         $this->service->advance($first, $user);
@@ -151,7 +152,7 @@ class ProjectStageFlowTest extends TestCase
         $first = $project->stages()->where('order', 1)->first();
         $user = User::factory()->create();
 
-        $this->expectException(AuthorizationException::class);
+        $this->expectException(DomainAuthorizationException::class);
         $this->expectExceptionMessage('Você não tem permissão para tramitar esta etapa.');
 
         $this->service->reject($first, 'Motivo', $user);
@@ -163,7 +164,7 @@ class ProjectStageFlowTest extends TestCase
         $second = $project->stages()->where('order', 2)->first();
         $user = $this->createUserWithRoles('legal_analysis');
 
-        $this->expectException(InvalidArgumentException::class);
+        $this->expectException(StageTransitionException::class);
         $this->expectExceptionMessage('A etapa precisa estar em andamento para ser aprovada.');
 
         $this->service->advance($second, $user);
@@ -175,7 +176,7 @@ class ProjectStageFlowTest extends TestCase
         $second = $project->stages()->where('order', 2)->first();
         $user = $this->createUserWithRoles('legal_analysis');
 
-        $this->expectException(InvalidArgumentException::class);
+        $this->expectException(StageTransitionException::class);
         $this->expectExceptionMessage('A etapa precisa estar em andamento para ser rejeitada.');
 
         $this->service->reject($second, 'Motivo', $user);
@@ -300,7 +301,7 @@ class ProjectStageFlowTest extends TestCase
             ->for(Notice::factory()->state(['installments' => 2]))
             ->create(['current_installment_cycle' => 1]);
 
-        $this->expectException(AuthorizationException::class);
+        $this->expectException(DomainAuthorizationException::class);
         $this->expectExceptionMessage('Apenas o fiscal titular pode executar esta ação.');
 
         $this->service->requestNextInstallment($project, User::factory()->create());
@@ -314,7 +315,7 @@ class ProjectStageFlowTest extends TestCase
         $user = $this->createUserWithRoles('monitoring');
         $this->makePrincipalSupervisor($project, $user);
 
-        $this->expectException(InvalidArgumentException::class);
+        $this->expectException(BusinessRuleException::class);
         $this->expectExceptionMessage('Projeto não possui múltiplas parcelas.');
 
         $this->service->requestNextInstallment($project, $user);
@@ -328,7 +329,7 @@ class ProjectStageFlowTest extends TestCase
         $user = $this->createUserWithRoles('monitoring');
         $this->makePrincipalSupervisor($project, $user);
 
-        $this->expectException(InvalidArgumentException::class);
+        $this->expectException(BusinessRuleException::class);
         $this->expectExceptionMessage('Todos os ciclos de parcelas já foram concluídos.');
 
         $this->service->requestNextInstallment($project, $user);
@@ -342,7 +343,7 @@ class ProjectStageFlowTest extends TestCase
         $user = $this->createUserWithRoles('monitoring');
         $this->makePrincipalSupervisor($project, $user);
 
-        $this->expectException(InvalidArgumentException::class);
+        $this->expectException(StageTransitionException::class);
         $this->expectExceptionMessage('A etapa de Monitoramento precisa estar em andamento.');
 
         $this->service->requestNextInstallment($project, $user);
