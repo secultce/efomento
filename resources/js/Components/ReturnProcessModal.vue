@@ -3,7 +3,6 @@ import { computed, watch } from 'vue';
 import { router, useForm, usePage } from '@inertiajs/vue3';
 import { useAlert } from '@/Composables/useAlert';
 import AppTextEditor from '@/Components/AppTextEditor.vue';
-import { returnProcess } from '@/Services/projectService';
 
 const { showAlert } = useAlert();
 const page = usePage();
@@ -39,48 +38,41 @@ function close() {
 }
 
 function submitReturn() {
-    returnProcess(
-        props.projectId,
-        props.stageId,
-        {
-            reason: form.reason,
+    form.post(`/projetos/${props.projectId}/etapas/${props.stageId}/devolver`, {
+        onSuccess: () => {
+            const flash = page.props.flash;
+
+            if (flash?.error) {
+                showAlert({
+                    alertTitle: 'Não foi possível devolver o processo',
+                    alertMessage: flash.error,
+                    confirmText: 'Entendi',
+                });
+
+                return;
+            }
+
+            emit('returned');
+            close();
+
+            showAlert({
+                alertTitle: 'Devolução realizada',
+                alertMessage: 'O processo foi devolvido aos responsáveis!',
+                confirmText: 'Entendi',
+                action: reloadPage,
+            });
         },
-        {
-            onSuccess: () => {
-                const flash = page.props.flash;
 
-                if (flash?.error) {
-                    showAlert({
-                        alertTitle: 'Não foi possível devolver o processo',
-                        alertMessage: flash.error,
-                        confirmText: 'Entendi',
-                    });
+        onError: (errors) => {
+            const message = Object.values(errors).flat().join(', ') || 'Ocorreu um erro ao devolver o processo.';
 
-                    return;
-                }
-
-                emit('returned');
-                close();
-
-                showAlert({
-                    alertTitle: 'Devolução realizada',
-                    alertMessage: 'O processo foi devolvido aos responsáveis!',
-                    confirmText: 'Entendi',
-                    action: reloadPage,
-                });
-            },
-
-            onError: (errors) => {
-                const message = Object.values(errors).flat().join(', ') || 'Ocorreu um erro ao devolver o processo.';
-
-                showAlert({
-                    alertTitle: 'Erro ao devolver processo',
-                    alertMessage: message,
-                    confirmText: 'Entendi',
-                });
-            },
-        }
-    );
+            showAlert({
+                alertTitle: 'Erro ao devolver processo',
+                alertMessage: message,
+                confirmText: 'Entendi',
+            });
+        },
+    });
 }
 
 function handleReturn() {
