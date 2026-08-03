@@ -21,7 +21,7 @@ final class ExternalServiceException extends AppException
         return new self(
             $message,
             httpStatus: 503,
-            context: ['service' => $service, ...$context],
+            context: ['service' => $service] + $context,
         );
     }
 }

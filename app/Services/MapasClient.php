@@ -124,12 +124,7 @@ class MapasClient
         if ($response->failed()) {
             throw ExternalServiceException::fromFailedResponse(
                 self::SERVICE_NAME,
-                sprintf(
-                    'Erro na API Mapas [%s] %s: %s',
-                    $response->status(),
-                    $path,
-                    (string) str($response->body())->limit(500)
-                ),
+                sprintf('Erro na API Mapas [%s] %s', $response->status(), $path),
                 ['path' => $path],
             );
         }
@@ -209,9 +204,9 @@ class MapasClient
                 sprintf(
                     'Erro ao baixar arquivo do Mapas [%s]: %s',
                     $response->status(),
-                    $url
+                    $this->redactUrl($url)
                 ),
-                ['url' => $url],
+                ['url' => $this->redactUrl($url)],
             );
         }
 
@@ -225,8 +220,8 @@ class MapasClient
 
             throw ExternalServiceException::fromFailedResponse(
                 self::SERVICE_NAME,
-                "Download inválido: o Mapas retornou HTML em vez de arquivo. URL: {$url}",
-                ['url' => $url],
+                "Download inválido: o Mapas retornou HTML em vez de arquivo. URL: {$this->redactUrl($url)}",
+                ['url' => $this->redactUrl($url)],
             );
         }
 
@@ -234,6 +229,11 @@ class MapasClient
             'mime_type' => $mimeType,
             'size' => file_exists($absolutePath) ? filesize($absolutePath) : null,
         ];
+    }
+
+    private function redactUrl(string $url): string
+    {
+        return (string) str($url)->before('?');
     }
 
     private function resolveDownloadedMimeType(?string $contentType, string $absolutePath): string
