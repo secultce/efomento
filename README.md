@@ -125,6 +125,18 @@ docker exec efomento-app php artisan db:seed --class=PermissionSeeder
 docker compose exec app php artisan tinker  --execute="SyncNoticesJob::dispatch()"
 ```
 
+O comando `php artisan db:seed` (inclusive via `migrate:fresh --seed`) respeita
+`SEED_MODE`:
+
+| Valor | Dados criados |
+|-------|---------------|
+| `none` | Nenhum (padrao) |
+| `users` | Permissoes, perfis e usuarios |
+| `all` | Todos os dados de desenvolvimento |
+
+Depois de alterar `SEED_MODE` em um ambiente com configuracao em cache, execute
+`php artisan config:clear` antes de rodar o seeder.
+
 ### Acessos locais
 
 | Serviço       | URL / Host             |
