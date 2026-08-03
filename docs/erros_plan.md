@@ -6,7 +6,7 @@ O projeto trata erros de forma ad-hoc, tanto no backend quanto no frontend, apes
 
 Objetivo: desenhar um/a hierarquia de classes de exceção no backend + um composable central no frontend, que padronizem como erros de negócio, autorização e integração externa são reportados, logados e exibidos ao usuário — sem quebrar o fluxo Inertia existente (`form.errors`, `back()->withErrors()`).
 
-Este documento é **diagnóstico + plano de implementação para aprovação** — não inclui a escrita de código de produção. A fundação (passo 1 da migração) deve ser implementada em uma tarefa separada, após revisão.
+Este documento nasceu como **diagnóstico + plano de implementação para aprovação**. Desde então, a fundação e boa parte da migração (passos 1-4, ver seção 3.2) já foram implementadas e mescladas — o documento agora funciona como **registro histórico da decisão + checklist do que ainda falta**. As seções 1-2 (hierarquia de exceções, handler central) descrevem uma implementação já concluída, não mais uma proposta; a seção 5 (estratégia de migração) mantém a numeração original dos passos apenas como referência de ordem, não como trabalho pendente — o estado real de cada etapa está na seção 3.2.
 
 ## Diagnóstico atual (verificado no código)
 
@@ -30,7 +30,7 @@ Este documento é **diagnóstico + plano de implementação para aprovação** �
 Duas fronteiras claras (hierarquia rasa, não uma classe por regra):
 
 - **Exception de domínio**: regra de negócio que o usuário entende e pode agir (ex.: "documentos pendentes para tramitar"). Mensagem pt-BR pronta para exibir.
-- **Exception técnica**: falha de infraestrutura/integração (Guzzle, timeout do Google Sheets/Mapas Cultural). É logada com detalhe técnico, mas ao usuário mostra mensagem genérica — a exception técnica é **envolvida** (wrapped, com `$previous`) em uma exception de domínio do tipo `ExternalServiceException` antes de subir ao controller.
+- **Exception técnica/de integração**: falha de infraestrutura/integração (Guzzle, timeout do Google Sheets/Mapas Cultural). É logada com detalhe técnico, mas ao usuário mostra mensagem genérica — a exception técnica original (Guzzle `RequestException`/`ConnectionException`) é **envolvida** (wrapped, com `$previous`) em `ExternalServiceException` (`app/Exceptions/Integration/`) antes de subir ao controller.
 
 `ValidationException` e `AuthorizationException` do Laravel **continuam com o comportamento padrão** — não entram na hierarquia nova, preservando 100% do fluxo `form.errors` já testado.
 
@@ -109,16 +109,14 @@ final class ExternalServiceException extends AppException
 
     // Render único para toda a hierarquia de domínio
     $exceptions->render(function (AppException $e, Request $request) {
-        if ($request->header('X-Inertia')) {
-            return back()->withErrors(['message' => $e->getMessage()]);
-        }
-        if ($request->expectsJson()) {
+        if ($request->expectsJson() && ! $request->header('X-Inertia')) {
             return response()->json([
                 'message' => $e->getMessage(),
                 'code' => class_basename($e),
             ], $e->getHttpStatus());
         }
-        // fallback: cai no comportamento padrão (páginas de erro Laravel)
+
+        return back()->withErrors(['message' => $e->getMessage()]);
     });
 
     // manter render(InvalidArgumentException) legado durante a migração (passo 3 remove)
@@ -151,7 +149,7 @@ throw ExternalServiceException::unavailable('Google Sheets', $e);
 
 A varredura em `app/Http/Controllers/` e `app/Services/` (feita após o merge, com a fundação do passo 1 já mesclada) revelou um escopo maior que a estimativa inicial. Segue o mapeamento completo antes de qualquer alteração:
 
-**Controllers com `catch` a remover (6, não 5):**
+**Controllers com `catch` a remover (5):**
 
 | Controller | Catches atuais |
 |---|---|
@@ -188,7 +186,7 @@ A varredura em `app/Http/Controllers/` e `app/Services/` (feita após o merge, c
 - ✅ **`GoogleSheetsService`, `MapasClient`** — trocados por `ExternalServiceException` (via factory `unavailable()` quando há `$previous`, ou construtor direto quando a falha vem de um `$response->failed()` sem exception original). Refinamentos pós-review (CodeRabbit, PR #449): `GoogleSheetsService::fetchSheet`/`fetchSheetWithLookup` passaram a capturar também `ConnectionException` (timeout/DNS), não só `RequestException` (falha na resposta HTTP); `MapasClient` deixou de embutir o corpo bruto da resposta upstream na mensagem da exceção e passou a redigir a query string das URLs de download antes de logar/reportar — evita vazar dados sensíveis (PII do agente, tokens em URL) em mensagens exibidas ao usuário ou reportadas ao Sentry.
 - ✅ **`InstallmentController::import`** — catch ajustado de `\InvalidArgumentException` para `AppException` (necessário: `InstallmentImportService` não lança mais `InvalidArgumentException`, e sem o ajuste a mensagem específica cairia no catch genérico de `\Throwable`).
 - ✅ **`ProjectController` (`assignProjectSupervisor`, `createDocument`)** — try/catch removidos, Handler central assume.
-- ⏳ **Restante do passo 4**: `UserController`, `OpeningController`, `MonitoringController`, `NotificationController`, `PaymentController`.
+- ⏳ **Restante do passo 4**: `UserController`, `OpeningController` — únicos controllers do inventário (seção 3.1) ainda com `catch` a remover. `MonitoringController`, `NotificationController` e `PaymentController` não têm `catch` hoje e ficam fora de escopo (seção 3.1).
 - ⏳ **Passo 5 (frontend)**: `useErrorHandler.js` + adoção nas Tabs.
 - ⏳ **Passo 6**: Sentry no frontend.
 
@@ -286,12 +284,12 @@ Ordem de rollout proposta (cada etapa é releasável isoladamente):
 1. **Fundação, zero risco**: criar `AppException` + subclasses em `app/Exceptions/`, adicionar `reportable`/`render` no `bootstrap/app.php` (aditivo — não altera comportamento de nada existente, pois nenhuma exception nova está sendo lançada ainda). Manter o `render(InvalidArgumentException)` atual em paralelo até o passo 3.
 2. **Piloto no fluxo mais crítico**: `ProjectStageController` (`advance`, `return`, `requestNextInstallment`) + `OpeningUpdateService`/`FormalizationService` — trocar `\InvalidArgumentException`/`AuthorizationException` manual por `StageTransitionException`/`BusinessRuleException`, remover os try/catch dos 3 métodos do controller. Validar em staging que Sentry e mensagens Inertia continuam idênticas ao usuário.
 3. **Estender a Services de integração**: `GoogleSheetsService`, `SpreadsheetImportService`, `PUMLGeneratorService` passam a lançar `ExternalServiceException`. Depois disso, remover o `render(InvalidArgumentException)` legado do `bootstrap/app.php` (confirmar via `grep -rn "InvalidArgumentException" app/` que nada mais depende dele).
-4. **Restante dos controllers** (`UserController`, `InstallmentController`, `ProjectController`, `MonitoringController`, `NotificationController`, `PaymentController`): aplicar o mesmo padrão, indo do mais simples (poucos catches) para o mais complexo.
+4. **Restante dos controllers com `catch`**: `InstallmentController` e `ProjectController` já migrados (seção 3.2); faltam `UserController` e `OpeningController`. `MonitoringController`, `NotificationController` e `PaymentController` estão fora de escopo (sem `catch` a remover, seção 3.1).
 5. **Frontend em paralelo, começando pelas telas espelhadas ao passo 2**: criar `useErrorHandler.js`, aplicar primeiro em `MonitoringTab.vue` e `useLegalAnalysis.js` (já tratam o fluxo de tramitação de etapa), depois nas demais Tabs (`OpeningTab`, `PaymentTab`, `BudgetTab`, `FormalizationTab`) uma a uma — cada substituição é local a um `onError`, não quebra as demais.
 6. **Sentry frontend**: instalar e configurar por último, já que é aditivo e não depende da hierarquia de exceptions.
 7. **Cleanup**: remover `InputError.vue` legado (Breeze/Tailwind) quando confirmado que nenhuma tela ainda o referencia (`grep -rn InputError resources/js`).
 
-Cada passo é reversível e não exige alterar rotas ou contratos de resposta existentes — o `back()->withErrors(['message' => ...])` continua sendo o formato de saída Inertia em todos os passos, só muda quem monta essa string (Handler central em vez de catch disperso).
+Cada passo é reversível e não exige alterar rotas ou contratos de resposta existentes — o `back()->withErrors(['message' => ...])` continua sendo o formato de saída Inertia padrão em todos os passos, só muda quem monta essa string (Handler central em vez de catch disperso). Exceção documentada: `ProjectStageController::return()` mantém um catch próprio de `AppException` que devolve `back()->with('error', ...)` (flash de sessão), não `withErrors`, porque `ReturnProcessModal.vue` já depende desse contrato — ver seção 3.2.
 
 ## Arquivos críticos
 
