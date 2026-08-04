@@ -5,6 +5,7 @@ import { createApp, h } from 'vue';
 import { ZiggyVue } from '../../vendor/tightenco/ziggy';
 import { createVuetify } from 'vuetify';
 import { aliases, mdi } from 'vuetify/iconsets/mdi';
+import { pt } from 'vuetify/locale';
 import * as components from 'vuetify/components';
 import * as directives from 'vuetify/directives';
 import '@mdi/font/css/materialdesignicons.css';
@@ -25,6 +26,11 @@ const materialSymbols = {
 const vuetify = createVuetify({
     components,
     directives,
+    locale: {
+        locale: 'pt',
+        fallback: 'en',
+        messages: { pt },
+    },
     icons: {
         defaultSet: 'mdi',
         aliases,

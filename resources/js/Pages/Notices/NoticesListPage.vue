@@ -24,44 +24,6 @@ const props = defineProps({
 
 const emit = defineEmits(['search', 'filter-status', 'filter-instrument', 'access', 'pagete', 'change-per-page']);
 
-const noticesMock = [
-    {
-        id: 1,
-        titulo: 'EDITAL DE CHAMAMENTO PÚBLICO Nº 005/2025 - PRE...',
-        status: 'Processos em andamento',
-        tipoInstrumento: 'Termo de execução cultural',
-        numeroProcessoMae: '000054554654/45457',
-    },
-    {
-        id: 2,
-        titulo: 'EDITAL DE CHAMAMENTO PÚBLICO Nº 006/2025 - CICLO CEARENSE CARNAVALESCO',
-        status: 'Processos em andamento',
-        tipoInstrumento: 'Termo de execução cultural',
-        numeroProcessoMae: '000054554654/45457',
-    },
-    {
-        id: 3,
-        titulo: 'EDITAL DE CHAMAMENTO PÚBLICO Nº 007/2025 - PNAB MÚSICA',
-        status: 'Processos em andamento',
-        tipoInstrumento: 'Termo de execução cultural',
-        numeroProcessoMae: '000054554654/45458',
-    },
-    {
-        id: 4,
-        titulo: 'EDITAL DE CHAMAMENTO PÚBLICO Nº 008/2025 - CULTURA VIVA',
-        status: 'Processos em andamento',
-        tipoInstrumento: 'Termo de execução cultural',
-        numeroProcessoMae: '000054554654/45459',
-    },
-    {
-        id: 5,
-        titulo: 'EDITAL DE CHAMAMENTO PÚBLICO Nº 009/2025 - FUNDO DE CULTURA',
-        status: 'Processos em andamento',
-        tipoInstrumento: 'Termo de execução cultural',
-        numeroProcessoMae: '000054554654/45460',
-    },
-];
-
 const instrumentOptions = computed(() => props.instrumentTypes);
 
 const statusOptions = ['Processos em andamento', 'Pendente de abertura', 'Processos formalizados'];
@@ -99,7 +61,7 @@ const itemsPerPage = ref(10);
 
 // ─── Computeds ────────────────────────────────────────────────────────────────
 
-const itens = computed(() => (props.notices.length ? props.notices : noticesMock));
+const itens = computed(() => (props.notices.length ? props.notices : []));
 
 const itensFiltrados = computed(() => {
     let lista = itens.value;
