@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Exceptions\Domain\BusinessRuleException;
 use App\Models\Budget;
 use App\Models\Installment;
 use App\Models\Notice;
@@ -694,7 +695,7 @@ class InstallmentImportServiceTest extends TestCase
         ]);
 
         $this->expectException(
-            \InvalidArgumentException::class,
+            BusinessRuleException::class,
         );
 
         $this->expectExceptionMessage(

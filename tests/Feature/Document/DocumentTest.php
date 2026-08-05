@@ -5,6 +5,7 @@ namespace Tests\Feature\Document;
 use App\Enums\DocumentPhase;
 use App\Enums\DocumentStatus;
 use App\Enums\DocumentType;
+use App\Exceptions\Domain\BusinessRuleException;
 use App\Models\Budget;
 use App\Models\Document;
 use App\Models\DocumentImage;
@@ -123,7 +124,7 @@ class DocumentTest extends TestCase
 
     public function test_registry_throws_on_invalid_combination(): void
     {
-        $this->expectException(\InvalidArgumentException::class);
+        $this->expectException(BusinessRuleException::class);
 
         (new DocumentTypeRegistry)->resolve(DocumentType::TC, DocumentPhase::PAYMENT);
     }
@@ -235,7 +236,7 @@ class DocumentTest extends TestCase
     public function test_service_create_rejects_invalid_combination(): void
     {
         // CI só é válido com OPENING — ci+payment não existe no registry
-        $this->expectException(\InvalidArgumentException::class);
+        $this->expectException(BusinessRuleException::class);
 
         $this->service->create([
             'type' => DocumentType::CI->value,

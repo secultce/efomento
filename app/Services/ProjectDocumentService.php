@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Enums\DocumentImagePosition;
 use App\Enums\DocumentImageSection;
 use App\Enums\DocumentType;
+use App\Exceptions\Domain\BusinessRuleException;
 use App\Models\Document;
 use App\Models\Project;
 use App\Support\ImageSync;
@@ -32,14 +33,14 @@ class ProjectDocumentService
             $footerLayout
         ) {
             if (empty(trim($content))) {
-                throw new \Exception('O conteúdo do documento não pode ser vazio.');
+                throw new BusinessRuleException('O conteúdo do documento não pode ser vazio.');
             }
 
             $projects = Project::whereIn('id', $selectedProjects)->get();
             $phase = $type->phase();
 
             if ($projects->isEmpty()) {
-                throw new \Exception('Nenhum projeto selecionado.');
+                throw new BusinessRuleException('Nenhum projeto selecionado.');
             }
 
             $documents = Document::whereIn('project_id', $projects->pluck('id'))
