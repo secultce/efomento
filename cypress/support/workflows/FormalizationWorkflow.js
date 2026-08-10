@@ -8,9 +8,7 @@ class ForamlizationWorkflow {
         cy.loginByRole(role);
 
         Notice.visitPage();
-
         Notice.searchNoticeByNup(notice.noticeNup);
-
         Notice.goToNoticeDetailsPage(notice.noticeNup);
 
         Project.findProjectByProjectNup(project.projectNup);

@@ -17,5 +17,11 @@ export const DOCUMENTS = {
         chip: 'PJ',
         text: 'Texto para o Parecer Jurídico',
     },
+    ci: {
+        createButton: 'Criar CI',
+        editButton: 'Editar CI',
+        chip: 'CI',
+        text: 'Texto para o CI',
+    },
     devolutionMotive: 'Texto para devolução de processo',
 };

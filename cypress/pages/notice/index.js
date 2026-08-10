@@ -1,3 +1,4 @@
+import { validateNumber } from 'vuetify/lib/components/VCalendar/util/timestamp.mjs';
 import { elements as el } from './elements';
 
 class Notice {
@@ -191,7 +192,7 @@ class Notice {
     }
 
     normalizeNup(value) {
-        return value.replace(/\D/g, '');
+        return String(value).replace(/\D/g, '');
     }
 
     updateDataAboutProcess(newInstrumentType, newManagerEmail) {
