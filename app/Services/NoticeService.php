@@ -2,10 +2,10 @@
 
 namespace App\Services;
 
+use App\Exceptions\Domain\BusinessRuleException;
 use App\Models\Notice;
 use App\Models\Project;
 use Illuminate\Support\Collection;
-use InvalidArgumentException;
 
 class NoticeService
 {
@@ -71,7 +71,7 @@ class NoticeService
         $externalId = data_get($notice, 'id');
 
         if (! $externalId) {
-            throw new InvalidArgumentException('Edital sem id externo.');
+            throw new BusinessRuleException('Edital sem id externo.');
         }
 
         return Notice::query()->firstOrCreate(

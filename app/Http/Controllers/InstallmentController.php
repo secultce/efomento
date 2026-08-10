@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Exceptions\AppException;
 use App\Models\Project;
 use App\Services\InstallmentImportService;
 use App\Services\InstallmentService;
@@ -37,7 +38,7 @@ class InstallmentController extends Controller
             }
 
             return back()->with('success', $message);
-        } catch (\InvalidArgumentException $e) {
+        } catch (AppException $e) {
             report($e);
 
             return back()->with('error', $e->getMessage());

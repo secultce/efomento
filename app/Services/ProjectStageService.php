@@ -5,13 +5,14 @@ namespace App\Services;
 use App\Contracts\InstallmentCycleStrategy;
 use App\Enums\ProjectStageSlug;
 use App\Enums\ProjectStageStatus;
+use App\Exceptions\Domain\BusinessRuleException;
+use App\Exceptions\Domain\DomainAuthorizationException;
+use App\Exceptions\Domain\StageTransitionException;
 use App\Models\Project;
 use App\Models\ProjectStage;
 use App\Models\User;
 use App\Support\Notify;
-use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Support\Facades\DB;
-use InvalidArgumentException;
 
 class ProjectStageService
 {
@@ -25,7 +26,7 @@ class ProjectStageService
         User $user
     ): ?ProjectStage {
         if ($stage->status !== ProjectStageStatus::EM_ANDAMENTO) {
-            throw new InvalidArgumentException(
+            throw new StageTransitionException(
                 'A etapa precisa estar em andamento para ser aprovada.'
             );
         }
@@ -39,7 +40,7 @@ class ProjectStageService
         }
 
         if (! $stage->canAdvance()) {
-            throw new InvalidArgumentException(
+            throw new StageTransitionException(
                 'Não é possível avançar: existem etapas anteriores não aprovadas.'
             );
         }
@@ -75,7 +76,7 @@ class ProjectStageService
     public function reject(ProjectStage $stage, string $reason, User $user): void
     {
         if ($stage->status !== ProjectStageStatus::EM_ANDAMENTO) {
-            throw new InvalidArgumentException(
+            throw new StageTransitionException(
                 'A etapa precisa estar em andamento para ser rejeitada.'
             );
         }
@@ -96,11 +97,11 @@ class ProjectStageService
         $notice = $project->notice;
 
         if (! $notice || $notice->installments <= 1) {
-            throw new InvalidArgumentException('Projeto não possui múltiplas parcelas.');
+            throw new BusinessRuleException('Projeto não possui múltiplas parcelas.');
         }
 
         if ($project->current_installment_cycle >= $notice->installments) {
-            throw new InvalidArgumentException('Todos os ciclos de parcelas já foram concluídos.');
+            throw new BusinessRuleException('Todos os ciclos de parcelas já foram concluídos.');
         }
 
         $monitoringStage = $project->stages()
@@ -108,7 +109,7 @@ class ProjectStageService
             ->firstOrFail();
 
         if ($monitoringStage->status !== ProjectStageStatus::EM_ANDAMENTO) {
-            throw new InvalidArgumentException('A etapa de Monitoramento precisa estar em andamento.');
+            throw new StageTransitionException('A etapa de Monitoramento precisa estar em andamento.');
         }
 
         DB::transaction(function () use ($project, $monitoringStage) {
@@ -129,14 +130,14 @@ class ProjectStageService
     public function returnStage(ProjectStage $stage, string $reason, User $user): ProjectStage
     {
         if ($stage->status !== ProjectStageStatus::EM_ANDAMENTO) {
-            throw new InvalidArgumentException('A etapa precisa estar em andamento para ser devolvida.');
+            throw new StageTransitionException('A etapa precisa estar em andamento para ser devolvida.');
         }
 
         $this->ensureUserHasRole($stage, $user, 'Você não tem permissão para devolver esta etapa.');
 
         $previousStage = $stage->getPreviousStage();
         if (! $previousStage) {
-            throw new InvalidArgumentException('Não há etapa anterior para devolução.');
+            throw new BusinessRuleException('Não há etapa anterior para devolução.');
         }
 
         DB::transaction(function () use ($stage, $reason, $previousStage) {
@@ -157,7 +158,7 @@ class ProjectStageService
     private function ensureIsPrincipalSupervisor(Project $project, User $user): void
     {
         if (! $project->opening?->isPrincipalSupervisor($user)) {
-            throw new AuthorizationException(
+            throw new DomainAuthorizationException(
                 'Apenas o fiscal titular pode executar esta ação.'
             );
         }
@@ -166,7 +167,7 @@ class ProjectStageService
     private function ensureUserHasRole(ProjectStage $stage, User $user, string $message): void
     {
         if (! $user->hasAnyRole($stage->responsible_sector)) {
-            throw new AuthorizationException($message);
+            throw new DomainAuthorizationException($message);
         }
     }
 }

@@ -2,9 +2,11 @@
 
 namespace App\Services;
 
+use App\Exceptions\Integration\ExternalServiceException;
 use App\Models\Budget;
 use App\Models\Formalization;
 use App\Models\Project;
+use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Http\Client\RequestException;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Http;
@@ -23,6 +25,7 @@ class GoogleSheetsService
      *
      * @return array{columns: string[], rows: array<int, array<string, mixed>>}
      *
+     * @throws ExternalServiceException
      * @throws RuntimeException
      */
     public function fetchSheet(string $spreadsheetId, string $sheetName): array
@@ -34,8 +37,8 @@ class GoogleSheetsService
                 ->get($url, ['tqx' => 'out:json', 'sheet' => $sheetName])
                 ->throw()
                 ->body();
-        } catch (RequestException $e) {
-            throw new RuntimeException("Failed to fetch Google Sheet: {$e->getMessage()}", previous: $e);
+        } catch (ConnectionException|RequestException $e) {
+            throw ExternalServiceException::unavailable('Google Sheets', $e);
         }
         $json = $this->stripSecurityPrefix($raw);
 
@@ -214,8 +217,8 @@ class GoogleSheetsService
                 ->get($url, ['tqx' => 'out:json', 'sheet' => $sheetName])
                 ->throw()
                 ->body();
-        } catch (RequestException $e) {
-            throw new RuntimeException("Failed to fetch Google Sheet: {$e->getMessage()}", previous: $e);
+        } catch (ConnectionException|RequestException $e) {
+            throw ExternalServiceException::unavailable('Google Sheets', $e);
         }
 
         $table = $this->decodeTable($this->stripSecurityPrefix($raw));

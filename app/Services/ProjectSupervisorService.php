@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Exceptions\Domain\BusinessRuleException;
 use App\Models\OpeningSupervisor;
 use App\Models\Project;
 use Illuminate\Support\Facades\DB;
@@ -13,7 +14,7 @@ class ProjectSupervisorService
         $types = [OpeningSupervisor::TYPE_PRINCIPAL, OpeningSupervisor::TYPE_ALTERNATE];
 
         if (count($supervisorIds) > count($types)) {
-            throw new \InvalidArgumentException('Abertura aceita no máximo fiscal principal e suplente.');
+            throw new BusinessRuleException('Abertura aceita no máximo fiscal principal e suplente.');
         }
 
         $supervisors = collect($supervisorIds)
@@ -28,7 +29,7 @@ class ProjectSupervisorService
         DB::transaction(function () use ($projects, $supervisors) {
             foreach ($projects as $project) {
                 if (! $project->opening) {
-                    throw new \Exception("Projeto {$project->id} não possui abertura.");
+                    throw new BusinessRuleException("Projeto {$project->id} não possui abertura.");
                 }
 
                 $project->opening->assignSupervisors($supervisors);
