@@ -18,7 +18,7 @@ class BudgetAllocationImportServiceTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_it_imports_budget_allocations_using_the_allocation_number(): void
+    public function test_it_imports_budget_allocations_without_associating_a_budget(): void
     {
         $user = User::factory()->create();
         $this->actingAs($user);
@@ -28,7 +28,6 @@ class BudgetAllocationImportServiceTest extends TestCase
         $result = $this->import($notice, $this->csvRow());
 
         $this->assertSame(1, $result['summary']['processed']);
-        $this->assertSame(1, $result['summary']['matched']);
         $this->assertSame(1, $result['summary']['created']);
         $this->assertSame(0, $result['summary']['updated']);
         $this->assertSame(0, $result['summary']['skipped']);
@@ -55,7 +54,7 @@ class BudgetAllocationImportServiceTest extends TestCase
         ]);
         $this->assertDatabaseHas('budgets', [
             'id' => $budget->id,
-            'budget_allocation_id' => BudgetAllocation::query()->value('id'),
+            'budget_allocation_id' => null,
         ]);
     }
 
@@ -91,46 +90,9 @@ class BudgetAllocationImportServiceTest extends TestCase
         $result = $this->import($notice, $this->csvRow());
 
         $this->assertSame(1, $result['summary']['created']);
-        $this->assertSame(0, $result['summary']['matched']);
-        $this->assertSame(1, $result['summary']['without_budget']);
         $this->assertDatabaseHas('budget_allocations', [
             'notice_id' => $notice->id,
             'allocation_code' => '123456',
-        ]);
-    }
-
-    public function test_reupload_links_a_notice_allocation_after_its_budget_is_created(): void
-    {
-        $user = User::factory()->create();
-        $this->actingAs($user);
-
-        $notice = Notice::factory()->create();
-        $this->import($notice, $this->csvRow());
-        $originalAllocation = BudgetAllocation::firstOrFail();
-
-        $project = Project::factory()->create([
-            'notice_id' => $notice->id,
-        ]);
-        $project->opening->update([
-            'allocation_code' => '123456',
-            'allocation_number' => '12345678901234567890123456789012345678901',
-        ]);
-        $budget = Budget::factory()->create([
-            'project_id' => $project->id,
-        ]);
-
-        $result = $this->import($notice, $this->csvRow());
-
-        $this->assertSame(1, $result['summary']['updated']);
-        $this->assertSame(1, $result['summary']['matched']);
-        $this->assertDatabaseCount('budget_allocations', 2);
-        $this->assertSoftDeleted('budget_allocations', [
-            'id' => $originalAllocation->id,
-        ]);
-        $this->assertSame(1, BudgetAllocation::query()->count());
-        $this->assertDatabaseHas('budgets', [
-            'id' => $budget->id,
-            'budget_allocation_id' => BudgetAllocation::query()->value('id'),
         ]);
     }
 
@@ -215,6 +177,31 @@ class BudgetAllocationImportServiceTest extends TestCase
             ])
             ->assertOk()
             ->assertJsonPath('has_existing_allocations', true);
+    }
+
+    public function test_preview_endpoint_rejects_a_csv_larger_than_ten_megabytes(): void
+    {
+        $user = User::factory()->create();
+        SpatieRole::firstOrCreate([
+            'name' => Role::BUDGETARY->value,
+            'guard_name' => 'web',
+        ]);
+        $user->assignRole(Role::BUDGETARY->value);
+        $notice = Notice::factory()->create();
+
+        $this->actingAs($user)
+            ->post(route('budget-allocations.preview', $notice), [
+                'file' => UploadedFile::fake()->create(
+                    'budget-allocations.csv',
+                    10241,
+                    'text/csv'
+                ),
+            ], [
+                'Accept' => 'application/json',
+            ])
+            ->assertUnprocessable()
+            ->assertJsonValidationErrors('file')
+            ->assertJsonPath('errors.file.0', 'O arquivo CSV deve ter no máximo 10 MB.');
     }
 
     private function createBudget(string $allocationCode, string $allocationNumber): array

@@ -3,7 +3,6 @@
 namespace App\Services;
 
 use App\Exceptions\Domain\BusinessRuleException;
-use App\Models\Budget;
 use App\Models\BudgetAllocation;
 use App\Models\Notice;
 use App\Support\Import;
@@ -37,68 +36,39 @@ class BudgetAllocationImportService
             );
         }
 
-        $budgets = Budget::query()
-            ->with('project.opening')
-            ->whereHas('project', fn ($query) => $query->where('notice_id', $notice->id))
-            ->whereHas('project.opening')
-            ->get();
-
-        $budgetsByAllocationNumber = $this->groupBudgetsBy($budgets, 'allocation_number');
-        $budgetsByAllocationCode = $this->groupBudgetsBy($budgets, 'allocation_code');
-
         $summary = [
             'processed' => $rows->count(),
-            'matched' => 0,
             'created' => 0,
             'updated' => 0,
             'skipped' => $rows->count() - $validRows->count(),
-            'without_budget' => 0,
         ];
 
         DB::transaction(function () use (
             $validRows,
-            $budgetsByAllocationNumber,
-            $budgetsByAllocationCode,
             $notice,
             &$summary
         ) {
+            Notice::query()
+                ->whereKey($notice->getKey())
+                ->lockForUpdate()
+                ->firstOrFail();
+
             $currentAllocations = BudgetAllocation::query()
                 ->where('notice_id', $notice->id)
-                ->with('budgets')
                 ->lockForUpdate()
                 ->get();
 
             $isUpdate = $currentAllocations->isNotEmpty();
 
             foreach ($currentAllocations as $currentAllocation) {
-                foreach ($currentAllocation->budgets as $budget) {
-                    $budget->budgetAllocation()->dissociate();
-                    $budget->save();
-                }
-
                 $currentAllocation->delete();
             }
 
             foreach ($validRows as $row) {
-                $matchingBudget = $this->findBudgets(
-                    row: $row,
-                    budgetsByAllocationNumber: $budgetsByAllocationNumber,
-                    budgetsByAllocationCode: $budgetsByAllocationCode,
-                )->first();
-
-                $matchingBudget
-                    ? $summary['matched']++
-                    : $summary['without_budget']++;
-
-                $allocation = BudgetAllocation::create([
+                BudgetAllocation::create([
                     'notice_id' => $notice->id,
                     ...$row,
                 ]);
-
-                if ($matchingBudget) {
-                    $matchingBudget->budgetAllocation()->associate($allocation);
-                    $matchingBudget->save();
-                }
 
                 $isUpdate
                     ? $summary['updated']++
@@ -152,47 +122,5 @@ class BudgetAllocationImportService
                 ])
                 ->all();
         });
-    }
-
-    private function groupBudgetsBy(Collection $budgets, string $openingField): Collection
-    {
-        return $budgets
-            ->filter(fn (Budget $budget) => filled($budget->project?->opening?->{$openingField}))
-            ->groupBy(fn (Budget $budget) => $this->normalizeAllocationIdentifier(
-                $budget->project->opening->{$openingField}
-            ));
-    }
-
-    private function findBudgets(
-        array $row,
-        Collection $budgetsByAllocationNumber,
-        Collection $budgetsByAllocationCode
-    ): Collection {
-        $allocationNumber = $this->normalizeAllocationIdentifier($row['allocation_number']);
-
-        if ($allocationNumber && $budgetsByAllocationNumber->has($allocationNumber)) {
-            return $budgetsByAllocationNumber->get($allocationNumber);
-        }
-
-        $allocationCode = $this->normalizeAllocationIdentifier($row['allocation_code']);
-
-        if ($allocationCode && $budgetsByAllocationCode->has($allocationCode)) {
-            return $budgetsByAllocationCode->get($allocationCode);
-        }
-
-        return collect();
-    }
-
-    private function normalizeAllocationIdentifier(mixed $value): ?string
-    {
-        $value = Import::string($value);
-
-        if (! $value) {
-            return null;
-        }
-
-        $normalized = preg_replace('/[^a-zA-Z0-9]+/', '', $value);
-
-        return $normalized !== '' ? strtolower($normalized) : null;
     }
 }

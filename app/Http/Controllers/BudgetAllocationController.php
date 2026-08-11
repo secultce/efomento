@@ -11,6 +11,8 @@ use Illuminate\Http\Request;
 
 class BudgetAllocationController extends Controller
 {
+    private const MAX_CSV_SIZE_KILOBYTES = 10240;
+
     public function preview(
         Request $request,
         Notice $notice,
@@ -63,10 +65,11 @@ class BudgetAllocationController extends Controller
     private function validateFile(Request $request): void
     {
         $request->validate([
-            'file' => ['required', 'file', 'mimes:csv,txt'],
+            'file' => ['required', 'file', 'mimes:csv,txt', 'max:'.self::MAX_CSV_SIZE_KILOBYTES],
         ], [
             'file.required' => 'Selecione um arquivo CSV.',
             'file.mimes' => 'O arquivo deve estar no formato CSV.',
+            'file.max' => 'O arquivo CSV deve ter no máximo 10 MB.',
         ]);
     }
 }
