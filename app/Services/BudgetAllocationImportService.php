@@ -14,11 +14,16 @@ use Illuminate\Support\Facades\DB;
 
 class BudgetAllocationImportService
 {
+    private const MAX_PREVIEW_ROWS = 500;
+
     public function preview(UploadedFile $file, Notice $notice): array
     {
         return [
             'columns' => $this->columns(),
-            'rows' => $this->readRows($file)->all(),
+            'rows' => $this->readRows($file)
+                ->take(self::MAX_PREVIEW_ROWS)
+                ->values()
+                ->all(),
             'has_existing_allocations' => $notice->budgetAllocations()->exists(),
         ];
     }

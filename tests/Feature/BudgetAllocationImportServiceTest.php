@@ -179,6 +179,28 @@ class BudgetAllocationImportServiceTest extends TestCase
             ->assertJsonPath('has_existing_allocations', true);
     }
 
+    public function test_preview_endpoint_returns_at_most_five_hundred_rows(): void
+    {
+        $user = User::factory()->create();
+        SpatieRole::firstOrCreate([
+            'name' => Role::BUDGETARY->value,
+            'guard_name' => 'web',
+        ]);
+        $user->assignRole(Role::BUDGETARY->value);
+        $notice = Notice::factory()->create();
+
+        $response = $this->actingAs($user)
+            ->post(route('budget-allocations.preview', $notice), [
+                'file' => $this->csvFileWithRows(array_fill(0, 501, $this->csvRow())),
+            ], [
+                'Accept' => 'application/json',
+            ])
+            ->assertOk();
+
+        $this->assertCount(500, $response->json('rows'));
+        $this->assertDatabaseCount('budget_allocations', 0);
+    }
+
     public function test_preview_endpoint_rejects_a_csv_larger_than_ten_megabytes(): void
     {
         $user = User::factory()->create();
@@ -231,9 +253,18 @@ class BudgetAllocationImportServiceTest extends TestCase
 
     private function csvFile(array $row): UploadedFile
     {
+        return $this->csvFileWithRows([$row]);
+    }
+
+    private function csvFileWithRows(array $rows): UploadedFile
+    {
         $handle = fopen('php://temp', 'r+');
-        fputcsv($handle, array_keys($row), ',', '"', '');
-        fputcsv($handle, array_values($row), ',', '"', '');
+        fputcsv($handle, array_keys($rows[0]), ',', '"', '');
+
+        foreach ($rows as $row) {
+            fputcsv($handle, array_values($row), ',', '"', '');
+        }
+
         rewind($handle);
         $contents = stream_get_contents($handle);
         fclose($handle);
