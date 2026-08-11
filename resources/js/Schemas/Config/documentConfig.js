@@ -8,7 +8,7 @@ export const DOCUMENT_TYPES = {
 };
 
 const placeHoldersDocsSchema = [
-    { label: 'Num. Edital', value: 'notice_name' },
+    { label: 'Nome Edital', value: 'notice_name' },
     { label: 'Nup Mãe', value: 'nup_mother' },
     { label: 'Finalidade', value: 'finality' },
     { label: 'Nup Projeto', value: 'project_nup' },
