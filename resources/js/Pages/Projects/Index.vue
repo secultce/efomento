@@ -28,6 +28,7 @@ const props = defineProps({
     instrumentTypes: { type: Array, default: () => [] },
     supervisorsAvailable: { type: Array, default: () => [] },
     monitoringReportsCount: { type: Number, default: 0 },
+    hasBudgetAllocations: Boolean,
 });
 
 const { showSnackbar } = useSnackbar();
@@ -39,6 +40,12 @@ const selectedPhase = ref(props.filters?.phase ?? null);
 const selectedProjects = ref([]);
 
 function selectPhase(phase) {
+    if (selectedPhase.value === phase.value) {
+        clearPhaseFilter();
+
+        return;
+    }
+
     selectedProjects.value = [];
     selectedPhase.value = phase.value;
 
@@ -368,7 +375,11 @@ function handleAction({ action, item }) {
                 </div>
 
                 <div class="row-span-2 col-start-4 row-start-2">
-                    <NoStageSelected v-if="!selectedPhase" :notice="notice" />
+                    <NoStageSelected
+                        v-if="!selectedPhase"
+                        :notice="notice"
+                        :has-budget-allocations="hasBudgetAllocations"
+                    />
                     <OpeningActions
                         v-if="selectedPhase === 'abertura'"
                         :selected-projects="selectedProjects"

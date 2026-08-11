@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Models\BudgetAllocation;
 use App\Models\Monitoring;
 use App\Models\Notice;
 use App\Models\Opening;
@@ -130,6 +131,27 @@ class ProjectControllerTest extends TestCase
         $response->assertInertia(fn ($page) => $page
             ->where('monitoringReportsCount', 1)
         );
+    }
+
+    public function test_index_indicates_whether_the_notice_has_budget_allocations(): void
+    {
+        $notice = Notice::factory()->create();
+
+        $this->actingAs($this->user)
+            ->get(route('notices.projects', $notice))
+            ->assertInertia(fn ($page) => $page
+                ->where('hasBudgetAllocations', false)
+            );
+
+        BudgetAllocation::factory()->create([
+            'notice_id' => $notice->id,
+        ]);
+
+        $this->actingAs($this->user)
+            ->get(route('notices.projects', $notice))
+            ->assertInertia(fn ($page) => $page
+                ->where('hasBudgetAllocations', true)
+            );
     }
 
     // -------------------------------------------------------------------------

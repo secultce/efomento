@@ -52,6 +52,18 @@ const Ziggy = {
             parameters: ['notice'],
             bindings: { notice: 'id' },
         },
+        'budget-allocations.import': {
+            uri: 'editais\/{notice}\/vinculacoes-orcamentarias\/import',
+            methods: ['POST'],
+            parameters: ['notice'],
+            bindings: { notice: 'id' },
+        },
+        'budget-allocations.preview': {
+            uri: 'editais\/{notice}\/vinculacoes-orcamentarias\/preview',
+            methods: ['POST'],
+            parameters: ['notice'],
+            bindings: { notice: 'id' },
+        },
         'projects.index': { uri: 'projetos', methods: ['GET', 'HEAD'] },
         'projects.create': { uri: 'projetos\/create', methods: ['GET', 'HEAD'] },
         'projects.store': { uri: 'projetos', methods: ['POST'] },
