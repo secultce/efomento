@@ -100,6 +100,8 @@ class ProjectController extends Controller
                 ->get(),
 
             'monitoringReportsCount' => $notice->projects()->whereHas('monitoring')->count(),
+
+            'hasBudgetAllocations' => $notice->budgetAllocations()->exists(),
         ]);
     }
 
