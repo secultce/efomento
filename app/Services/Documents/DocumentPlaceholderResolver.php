@@ -48,6 +48,10 @@ class DocumentPlaceholderResolver
             '[allocation_code]' => $opening?->allocation_code ?? '',
             '[allocation_number]' => $opening?->allocation_number ?? '',
             '[notice_installment_number]' => $currentInstallment?->notice_installment_number ?? '',
+            '[bank]' => $opening?->bank ?? '',
+            '[account_type]' => $opening?->account_type?->label() ?? '',
+            '[branch]' => $opening?->branch ?? '',
+            '[account]' => $opening?->account ?? '',
         ];
 
         return str_replace(array_keys($replacements), array_values($replacements), (string) $document->body);
