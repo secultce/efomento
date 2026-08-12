@@ -8,6 +8,8 @@ use App\Enums\Contracts\HasLabel;
 enum ReportStatus: string implements HasLabel
 {
     use HasOptions;
+
+    case NAO_APLICA = 'NAO_APLICA';
     case SEM_CADASTRO = 'SEM_CADASTRO';
     case REGULAR_E_ADIMPLENTE = 'REGULAR E_ADIMPLENTE';
     case REGULAR_E_INADIMPLENTE = 'REGULAR E_INADIMPLENTE';
@@ -17,6 +19,7 @@ enum ReportStatus: string implements HasLabel
     public function label(): string
     {
         return match ($this) {
+            self::NAO_APLICA => 'Não se aplica',
             self::SEM_CADASTRO => 'Sem Cadastro',
             self::REGULAR_E_ADIMPLENTE => 'Regular e Adimplente',
             self::REGULAR_E_INADIMPLENTE => 'Regular e Inadimplente',
