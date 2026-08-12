@@ -2,17 +2,19 @@
 
 namespace App\Services;
 
+use App\Exceptions\Integration\ExternalServiceException;
 use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Http\Client\PendingRequest;
 use Illuminate\Http\Client\RequestException;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
-use RuntimeException;
 use Throwable;
 
 class MapasClient
 {
+    private const SERVICE_NAME = 'Mapas Cultural';
+
     private const AGENT_SELECT_FIELDS = [
         'id',
         'name',
@@ -120,18 +122,21 @@ class MapasClient
         $response = $this->request($authenticated)->get($path, $query);
 
         if ($response->failed()) {
-            throw new RuntimeException(sprintf(
-                'Erro na API Mapas [%s] %s: %s',
-                $response->status(),
-                $path,
-                (string) str($response->body())->limit(500)
-            ));
+            throw ExternalServiceException::fromFailedResponse(
+                self::SERVICE_NAME,
+                sprintf('Erro na API Mapas [%s] %s', $response->status(), $path),
+                ['path' => $path],
+            );
         }
 
         $json = $response->json();
 
         if (! is_array($json)) {
-            throw new RuntimeException("Resposta inválida da API Mapas: {$path}");
+            throw ExternalServiceException::fromFailedResponse(
+                self::SERVICE_NAME,
+                "Resposta inválida da API Mapas: {$path}",
+                ['path' => $path],
+            );
         }
 
         return $json;
@@ -194,11 +199,15 @@ class MapasClient
         if ($response->failed()) {
             @unlink($absolutePath);
 
-            throw new RuntimeException(sprintf(
-                'Erro ao baixar arquivo do Mapas [%s]: %s',
-                $response->status(),
-                $url
-            ));
+            throw ExternalServiceException::fromFailedResponse(
+                self::SERVICE_NAME,
+                sprintf(
+                    'Erro ao baixar arquivo do Mapas [%s]: %s',
+                    $response->status(),
+                    $this->redactUrl($url)
+                ),
+                ['url' => $this->redactUrl($url)],
+            );
         }
 
         $mimeType = $this->resolveDownloadedMimeType(
@@ -209,8 +218,10 @@ class MapasClient
         if ($mimeType === 'text/html') {
             @unlink($absolutePath);
 
-            throw new RuntimeException(
-                "Download inválido: o Mapas retornou HTML em vez de arquivo. URL: {$url}"
+            throw ExternalServiceException::fromFailedResponse(
+                self::SERVICE_NAME,
+                "Download inválido: o Mapas retornou HTML em vez de arquivo. URL: {$this->redactUrl($url)}",
+                ['url' => $this->redactUrl($url)],
             );
         }
 
@@ -218,6 +229,11 @@ class MapasClient
             'mime_type' => $mimeType,
             'size' => file_exists($absolutePath) ? filesize($absolutePath) : null,
         ];
+    }
+
+    private function redactUrl(string $url): string
+    {
+        return (string) str($url)->before('?');
     }
 
     private function resolveDownloadedMimeType(?string $contentType, string $absolutePath): string

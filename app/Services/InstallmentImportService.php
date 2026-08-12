@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Exceptions\Domain\BusinessRuleException;
 use App\Models\Budget;
 use App\Models\Installment;
 use App\Models\Project;
@@ -32,7 +33,7 @@ class InstallmentImportService
         );
 
         if ($data->isEmpty()) {
-            throw new \InvalidArgumentException(
+            throw new BusinessRuleException(
                 'A planilha enviada está vazia.'
             );
         }
@@ -50,7 +51,7 @@ class InstallmentImportService
         $projectsByNup = $this->buildProjectsByNup($projects);
 
         if ($projectsByNup->isEmpty()) {
-            throw new \InvalidArgumentException(
+            throw new BusinessRuleException(
                 'Nenhum projeto possui processo vinculado para comparação com a planilha.'
             );
         }

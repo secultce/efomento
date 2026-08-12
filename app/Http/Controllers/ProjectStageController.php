@@ -3,14 +3,13 @@
 namespace App\Http\Controllers;
 
 use App\Enums\Role;
+use App\Exceptions\AppException;
 use App\Http\Requests\Stages\ReturnStageRequest;
 use App\Models\Project;
 use App\Models\ProjectStage;
 use App\Services\NotificationService;
 use App\Services\ProjectStageService;
-use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Http\Request;
-use Illuminate\Validation\ValidationException;
 
 class ProjectStageController extends Controller
 {
@@ -24,46 +23,20 @@ class ProjectStageController extends Controller
         Project $project,
         ProjectStage $stage
     ) {
-        try {
-            $stage->load('project');
+        $stage->load('project');
 
-            $nextStage = $this->stageService->advance($stage, $request->user());
+        $nextStage = $this->stageService->advance($stage, $request->user());
 
-            $this->notificationService->notifyStageAdvanced($stage, $nextStage, $request->user());
+        $this->notificationService->notifyStageAdvanced($stage, $nextStage, $request->user());
 
-            return back()->with('success', 'Processo tramitado com sucesso!');
-        } catch (ValidationException $e) {
-            throw $e;
-        } catch (AuthorizationException $e) {
-            \Sentry\captureException($e);
-
-            return back()->withErrors(['message' => $e->getMessage()]);
-        } catch (\InvalidArgumentException $e) {
-            report($e);
-
-            return back()->withErrors(['message' => $e->getMessage()]);
-        } catch (\Throwable $e) {
-            report($e);
-
-            return back()->withErrors([
-                'message' => 'Erro ao tramitar processo: '.$e->getMessage(),
-            ]);
-        }
+        return back()->with('success', 'Processo tramitado com sucesso!');
     }
 
     public function requestNextInstallment(Request $request, Project $project)
     {
-        try {
-            $this->stageService->requestNextInstallment($project, $request->user());
+        $this->stageService->requestNextInstallment($project, $request->user());
 
-            return back();
-        } catch (AuthorizationException $e) {
-            return back()->withErrors(['message' => $e->getMessage()]);
-        } catch (\InvalidArgumentException $e) {
-            report($e);
-
-            return back()->withErrors(['message' => $e->getMessage()]);
-        }
+        return back();
     }
 
     public function return(
@@ -86,12 +59,10 @@ class ProjectStageController extends Controller
             );
 
             return back()->with('success', 'O processo foi devolvido aos responsáveis!');
-        } catch (AuthorizationException $e) {
-            \Sentry\captureException($e);
-
-            return back()->with('error', $e->getMessage());
-        } catch (\InvalidArgumentException $e) {
-            report($e);
+        } catch (AppException $e) {
+            if ($e->shouldReport()) {
+                report($e);
+            }
 
             return back()->with('error', $e->getMessage());
         }

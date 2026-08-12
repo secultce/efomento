@@ -4,6 +4,7 @@ namespace App\Services\Documents;
 
 use App\Enums\DocumentPhase;
 use App\Enums\DocumentType;
+use App\Exceptions\Domain\BusinessRuleException;
 
 class DocumentTypeRegistry
 {
@@ -45,7 +46,7 @@ class DocumentTypeRegistry
         $key = "{$type->value}+{$phase->value}";
 
         if (! isset($this->map[$key])) {
-            throw new \InvalidArgumentException(
+            throw new BusinessRuleException(
                 "Combinação de tipo e fase inválida: tipo={$type->value}, fase={$phase->value}."
             );
         }

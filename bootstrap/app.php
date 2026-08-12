@@ -31,15 +31,14 @@ return Application::configure(basePath: dirname(__DIR__))
         $exceptions->reportable(fn (AppException $e) => $e->shouldReport());
 
         $exceptions->render(function (AppException $e, Request $request) {
-            if ($request->header('X-Inertia')) {
-                return back()->withErrors(['message' => $e->getMessage()]);
-            }
-            if ($request->expectsJson()) {
+            if ($request->expectsJson() && ! $request->header('X-Inertia')) {
                 return response()->json([
                     'message' => $e->getMessage(),
                     'code' => class_basename($e),
                 ], $e->getHttpStatus());
             }
+
+            return back()->withErrors(['message' => $e->getMessage()]);
         });
 
         $exceptions->render(function (InvalidArgumentException $e, Request $request) {

@@ -100,6 +100,8 @@ class ProjectController extends Controller
                 ->get(),
 
             'monitoringReportsCount' => $notice->projects()->whereHas('monitoring')->count(),
+
+            'hasBudgetAllocations' => $notice->budgetAllocations()->exists(),
         ]);
     }
 
@@ -162,20 +164,12 @@ class ProjectController extends Controller
             'selected_supervisors.*' => 'exists:users,id',
         ]);
 
-        try {
-            $service->assign(
-                $data['selected_projects'],
-                $data['selected_supervisors']
-            );
+        $service->assign(
+            $data['selected_projects'],
+            $data['selected_supervisors']
+        );
 
-            return back()->with('success', 'Fiscais atribuídos com sucesso!');
-        } catch (\Throwable $e) {
-            report($e);
-
-            return back()->withErrors([
-                'message' => 'Erro ao atribuir fiscais. Tente novamente.',
-            ]);
-        }
+        return back()->with('success', 'Fiscais atribuídos com sucesso!');
     }
 
     public function createDocument(Request $request, ProjectDocumentService $service)
@@ -202,29 +196,20 @@ class ProjectController extends Controller
             'footer_layout' => 'nullable|in:none,three,full',
         ]);
 
-        try {
+        $service->createDocument(
+            selectedProjects: $data['selected_projects'],
+            content: $data['content'],
+            headerImages: $data['header_images'] ?? [],
+            footerImages: $data['footer_images'] ?? [],
+            type: DocumentType::from($data['type']),
+            headerLayout: $data['header_layout'] ?? 'none',
+            footerLayout: $data['footer_layout'] ?? 'none',
+        );
 
-            $service->createDocument(
-                selectedProjects: $data['selected_projects'],
-                content: $data['content'],
-                headerImages: $data['header_images'] ?? [],
-                footerImages: $data['footer_images'] ?? [],
-                type: DocumentType::from($data['type']),
-                headerLayout: $data['header_layout'] ?? 'none',
-                footerLayout: $data['footer_layout'] ?? 'none',
-            );
-
-            return back()->with(
-                'success',
-                'Documento criado com sucesso! Você pode editá-lo ou baixá-lo na seção de documentos do projeto.'
-            );
-        } catch (\Throwable $e) {
-            report($e);
-
-            return back()->withErrors([
-                'message' => $e->getMessage() ?: 'Erro ao criar documento. Tente novamente.',
-            ]);
-        }
+        return back()->with(
+            'success',
+            'Documento criado com sucesso! Você pode editá-lo ou baixá-lo na seção de documentos do projeto.'
+        );
     }
 
     private function userCanActOnStage(?ProjectStage $currentStage): bool

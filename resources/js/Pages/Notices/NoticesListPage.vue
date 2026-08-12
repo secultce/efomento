@@ -164,6 +164,7 @@ const canImportPayments = canManagePayment;
 
 function openUpload() {
     if (!canImportPayments.value) {
+        showSnackbar('Você não tem permissão para subir o relatório de pagamentos', 'error');
         return;
     }
 
@@ -246,8 +247,13 @@ async function handleFileUpload(event) {
                     @change="handleFileUpload"
                 />
                 <v-btn
+                    v-permission="{
+                        condition: canImportPayments,
+                        message: 'Você não tem permissão para subir o relatório de pagamentos',
+                    }"
                     class="!shadow-none !font-bold !bg-[#ffcc05FF] !text-[#2d353fFF] rounded-lg px-4 py-2 text-[11px] shrink-0"
                     :loading="uploadingInstallment == true"
+                    data-cy="upload-payments-report-button"
                     @click="openUpload()"
                 >
                     Subir relatório de pagamentos

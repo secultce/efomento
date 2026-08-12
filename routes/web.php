@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\AgentController;
+use App\Http\Controllers\BudgetAllocationController;
 use App\Http\Controllers\BudgetController;
 use App\Http\Controllers\DiligenceMessageController;
 use App\Http\Controllers\DocumentController;
@@ -41,6 +42,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
         ]);
     Route::get('/editais/{notice}/audits', [NoticeController::class, 'audits'])
         ->name('notices.audits');
+    Route::post('/editais/{notice}/vinculacoes-orcamentarias/preview', [BudgetAllocationController::class, 'preview'])
+        ->name('budget-allocations.preview');
+    Route::post('/editais/{notice}/vinculacoes-orcamentarias/import', [BudgetAllocationController::class, 'import'])
+        ->name('budget-allocations.import');
 
     Route::get('/agentes/{agent}/participacoes', [AgentController::class, 'show'])
         ->name('agents.participations');

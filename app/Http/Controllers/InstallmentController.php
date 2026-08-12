@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Exceptions\AppException;
+use App\Http\Requests\Installment\InstallmentImportRequest;
 use App\Models\Project;
 use App\Services\InstallmentImportService;
 use App\Services\InstallmentService;
@@ -11,13 +13,9 @@ use Illuminate\Http\Request;
 class InstallmentController extends Controller
 {
     public function import(
-        Request $request,
+        InstallmentImportRequest $request,
         InstallmentImportService $service
     ): RedirectResponse {
-        $request->validate([
-            'file' => ['required', 'file', 'mimes:xlsx,xls,csv'],
-        ]);
-
         try {
             $result = $service->import(
                 file: $request->file('file')
@@ -37,7 +35,7 @@ class InstallmentController extends Controller
             }
 
             return back()->with('success', $message);
-        } catch (\InvalidArgumentException $e) {
+        } catch (AppException $e) {
             report($e);
 
             return back()->with('error', $e->getMessage());

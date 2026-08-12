@@ -2,10 +2,10 @@
 
 namespace App\Support;
 
+use App\Exceptions\Domain\BusinessRuleException;
 use Carbon\Carbon;
 use DateTimeInterface;
 use Illuminate\Support\Str;
-use InvalidArgumentException;
 use PhpOffice\PhpSpreadsheet\Shared\Date as ExcelDate;
 
 class Import
@@ -46,7 +46,7 @@ class Import
             ->reject(fn ($column) => in_array($column, $normalizedHeaders, true));
 
         if ($missing->isNotEmpty()) {
-            throw new InvalidArgumentException(
+            throw new BusinessRuleException(
                 'Spreadsheet is missing required columns: '.
                     $missing->implode(', ')
             );

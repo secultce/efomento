@@ -49,4 +49,9 @@ class Notice extends Model implements Auditable
     {
         return $this->hasMany(Project::class);
     }
+
+    public function budgetAllocations(): HasMany
+    {
+        return $this->hasMany(BudgetAllocation::class);
+    }
 }
