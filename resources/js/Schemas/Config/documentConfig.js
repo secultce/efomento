@@ -26,6 +26,8 @@ const placeHoldersDocsSchema = [
     { label: 'Tipo de Conta do Agente', value: 'account_type' },
     { label: 'Agência do Agente', value: 'branch' },
     { label: 'Conta do Agente', value: 'account' },
+    { label: 'N. Dotação Orçamentaria', value: 'budget_allocation_nup' },
+    { label: 'N. Cad. Credor', value: 'creditor_registration_nup' },
 ];
 
 const installmentPlaceHoldersDocsSchema = [

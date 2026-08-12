@@ -52,6 +52,8 @@ class DocumentPlaceholderResolver
             '[account_type]' => $opening?->account_type?->label() ?? '',
             '[branch]' => $opening?->branch ?? '',
             '[account]' => $opening?->account ?? '',
+            '[budget_allocation_nup]' => $document->project?->notice?->budget_allocation_nup ?? '',
+            '[creditor_registration_nup]' => $document->project?->notice?->creditor_registration_nup ?? '',
         ];
 
         return str_replace(array_keys($replacements), array_values($replacements), (string) $document->body);
