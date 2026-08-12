@@ -182,8 +182,6 @@ class Project {
             timeout: TIMEOUTS.LONG,
         }).should('be.visible');
 
-        cy.wait('@reloadProjects');
-
         cy.get(el.rowTableProjectList, { timeout: TIMEOUTS.LONG })
             .should('be.visible')
             .should('not.have.class', 'loading')
