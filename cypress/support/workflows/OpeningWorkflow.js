@@ -18,9 +18,15 @@ class OpeningWorkflow {
 
         Project.clickCreateCI(documentType.createButton);
         Project.fillDocument(documentType.text);
+        cy.intercept('GET', '**/editais/*/projetos?phase=abertura&search=*').as('reloadProjects');
+
         Project.saveDocument();
         Project.verifySuccessMessageSaveDocument();
+
         Project.selectProject(project.projectNup);
+
+        cy.wait('@reloadProjects');
+
         Project.validateDocumentCreated(project.projectNup, documentType.chip);
         Project.clickEditCI(documentType.editButton);
         Project.validateDocumentContent(documentType.text);

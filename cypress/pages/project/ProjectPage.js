@@ -178,8 +178,6 @@ class Project {
     validateDocumentCreated(projectNup, chip) {
         const expectedNup = Notice.normalizeNup(projectNup);
 
-        cy.intercept('GET', '**/editais/*/projetos?phase=abertura&search=*').as('reloadProjects');
-
         cy.get(el.projectList, {
             timeout: TIMEOUTS.LONG,
         }).should('be.visible');
@@ -188,16 +186,17 @@ class Project {
 
         cy.get(el.rowTableProjectList, { timeout: TIMEOUTS.LONG })
             .should('be.visible')
-            .should('not.have.class', 'loading') // If you have a loading skeleton/overlay
+            .should('not.have.class', 'loading')
             .then(($rows) => {
                 cy.wrap($rows).filter((index, row) => {
                     const text = Cypress.$(row).find(el.projectNupProjectList).text();
+
                     const currentNup = Notice.normalizeNup(text);
+
                     return currentNup === expectedNup;
                 });
             })
             .within(() => {
-                cy.log(chip);
                 cy.get(el.chipProjectList).contains(chip).should('be.visible');
             });
     }
