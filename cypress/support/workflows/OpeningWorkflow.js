@@ -12,16 +12,17 @@ class OpeningWorkflow {
 
         Project.clickFilterFormalizationPhase(phase);
         Project.validateFilterFormalizationPhase(phase);
+
         Project.findProjectByProjectNup(project.projectNup);
+        Project.selectProject(project.projectNup);
 
-        Project.selectProject();
-
-        Project.clickCreateDocument(documentType.createButton);
+        Project.clickCreateCI(documentType.createButton);
         Project.fillDocument(documentType.text);
         Project.saveDocument();
         Project.verifySuccessMessageSaveDocument();
-        Project.validateDocumentCreated(documentType.chip);
-        Project.clickEditDocument(documentType.editButton);
+        Project.selectProject(project.projectNup);
+        Project.validateDocumentCreated(project.projectNup, documentType.chip);
+        Project.clickEditCI(documentType.editButton);
         Project.validateDocumentContent(documentType.text);
         Project.clickCancelDocumentButton();
     }

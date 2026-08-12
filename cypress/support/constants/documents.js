@@ -19,7 +19,7 @@ export const DOCUMENTS = {
     },
     ci: {
         createButton: 'Criar CI',
-        editButton: 'Editar CI',
+        editButton: 'Editar Comunicação Interna',
         chip: 'CI',
         text: 'Texto para o CI',
     },

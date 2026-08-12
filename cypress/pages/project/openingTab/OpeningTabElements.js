@@ -2,8 +2,6 @@ export const elements = {
     openingTab: '[data-cy=opening-tab]',
     projecNupOpeningTab: '[data-cy=project-nup-opening-tab]',
     rightPanel: '[data-cy=right-panel]',
-    createCIBtn: '[data-cy=create-document-button]',
-    editCIBtn: '[data-cy=edit-document-button]',
 };
 
 // Constantes de timeout para melhor manutenibilidade

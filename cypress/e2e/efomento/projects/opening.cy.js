@@ -9,7 +9,7 @@ describe('Opening', () => {
     });
 
     describe('Document Generate', () => {
-        it('should create CI', function () {
+        it('should create CI for one project', function () {
             OpeningWorkflow.createCI({
                 role: 'fomentation',
                 notice: this.notice,

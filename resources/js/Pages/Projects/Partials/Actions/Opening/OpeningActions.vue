@@ -135,7 +135,7 @@ function openNoticeHistory() {
                 <template v-if="anyProjectsHasCI">
                     <p>Editar comunicação interna (CI)</p>
                     <v-btn
-                        data-cy="edit-ci-btn"
+                        data-cy="edit-ci-button"
                         class="w-full !shadow-none !font-bold !border-gray-300 !bg-white !text-[#2d353fFF] rounded-lg text-xs gap-6"
                         :disabled="!(props.selectedProjects?.length > 0) || !canCreateCI"
                         variant="outlined"
@@ -152,7 +152,7 @@ function openNoticeHistory() {
                 <template v-else>
                     <p>Criar comunicação interna (CI)</p>
                     <v-btn
-                        data-cy="create-ci-btn"
+                        data-cy="create-ci-button"
                         class="w-full !shadow-none !font-bold !bg-[#ffcc05FF] !text-[#2d353fFF] rounded-lg px-4 py-2 text-xs"
                         :disabled="!(props.selectedProjects?.length > 0) || !canCreateCI"
                         @click="openCIDialog"

@@ -53,58 +53,30 @@ class Project {
     }
 
     findProjectByProjectNup(projectNup) {
-        if (projectNup) {
-            const expectedNup = Notice.normalizeNup(projectNup);
-            const projectInput = `${el.findProjectPageInput} input`;
+        expect(projectNup, 'NUP utilizado na busca').to.exist;
 
-            cy.get(projectInput, {
-                timeout: TIMEOUTS.DEFAULT,
+        const expectedNup = Notice.normalizeNup(projectNup);
+        const projectInput = `${el.findProjectPageInput} input`;
+
+        cy.get(projectInput, {
+            timeout: TIMEOUTS.DEFAULT,
+        })
+            .should('be.visible')
+            .clear();
+
+        cy.get(projectInput).type(projectNup);
+
+        cy.get(el.projectList).within(() => {
+            cy.get(el.projectNupProjectList, {
+                timeout: TIMEOUTS.SEARCH,
             })
-                .should('be.visible')
-                .clear();
+                .filter((index, element) => {
+                    const currentNup = Notice.normalizeNup(Cypress.$(element).text());
 
-            cy.get(projectInput).type(projectNup);
-
-            cy.get(el.projectList).within(() => {
-                cy.get(el.projectNupProjectList, {
-                    timeout: TIMEOUTS.SEARCH,
+                    return currentNup === expectedNup;
                 })
-                    .filter((index, element) => {
-                        const currentNup = Notice.normalizeNup(Cypress.$(element).text());
-
-                        return currentNup === expectedNup;
-                    })
-                    .first()
-                    .should('be.visible');
-            });
-        } else {
-            this.getProjectData().then((data) => {
-                const projectNup = data.projectNup;
-                const expectedNup = Notice.normalizeNup(projectNup);
-                const projectInput = `${el.findProjectPageInput} input`;
-
-                cy.get(projectInput, {
-                    timeout: TIMEOUTS.DEFAULT,
-                })
-                    .should('be.visible')
-                    .clear();
-
-                cy.get(projectInput).type(projectNup);
-
-                cy.get(el.projectList).within(() => {
-                    cy.get(el.projectNupProjectList, {
-                        timeout: TIMEOUTS.SEARCH,
-                    })
-                        .filter((index, element) => {
-                            const currentNup = Notice.normalizeNup(Cypress.$(element).text());
-
-                            return currentNup === expectedNup;
-                        })
-                        .first()
-                        .should('be.visible');
-                });
-            });
-        }
+                .should('be.visible');
+        });
     }
 
     findProjectByNonExistentProjectNup() {
@@ -156,28 +128,36 @@ class Project {
 
                 return currentNup === expectedNup;
             })
-            .first()
+            .should('have.length', 1)
             .within(() => {
-                cy.get(el.checkboxProjectList).click();
+                cy.get(el.checkboxProjectList).should('be.visible').click();
             });
     }
 
-    // selectProject() {
-    //     cy.get(el.rowTableProjectList).within(() => {
-    //         cy.get(el.checkboxProjectList).click();
-    //     });
-    // }
-
     clickCreateDocument(buttonText) {
         cy.get(el.createDocumentButon).should('be.visible').and('not.be.disabled').contains(buttonText).click();
+    }
+
+    clickCreateCI(buttonText) {
+        cy.get(el.createCIButton).should('be.visible').and('not.be.disabled').contains(buttonText).click();
     }
 
     clickEditDocument(buttonEditDocument) {
         cy.get(el.editDocumentButon).should('be.visible').and('not.be.disabled').contains(buttonEditDocument).click();
     }
 
+    clickEditCI(buttonEditCI) {
+        cy.get(el.editCIButton).should('be.visible').and('not.be.disabled').contains(buttonEditCI).click();
+    }
+
     saveDocument() {
-        cy.get(el.saveDocumentButton).click();
+        cy.get(el.saveDocumentButton, { timeout: TIMEOUTS.LONG })
+            .should('be.visible')
+            .and('not.be.disabled')
+            .should(($button) => {
+                expect($button.css('pointer-events')).to.not.equal('none');
+            })
+            .click();
     }
 
     clickCancelDocumentButton() {
@@ -195,10 +175,31 @@ class Project {
             });
     }
 
-    validateDocumentCreated(chip) {
-        cy.get(el.rowTableProjectList).within(() => {
-            cy.get(el.chipProjectList).should('be.visible').contains(chip);
-        });
+    validateDocumentCreated(projectNup, chip) {
+        const expectedNup = Notice.normalizeNup(projectNup);
+
+        cy.intercept('GET', '**/editais/*/projetos?phase=abertura&search=*').as('reloadProjects');
+
+        cy.get(el.projectList, {
+            timeout: TIMEOUTS.LONG,
+        }).should('be.visible');
+
+        cy.wait('@reloadProjects');
+
+        cy.get(el.rowTableProjectList, { timeout: TIMEOUTS.LONG })
+            .should('be.visible')
+            .should('not.have.class', 'loading') // If you have a loading skeleton/overlay
+            .then(($rows) => {
+                cy.wrap($rows).filter((index, row) => {
+                    const text = Cypress.$(row).find(el.projectNupProjectList).text();
+                    const currentNup = Notice.normalizeNup(text);
+                    return currentNup === expectedNup;
+                });
+            })
+            .within(() => {
+                cy.log(chip);
+                cy.get(el.chipProjectList).contains(chip).should('be.visible');
+            });
     }
 
     fillDocument(text) {
