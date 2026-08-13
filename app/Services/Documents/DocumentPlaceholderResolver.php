@@ -3,6 +3,7 @@
 namespace App\Services\Documents;
 
 use App\Models\Document;
+use App\Services\BudgetAllocationResolver;
 
 class DocumentPlaceholderResolver
 {
@@ -10,8 +11,12 @@ class DocumentPlaceholderResolver
         'project.agent.latestSnapshot',
         'project.notice',
         'project.opening.principalSupervisor.user',
-        'project.budgets.installments',
+        'project.budgets.installments.budgetAllocation',
     ];
+
+    public function __construct(
+        private readonly BudgetAllocationResolver $budgetAllocationResolver,
+    ) {}
 
     public function prepare(Document $document): Document
     {
@@ -29,6 +34,9 @@ class DocumentPlaceholderResolver
         $supervisor = $opening?->principalSupervisor?->user;
         $currentInstallment = $document->project?->budgets?->installments
             ?->firstWhere('installment_number', $document->project?->current_installment_cycle);
+        $budgetAllocation = $document->project
+            ? $this->budgetAllocationResolver->resolve($document->project)
+            : null;
 
         $replacements = [
             '[notice_name]' => $document->project?->notice?->name ?? '',
@@ -45,8 +53,8 @@ class DocumentPlaceholderResolver
             '[fiscal_matricula]' => $supervisor?->registration_number ?? '',
             '[fiscal_name]' => $supervisor?->name ?? '',
             '[project_name]' => $document->project?->title_project ?? '',
-            '[allocation_code]' => $opening?->allocation_code ?? '',
-            '[allocation_number]' => $opening?->allocation_number ?? '',
+            '[allocation_code]' => $budgetAllocation?->allocation_code ?? '',
+            '[allocation_number]' => $budgetAllocation?->allocation_number ?? '',
             '[notice_installment_number]' => $currentInstallment?->notice_installment_number ?? '',
         ];
 

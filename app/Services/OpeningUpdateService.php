@@ -90,7 +90,6 @@ class OpeningUpdateService implements StageValidatorInterface
 
         $requiredOpeningFields = [
             'creditor_number' => 'Número do cadastro do credor',
-            'allocation_code' => 'Código da dotação',
             'bank' => 'Banco',
             'account_type' => 'Tipo de conta',
             'branch' => 'Agência',
@@ -103,10 +102,6 @@ class OpeningUpdateService implements StageValidatorInterface
 
         if (strlen(preg_replace('/\D/', '', (string) $opening->opening_nup)) !== 17) {
             $missingFields->prepend('Número do processo (deve conter 17 dígitos)');
-        }
-
-        if (strlen(preg_replace('/\D/', '', (string) $opening->allocation_number)) !== 41) {
-            $missingFields->push('Número completo da dotação (deve conter 41 dígitos)');
         }
 
         if (! $opening->principalSupervisor()->exists()) {

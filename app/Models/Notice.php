@@ -52,6 +52,6 @@ class Notice extends Model implements Auditable
 
     public function budgetAllocations(): HasMany
     {
-        return $this->hasMany(BudgetAllocation::class);
+        return $this->hasMany(BudgetAllocation::class)->orderBy('id');
     }
 }
