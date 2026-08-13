@@ -121,7 +121,7 @@ Para datas nos Schemas, usar o composable `useDate`: `getDate(key)` formata, `ad
 - Navegação com Inertia: usar `document.referrer` (não `history.state`) para detectar a página anterior.
 - Seletores deep do Vuetify 3 que funcionam: `:deep(.v-data-table__th)` para cabeçalhos, `:deep(.v-data-table__tr:not(:last-child) td)` para linhas. O seletor `.v-data-table__thead th` **não existe** no Vuetify 3.
 - Paginação customizada: não usar `v-model:search` na `v-data-table` — filtrar manualmente com uma computed property.
-- TinyMCE é usado para texto rico; seus assets são copiados para `public/tinymce/` via `vite-plugin-static-copy`.
+- TinyMCE é usado para texto rico e seus assets são incluídos no bundle do Vite.
 
 ## Skills do Claude Code
 
