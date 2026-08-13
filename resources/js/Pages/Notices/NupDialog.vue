@@ -75,7 +75,7 @@ const valorExtenso = computed(() => {
 </script>
 
 <template>
-    <v-dialog :model-value="modelValue" max-width="600" persistent>
+    <v-dialog :model-value="modelValue" max-width="800" persistent>
         <v-card>
             <v-form ref="formRef" v-model="isValid">
                 <v-card-title class="text-h6 font-weight-bold">
@@ -153,10 +153,14 @@ const valorExtenso = computed(() => {
                         </v-col>
 
                         <v-col cols="12" md="6">
-                            <FormField label="Número de parcelas" :error="form.errors.installments" required>
+                            <FormField
+                                label="Informe se a parcela é única(1) ou indique o número de parcelas."
+                                :error="form.errors.installments"
+                                required
+                            >
                                 <TextField
                                     v-model="form.installments"
-                                    placeholder="Insira o número de parcelas"
+                                    placeholder="Insira o número aqui"
                                     type="number"
                                     data-cy="quota-number-identification-data-form"
                                     min="0"
