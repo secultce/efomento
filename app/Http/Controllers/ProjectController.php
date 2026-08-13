@@ -47,6 +47,7 @@ class ProjectController extends Controller
                 'monitoring',
                 'budgets',
                 'budgets.installments',
+                'budgets.installments.budgetAllocation',
             ])
             ->search($request->search);
 
@@ -109,6 +110,7 @@ class ProjectController extends Controller
     {
         $project->load([
             'notice',
+            'notice.budgetAllocations',
             'agent',
             'category',
             'opening',
@@ -121,6 +123,7 @@ class ProjectController extends Controller
             'documents.images',
             'budgets',
             'budgets.installments',
+            'budgets.installments.budgetAllocation',
             'monitoring',
             'formalizations',
             'formalizations.files',

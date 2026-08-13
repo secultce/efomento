@@ -45,18 +45,46 @@ class ProjectStageService
             );
         }
 
-        $stage->markApproved();
+        return DB::transaction(function () use ($stage) {
+            if ($stage->slug === ProjectStageSlug::ORCAMENTO) {
+                $project = $stage->project;
 
-        $next = $stage->getNextStage();
+                $notice = $project->notice;
 
-        if ($next) {
-            $next->update([
-                'status' => ProjectStageStatus::EM_ANDAMENTO,
-                'started_at' => now(),
-            ]);
-        }
+                if ($notice) {
+                    $allocation = $notice->budgetAllocations()
+                        ->whereNull('deleted_at')
+                        ->orderByDesc('id')
+                        ->first();
 
-        return $next?->fresh();
+                    $budget = $project->budgets;
+
+                    if ($budget && $allocation) {
+                        $installment = $budget->installments()
+                            ->where('installment_number', $project->current_installment_cycle)
+                            ->first();
+
+                        if ($installment) {
+                            $installment->budget_allocation_id = $allocation->id;
+                            $installment->save();
+                        }
+                    }
+                }
+            }
+
+            $stage->markApproved();
+
+            $next = $stage->getNextStage();
+
+            if ($next) {
+                $next->update([
+                    'status' => ProjectStageStatus::EM_ANDAMENTO,
+                    'started_at' => now(),
+                ]);
+            }
+
+            return $next?->fresh();
+        });
     }
 
     public function validateStageAdvance(ProjectStage $stage, Project $project): void
