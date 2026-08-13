@@ -40,8 +40,8 @@ class BudgetAllocation extends Model implements Auditable
         return $this->belongsTo(Notice::class);
     }
 
-    public function installments(): HasMany
+    public function budgets(): HasMany
     {
-        return $this->hasMany(Installment::class);
+        return $this->hasMany(Budget::class);
     }
 }

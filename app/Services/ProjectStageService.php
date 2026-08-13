@@ -19,7 +19,6 @@ class ProjectStageService
     public function __construct(
         private Notify $notify,
         private InstallmentCycleStrategy $cycleStrategy,
-        private BudgetAllocationResolver $budgetAllocationResolver,
     ) {}
 
     public function advance(
@@ -46,24 +45,18 @@ class ProjectStageService
             );
         }
 
-        return DB::transaction(function () use ($stage) {
-            if ($stage->slug === ProjectStageSlug::ORCAMENTO) {
-                $this->linkBudgetAllocation($stage->project);
-            }
+        $stage->markApproved();
 
-            $stage->markApproved();
+        $next = $stage->getNextStage();
 
-            $next = $stage->getNextStage();
+        if ($next) {
+            $next->update([
+                'status' => ProjectStageStatus::EM_ANDAMENTO,
+                'started_at' => now(),
+            ]);
+        }
 
-            if ($next) {
-                $next->update([
-                    'status' => ProjectStageStatus::EM_ANDAMENTO,
-                    'started_at' => now(),
-                ]);
-            }
-
-            return $next?->fresh();
-        });
+        return $next?->fresh();
     }
 
     public function validateStageAdvance(ProjectStage $stage, Project $project): void
@@ -169,27 +162,6 @@ class ProjectStageService
                 'Apenas o fiscal titular pode executar esta ação.'
             );
         }
-    }
-
-    private function linkBudgetAllocation(Project $project): void
-    {
-        $allocation = $this->budgetAllocationResolver->resolveAvailable($project);
-        $budget = $project->budgets;
-
-        if (! $allocation || ! $budget) {
-            return;
-        }
-
-        $installment = $budget->installments()
-            ->where('installment_number', $project->current_installment_cycle)
-            ->first();
-
-        if (! $installment) {
-            return;
-        }
-
-        $installment->budgetAllocation()->associate($allocation);
-        $installment->save();
     }
 
     private function ensureUserHasRole(ProjectStage $stage, User $user, string $message): void

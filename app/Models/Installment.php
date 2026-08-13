@@ -16,7 +16,6 @@ class Installment extends Model implements Auditable
 
     protected $fillable = [
         'budget_id',
-        'budget_allocation_id',
         'amount',
         'request_date',
         'justification',
@@ -51,7 +50,6 @@ class Installment extends Model implements Auditable
     ];
 
     protected $casts = [
-        'budget_allocation_id' => 'integer',
         'amount' => 'decimal:2',
         'payment_amount' => 'decimal:2',
         'committed_amount' => 'decimal:2',
@@ -67,11 +65,6 @@ class Installment extends Model implements Auditable
     public function budget(): BelongsTo
     {
         return $this->belongsTo(Budget::class);
-    }
-
-    public function budgetAllocation(): BelongsTo
-    {
-        return $this->belongsTo(BudgetAllocation::class, 'budget_allocation_id')->withTrashed();
     }
 
     public function creator(): BelongsTo

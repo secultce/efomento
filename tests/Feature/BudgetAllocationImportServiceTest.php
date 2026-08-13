@@ -5,7 +5,6 @@ namespace Tests\Feature;
 use App\Enums\Role;
 use App\Models\Budget;
 use App\Models\BudgetAllocation;
-use App\Models\Installment;
 use App\Models\Notice;
 use App\Models\Project;
 use App\Models\User;
@@ -24,7 +23,7 @@ class BudgetAllocationImportServiceTest extends TestCase
         $user = User::factory()->create();
         $this->actingAs($user);
 
-        [$notice, $budget, $installment] = $this->createBudget();
+        [$notice, $budget] = $this->createBudget('123456', '12345678901234567890123456789012345678901');
 
         $result = $this->import($notice, $this->csvRow());
 
@@ -55,9 +54,6 @@ class BudgetAllocationImportServiceTest extends TestCase
         ]);
         $this->assertDatabaseHas('budgets', [
             'id' => $budget->id,
-        ]);
-        $this->assertDatabaseHas('installments', [
-            'id' => $installment->id,
             'budget_allocation_id' => null,
         ]);
     }
@@ -67,7 +63,7 @@ class BudgetAllocationImportServiceTest extends TestCase
         $user = User::factory()->create();
         $this->actingAs($user);
 
-        [$notice] = $this->createBudget();
+        [$notice] = $this->createBudget('123456', '12345678901234567890123456789012345678901');
 
         $this->import($notice, $this->csvRow());
         $originalAllocation = BudgetAllocation::firstOrFail();
@@ -103,7 +99,7 @@ class BudgetAllocationImportServiceTest extends TestCase
     public function test_import_endpoint_requires_a_budget_role(): void
     {
         $user = User::factory()->create();
-        [$notice] = $this->createBudget();
+        [$notice] = $this->createBudget('123456', '12345678901234567890123456789012345678901');
 
         $this->actingAs($user)
             ->post(route('budget-allocations.import', $notice), [
@@ -122,7 +118,7 @@ class BudgetAllocationImportServiceTest extends TestCase
             'guard_name' => 'web',
         ]);
         $user->assignRole(Role::BUDGETARY->value);
-        [$notice] = $this->createBudget();
+        [$notice] = $this->createBudget('123456', '12345678901234567890123456789012345678901');
 
         $this->actingAs($user)
             ->post(route('budget-allocations.import', $notice), [
@@ -230,21 +226,21 @@ class BudgetAllocationImportServiceTest extends TestCase
             ->assertJsonPath('errors.file.0', 'O arquivo CSV deve ter no máximo 10 MB.');
     }
 
-    private function createBudget(): array
+    private function createBudget(string $allocationCode, string $allocationNumber): array
     {
         $notice = Notice::factory()->create();
         $project = Project::factory()->create([
             'notice_id' => $notice->id,
         ]);
+        $project->opening->update([
+            'allocation_code' => $allocationCode,
+            'allocation_number' => $allocationNumber,
+        ]);
         $budget = Budget::factory()->create([
             'project_id' => $project->id,
         ]);
-        $installment = Installment::factory()->create([
-            'budget_id' => $budget->id,
-            'installment_number' => $project->current_installment_cycle ?? 1,
-        ]);
 
-        return [$notice, $budget, $installment];
+        return [$notice, $budget];
     }
 
     private function import(Notice $notice, array $row): array

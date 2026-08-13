@@ -38,6 +38,9 @@ class OpeningFactory extends Factory
 
             'creditor_number' => $this->faker->numerify(),
 
+            'allocation_code' => $this->faker->numerify(),
+            'allocation_number' => $this->faker->numerify('#########################################'),
+
             'bank' => $this->faker->randomElement([
                 '001',
                 '237',
