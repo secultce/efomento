@@ -136,7 +136,6 @@ onMounted(() => {
             ];
         })(),
     };
-
     form.formalization = {
         report_status: formalization.report_status ?? null,
         eparcerias_certificate_date: normalizeDate(formalization.eparcerias_certificate_date) ?? null,
