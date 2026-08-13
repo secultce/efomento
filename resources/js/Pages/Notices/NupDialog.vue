@@ -132,11 +132,7 @@ const valorExtenso = computed(() => {
                         </v-col>
 
                         <v-col cols="12" md="6">
-                            <FormField
-                                label="Gestor do acompanhamento do edital"
-                                :error="form.errors.process_manager"
-                                required
-                            >
+                            <FormField label="Gestor do acompanhamento do edital" :error="form.errors.process_manager">
                                 <TextField
                                     v-model="form.process_manager"
                                     placeholder="Insira o nome do gestor aqui"
@@ -147,7 +143,7 @@ const valorExtenso = computed(() => {
                         </v-col>
 
                         <v-col cols="12" md="6">
-                            <FormField label="Email do gestor" :error="form.errors.process_manager_email" required>
+                            <FormField label="Email do gestor" :error="form.errors.process_manager_email">
                                 <TextField
                                     v-model="form.process_manager_email"
                                     placeholder="Insira o email do gestor aqui"
