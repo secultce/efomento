@@ -71,7 +71,7 @@ class Installment extends Model implements Auditable
 
     public function budgetAllocation(): BelongsTo
     {
-        return $this->belongsTo(BudgetAllocation::class, 'budget_allocation_id')->withTrashed();
+        return $this->belongsTo(BudgetAllocation::class, 'budget_allocation_id');
     }
 
     public function creator(): BelongsTo

@@ -10,11 +10,9 @@ use App\Enums\ProjectStageStatus;
 use App\Exceptions\Domain\BusinessRuleException;
 use App\Exceptions\Domain\DomainAuthorizationException;
 use App\Exceptions\Domain\StageTransitionException;
-use App\Models\BudgetAllocation;
 use App\Models\Notice;
 use App\Models\Opening;
 use App\Models\OpeningSupervisor;
-use App\Models\ProfileSnapshot;
 use App\Models\Project;
 use App\Models\ProjectStage;
 use App\Models\User;
@@ -64,11 +62,13 @@ class ProjectStageFlowTest extends TestCase
         $opening = Opening::factory()->create([
             'project_id' => $project->id,
             'creditor_number' => '123456',
+            'allocation_code' => '123456',
             'bank' => 'Banco do Brasil',
             'account_type' => AccountType::cases()[0]->value,
             'branch' => '1234',
             'account' => '12345-6',
             'opening_nup' => '12345678901234567',
+            'allocation_number' => '12345678901234567890123456789012345678901',
         ]);
 
         OpeningSupervisor::create([
@@ -229,50 +229,6 @@ class ProjectStageFlowTest extends TestCase
 
         $this->assertEquals(7, $approvedCount);
         $this->assertEquals(100, $project->getProgressPercentage());
-    }
-
-    public function test_approving_budget_links_the_allocation_for_the_agent_macroregion(): void
-    {
-        $project = Project::factory()->create(['current_installment_cycle' => 2]);
-        $this->createValidOpening($project);
-        $this->createValidBudget($project);
-        ProfileSnapshot::factory()->create([
-            'object_id' => $project->agent_id,
-            'object_type' => 'agent',
-            'city' => 'Crato',
-        ]);
-
-        $previousAllocation = BudgetAllocation::factory()->create([
-            'notice_id' => $project->notice_id,
-            'planning_macroregion' => '02 – CENTRO SUL',
-        ]);
-        $matchingAllocation = BudgetAllocation::factory()->create([
-            'notice_id' => $project->notice_id,
-            'planning_macroregion' => '01 – CARIRI',
-        ]);
-        BudgetAllocation::factory()->create([
-            'notice_id' => $project->notice_id,
-            'planning_macroregion' => '03 – GRANDE FORTALEZA',
-        ]);
-
-        $budget = $project->budgets;
-        $previousInstallment = $budget->installments()->create([
-            'budget_allocation_id' => $previousAllocation->id,
-            'installment_number' => 1,
-            'notice_installment_number' => 1,
-            'amount' => 500,
-            'created_by' => User::factory()->create()->id,
-        ]);
-
-        $stage = $this->activateStage($project, ProjectStageSlug::ORCAMENTO);
-        $this->service->advance($stage, $this->createUserWithRoles('budgetary'));
-
-        $currentInstallment = $budget->installments()
-            ->where('installment_number', 2)
-            ->firstOrFail();
-
-        $this->assertTrue($currentInstallment->budgetAllocation->is($matchingAllocation));
-        $this->assertTrue($previousInstallment->fresh()->budgetAllocation->is($previousAllocation));
     }
 
     public function test_advance_throws_when_user_lacks_role(): void

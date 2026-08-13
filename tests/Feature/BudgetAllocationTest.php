@@ -2,8 +2,8 @@
 
 namespace Tests\Feature;
 
+use App\Models\Budget;
 use App\Models\BudgetAllocation;
-use App\Models\Installment;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -32,30 +32,16 @@ class BudgetAllocationTest extends TestCase
         $this->assertTrue($budgetAllocation->notice->budgetAllocations->contains($budgetAllocation));
     }
 
-    public function test_an_installment_can_optionally_belong_to_an_allocation(): void
+    public function test_a_budget_can_optionally_belong_to_an_allocation(): void
     {
-        $installment = Installment::factory()->create();
+        $budget = Budget::factory()->create();
         $budgetAllocation = BudgetAllocation::factory()->create([
-            'notice_id' => $installment->budget->project->notice_id,
+            'notice_id' => $budget->project->notice_id,
         ]);
-        $installment->budgetAllocation()->associate($budgetAllocation);
-        $installment->save();
+        $budget->budgetAllocation()->associate($budgetAllocation);
+        $budget->save();
 
-        $this->assertTrue($installment->budgetAllocation->is($budgetAllocation));
-        $this->assertTrue($budgetAllocation->installments->contains($installment));
-    }
-
-    public function test_an_installment_keeps_its_allocation_history_after_soft_deletion(): void
-    {
-        $installment = Installment::factory()->create();
-        $budgetAllocation = BudgetAllocation::factory()->create([
-            'notice_id' => $installment->budget->project->notice_id,
-        ]);
-        $installment->budgetAllocation()->associate($budgetAllocation);
-        $installment->save();
-
-        $budgetAllocation->delete();
-
-        $this->assertTrue($installment->fresh()->budgetAllocation->is($budgetAllocation));
+        $this->assertTrue($budget->budgetAllocation->is($budgetAllocation));
+        $this->assertTrue($budgetAllocation->budgets->contains($budget));
     }
 }

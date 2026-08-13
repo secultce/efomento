@@ -1,7 +1,6 @@
 <script setup>
 import { computed } from 'vue';
 import SanitizedHtml from '@/Components/SanitizedHtml.vue';
-import { getBudgetAllocation } from '@/Schemas/getBudgetAllocation';
 
 const props = defineProps({
     modelValue: { type: Boolean, default: false },
@@ -27,7 +26,6 @@ const resolvedBody = computed(() => {
     const body = props.document?.body;
     const project = props.document?.project;
     if (!body || !project) return body ?? '';
-    const budgetAllocation = getBudgetAllocation(project);
 
     const replacements = {
         '[notice_name]': project.notice?.name ?? '',
@@ -37,8 +35,8 @@ const resolvedBody = computed(() => {
         '[fiscal_matricula]': project.opening?.active_supervisor?.user?.registration_number ?? 'sem matrícula',
         '[fiscal_name]': project.opening?.active_supervisor?.user?.name ?? 'sem fiscal',
         '[project_name]': project.title_project ?? 'sem projeto',
-        '[allocation_code]': budgetAllocation?.allocation_code ?? 'sem dotação orçamentária',
-        '[allocation_number]': budgetAllocation?.allocation_number ?? 'sem dotação orçamentária',
+        '[allocation_code]': project.opening?.allocation_code ?? 'sem dotação orçamentária',
+        '[allocation_number]': project.opening?.allocation_number ?? 'sem dotação orçamentária',
     };
 
     return Object.entries(replacements).reduce(

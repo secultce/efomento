@@ -29,6 +29,8 @@ class Opening extends Model implements Auditable
         'opened_by',
         'created_by',
         'creditor_number',
+        'allocation_code',
+        'allocation_number',
         'bank',
         'account_type',
         'branch',
