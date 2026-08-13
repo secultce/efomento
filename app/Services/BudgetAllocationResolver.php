@@ -17,7 +17,9 @@ class BudgetAllocationResolver
         $installment = $project->budgets?->installments
             ?->firstWhere('installment_number', $project->current_installment_cycle);
 
-        return $installment?->budgetAllocation ?? $this->resolveAvailable($project);
+        return $installment
+            ? $installment->budgetAllocation
+            : $this->resolveAvailable($project);
     }
 
     public function resolveAvailable(Project $project): ?BudgetAllocation
@@ -49,7 +51,9 @@ class BudgetAllocationResolver
             }
         }
 
-        return $allocations->first();
+        return $allocations->count() === 1
+            ? $allocations->first()
+            : null;
     }
 
     private function normalizeMacroregion(mixed $value): ?string

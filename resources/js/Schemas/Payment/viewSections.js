@@ -16,7 +16,7 @@ export const viewSections = [
                 compute: (project) => {
                     const s = project?.agent?.latest_snapshot;
                     if (!s) return null;
-                    return [s.address, s.number, s.neighborhood, s.city, s.state, s.postal_code]
+                    return [s.street, s.number, s.neighborhood, s.city, s.state, s.postal_code]
                         .filter(Boolean)
                         .join(', ');
                 },

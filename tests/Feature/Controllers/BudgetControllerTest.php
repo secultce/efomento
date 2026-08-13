@@ -3,7 +3,9 @@
 namespace Tests\Feature\Controllers;
 
 use App\Models\Budget;
+use App\Models\BudgetAllocation;
 use App\Models\Installment;
+use App\Models\ProfileSnapshot;
 use App\Models\Project;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -62,6 +64,43 @@ class BudgetControllerTest extends TestCase
             'installment_number' => 1,
             'notice_installment_number' => 3,
             'created_by' => $user->id,
+        ]);
+    }
+
+    public function test_store_links_the_current_installment_to_the_matching_allocation(): void
+    {
+        $user = User::factory()->create();
+        $project = Project::factory()->create([
+            'current_installment_cycle' => 2,
+        ]);
+        ProfileSnapshot::factory()->create([
+            'object_id' => $project->agent_id,
+            'object_type' => 'agent',
+            'city' => 'Crato',
+        ]);
+        BudgetAllocation::factory()->create([
+            'notice_id' => $project->notice_id,
+            'planning_macroregion' => '02 – CENTRO SUL',
+        ]);
+        $matchingAllocation = BudgetAllocation::factory()->create([
+            'notice_id' => $project->notice_id,
+            'planning_macroregion' => '01 – CARIRI',
+        ]);
+
+        $response = $this->actingAs($user)->post(
+            route('projects.budgets.store', $project),
+            [
+                'notice_installment_number' => 2,
+                'installment_amount' => 1000,
+            ]
+        );
+
+        $response->assertRedirect();
+
+        $this->assertDatabaseHas('installments', [
+            'budget_id' => Budget::where('project_id', $project->id)->sole()->id,
+            'installment_number' => 2,
+            'budget_allocation_id' => $matchingAllocation->id,
         ]);
     }
 

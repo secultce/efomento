@@ -6,12 +6,17 @@ use App\Contracts\StageValidatorInterface;
 use App\Enums\DocumentPhase;
 use App\Enums\DocumentType;
 use App\Models\Budget;
+use App\Models\Installment;
 use App\Models\Project;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
 class BudgetService implements StageValidatorInterface
 {
+    public function __construct(
+        private readonly BudgetAllocationResolver $budgetAllocationResolver,
+    ) {}
+
     public function create(Project $project, array $data): Budget
     {
         return DB::transaction(function () use ($project, $data) {
@@ -23,11 +28,13 @@ class BudgetService implements StageValidatorInterface
                 ...$this->budgetData($data),
             ]);
 
-            $budget->installments()->create([
+            $installment = $budget->installments()->create([
                 ...$this->installmentData($data),
                 'installment_number' => $project->current_installment_cycle,
                 'created_by' => $userId,
             ]);
+
+            $this->linkBudgetAllocation($project, $installment);
 
             return $budget;
         });
@@ -37,7 +44,8 @@ class BudgetService implements StageValidatorInterface
     {
         return DB::transaction(function () use ($project, $budget, $data) {
             $this->updateBudgetDataIfFirstCycle($budget, $project, $data);
-            $this->upsertInstallment($budget, $project, $data);
+            $installment = $this->upsertInstallment($budget, $project, $data);
+            $this->linkBudgetAllocation($project, $installment);
 
             return $budget;
         });
@@ -54,7 +62,7 @@ class BudgetService implements StageValidatorInterface
         );
     }
 
-    private function upsertInstallment(Budget $budget, Project $project, array $data): void
+    private function upsertInstallment(Budget $budget, Project $project, array $data): Installment
     {
         $installment = $budget->installments()->firstOrNew([
             'installment_number' => $project->current_installment_cycle,
@@ -68,6 +76,24 @@ class BudgetService implements StageValidatorInterface
             $installment->created_by = auth()->id();
         }
 
+        $installment->save();
+
+        return $installment;
+    }
+
+    private function linkBudgetAllocation(Project $project, Installment $installment): void
+    {
+        if ($installment->budget_allocation_id) {
+            return;
+        }
+
+        $allocation = $this->budgetAllocationResolver->resolveAvailable($project);
+
+        if (! $allocation) {
+            return;
+        }
+
+        $installment->budgetAllocation()->associate($allocation);
         $installment->save();
     }
 

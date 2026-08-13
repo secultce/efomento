@@ -173,10 +173,9 @@ class ProjectStageService
 
     private function linkBudgetAllocation(Project $project): void
     {
-        $allocation = $this->budgetAllocationResolver->resolveAvailable($project);
         $budget = $project->budgets;
 
-        if (! $allocation || ! $budget) {
+        if (! $budget) {
             return;
         }
 
@@ -184,7 +183,13 @@ class ProjectStageService
             ->where('installment_number', $project->current_installment_cycle)
             ->first();
 
-        if (! $installment) {
+        if (! $installment || $installment->budget_allocation_id) {
+            return;
+        }
+
+        $allocation = $this->budgetAllocationResolver->resolveAvailable($project);
+
+        if (! $allocation) {
             return;
         }
 
