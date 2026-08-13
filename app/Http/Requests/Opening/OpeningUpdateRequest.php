@@ -20,7 +20,7 @@ class OpeningUpdateRequest extends FormRequest
      */
     protected function prepareForValidation(): void
     {
-        $this->sanitizeNumericOpeningFields(['opening_nup', 'allocation_number']);
+        $this->sanitizeNumericOpeningFields(['opening_nup']);
     }
 
     /**
@@ -62,10 +62,6 @@ class OpeningUpdateRequest extends FormRequest
             // Credor
             'opening.creditor_number' => ['nullable', 'string', 'max:255'],
 
-            // Dotação Orçamentária
-            'opening.allocation_code' => ['nullable', 'string', 'max:255'],
-            'opening.allocation_number' => ['nullable', 'string', 'size:41'],
-
             // Dados Bancários
             'opening.bank' => ['nullable', 'string', 'max:255'],
             'opening.account_type' => ['nullable', 'string', 'max:255'],
@@ -98,7 +94,6 @@ class OpeningUpdateRequest extends FormRequest
         return [
             'opening.opening_nup.size' => 'O Número do Processo deve conter exatamente 17 dígitos.',
             'opening.opening_date.date' => 'A Data de abertura do processo deve ser uma data válida.',
-            'opening.allocation_number.size' => 'O Número completo da dotação deve conter exatamente 41 dígitos.',
 
             'opening.supervisors.*.id.exists' => 'O fiscal selecionado não foi encontrado no sistema.',
             'opening.supervisors.*.type.in' => 'O tipo de fiscal deve ser titular ou suplente.',
@@ -122,8 +117,6 @@ class OpeningUpdateRequest extends FormRequest
             'opening.agent_status' => 'status do agente cultural',
             'opening.opened_by' => 'responsável por abrir o processo',
             'opening.creditor_number' => 'número do cadastro do credor',
-            'opening.allocation_code' => 'código da dotação',
-            'opening.allocation_number' => 'número completo da dotação',
             'opening.bank' => 'banco',
             'opening.account_type' => 'tipo de conta',
             'opening.branch' => 'agência',

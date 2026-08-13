@@ -1,34 +1,4 @@
-const getBudgetAllocation = (project) => {
-    if (!project) return null;
-
-    const noticeAllocations = project.notice?.budget_allocations ?? [];
-
-    let budgetsArray = Array.isArray(project.budgets) ? project.budgets : Object.values(project.budgets || {});
-
-    if (budgetsArray.length === 0) {
-        return noticeAllocations[0] ?? null;
-    }
-
-    const currentBudget = budgetsArray[budgetsArray.length - 1];
-
-    const installmentsArray = Array.isArray(currentBudget.installments)
-        ? currentBudget.installments
-        : Object.values(currentBudget.installments || {});
-
-    const installment = installmentsArray.find(
-        (i) => Number(i.installment_number) === Number(project.current_installment_cycle)
-    );
-
-    if (installment) {
-        if (installment.budget_allocation) return installment.budget_allocation;
-
-        if (installment.budget_allocation_id) {
-            return noticeAllocations.find((a) => a.id === installment.budget_allocation_id) ?? null;
-        }
-    }
-
-    return noticeAllocations[0] ?? null;
-};
+import { getBudgetAllocation } from '../getBudgetAllocation';
 
 export const viewSections = [
     {

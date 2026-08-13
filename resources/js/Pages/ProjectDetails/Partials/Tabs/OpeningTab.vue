@@ -72,8 +72,6 @@ const form = useForm({
         agent_status: null,
         opened_by: null,
         creditor_number: null,
-        allocation_code: null,
-        allocation_number: null,
         bank: null,
         account_type: null,
         branch: null,
@@ -113,8 +111,6 @@ onMounted(() => {
         agent_status: opening.agent_status ?? null,
         opened_by: opening.opened_by ?? null,
         creditor_number: opening.creditor_number ?? null,
-        allocation_code: opening.allocation_code ?? null,
-        allocation_number: (opening.allocation_number ?? '').replace(/\D/g, '') || null,
         bank: opening.bank ?? null,
         account_type: opening.account_type ?? null,
         branch: opening.branch ?? null,
@@ -253,9 +249,6 @@ const tramit = () => {
 };
 
 const isNupValid = computed(() => String(form.opening.opening_nup ?? '').replace(/\D/g, '').length === 17);
-const isAllocationNumberValid = computed(
-    () => String(form.opening.allocation_number ?? '').replace(/\D/g, '').length === 41
-);
 const hasPrincipalSupervisor = computed(() =>
     (form.opening.supervisors ?? []).some((s) => s.type === 'principal' && !!s.id)
 );
@@ -271,8 +264,6 @@ const allRequiredFilled = computed(() => {
     return !!(
         isNupValid.value &&
         hasText(opening.creditor_number) &&
-        hasText(opening.allocation_code) &&
-        isAllocationNumberValid.value &&
         hasText(opening.bank) &&
         opening.account_type &&
         hasText(opening.branch) &&
@@ -290,8 +281,6 @@ const errors = computed(() => {
     return {
         nup: !isNupValid.value ? 'Preencha o número do processo (17 dígitos)' : null,
         creditorNumber: !hasText(form.opening.creditor_number) ? standardMessage : null,
-        allocationCode: !hasText(form.opening.allocation_code) ? standardMessage : null,
-        allocationNumber: !isAllocationNumberValid.value ? 'Preencha a dotação completa (41 dígitos)' : null,
         bank: !hasText(form.opening.bank) ? standardMessage : null,
         accountType: !form.opening.account_type ? standardMessage : null,
         branch: !hasText(form.opening.branch) ? standardMessage : null,
@@ -425,30 +414,6 @@ const activeEditIndex = ref('all');
                                             v-model="form.opening.creditor_number"
                                             label="Insira aqui o número"
                                             :error="errors.creditorNumber"
-                                        />
-                                    </form-field>
-                                </div>
-                            </template>
-                            <template v-else-if="section.key === 'budget_allocation'">
-                                <div class="grid grid-cols-2 gap-4">
-                                    <form-field label="Código da dotação" required :error="errors.allocationCode">
-                                        <text-field
-                                            v-model="form.opening.allocation_code"
-                                            label="Insira aqui o código reduzido da dotação"
-                                            :error="errors.allocationCode"
-                                        />
-                                    </form-field>
-
-                                    <form-field
-                                        label="Número completo da dotação"
-                                        required
-                                        :error="errors.allocationNumber"
-                                    >
-                                        <text-field
-                                            v-model="form.opening.allocation_number"
-                                            mask="########.##.###.###.#####.##.######.#.##########.#"
-                                            label="Insira aqui o número"
-                                            :error="errors.allocationNumber"
                                         />
                                     </form-field>
                                 </div>
