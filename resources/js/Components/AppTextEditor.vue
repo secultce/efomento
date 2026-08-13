@@ -57,12 +57,8 @@ const editorValue = computed({
     set: (val) => emit('update:modelValue', val),
 });
 
-const tinyBaseUrl = import.meta.env.VITE_TINYMCE_BASE_URL;
-
 const editorInit = computed(() => ({
-    base_url: tinyBaseUrl,
     language: 'pt_BR',
-    language_url: `${tinyBaseUrl}/langs/pt_BR.js`,
     license_key: 'gpl',
     menubar: props.menubar,
     promotion: false,
