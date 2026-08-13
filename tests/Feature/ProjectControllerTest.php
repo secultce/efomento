@@ -184,6 +184,23 @@ class ProjectControllerTest extends TestCase
         );
     }
 
+    public function test_project_detail_includes_budget_allocations_before_a_budget_exists(): void
+    {
+        $notice = Notice::factory()->create();
+        $project = Project::factory()->create(['notice_id' => $notice->id]);
+        $allocation = BudgetAllocation::factory()->create([
+            'notice_id' => $notice->id,
+        ]);
+
+        $this->assertNull($project->budgets);
+
+        $this->actingAs($this->user)
+            ->get(route('notices.projects.show', [$notice, $project]))
+            ->assertInertia(fn ($page) => $page
+                ->where('project.notice.budget_allocations.0.id', $allocation->id)
+            );
+    }
+
     public function test_project_detail_defaults_to_opening_tab(): void
     {
         $notice = Notice::factory()->create();

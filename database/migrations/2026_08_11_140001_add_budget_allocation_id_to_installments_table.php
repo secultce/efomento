@@ -8,9 +8,10 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::table('budgets', function (Blueprint $table) {
+        Schema::table('installments', function (Blueprint $table) {
             $table->foreignId('budget_allocation_id')
                 ->nullable()
+                ->after('budget_id')
                 ->constrained()
                 ->nullOnDelete();
         });
@@ -18,7 +19,7 @@ return new class extends Migration
 
     public function down(): void
     {
-        Schema::table('budgets', function (Blueprint $table) {
+        Schema::table('installments', function (Blueprint $table) {
             $table->dropConstrainedForeignId('budget_allocation_id');
         });
     }
