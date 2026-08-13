@@ -11,6 +11,8 @@ class DocumentPlaceholderResolver
         'project.agent.latestSnapshot',
         'project.notice',
         'project.opening.principalSupervisor.user',
+        'project.budgets.installments',
+        'project.category',
         'project.budgets.installments.budgetAllocation',
     ];
 
@@ -56,6 +58,13 @@ class DocumentPlaceholderResolver
             '[allocation_code]' => $budgetAllocation?->allocation_code ?? '',
             '[allocation_number]' => $budgetAllocation?->allocation_number ?? '',
             '[notice_installment_number]' => $currentInstallment?->notice_installment_number ?? '',
+            '[bank]' => $opening?->bank ?? '',
+            '[account_type]' => $opening?->account_type?->label() ?? '',
+            '[branch]' => $opening?->branch ?? '',
+            '[account]' => $opening?->account ?? '',
+            '[budget_allocation_nup]' => $document->project?->notice?->budget_allocation_nup ?? '',
+            '[creditor_registration_nup]' => $document->project?->notice?->creditor_registration_nup ?? '',
+            '[project_category]' => $document->project?->category?->name ?? '',
         ];
 
         return str_replace(array_keys($replacements), array_values($replacements), (string) $document->body);
