@@ -11,6 +11,7 @@ class DocumentPlaceholderResolver
         'project.notice',
         'project.opening.principalSupervisor.user',
         'project.budgets.installments',
+        'project.category',
     ];
 
     public function prepare(Document $document): Document
@@ -54,6 +55,7 @@ class DocumentPlaceholderResolver
             '[account]' => $opening?->account ?? '',
             '[budget_allocation_nup]' => $document->project?->notice?->budget_allocation_nup ?? '',
             '[creditor_registration_nup]' => $document->project?->notice?->creditor_registration_nup ?? '',
+            '[project_category]' => $document->project?->category?->name ?? '',
         ];
 
         return str_replace(array_keys($replacements), array_values($replacements), (string) $document->body);

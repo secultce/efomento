@@ -28,6 +28,7 @@ const placeHoldersDocsSchema = [
     { label: 'Conta do Agente', value: 'account' },
     { label: 'N. Dotação Orçamentária', value: 'budget_allocation_nup' },
     { label: 'N. Cad. Credor', value: 'creditor_registration_nup' },
+    { label: 'Categ. do Projeto', value: 'project_category' },
 ];
 
 const installmentPlaceHoldersDocsSchema = [
