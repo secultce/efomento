@@ -130,8 +130,9 @@ Existem skills locais em `.claude/skills/` que codificam os padrões do frontend
 - `/nova-tab` — cria Tab de etapa + Schemas (viewSections/formSections) e registra no `ProcessTabs.vue`; se o backend da etapa não existir, segue o `checklist-backend.md` somente com confirmação do usuário.
 - `/novo-componente` — cria componente reutilizável em `resources/js/Components/`, verificando antes se já existe algo similar.
 - `/novo-composable` — cria composable em `resources/js/Composables/`, conferindo os existentes para não duplicar (funções de data vão no `useDate`, não em composable novo).
+- `/tratamento-erros` — aplica a hierarquia de exceções `AppException` (backend) e o padrão `useErrorHandler` (frontend) descritos em `docs/error_handling.md`; usar ao lançar/capturar erros, criar Service/Controller novo ou tratar erro de API no Vue.
 
-As skills mandam ler arquivos exemplares reais do repo antes de gerar código — não pule essa etapa. Documentação completa em `docs/skills/README.md`. O diretório `.claude/skills/` **não é versionado** (está no `.gitignore`); se uma skill gerar código fora do padrão, corrija o `SKILL.md` dela, não apenas o arquivo gerado.
+As skills mandam ler arquivos exemplares reais do repo antes de gerar código — não pule essa etapa. Documentação completa em `docs/skills/README.md`. O diretório `.claude/skills/` **é versionado** (commitado no repo); se uma skill gerar código fora do padrão, corrija o `SKILL.md` dela, não apenas o arquivo gerado.
 
 ## Convenções de nomenclatura
 
