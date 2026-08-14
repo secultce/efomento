@@ -65,5 +65,13 @@ describe('Formalization', () => {
                 documentType: DOCUMENTS.devolutionMotive,
             });
         });
+
+        it('should tramit process to budget successfully', function () {
+            FormalizationWorkflow.tramitProcessWithSuccessToBudget({
+                role: 'formalization',
+                notice: this.notice,
+                project: this.project,
+            });
+        });
     });
 });
