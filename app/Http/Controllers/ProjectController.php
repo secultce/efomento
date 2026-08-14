@@ -175,7 +175,7 @@ class ProjectController extends Controller
     public function createDocument(Request $request, ProjectDocumentService $service)
     {
         $data = $request->validate([
-            'type' => 'required|in:ci,tc,pj,et,do,dp',
+            'type' => 'required|in:ci,tc,pj,et,pi,pf,do,dp',
 
             'selected_projects' => 'required|array|min:1',
             'selected_projects.*' => 'exists:projects,id',
@@ -196,12 +196,18 @@ class ProjectController extends Controller
             'footer_layout' => 'nullable|in:none,three,full',
         ]);
 
+        $type = DocumentType::from($data['type']);
+
+        if ($type->isBudgetOpinion()) {
+            abort_unless($request->user()->hasAnyRole(Role::budgetRoles()), 403);
+        }
+
         $service->createDocument(
             selectedProjects: $data['selected_projects'],
             content: $data['content'],
             headerImages: $data['header_images'] ?? [],
             footerImages: $data['footer_images'] ?? [],
-            type: DocumentType::from($data['type']),
+            type: $type,
             headerLayout: $data['header_layout'] ?? 'none',
             footerLayout: $data['footer_layout'] ?? 'none',
         );

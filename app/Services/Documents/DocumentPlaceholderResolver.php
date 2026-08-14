@@ -2,7 +2,9 @@
 
 namespace App\Services\Documents;
 
+use App\Models\BudgetAllocation;
 use App\Models\Document;
+use App\Models\Project;
 
 class DocumentPlaceholderResolver
 {
@@ -50,6 +52,69 @@ class DocumentPlaceholderResolver
             '[notice_installment_number]' => $currentInstallment?->notice_installment_number ?? '',
         ];
 
-        return str_replace(array_keys($replacements), array_values($replacements), (string) $document->body);
+        $body = str_replace(array_keys($replacements), array_values($replacements), (string) $document->body);
+
+        return $this->replaceBudgetAllocationData($body, $document->project);
+    }
+
+    public function replaceBudgetAllocationData(string $content, ?Project $project): string
+    {
+        if (! str_contains($content, '[budget_allocation_data]')) {
+            return $content;
+        }
+
+        return str_replace(
+            '[budget_allocation_data]',
+            $this->budgetAllocationData($project),
+            $content,
+        );
+    }
+
+    private function budgetAllocationData(?Project $project): string
+    {
+        if (! $project) {
+            return '';
+        }
+
+        $project->loadMissing([
+            'budgets.budgetAllocation',
+            'notice.budgetAllocations',
+        ]);
+
+        $allocation = $project->budgets?->budgetAllocation
+            ?? $project->notice?->budgetAllocations?->sortBy('id')->first();
+
+        if (! $allocation) {
+            return '';
+        }
+
+        return $this->budgetAllocationBlock($allocation);
+    }
+
+    private function budgetAllocationBlock(BudgetAllocation $allocation): string
+    {
+        $fields = [
+            'Gestão/Unidade' => $allocation->management_unit,
+            'Programa de Trabalho' => $allocation->work_program,
+            'Objetivo' => $allocation->objective,
+            'Entrega' => $allocation->deliverable,
+            'Função' => $allocation->budget_function,
+            'Subfunção' => $allocation->budget_subfunction,
+            'Ação' => $allocation->project_activity,
+            'Elemento de Despesa' => $allocation->expense_element,
+            'Fonte de Recursos' => $allocation->funding_source,
+            'MAPP' => $allocation->mapp,
+            'Projeto Finalístico' => $allocation->finalistic_project,
+        ];
+
+        $lines = collect($fields)
+            ->map(function ($value, string $label) {
+                $escapedValue = nl2br(e((string) ($value ?? '')), false);
+
+                return '<span style="display: block;"><strong>'.e($label).':</strong> '.$escapedValue.'</span>';
+            })
+            ->implode('');
+
+        return '<span style="display: block; line-height: 1.35; text-align: left;">'.$lines.'</span>';
     }
 }

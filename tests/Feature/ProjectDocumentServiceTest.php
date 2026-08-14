@@ -3,10 +3,12 @@
 namespace Tests\Feature;
 
 use App\Enums\DocumentType;
+use App\Models\BudgetAllocation;
 use App\Models\Document;
 use App\Models\Opening;
 use App\Models\Project;
 use App\Models\User;
+use App\Services\Documents\DocumentPlaceholderResolver;
 use App\Services\ProjectDocumentService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use PHPUnit\Framework\Attributes\Test;
@@ -131,5 +133,51 @@ class ProjectDocumentServiceTest extends TestCase
         $project = Project::factory()->create();
 
         $service->createDocument(DocumentType::from('ci'), [], 'Teste CI');
+    }
+
+    #[Test]
+    public function it_keeps_the_budget_allocation_placeholder_when_creating_documents_in_bulk()
+    {
+        $user = User::factory()->create();
+        $this->actingAs($user);
+
+        $projectA = Project::factory()->create();
+        $projectB = Project::factory()->create([
+            'notice_id' => $projectA->notice_id,
+        ]);
+
+        $allocation = BudgetAllocation::factory()->create([
+            'notice_id' => $projectA->notice_id,
+            'management_unit' => 'UNIDADE DO EDITAL',
+        ]);
+
+        (new ProjectDocumentService)->createDocument(
+            DocumentType::PI,
+            [$projectB->id, $projectA->id],
+            '[budget_allocation_data]',
+        );
+
+        $documents = Document::query()
+            ->whereIn('project_id', [$projectA->id, $projectB->id])
+            ->where('type', DocumentType::PI)
+            ->get();
+
+        $this->assertCount(2, $documents);
+        $documents->each(function (Document $document) {
+            $this->assertSame('[budget_allocation_data]', $document->body);
+            $this->assertStringContainsString(
+                'UNIDADE DO EDITAL',
+                (new DocumentPlaceholderResolver)->resolve($document),
+            );
+        });
+
+        $allocation->update(['management_unit' => 'UNIDADE DO EDITAL ATUALIZADA']);
+
+        $documents->each(function (Document $document) {
+            $this->assertStringContainsString(
+                'UNIDADE DO EDITAL ATUALIZADA',
+                (new DocumentPlaceholderResolver)->resolve($document->fresh()),
+            );
+        });
     }
 }

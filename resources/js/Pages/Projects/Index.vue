@@ -378,7 +378,10 @@ function handleAction({ action, item }) {
                     <NoStageSelected
                         v-if="!selectedPhase"
                         :notice="notice"
+                        :selected-projects="selectedProjects"
+                        :projects="projects"
                         :has-budget-allocations="hasBudgetAllocations"
+                        @saved="handleSaved"
                     />
                     <OpeningActions
                         v-if="selectedPhase === 'abertura'"

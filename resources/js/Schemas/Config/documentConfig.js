@@ -2,6 +2,8 @@ export const DOCUMENT_TYPES = {
     CI: 'ci',
     TC: 'tc',
     PJ: 'pj',
+    PI: 'pi',
+    PF: 'pf',
     ET: 'et',
     DO: 'do',
     DP: 'dp',
@@ -27,6 +29,14 @@ const placeHoldersDocsSchema = [
 const installmentPlaceHoldersDocsSchema = [
     ...placeHoldersDocsSchema,
     { label: 'Número da parcela para este agente', value: 'notice_installment_number' },
+];
+
+const budgetOpinionPlaceHoldersDocsSchema = [
+    ...placeHoldersDocsSchema,
+    {
+        label: 'Informações PPA SIAP',
+        value: 'budget_allocation_data',
+    },
 ];
 
 export const documentConfigs = {
@@ -60,6 +70,22 @@ export const documentConfigs = {
         titleEdit: 'Editar parecer jurídico (PJ)',
         save: 'pj',
         placeholders: placeHoldersDocsSchema,
+    },
+
+    [DOCUMENT_TYPES.PI]: {
+        name: 'Parecer Orçamentário Inicial',
+        titleCreate: 'Criar parecer orçamentário inicial (PI)',
+        titleEdit: 'Editar parecer orçamentário inicial (PI)',
+        save: 'pi',
+        placeholders: budgetOpinionPlaceHoldersDocsSchema,
+    },
+
+    [DOCUMENT_TYPES.PF]: {
+        name: 'Parecer Orçamentário Final',
+        titleCreate: 'Criar parecer orçamentário final (PF)',
+        titleEdit: 'Editar parecer orçamentário final (PF)',
+        save: 'pf',
+        placeholders: budgetOpinionPlaceHoldersDocsSchema,
     },
 
     [DOCUMENT_TYPES.DO]: {

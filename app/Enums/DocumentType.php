@@ -8,6 +8,8 @@ enum DocumentType: string
     case TC = 'tc';
     case ET = 'et';
     case PJ = 'pj';
+    case PI = 'pi';
+    case PF = 'pf';
     case DO = 'do';
     case DP = 'dp';
 
@@ -18,6 +20,8 @@ enum DocumentType: string
             self::TC => 'TC',
             self::ET => 'ET',
             self::PJ => 'PJ',
+            self::PI => 'PI',
+            self::PF => 'PF',
             self::DO => 'DO',
             self::DP => 'DP',
         };
@@ -30,6 +34,8 @@ enum DocumentType: string
             self::TC => 'Termo de Execução Cultural',
             self::ET => 'Extrato',
             self::PJ => 'Parecer Jurídico',
+            self::PI => 'Parecer Orçamentário Inicial',
+            self::PF => 'Parecer Orçamentário Final',
             self::DO => 'Despacho Orçamentário',
             self::DP => 'Despacho de Pagamento',
         };
@@ -42,9 +48,16 @@ enum DocumentType: string
             self::TC,
             self::ET,
             self::PJ => DocumentPhase::FORMALIZATION,
+            self::PI,
+            self::PF,
             self::DO => DocumentPhase::BUDGET,
             self::DP => DocumentPhase::PAYMENT,
         };
+    }
+
+    public function isBudgetOpinion(): bool
+    {
+        return in_array($this, [self::PI, self::PF], true);
     }
 
     public static function requiredForFormalizationAdvance(): array

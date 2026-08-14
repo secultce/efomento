@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Enums\Role;
 use App\Http\Requests\Document\DocumentStoreRequest;
 use App\Http\Requests\Document\DocumentUpdateRequest;
 use App\Http\Resources\DocumentResource;
@@ -65,6 +66,10 @@ class DocumentController extends Controller
 
     public function destroy(Document $document): JsonResponse
     {
+        if ($document->type->isBudgetOpinion()) {
+            abort_unless(request()->user()->hasAnyRole(Role::budgetRoles()), 403);
+        }
+
         $document->delete();
 
         return response()->json(null, 204);

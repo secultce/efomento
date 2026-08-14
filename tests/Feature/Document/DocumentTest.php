@@ -7,6 +7,7 @@ use App\Enums\DocumentStatus;
 use App\Enums\DocumentType;
 use App\Exceptions\Domain\BusinessRuleException;
 use App\Models\Budget;
+use App\Models\BudgetAllocation;
 use App\Models\Document;
 use App\Models\DocumentImage;
 use App\Models\Installment;
@@ -52,6 +53,8 @@ class DocumentTest extends TestCase
         $this->assertSame('tc', DocumentType::TC->value);
         $this->assertSame('et', DocumentType::ET->value);
         $this->assertSame('pj', DocumentType::PJ->value);
+        $this->assertSame('pi', DocumentType::PI->value);
+        $this->assertSame('pf', DocumentType::PF->value);
         $this->assertSame('do', DocumentType::DO->value);
         $this->assertSame('dp', DocumentType::DP->value);
 
@@ -114,6 +117,14 @@ class DocumentTest extends TestCase
         $this->assertSame('Despacho Orçamentário', $result['label']);
         $this->assertTrue($result['requires_sign']);
         $this->assertTrue($result['requires_legal']);
+
+        $result = $registry->resolve(DocumentType::PI, DocumentPhase::BUDGET);
+
+        $this->assertSame('Parecer Orçamentário Inicial', $result['label']);
+
+        $result = $registry->resolve(DocumentType::PF, DocumentPhase::BUDGET);
+
+        $this->assertSame('Parecer Orçamentário Final', $result['label']);
 
         $result = $registry->resolve(DocumentType::DP, DocumentPhase::PAYMENT);
 
@@ -207,6 +218,114 @@ class DocumentTest extends TestCase
         $resolvedBody = (new DocumentPlaceholderResolver)->resolve($document);
 
         $this->assertSame('Número da parcela: ', $resolvedBody);
+    }
+
+    public function test_resolver_replaces_budget_allocation_data_with_formatted_notice_data(): void
+    {
+        $project = Project::factory()->create();
+        BudgetAllocation::factory()->create([
+            'notice_id' => $project->notice_id,
+            'management_unit' => '27200004 - FUNDO ESTADUAL DA CULTURA',
+            'work_program' => '131 - PROMOÇÃO E DESENVOLVIMENTO DA ARTE',
+            'objective' => 'Democratizar, fomentar e ampliar o acesso',
+            'deliverable' => '1894 - PROJETO APOIADO',
+            'budget_function' => '13 - CULTURA',
+            'budget_subfunction' => '392 - DIFUSÃO CULTURAL',
+            'project_activity' => '11684 - PROMOÇÃO DO EDITAL',
+            'expense_element' => '339048 - OUTROS AUXÍLIOS FINANCEIROS',
+            'funding_source' => '719 - TRANSFERÊNCIAS DA POLÍTICA NACIONAL',
+            'mapp' => '635 - FOMENTO A PROJETOS',
+            'finalistic_project' => "272040102920251 - CAPITAL\n272040103020251 - INTERIOR",
+        ]);
+        $document = Document::factory()->create([
+            'project_id' => $project->id,
+            'notice_id' => $project->notice_id,
+            'type' => DocumentType::PI,
+            'phase' => DocumentPhase::BUDGET,
+            'body' => '<p>[budget_allocation_data]</p>',
+        ]);
+
+        $resolvedBody = (new DocumentPlaceholderResolver)->resolve($document);
+
+        $this->assertStringNotContainsString('[budget_allocation_data]', $resolvedBody);
+        $this->assertStringContainsString('<strong>Gestão/Unidade:</strong>', $resolvedBody);
+        $this->assertStringContainsString('27200004 - FUNDO ESTADUAL DA CULTURA', $resolvedBody);
+        $this->assertStringContainsString('<strong>Ação:</strong>', $resolvedBody);
+        $this->assertStringContainsString('CAPITAL<br>', $resolvedBody);
+        $this->assertStringContainsString('272040103020251 - INTERIOR', $resolvedBody);
+    }
+
+    public function test_resolver_escapes_budget_allocation_values(): void
+    {
+        $project = Project::factory()->create();
+        BudgetAllocation::factory()->create([
+            'notice_id' => $project->notice_id,
+            'objective' => '<script>alert("xss")</script>',
+        ]);
+        $document = Document::factory()->create([
+            'project_id' => $project->id,
+            'notice_id' => $project->notice_id,
+            'body' => '[budget_allocation_data]',
+        ]);
+
+        $resolvedBody = (new DocumentPlaceholderResolver)->resolve($document);
+
+        $this->assertStringNotContainsString('<script>', $resolvedBody);
+        $this->assertStringContainsString('&lt;script&gt;', $resolvedBody);
+    }
+
+    public function test_resolver_prefers_the_projects_linked_budget_allocation(): void
+    {
+        $project = Project::factory()->create();
+        BudgetAllocation::factory()->create([
+            'notice_id' => $project->notice_id,
+            'management_unit' => 'PRIMEIRA LINHA DO EDITAL',
+        ]);
+        $linkedAllocation = BudgetAllocation::factory()->create([
+            'notice_id' => $project->notice_id,
+            'management_unit' => 'VINCULAÇÃO DO PROJETO',
+        ]);
+        Budget::factory()->create([
+            'project_id' => $project->id,
+            'budget_allocation_id' => $linkedAllocation->id,
+        ]);
+        $document = Document::factory()->create([
+            'project_id' => $project->id,
+            'notice_id' => $project->notice_id,
+            'type' => DocumentType::PI,
+            'phase' => DocumentPhase::BUDGET,
+            'body' => '[budget_allocation_data]',
+        ]);
+
+        $resolvedBody = (new DocumentPlaceholderResolver)->resolve($document);
+
+        $this->assertStringContainsString('VINCULAÇÃO DO PROJETO', $resolvedBody);
+        $this->assertStringNotContainsString('PRIMEIRA LINHA DO EDITAL', $resolvedBody);
+    }
+
+    public function test_resolver_falls_back_to_the_first_notice_allocation(): void
+    {
+        $project = Project::factory()->create();
+        BudgetAllocation::factory()->create([
+            'notice_id' => $project->notice_id,
+            'management_unit' => 'PRIMEIRA LINHA DO EDITAL',
+        ]);
+        BudgetAllocation::factory()->create([
+            'notice_id' => $project->notice_id,
+            'management_unit' => 'SEGUNDA LINHA DO EDITAL',
+        ]);
+        $document = Document::factory()->create([
+            'project_id' => $project->id,
+            'notice_id' => $project->notice_id,
+            'type' => DocumentType::PF,
+            'phase' => DocumentPhase::BUDGET,
+            'body' => '[budget_allocation_data]',
+        ]);
+
+        $resolvedBody = (new DocumentPlaceholderResolver)->resolve($document);
+
+        $this->assertStringContainsString('PRIMEIRA LINHA DO EDITAL', $resolvedBody);
+        $this->assertStringNotContainsString('SEGUNDA LINHA DO EDITAL', $resolvedBody);
     }
 
     // -------------------------------------------------------------------------
@@ -380,7 +499,8 @@ class DocumentTest extends TestCase
 
     public function test_store_endpoint_creates_document(): void
     {
-        [$type, $phase] = $this->getRandomTypeAndPhase();
+        $type = DocumentType::TC;
+        $phase = $type->phase();
 
         $response = $this->actingAs($this->user)
             ->postJson('/api/documents', [
@@ -408,7 +528,7 @@ class DocumentTest extends TestCase
 
     public function test_store_endpoint_returns_422_for_invalid_combination(): void
     {
-        $type = collect(DocumentType::cases())->random();
+        $type = DocumentType::TC;
 
         $invalidPhase = collect(DocumentPhase::cases())
             ->reject(fn (DocumentPhase $phase) => $phase === $type->phase())
