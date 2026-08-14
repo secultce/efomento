@@ -27,7 +27,11 @@ class DocumentStoreRequest extends FormRequest
             'phase' => ['required', Rule::enum(DocumentPhase::class)],
             'body' => ['required', 'string'],
             'notice_id' => ['required', 'exists:notices,id'],
-            'project_id' => ['required', 'exists:projects,id'],
+            'project_id' => [
+                Rule::requiredIf(fn () => $this->input('type') !== DocumentType::PI->value),
+                'nullable',
+                'exists:projects,id',
+            ],
             'images' => ['nullable', 'array'],
             'images.*.section' => ['required_with:images', Rule::enum(DocumentImageSection::class)],
             'images.*.position' => ['required_with:images', Rule::enum(DocumentImagePosition::class)],

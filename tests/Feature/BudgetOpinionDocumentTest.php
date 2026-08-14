@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Enums\Role;
+use App\Models\Notice;
 use App\Models\Project;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -57,6 +58,29 @@ class BudgetOpinionDocumentTest extends TestCase
             'type' => 'pf',
             'phase' => 'budget',
             'created_by' => $user->id,
+        ]);
+    }
+
+    public function test_budget_user_can_create_initial_opinion_without_a_project_through_api(): void
+    {
+        $user = $this->userWithRole(Role::BUDGETARY);
+        $notice = Notice::factory()->create();
+
+        $this->actingAs($user)
+            ->postJson('/api/documents', [
+                'type' => 'pi',
+                'phase' => 'budget',
+                'notice_id' => $notice->id,
+                'body' => 'Conteúdo do parecer orçamentário.',
+            ])
+            ->assertCreated()
+            ->assertJsonPath('data.project_id', null);
+
+        $this->assertDatabaseHas('documents', [
+            'notice_id' => $notice->id,
+            'project_id' => null,
+            'type' => 'pi',
+            'phase' => 'budget',
         ]);
     }
 

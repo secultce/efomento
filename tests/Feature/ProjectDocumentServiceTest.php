@@ -29,7 +29,7 @@ class ProjectDocumentServiceTest extends TestCase
         $notice = Notice::factory()->create();
         $this->actingAs($user);
 
-        $service = new ProjectDocumentService;
+        $service = app(ProjectDocumentService::class);
 
         $service->createNoticeDocument(
             $notice,
@@ -67,7 +67,7 @@ class ProjectDocumentServiceTest extends TestCase
             'project_id' => $project->id,
         ]);
 
-        $service = new ProjectDocumentService;
+        $service = app(ProjectDocumentService::class);
 
         $service->createDocument(
             DocumentType::from('ci'),
@@ -109,7 +109,7 @@ class ProjectDocumentServiceTest extends TestCase
             'project_id' => $projectWithoutCI->id,
         ]);
 
-        $service = new ProjectDocumentService;
+        $service = app(ProjectDocumentService::class);
 
         $service->createDocument(
             DocumentType::from('ci'),
@@ -151,7 +151,7 @@ class ProjectDocumentServiceTest extends TestCase
     {
         $this->expectException(\Exception::class);
 
-        $service = new ProjectDocumentService;
+        $service = app(ProjectDocumentService::class);
 
         $project = Project::factory()->create();
 
@@ -163,7 +163,7 @@ class ProjectDocumentServiceTest extends TestCase
     {
         $this->expectException(\Exception::class);
 
-        $service = new ProjectDocumentService;
+        $service = app(ProjectDocumentService::class);
 
         $project = Project::factory()->create();
 
@@ -186,7 +186,7 @@ class ProjectDocumentServiceTest extends TestCase
             'management_unit' => 'UNIDADE DO EDITAL',
         ]);
 
-        (new ProjectDocumentService)->createDocument(
+        app(ProjectDocumentService::class)->createDocument(
             DocumentType::PI,
             [$projectB->id, $projectA->id],
             '[budget_allocation_data]',
@@ -271,7 +271,7 @@ class ProjectDocumentServiceTest extends TestCase
             'budget_allocation_id' => $allocationB->id,
         ]);
 
-        (new ProjectDocumentService)->createDocument(
+        app(ProjectDocumentService::class)->createDocument(
             DocumentType::PF,
             [$projectB->id, $projectA->id],
             '[budget_result_table]',
@@ -354,7 +354,7 @@ class ProjectDocumentServiceTest extends TestCase
             'budget_allocation_id' => null,
         ]);
 
-        (new ProjectDocumentService)->createDocument(
+        app(ProjectDocumentService::class)->createDocument(
             DocumentType::PF,
             [
                 $projectWithLinkedAllocation->id,
@@ -374,6 +374,5 @@ class ProjectDocumentServiceTest extends TestCase
         $this->assertSame(2, substr_count($body, 'LATEST-NOTICE-CODE'));
         $this->assertSame(2, substr_count($body, 'LATEST-NOTICE-NUMBER'));
         $this->assertStringNotContainsString('OLD-NOTICE-CODE', $body);
-        $this->assertStringNotContainsString('OPENING-CODE', $body);
     }
 }

@@ -11,9 +11,9 @@ use App\Services\BudgetAllocationResolver;
 class DocumentPlaceholderResolver
 {
     public const RELATIONS = [
-        'notice',
+        'notice.budgetAllocations',
         'project.agent.latestSnapshot',
-        'project.notice',
+        'project.notice.budgetAllocations',
         'project.opening.principalSupervisor.user',
         'project.budgets.installments',
         'project.category',
@@ -67,8 +67,8 @@ class DocumentPlaceholderResolver
             '[account_type]' => $opening?->account_type?->label() ?? '',
             '[branch]' => $opening?->branch ?? '',
             '[account]' => $opening?->account ?? '',
-            '[budget_allocation_nup]' => $document->project?->notice?->budget_allocation_nup ?? '',
-            '[creditor_registration_nup]' => $document->project?->notice?->creditor_registration_nup ?? '',
+            '[budget_allocation_nup]' => $notice?->budget_allocation_nup ?? '',
+            '[creditor_registration_nup]' => $notice?->creditor_registration_nup ?? '',
             '[project_category]' => $document->project?->category?->name ?? '',
         ];
 
@@ -104,10 +104,13 @@ class DocumentPlaceholderResolver
             return str_replace($placeholder, '', $content);
         }
 
-        $allocations = $notice->budgetAllocations()
-            ->reorder('region_code')
-            ->orderBy('id')
-            ->get()
+        $notice->loadMissing('budgetAllocations');
+
+        $allocations = $notice->budgetAllocations
+            ->sortBy([
+                ['region_code', 'asc'],
+                ['id', 'asc'],
+            ])
             ->filter(fn (BudgetAllocation $allocation) => filled($allocation->planning_macroregion)
                 && (filled($allocation->allocation_code) || filled($allocation->allocation_number)));
 
@@ -147,12 +150,7 @@ class DocumentPlaceholderResolver
             return '';
         }
 
-        $project?->loadMissing('notice.budgetAllocations');
-        $notice?->loadMissing('budgetAllocations');
-
-        $allocation = ($project ? $this->budgetAllocationResolver->resolve($project) : null)
-            ?? $project?->notice?->budgetAllocations?->sortBy('id')->first()
-            ?? $notice?->budgetAllocations?->sortBy('id')->first();
+        $allocation = $this->budgetAllocationResolver->resolveForBudgetOpinion($project, $notice);
 
         if (! $allocation) {
             return '';

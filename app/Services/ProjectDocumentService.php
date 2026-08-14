@@ -15,6 +15,10 @@ use Illuminate\Support\Facades\DB;
 
 class ProjectDocumentService
 {
+    public function __construct(
+        private readonly BudgetAllocationResolver $budgetAllocationResolver,
+    ) {}
+
     public function createNoticeDocument(
         Notice $notice,
         DocumentType $type,
@@ -40,6 +44,11 @@ class ProjectDocumentService
             if (empty(trim($content))) {
                 throw new BusinessRuleException('O conteúdo do documento não pode ser vazio.');
             }
+
+            Notice::query()
+                ->whereKey($notice->getKey())
+                ->lockForUpdate()
+                ->firstOrFail();
 
             $document = Document::query()
                 ->where('notice_id', $notice->id)
@@ -187,10 +196,7 @@ class ProjectDocumentService
 
         $rows = $projects
             ->map(function (Project $project) {
-                $latestNoticeAllocation = $project->notice?->budgetAllocations?->sortByDesc('id')->first();
-                $currentInstallment = $project->budgets?->installments
-                    ?->firstWhere('installment_number', $project->current_installment_cycle);
-                $budgetAllocation = $currentInstallment?->budgetAllocation ?? $latestNoticeAllocation;
+                $budgetAllocation = $this->budgetAllocationResolver->resolveForBudgetOpinion($project);
                 $allocationCode = $budgetAllocation?->allocation_code;
                 $allocationNumber = $budgetAllocation?->allocation_number;
 
