@@ -24,7 +24,7 @@ class FormalizationResourceTest extends TestCase
         $this->assertSame($formalization->report_status?->value, $data['report_status']);
         $this->assertSame($formalization->deliberation?->value, $data['deliberation']);
         $this->assertSame($formalization->sacc_number, $data['sacc_number']);
-        $this->assertSame($formalization->cge_atende_ticket, $data['cge_atende_ticket']);
+        $this->assertSame($formalization->cge_atende_ticket?->value, $data['cge_atende_ticket']);
     }
 
     public function test_serializes_null_enums_without_errors(): void

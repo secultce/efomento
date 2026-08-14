@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Enums\AccountType;
 use App\Enums\AgentStatus;
+use App\Enums\CgeAtendeStatus;
 use App\Enums\DeliberationType;
 use App\Enums\DocumentType;
 use App\Enums\InstrumentType;
@@ -142,15 +143,21 @@ class ProjectController extends Controller
             ->select('id', 'name', 'registration_number')
             ->get();
 
+        $usersAvailableForFormalization = User::role(Role::formalizationRoles())
+            ->select('id', 'name', 'registration_number')
+            ->get();
+
         $currentStage = $project->currentStage;
 
         return Inertia::render('ProjectDetails', [
             'project' => (new ProjectResource($project))->resolve(),
             'supervisorsAvailable' => $availableSupervisors,
+            'usersAvailableForFormalization' => $usersAvailableForFormalization,
             'agentStatus' => AgentStatus::options(),
             'accountType' => AccountType::options(),
             'reportStatus' => ReportStatus::options(),
             'deliberation' => DeliberationType::options(),
+            'cgeAtendeStatus' => CgeAtendeStatus::options(),
             'openingStatus' => OpeningStatus::options(),
             'currentStage' => $currentStage,
             'canReturn' => $this->userCanActOnStage($currentStage),

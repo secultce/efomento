@@ -9,42 +9,11 @@ use App\Models\File;
 use App\Models\Formalization;
 use App\Models\Project;
 use BackedEnum;
-use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\ValidationException;
 
 class FormalizationService implements StageValidatorInterface
 {
-    private const OFFICIAL_GAZETTE_FILE_GROUP = 'official_gazette';
-
-    public function saveOfficialGazetteFile(
-        UploadedFile $uploadedFile,
-        Project $project,
-        Formalization $formalization
-    ): void {
-        $disk = config('filesystems.default', 'local');
-
-        $formalization->files()
-            ->where('grp', self::OFFICIAL_GAZETTE_FILE_GROUP)
-            ->get()
-            ->each(fn (File $file) => $this->deleteFile($file));
-
-        $path = $uploadedFile->store(
-            "projects/{$project->id}/formalizations/{$formalization->id}/official-gazette",
-            $disk
-        );
-
-        $formalization->files()->create([
-            'mime_type' => $uploadedFile->getClientMimeType(),
-            'name' => $uploadedFile->getClientOriginalName(),
-            'source' => 'upload',
-            'grp' => self::OFFICIAL_GAZETTE_FILE_GROUP,
-            'title' => 'Anexo do documento do Diário Oficial do Estado',
-            'path' => $path,
-            'private' => true,
-        ]);
-    }
-
     public function deleteFile(File $file): void
     {
         $disk = config('filesystems.default', 'local');
@@ -75,7 +44,6 @@ class FormalizationService implements StageValidatorInterface
     {
         $requiredFields = [
             'term_number' => 'Número do termo',
-            'term_signed_at' => 'Data da assinatura do termo',
             'signed_by_office_at' => 'Data de assinatura do termo pelo Gabinete',
             'sacc_number' => 'Número do SACC',
             'official_gazette_published_at' => 'Data de Publicação do Diário Oficial do Estado',
@@ -86,15 +54,6 @@ class FormalizationService implements StageValidatorInterface
         $missingFields = collect($requiredFields)
             ->filter(fn ($label, $field) => blank($formalization->{$field}))
             ->values();
-
-        // Verifica se o anexo do diário oficial foi salvo
-        $hasOfficialGazetteFile = $formalization->files()
-            ->where('grp', self::OFFICIAL_GAZETTE_FILE_GROUP)
-            ->exists();
-
-        if (! $hasOfficialGazetteFile) {
-            $missingFields->push('Anexo do documento do Diário Oficial do Estado');
-        }
 
         if ($missingFields->isEmpty()) {
             return;

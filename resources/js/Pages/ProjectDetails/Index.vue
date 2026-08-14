@@ -9,9 +9,11 @@ import ProcessTabs from './Partials/ProcessTabs.vue';
 defineProps({
     project: { type: Object, default: null },
     supervisorsAvailable: { type: Array, default: () => [] },
+    usersAvailableForFormalization: { type: Array, default: () => [] },
     agentStatus: { type: Array, default: () => [] },
     reportStatus: { type: Array, default: () => [] },
     deliberation: { type: Array, default: () => [] },
+    cgeAtendeStatus: { type: Array, default: () => [] },
     accountType: { type: Array, default: () => [] },
     openingStatus: { type: Array, default: () => [] },
     currentStage: { type: Object, default: null },
@@ -42,9 +44,11 @@ defineProps({
                 <ProcessTabs
                     :project="project"
                     :supervisors-available="supervisorsAvailable"
+                    :users-available-for-formalization="usersAvailableForFormalization"
                     :agent-status="agentStatus"
                     :report-status="reportStatus"
                     :deliberation="deliberation"
+                    :cge-atende-status="cgeAtendeStatus"
                     :account-type="accountType"
                     :current-stage="currentStage"
                     :can-return="canReturn"

@@ -43,61 +43,6 @@ class FormalizationServiceTest extends TestCase
         }
     }
 
-    public function test_save_official_gazette_file_stores_file_and_creates_record(): void
-    {
-        $formalization = Formalization::factory()->create();
-        $uploaded = UploadedFile::fake()->create('publicacao-doe.pdf', 100, 'application/pdf');
-
-        $this->service->saveOfficialGazetteFile($uploaded, $formalization->project, $formalization);
-
-        $files = $formalization->files()->where('grp', 'official_gazette')->get();
-
-        $this->assertCount(1, $files);
-
-        $file = $files->first();
-        $this->assertSame('publicacao-doe.pdf', $file->name);
-        $this->assertSame('upload', $file->source);
-        $this->assertTrue($file->private);
-        $this->assertStringContainsString(
-            "projects/{$formalization->project_id}/formalizations/{$formalization->id}/official-gazette",
-            $file->path
-        );
-        Storage::disk($this->disk)->assertExists($file->path);
-    }
-
-    public function test_save_official_gazette_file_replaces_previous_file(): void
-    {
-        $formalization = Formalization::factory()->create();
-
-        $first = UploadedFile::fake()->create('primeira-versao.pdf', 100, 'application/pdf');
-        $this->service->saveOfficialGazetteFile($first, $formalization->project, $formalization);
-        $firstPath = $formalization->files()->where('grp', 'official_gazette')->value('path');
-
-        $second = UploadedFile::fake()->create('segunda-versao.pdf', 100, 'application/pdf');
-        $this->service->saveOfficialGazetteFile($second, $formalization->project, $formalization);
-
-        $files = $formalization->files()->where('grp', 'official_gazette')->get();
-
-        $this->assertCount(1, $files);
-        $this->assertSame('segunda-versao.pdf', $files->first()->name);
-        Storage::disk($this->disk)->assertMissing($firstPath);
-        Storage::disk($this->disk)->assertExists($files->first()->path);
-    }
-
-    public function test_save_official_gazette_file_does_not_touch_other_file_groups(): void
-    {
-        $formalization = Formalization::factory()->create();
-        $otherGroupsBefore = $formalization->files()->where('grp', '!=', 'official_gazette')->count();
-
-        $uploaded = UploadedFile::fake()->create('publicacao-doe.pdf', 100, 'application/pdf');
-        $this->service->saveOfficialGazetteFile($uploaded, $formalization->project, $formalization);
-
-        $this->assertSame(
-            $otherGroupsBefore,
-            $formalization->files()->where('grp', '!=', 'official_gazette')->count()
-        );
-    }
-
     public function test_delete_file_removes_from_storage_and_database(): void
     {
         $formalization = Formalization::factory()->create();
@@ -230,6 +175,18 @@ class FormalizationServiceTest extends TestCase
             'deliberation' => null,
         ]);
         $this->createRequiredDocuments($formalization->project);
+
+        $this->service->ensureCanAdvance($formalization->project);
+
+        $this->assertTrue(true);
+    }
+
+    public function test_ensure_can_advance_without_term_signed_date_or_official_gazette_attachment(): void
+    {
+        $formalization = Formalization::factory()->create();
+        $this->createRequiredDocuments($formalization->project);
+
+        $formalization->files()->where('grp', 'official_gazette')->delete();
 
         $this->service->ensureCanAdvance($formalization->project);
 

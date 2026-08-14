@@ -94,7 +94,6 @@ class ProjectStageFlowTest extends TestCase
     {
         $formalization = $project->formalizations()->create([
             'term_number' => '001/2026',
-            'term_signed_at' => now(),
             'signed_by_office_at' => now(),
             'sacc_number' => '12345',
             'official_gazette_published_at' => now(),
