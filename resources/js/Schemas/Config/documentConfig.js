@@ -32,6 +32,13 @@ const placeHoldersDocsSchema = [
     { label: 'Nome do Fiscal', value: 'fiscal_name' },
     { label: 'Código da dotação', value: 'allocation_code' },
     { label: 'Número completo da dotação', value: 'allocation_number' },
+    { label: 'Banco do Agente', value: 'bank' },
+    { label: 'Tipo de Conta do Agente', value: 'account_type' },
+    { label: 'Agência do Agente', value: 'branch' },
+    { label: 'Conta do Agente', value: 'account' },
+    { label: 'N. Dotação Orçamentária', value: 'budget_allocation_nup' },
+    { label: 'N. Cad. Credor', value: 'creditor_registration_nup' },
+    { label: 'Categ. do Projeto', value: 'project_category' },
 ];
 
 const installmentPlaceHoldersDocsSchema = [

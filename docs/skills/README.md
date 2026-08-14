@@ -22,6 +22,7 @@ As skills ficam em `.claude/skills/` na raiz do projeto:
 | `/nova-tab` | Criar a tela de uma nova etapa do fluxo do Project (ex.: PaymentTab) | Cria `Schemas/<Etapa>/` (viewSections, formSections, index), a `<Etapa>Tab.vue` no padrão SplitScreenTab e registra no `ProcessTabs.vue`. Se o backend da etapa não existir, oferece o fluxo guiado do `checklist-backend.md` |
 | `/novo-componente` | Criar componente Vue reutilizável em `resources/js/Components/` | Verifica se já existe componente similar (prefere estender/compor), usa `TextField.vue`/`FormField.vue` como referência e aplica o checklist (props tipadas, v-model, Vuetify outlined + Tailwind) |
 | `/novo-composable` | Extrair lógica reutilizável para `resources/js/Composables/` | Confere os 12 composables existentes para não duplicar (ex.: nova função de data vai no `useDate`, não num composable novo), segue o padrão `export function useXxx()` |
+| `/tratamento-erros` | Lançar/capturar erros, criar Service/Controller novo, tratar erro de API no Vue | Aplica a hierarquia `AppException` (backend) e o padrão `useErrorHandler` (frontend) descritos em `docs/error_handling.md` |
 
 ## Como usar
 
@@ -33,6 +34,7 @@ Numa sessão do Claude Code, digite o comando:
 /nova-tab
 /novo-componente
 /novo-composable
+/tratamento-erros
 ```
 
 A skill vai perguntar o que precisa (nome da etapa, da relação no `Project` etc.) e seguir os passos numerados do seu `SKILL.md`.
@@ -44,6 +46,7 @@ Não é preciso decorar os comandos. Pedidos em linguagem natural que casem com 
 > "crie a aba de pagamento do projeto" → `/nova-tab`
 > "preciso de um campo de CNPJ reutilizável" → `/novo-componente`
 > "crie um composable para formatar moeda" → `/novo-composable`
+> "lance uma exception para essa regra de negócio" → `/tratamento-erros`
 
 ### O que esperar durante a execução
 
@@ -60,6 +63,6 @@ Não é preciso decorar os comandos. Pedidos em linguagem natural que casem com 
 
 ## Observações de manutenção
 
-- As skills **não são versionadas** (`.claude/skills/` está no `.gitignore`). Cada desenvolvedor que quiser usá-las precisa tê-las localmente. Para compartilhá-las com o time no futuro, basta remover a linha `.claude/skills/` do `.gitignore` e commitar o diretório.
+- As skills **são versionadas** — `.claude/skills/` é commitado no repo, então todo desenvolvedor que clonar o projeto já tem as skills disponíveis, sem setup extra.
 - Skills são carregadas **no início da sessão** do Claude Code. Depois de criar ou editar uma skill, abra uma sessão nova para que a mudança valha.
 - Estrutura de uma skill: diretório `.claude/skills/<nome>/` com um `SKILL.md` (frontmatter `name` + `description` com os gatilhos de invocação, seguido das instruções) e arquivos auxiliares opcionais (ex.: `nova-tab/checklist-backend.md`).

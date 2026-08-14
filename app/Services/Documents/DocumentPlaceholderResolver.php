@@ -6,6 +6,7 @@ use App\Models\BudgetAllocation;
 use App\Models\Document;
 use App\Models\Notice;
 use App\Models\Project;
+use App\Services\BudgetAllocationResolver;
 
 class DocumentPlaceholderResolver
 {
@@ -15,7 +16,13 @@ class DocumentPlaceholderResolver
         'project.notice',
         'project.opening.principalSupervisor.user',
         'project.budgets.installments',
+        'project.category',
+        'project.budgets.installments.budgetAllocation',
     ];
+
+    public function __construct(
+        private readonly BudgetAllocationResolver $budgetAllocationResolver,
+    ) {}
 
     public function prepare(Document $document): Document
     {
@@ -34,6 +41,9 @@ class DocumentPlaceholderResolver
         $notice = $document->project?->notice ?? $document->notice;
         $currentInstallment = $document->project?->budgets?->installments
             ?->firstWhere('installment_number', $document->project?->current_installment_cycle);
+        $budgetAllocation = $document->project
+            ? $this->budgetAllocationResolver->resolve($document->project)
+            : null;
 
         $replacements = [
             '[notice_name]' => $notice?->name ?? '',
@@ -50,9 +60,16 @@ class DocumentPlaceholderResolver
             '[fiscal_matricula]' => $supervisor?->registration_number ?? '',
             '[fiscal_name]' => $supervisor?->name ?? '',
             '[project_name]' => $document->project?->title_project ?? '',
-            '[allocation_code]' => $opening?->allocation_code ?? '',
-            '[allocation_number]' => $opening?->allocation_number ?? '',
+            '[allocation_code]' => $budgetAllocation?->allocation_code ?? '',
+            '[allocation_number]' => $budgetAllocation?->allocation_number ?? '',
             '[notice_installment_number]' => $currentInstallment?->notice_installment_number ?? '',
+            '[bank]' => $opening?->bank ?? '',
+            '[account_type]' => $opening?->account_type?->label() ?? '',
+            '[branch]' => $opening?->branch ?? '',
+            '[account]' => $opening?->account ?? '',
+            '[budget_allocation_nup]' => $document->project?->notice?->budget_allocation_nup ?? '',
+            '[creditor_registration_nup]' => $document->project?->notice?->creditor_registration_nup ?? '',
+            '[project_category]' => $document->project?->category?->name ?? '',
         ];
 
         $body = str_replace(array_keys($replacements), array_values($replacements), (string) $document->body);
@@ -88,7 +105,7 @@ class DocumentPlaceholderResolver
         }
 
         $allocations = $notice->budgetAllocations()
-            ->orderBy('region_code')
+            ->reorder('region_code')
             ->orderBy('id')
             ->get()
             ->filter(fn (BudgetAllocation $allocation) => filled($allocation->planning_macroregion)
@@ -130,13 +147,10 @@ class DocumentPlaceholderResolver
             return '';
         }
 
-        $project?->loadMissing([
-            'budgets.budgetAllocation',
-            'notice.budgetAllocations',
-        ]);
+        $project?->loadMissing('notice.budgetAllocations');
         $notice?->loadMissing('budgetAllocations');
 
-        $allocation = $project?->budgets?->budgetAllocation
+        $allocation = ($project ? $this->budgetAllocationResolver->resolve($project) : null)
             ?? $project?->notice?->budgetAllocations?->sortBy('id')->first()
             ?? $notice?->budgetAllocations?->sortBy('id')->first();
 

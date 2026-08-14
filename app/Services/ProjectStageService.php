@@ -19,6 +19,7 @@ class ProjectStageService
     public function __construct(
         private Notify $notify,
         private InstallmentCycleStrategy $cycleStrategy,
+        private BudgetAllocationResolver $budgetAllocationResolver,
     ) {}
 
     public function advance(
@@ -45,18 +46,24 @@ class ProjectStageService
             );
         }
 
-        $stage->markApproved();
+        return DB::transaction(function () use ($stage) {
+            if ($stage->slug === ProjectStageSlug::ORCAMENTO) {
+                $this->linkBudgetAllocation($stage->project);
+            }
 
-        $next = $stage->getNextStage();
+            $stage->markApproved();
 
-        if ($next) {
-            $next->update([
-                'status' => ProjectStageStatus::EM_ANDAMENTO,
-                'started_at' => now(),
-            ]);
-        }
+            $next = $stage->getNextStage();
 
-        return $next?->fresh();
+            if ($next) {
+                $next->update([
+                    'status' => ProjectStageStatus::EM_ANDAMENTO,
+                    'started_at' => now(),
+                ]);
+            }
+
+            return $next?->fresh();
+        });
     }
 
     public function validateStageAdvance(ProjectStage $stage, Project $project): void
@@ -162,6 +169,32 @@ class ProjectStageService
                 'Apenas o fiscal titular pode executar esta ação.'
             );
         }
+    }
+
+    private function linkBudgetAllocation(Project $project): void
+    {
+        $budget = $project->budgets;
+
+        if (! $budget) {
+            return;
+        }
+
+        $installment = $budget->installments()
+            ->where('installment_number', $project->current_installment_cycle)
+            ->first();
+
+        if (! $installment || $installment->budget_allocation_id) {
+            return;
+        }
+
+        $allocation = $this->budgetAllocationResolver->resolveAvailable($project);
+
+        if (! $allocation) {
+            return;
+        }
+
+        $installment->budgetAllocation()->associate($allocation);
+        $installment->save();
     }
 
     private function ensureUserHasRole(ProjectStage $stage, User $user, string $message): void

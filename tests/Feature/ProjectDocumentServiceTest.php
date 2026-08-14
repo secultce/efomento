@@ -6,6 +6,7 @@ use App\Enums\DocumentType;
 use App\Models\Budget;
 use App\Models\BudgetAllocation;
 use App\Models\Document;
+use App\Models\Installment;
 use App\Models\Notice;
 use App\Models\Opening;
 use App\Models\ProfileSnapshot;
@@ -201,7 +202,7 @@ class ProjectDocumentServiceTest extends TestCase
             $this->assertSame('[budget_allocation_data]', $document->body);
             $this->assertStringContainsString(
                 'UNIDADE DO EDITAL',
-                (new DocumentPlaceholderResolver)->resolve($document),
+                app(DocumentPlaceholderResolver::class)->resolve($document),
             );
         });
 
@@ -210,7 +211,7 @@ class ProjectDocumentServiceTest extends TestCase
         $documents->each(function (Document $document) {
             $this->assertStringContainsString(
                 'UNIDADE DO EDITAL ATUALIZADA',
-                (new DocumentPlaceholderResolver)->resolve($document->fresh()),
+                app(DocumentPlaceholderResolver::class)->resolve($document->fresh()),
             );
         });
     }
@@ -223,10 +224,12 @@ class ProjectDocumentServiceTest extends TestCase
 
         $projectA = Project::factory()->create([
             'registration_id' => 'on-1977651014',
+            'current_installment_cycle' => 1,
         ]);
         $projectB = Project::factory()->create([
             'notice_id' => $projectA->notice_id,
             'registration_id' => 'on-363773451',
+            'current_installment_cycle' => 1,
         ]);
 
         $projectA->agent()->update(['name' => 'ADELINO DO NASCIMENTO ABREU']);
@@ -245,15 +248,27 @@ class ProjectDocumentServiceTest extends TestCase
             'recorded_at' => now(),
         ]);
 
-        Opening::factory()->create([
-            'project_id' => $projectA->id,
+        $allocationA = BudgetAllocation::factory()->create([
+            'notice_id' => $projectA->notice_id,
             'allocation_code' => '29196',
             'allocation_number' => '27200004.13.391.132.11689.12.339048.1.7591200070.1',
         ]);
-        Opening::factory()->create([
-            'project_id' => $projectB->id,
+        $allocationB = BudgetAllocation::factory()->create([
+            'notice_id' => $projectB->notice_id,
             'allocation_code' => '22601',
             'allocation_number' => '27200004.13.391.132.11689.01.339048.1.7591200070.1',
+        ]);
+        $budgetA = Budget::factory()->create(['project_id' => $projectA->id]);
+        $budgetB = Budget::factory()->create(['project_id' => $projectB->id]);
+        Installment::factory()->create([
+            'budget_id' => $budgetA->id,
+            'installment_number' => 1,
+            'budget_allocation_id' => $allocationA->id,
+        ]);
+        Installment::factory()->create([
+            'budget_id' => $budgetB->id,
+            'installment_number' => 1,
+            'budget_allocation_id' => $allocationB->id,
         ]);
 
         (new ProjectDocumentService)->createDocument(
@@ -296,8 +311,14 @@ class ProjectDocumentServiceTest extends TestCase
         $this->actingAs($user);
 
         $notice = Notice::factory()->create();
-        $projectWithLinkedAllocation = Project::factory()->create(['notice_id' => $notice->id]);
-        $projectWithUnlinkedBudget = Project::factory()->create(['notice_id' => $notice->id]);
+        $projectWithLinkedAllocation = Project::factory()->create([
+            'notice_id' => $notice->id,
+            'current_installment_cycle' => 1,
+        ]);
+        $projectWithUnlinkedBudget = Project::factory()->create([
+            'notice_id' => $notice->id,
+            'current_installment_cycle' => 1,
+        ]);
         $projectWithoutBudget = Project::factory()->create(['notice_id' => $notice->id]);
 
         BudgetAllocation::factory()->create([
@@ -316,22 +337,22 @@ class ProjectDocumentServiceTest extends TestCase
             'allocation_number' => 'LATEST-NOTICE-NUMBER',
         ]);
 
-        Budget::factory()->create([
+        $linkedBudget = Budget::factory()->create([
             'project_id' => $projectWithLinkedAllocation->id,
+        ]);
+        Installment::factory()->create([
+            'budget_id' => $linkedBudget->id,
+            'installment_number' => $projectWithLinkedAllocation->current_installment_cycle,
             'budget_allocation_id' => $linkedAllocation->id,
         ]);
-        Budget::factory()->create([
+        $unlinkedBudget = Budget::factory()->create([
             'project_id' => $projectWithUnlinkedBudget->id,
+        ]);
+        Installment::factory()->create([
+            'budget_id' => $unlinkedBudget->id,
+            'installment_number' => $projectWithUnlinkedBudget->current_installment_cycle,
             'budget_allocation_id' => null,
         ]);
-
-        foreach ([$projectWithUnlinkedBudget, $projectWithoutBudget] as $project) {
-            Opening::factory()->create([
-                'project_id' => $project->id,
-                'allocation_code' => 'OPENING-CODE',
-                'allocation_number' => 'OPENING-NUMBER',
-            ]);
-        }
 
         (new ProjectDocumentService)->createDocument(
             DocumentType::PF,

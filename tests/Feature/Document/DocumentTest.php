@@ -12,6 +12,7 @@ use App\Models\Document;
 use App\Models\DocumentImage;
 use App\Models\Installment;
 use App\Models\Notice;
+use App\Models\ProfileSnapshot;
 use App\Models\Project;
 use App\Models\User;
 use App\Services\Documents\DocumentPlaceholderResolver;
@@ -38,7 +39,7 @@ class DocumentTest extends TestCase
     {
         parent::setUp();
 
-        $this->service = new DocumentService(new DocumentTypeRegistry, new DocumentPlaceholderResolver);
+        $this->service = new DocumentService(new DocumentTypeRegistry, app(DocumentPlaceholderResolver::class));
         $this->user = User::factory()->create();
         $this->notice = Notice::factory()->create();
         $this->project = Project::factory()->create();
@@ -197,7 +198,7 @@ class DocumentTest extends TestCase
             'body' => 'Número da parcela: [notice_installment_number]',
         ]);
 
-        $resolvedBody = (new DocumentPlaceholderResolver)->resolve($document);
+        $resolvedBody = app(DocumentPlaceholderResolver::class)->resolve($document);
 
         $this->assertSame('Número da parcela: 5', $resolvedBody);
     }
@@ -215,14 +216,16 @@ class DocumentTest extends TestCase
             'body' => 'Número da parcela: [notice_installment_number]',
         ]);
 
-        $resolvedBody = (new DocumentPlaceholderResolver)->resolve($document);
+        $resolvedBody = app(DocumentPlaceholderResolver::class)->resolve($document);
 
         $this->assertSame('Número da parcela: ', $resolvedBody);
     }
 
     public function test_resolver_replaces_budget_allocation_data_with_formatted_notice_data(): void
     {
-        $project = Project::factory()->create();
+        $project = Project::factory()->create([
+            'current_installment_cycle' => 1,
+        ]);
         BudgetAllocation::factory()->create([
             'notice_id' => $project->notice_id,
             'management_unit' => '27200004 - FUNDO ESTADUAL DA CULTURA',
@@ -245,7 +248,7 @@ class DocumentTest extends TestCase
             'body' => '<p>[budget_allocation_data]</p>',
         ]);
 
-        $resolvedBody = (new DocumentPlaceholderResolver)->resolve($document);
+        $resolvedBody = app(DocumentPlaceholderResolver::class)->resolve($document);
 
         $this->assertStringNotContainsString('[budget_allocation_data]', $resolvedBody);
         $this->assertStringContainsString('<strong>Gestão/Unidade:</strong>', $resolvedBody);
@@ -274,7 +277,7 @@ class DocumentTest extends TestCase
             'body' => '[notice_name] | [nup_mother] | [finality] | [budget_allocation_data]',
         ]);
 
-        $resolvedBody = (new DocumentPlaceholderResolver)->resolve($document);
+        $resolvedBody = app(DocumentPlaceholderResolver::class)->resolve($document);
 
         $this->assertStringContainsString('Edital das Artes', $resolvedBody);
         $this->assertStringContainsString('12345.678901/2026-10', $resolvedBody);
@@ -308,7 +311,7 @@ class DocumentTest extends TestCase
             'body' => '[budget_allocations_by_region_table]',
         ]);
 
-        $resolvedBody = (new DocumentPlaceholderResolver)->resolve($document);
+        $resolvedBody = app(DocumentPlaceholderResolver::class)->resolve($document);
 
         $this->assertStringNotContainsString('[budget_allocations_by_region_table]', $resolvedBody);
         $this->assertStringContainsString('<table', $resolvedBody);
@@ -338,7 +341,7 @@ class DocumentTest extends TestCase
             'body' => '[budget_allocation_data]',
         ]);
 
-        $resolvedBody = (new DocumentPlaceholderResolver)->resolve($document);
+        $resolvedBody = app(DocumentPlaceholderResolver::class)->resolve($document);
 
         $this->assertStringNotContainsString('<script>', $resolvedBody);
         $this->assertStringContainsString('&lt;script&gt;', $resolvedBody);
@@ -346,7 +349,9 @@ class DocumentTest extends TestCase
 
     public function test_resolver_prefers_the_projects_linked_budget_allocation(): void
     {
-        $project = Project::factory()->create();
+        $project = Project::factory()->create([
+            'current_installment_cycle' => 1,
+        ]);
         BudgetAllocation::factory()->create([
             'notice_id' => $project->notice_id,
             'management_unit' => 'PRIMEIRA LINHA DO EDITAL',
@@ -355,8 +360,12 @@ class DocumentTest extends TestCase
             'notice_id' => $project->notice_id,
             'management_unit' => 'VINCULAÇÃO DO PROJETO',
         ]);
-        Budget::factory()->create([
+        $budget = Budget::factory()->create([
             'project_id' => $project->id,
+        ]);
+        Installment::factory()->create([
+            'budget_id' => $budget->id,
+            'installment_number' => $project->current_installment_cycle,
             'budget_allocation_id' => $linkedAllocation->id,
         ]);
         $document = Document::factory()->create([
@@ -367,7 +376,7 @@ class DocumentTest extends TestCase
             'body' => '[budget_allocation_data]',
         ]);
 
-        $resolvedBody = (new DocumentPlaceholderResolver)->resolve($document);
+        $resolvedBody = app(DocumentPlaceholderResolver::class)->resolve($document);
 
         $this->assertStringContainsString('VINCULAÇÃO DO PROJETO', $resolvedBody);
         $this->assertStringNotContainsString('PRIMEIRA LINHA DO EDITAL', $resolvedBody);
@@ -392,10 +401,120 @@ class DocumentTest extends TestCase
             'body' => '[budget_allocation_data]',
         ]);
 
-        $resolvedBody = (new DocumentPlaceholderResolver)->resolve($document);
+        $resolvedBody = app(DocumentPlaceholderResolver::class)->resolve($document);
 
         $this->assertStringContainsString('PRIMEIRA LINHA DO EDITAL', $resolvedBody);
         $this->assertStringNotContainsString('SEGUNDA LINHA DO EDITAL', $resolvedBody);
+    }
+
+    public function test_resolver_replaces_allocation_using_the_agent_macroregion_before_budget_exists(): void
+    {
+        $notice = Notice::factory()->create();
+        $project = Project::factory()->create([
+            'notice_id' => $notice->id,
+        ]);
+        ProfileSnapshot::factory()->create([
+            'object_id' => $project->agent_id,
+            'object_type' => 'agent',
+            'city' => 'Crato',
+        ]);
+        BudgetAllocation::factory()->create([
+            'notice_id' => $notice->id,
+            'planning_macroregion' => '02 – CENTRO SUL',
+        ]);
+        $allocation = BudgetAllocation::factory()->create([
+            'notice_id' => $notice->id,
+            'planning_macroregion' => '01 – CARIRI',
+            'allocation_code' => '1001789',
+            'allocation_number' => '27200004.13.392.131.11687.01.339048.2.7199200000.1',
+        ]);
+        $document = Document::factory()->create([
+            'project_id' => $project->id,
+            'notice_id' => $notice->id,
+            'type' => DocumentType::DO,
+            'phase' => DocumentPhase::BUDGET,
+            'body' => '[allocation_code] / [allocation_number]',
+        ]);
+
+        $resolvedBody = app(DocumentPlaceholderResolver::class)->resolve($document);
+
+        $this->assertSame(
+            $allocation->allocation_code.' / '.$allocation->allocation_number,
+            $resolvedBody
+        );
+    }
+
+    public function test_resolver_uses_the_allocation_linked_to_the_current_cycle(): void
+    {
+        $notice = Notice::factory()->create();
+        $project = Project::factory()->create([
+            'notice_id' => $notice->id,
+            'current_installment_cycle' => 2,
+        ]);
+        $budget = Budget::factory()->create([
+            'project_id' => $project->id,
+        ]);
+        $previousAllocation = BudgetAllocation::factory()->create([
+            'notice_id' => $notice->id,
+        ]);
+        $currentAllocation = BudgetAllocation::factory()->create([
+            'notice_id' => $notice->id,
+            'allocation_code' => 'CURRENT-CODE',
+            'allocation_number' => 'CURRENT-NUMBER',
+        ]);
+        Installment::factory()->create([
+            'budget_id' => $budget->id,
+            'installment_number' => 1,
+            'budget_allocation_id' => $previousAllocation->id,
+        ]);
+        Installment::factory()->create([
+            'budget_id' => $budget->id,
+            'installment_number' => 2,
+            'budget_allocation_id' => $currentAllocation->id,
+        ]);
+        $document = Document::factory()->create([
+            'project_id' => $project->id,
+            'notice_id' => $notice->id,
+            'type' => DocumentType::DO,
+            'phase' => DocumentPhase::BUDGET,
+            'body' => '[allocation_code] / [allocation_number]',
+        ]);
+
+        $resolvedBody = app(DocumentPlaceholderResolver::class)->resolve($document);
+
+        $this->assertSame('CURRENT-CODE / CURRENT-NUMBER', $resolvedBody);
+    }
+
+    public function test_resolver_does_not_guess_between_multiple_unmatched_allocations(): void
+    {
+        $notice = Notice::factory()->create();
+        $project = Project::factory()->create([
+            'notice_id' => $notice->id,
+        ]);
+        ProfileSnapshot::factory()->create([
+            'object_id' => $project->agent_id,
+            'object_type' => 'agent',
+            'city' => 'Sobral',
+        ]);
+        BudgetAllocation::factory()->create([
+            'notice_id' => $notice->id,
+            'planning_macroregion' => '01 – CARIRI',
+        ]);
+        BudgetAllocation::factory()->create([
+            'notice_id' => $notice->id,
+            'planning_macroregion' => '02 – CENTRO SUL',
+        ]);
+        $document = Document::factory()->create([
+            'project_id' => $project->id,
+            'notice_id' => $notice->id,
+            'type' => DocumentType::DO,
+            'phase' => DocumentPhase::BUDGET,
+            'body' => '[allocation_code] / [allocation_number]',
+        ]);
+
+        $resolvedBody = app(DocumentPlaceholderResolver::class)->resolve($document);
+
+        $this->assertSame(' / ', $resolvedBody);
     }
 
     // -------------------------------------------------------------------------

@@ -41,9 +41,6 @@ return new class extends Migration
 
             $table->string('creditor_number')->nullable();
 
-            $table->string('allocation_code')->nullable();
-            $table->string('allocation_number')->nullable();
-
             $table->string('bank')->nullable();
             $table->enum('account_type', array_column(AccountType::cases(), 'value'))->nullable();
             $table->string('branch')->nullable();

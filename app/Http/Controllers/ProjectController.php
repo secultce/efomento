@@ -43,11 +43,14 @@ class ProjectController extends Controller
                 'documents',
                 'documents.project.agent.latestSnapshot',
                 'documents.project.notice',
+                'documents.project.notice.budgetAllocations',
                 'documents.project.opening.principalSupervisor.user',
+                'documents.project.budgets.installments.budgetAllocation',
                 'currentStage',
                 'monitoring',
                 'budgets',
                 'budgets.installments',
+                'budgets.installments.budgetAllocation',
             ])
             ->search($request->search);
 
@@ -119,6 +122,7 @@ class ProjectController extends Controller
     {
         $project->load([
             'notice',
+            'notice.budgetAllocations',
             'agent',
             'category',
             'opening',
@@ -131,6 +135,7 @@ class ProjectController extends Controller
             'documents.images',
             'budgets',
             'budgets.installments',
+            'budgets.installments.budgetAllocation',
             'monitoring',
             'formalizations',
             'formalizations.files',

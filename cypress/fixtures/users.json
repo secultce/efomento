@@ -10,8 +10,8 @@
         "new_password": "newpassword"
     },
     "fomentation": {
-        "name": "Glaucivane Silveira Barbosa Portel",
-        "valid_email": "glaucivane.portela@secult.ce.gov.br",
+        "name": "Lara Pimentel",
+        "valid_email": "lara.pimentel@secult.ce.gov.br",
         "password": "password",
         "invalid_email": "test",
         "incorrect_password": "123456",

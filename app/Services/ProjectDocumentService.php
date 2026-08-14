@@ -104,8 +104,7 @@ class ProjectDocumentService
                     $hasBudgetResultTable,
                     fn ($query) => $query->with([
                         'agent.latestSnapshot',
-                        'opening',
-                        'budgets.budgetAllocation',
+                        'budgets.installments.budgetAllocation',
                         'notice.budgetAllocations',
                     ])
                 )
@@ -189,9 +188,11 @@ class ProjectDocumentService
         $rows = $projects
             ->map(function (Project $project) {
                 $latestNoticeAllocation = $project->notice?->budgetAllocations?->sortByDesc('id')->first();
-                $budgetAllocation = $project->budgets?->budgetAllocation ?? $latestNoticeAllocation;
-                $allocationCode = $budgetAllocation?->allocation_code ?? $project->opening?->allocation_code;
-                $allocationNumber = $budgetAllocation?->allocation_number ?? $project->opening?->allocation_number;
+                $currentInstallment = $project->budgets?->installments
+                    ?->firstWhere('installment_number', $project->current_installment_cycle);
+                $budgetAllocation = $currentInstallment?->budgetAllocation ?? $latestNoticeAllocation;
+                $allocationCode = $budgetAllocation?->allocation_code;
+                $allocationNumber = $budgetAllocation?->allocation_number;
 
                 $cells = [
                     $project->registration_id,
