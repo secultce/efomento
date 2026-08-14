@@ -255,6 +255,76 @@ class DocumentTest extends TestCase
         $this->assertStringContainsString('272040103020251 - INTERIOR', $resolvedBody);
     }
 
+    public function test_resolver_replaces_notice_fields_and_budget_data_without_a_project(): void
+    {
+        $notice = Notice::factory()->create([
+            'name' => 'Edital das Artes',
+            'nup' => '12345.678901/2026-10',
+            'instrument_type' => 'TERMO DE FOMENTO',
+        ]);
+        BudgetAllocation::factory()->create([
+            'notice_id' => $notice->id,
+            'management_unit' => 'UNIDADE DO EDITAL',
+        ]);
+        $document = Document::factory()->create([
+            'project_id' => null,
+            'notice_id' => $notice->id,
+            'type' => DocumentType::PI,
+            'phase' => DocumentPhase::BUDGET,
+            'body' => '[notice_name] | [nup_mother] | [finality] | [budget_allocation_data]',
+        ]);
+
+        $resolvedBody = (new DocumentPlaceholderResolver)->resolve($document);
+
+        $this->assertStringContainsString('Edital das Artes', $resolvedBody);
+        $this->assertStringContainsString('12345.678901/2026-10', $resolvedBody);
+        $this->assertStringContainsString('TERMO DE FOMENTO', $resolvedBody);
+        $this->assertStringContainsString('UNIDADE DO EDITAL', $resolvedBody);
+        $this->assertStringNotContainsString('[budget_allocation_data]', $resolvedBody);
+    }
+
+    public function test_resolver_builds_the_budget_allocations_by_region_table_from_the_notice_import(): void
+    {
+        $notice = Notice::factory()->create();
+        BudgetAllocation::factory()->create([
+            'notice_id' => $notice->id,
+            'region_code' => '02',
+            'planning_macroregion' => 'CENTRO SUL',
+            'allocation_code' => '1001424',
+            'allocation_number' => '27200004.13.392.131.11687.02.339048.2.7199200000.1',
+        ]);
+        BudgetAllocation::factory()->create([
+            'notice_id' => $notice->id,
+            'region_code' => '01',
+            'planning_macroregion' => 'CARIRI',
+            'allocation_code' => '1001789',
+            'allocation_number' => '27200004.13.392.131.11687.01.339048.2.7199200000.1',
+        ]);
+        $document = Document::factory()->create([
+            'project_id' => null,
+            'notice_id' => $notice->id,
+            'type' => DocumentType::PI,
+            'phase' => DocumentPhase::BUDGET,
+            'body' => '[budget_allocations_by_region_table]',
+        ]);
+
+        $resolvedBody = (new DocumentPlaceholderResolver)->resolve($document);
+
+        $this->assertStringNotContainsString('[budget_allocations_by_region_table]', $resolvedBody);
+        $this->assertStringContainsString('<table', $resolvedBody);
+        $this->assertStringContainsString('Macrorregião de Planejamento', $resolvedBody);
+        $this->assertStringContainsString('Dotações', $resolvedBody);
+        $this->assertStringContainsString('01 – CARIRI', $resolvedBody);
+        $this->assertStringContainsString(
+            '1001789 - 27200004.13.392.131.11687.01.339048.2.7199200000.1',
+            $resolvedBody,
+        );
+        $this->assertLessThan(
+            strpos($resolvedBody, '02 – CENTRO SUL'),
+            strpos($resolvedBody, '01 – CARIRI'),
+        );
+    }
+
     public function test_resolver_escapes_budget_allocation_values(): void
     {
         $project = Project::factory()->create();

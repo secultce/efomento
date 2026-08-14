@@ -9,10 +9,18 @@ export const DOCUMENT_TYPES = {
     DP: 'dp',
 };
 
-const placeHoldersDocsSchema = [
+const noticePlaceHoldersDocsSchema = [
     { label: 'Nome Edital', value: 'notice_name' },
     { label: 'Nup Mãe', value: 'nup_mother' },
     { label: 'Finalidade', value: 'finality' },
+    {
+        label: 'Tabela das dotações por região',
+        value: 'budget_allocations_by_region_table',
+    },
+];
+
+const placeHoldersDocsSchema = [
+    ...noticePlaceHoldersDocsSchema,
     { label: 'Nup Projeto', value: 'project_nup' },
     { label: 'Nome do Projeto', value: 'project_name' },
     { label: 'Nome do Agente', value: 'agent_name' },
@@ -33,6 +41,18 @@ const installmentPlaceHoldersDocsSchema = [
 
 const budgetOpinionPlaceHoldersDocsSchema = [
     ...placeHoldersDocsSchema,
+    {
+        label: 'Informações PPA SIAP',
+        value: 'budget_allocation_data',
+    },
+    {
+        label: 'Tabela de orçamento do resultado',
+        value: 'budget_result_table',
+    },
+];
+
+const initialBudgetOpinionPlaceHoldersDocsSchema = [
+    ...noticePlaceHoldersDocsSchema,
     {
         label: 'Informações PPA SIAP',
         value: 'budget_allocation_data',
@@ -77,7 +97,7 @@ export const documentConfigs = {
         titleCreate: 'Criar parecer orçamentário inicial (PI)',
         titleEdit: 'Editar parecer orçamentário inicial (PI)',
         save: 'pi',
-        placeholders: budgetOpinionPlaceHoldersDocsSchema,
+        placeholders: initialBudgetOpinionPlaceHoldersDocsSchema,
     },
 
     [DOCUMENT_TYPES.PF]: {

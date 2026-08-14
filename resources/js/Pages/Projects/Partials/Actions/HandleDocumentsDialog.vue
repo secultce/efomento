@@ -31,6 +31,11 @@ const props = defineProps({
         default: () => [],
     },
 
+    noticeId: {
+        type: Number,
+        default: null,
+    },
+
     editData: {
         type: Object,
         default: null,
@@ -131,12 +136,31 @@ function closeDialog() {
     emit('update:modelValue', false);
 }
 
+function restoreEditablePlaceholders(content) {
+    return String(content ?? '')
+        .replace(
+            /<!--\s*budget_result_table:start\s*-->[\s\S]*?<!--\s*budget_result_table:end\s*-->/gi,
+            '[budget_result_table]'
+        )
+        .replace(
+            /<table\b[^>]*data-document-placeholder=["']budget_result_table["'][^>]*>[\s\S]*?<\/table>/gi,
+            '[budget_result_table]'
+        )
+        .replace(/<table\b[^>]*>[\s\S]*?<\/table>/gi, (table) =>
+            /CÓDIGO\s*<br\s*\/?>\s*INSCRIÇÃO\s*<br\s*\/?>\s*MAPAS/i.test(table) ? '[budget_result_table]' : table
+        );
+}
+
 function buildPayload() {
     const payload = new FormData();
 
     props.projectIds.forEach((id) => {
         payload.append('selected_projects[]', id);
     });
+
+    if (props.noticeId) {
+        payload.append('notice_id', props.noticeId);
+    }
 
     payload.append('type', props.type);
     payload.append('content', form.content);
@@ -209,7 +233,7 @@ watch(
         if (!open) return;
 
         if (props.editData) {
-            form.content = props.editData.content || '';
+            form.content = restoreEditablePlaceholders(props.editData.content);
 
             const existingHeaderImages = props.editData.headerImages || [];
 

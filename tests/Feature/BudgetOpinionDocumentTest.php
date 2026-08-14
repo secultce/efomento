@@ -14,15 +14,37 @@ class BudgetOpinionDocumentTest extends TestCase
 {
     use RefreshDatabase;
 
-    #[DataProvider('budgetOpinionTypes')]
-    public function test_budget_user_can_create_budget_opinion_linked_to_budget_phase(string $type): void
+    public function test_budget_user_can_create_initial_opinion_for_the_notice_without_a_project(): void
     {
         $user = $this->userWithRole(Role::BUDGETARY);
         $project = Project::factory()->create();
 
         $this->actingAs($user)
             ->post(route('projects.create-document'), [
-                'type' => $type,
+                'type' => 'pi',
+                'notice_id' => $project->notice_id,
+                'content' => 'Conteúdo do parecer orçamentário.',
+            ])
+            ->assertRedirect()
+            ->assertSessionHas('success');
+
+        $this->assertDatabaseHas('documents', [
+            'project_id' => null,
+            'notice_id' => $project->notice_id,
+            'type' => 'pi',
+            'phase' => 'budget',
+            'created_by' => $user->id,
+        ]);
+    }
+
+    public function test_budget_user_can_create_final_opinion_for_selected_projects(): void
+    {
+        $user = $this->userWithRole(Role::BUDGETARY);
+        $project = Project::factory()->create();
+
+        $this->actingAs($user)
+            ->post(route('projects.create-document'), [
+                'type' => 'pf',
                 'selected_projects' => [$project->id],
                 'content' => 'Conteúdo do parecer orçamentário.',
             ])
@@ -32,7 +54,7 @@ class BudgetOpinionDocumentTest extends TestCase
         $this->assertDatabaseHas('documents', [
             'project_id' => $project->id,
             'notice_id' => $project->notice_id,
-            'type' => $type,
+            'type' => 'pf',
             'phase' => 'budget',
             'created_by' => $user->id,
         ]);
@@ -47,7 +69,7 @@ class BudgetOpinionDocumentTest extends TestCase
         $this->actingAs($user)
             ->post(route('projects.create-document'), [
                 'type' => 'pi',
-                'selected_projects' => [$project->id],
+                'notice_id' => $project->notice_id,
                 'content' => 'Conteúdo do PI.',
             ])
             ->assertSessionHasNoErrors();
@@ -62,13 +84,14 @@ class BudgetOpinionDocumentTest extends TestCase
         $this->actingAs($user)
             ->post(route('projects.create-document'), [
                 'type' => $type,
-                'selected_projects' => [$project->id],
+                ...($type === 'pi'
+                    ? ['notice_id' => $project->notice_id]
+                    : ['selected_projects' => [$project->id]]),
                 'content' => 'Conteúdo sem permissão.',
             ])
             ->assertForbidden();
 
         $this->assertDatabaseMissing('documents', [
-            'project_id' => $project->id,
             'type' => $type,
         ]);
     }

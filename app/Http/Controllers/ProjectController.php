@@ -12,6 +12,7 @@ use App\Enums\ProjectStageSlug;
 use App\Enums\ProjectStageStatus;
 use App\Enums\ReportStatus;
 use App\Enums\Role;
+use App\Http\Resources\DocumentResource;
 use App\Http\Resources\ProjectResource;
 use App\Models\Notice;
 use App\Models\Project;
@@ -59,12 +60,21 @@ class ProjectController extends Controller
         $projects->flatMap->documents
             ->each(fn ($document) => $this->placeholderResolver->prepare($document));
 
+        $noticeDocuments = $notice->documents()
+            ->whereNull('project_id')
+            ->where('type', DocumentType::PI)
+            ->with(['images', 'notice'])
+            ->get()
+            ->each(fn ($document) => $this->placeholderResolver->prepare($document));
+
         return Inertia::render('Projects', [
             'notice' => $notice,
 
             'projects' => ProjectResource::collection(
                 $projects
             )->resolve(),
+
+            'noticeDocuments' => DocumentResource::collection($noticeDocuments)->resolve(),
 
             'filters' => $request->only([
                 'phase',
@@ -177,7 +187,9 @@ class ProjectController extends Controller
         $data = $request->validate([
             'type' => 'required|in:ci,tc,pj,et,pi,pf,do,dp',
 
-            'selected_projects' => 'required|array|min:1',
+            'notice_id' => 'required_if:type,pi|nullable|exists:notices,id',
+
+            'selected_projects' => 'required_unless:type,pi|array|min:1',
             'selected_projects.*' => 'exists:projects,id',
 
             'content' => 'required|string',
@@ -202,19 +214,31 @@ class ProjectController extends Controller
             abort_unless($request->user()->hasAnyRole(Role::budgetRoles()), 403);
         }
 
-        $service->createDocument(
-            selectedProjects: $data['selected_projects'],
-            content: $data['content'],
-            headerImages: $data['header_images'] ?? [],
-            footerImages: $data['footer_images'] ?? [],
-            type: $type,
-            headerLayout: $data['header_layout'] ?? 'none',
-            footerLayout: $data['footer_layout'] ?? 'none',
-        );
+        if ($type === DocumentType::PI) {
+            $service->createNoticeDocument(
+                notice: Notice::findOrFail($data['notice_id']),
+                content: $data['content'],
+                headerImages: $data['header_images'] ?? [],
+                footerImages: $data['footer_images'] ?? [],
+                type: $type,
+                headerLayout: $data['header_layout'] ?? 'none',
+                footerLayout: $data['footer_layout'] ?? 'none',
+            );
+        } else {
+            $service->createDocument(
+                selectedProjects: $data['selected_projects'],
+                content: $data['content'],
+                headerImages: $data['header_images'] ?? [],
+                footerImages: $data['footer_images'] ?? [],
+                type: $type,
+                headerLayout: $data['header_layout'] ?? 'none',
+                footerLayout: $data['footer_layout'] ?? 'none',
+            );
+        }
 
         return back()->with(
             'success',
-            'Documento criado com sucesso! Você pode editá-lo ou baixá-lo na seção de documentos do projeto.'
+            'Documento criado com sucesso! Você pode editá-lo ou baixá-lo na seção de documentos.'
         );
     }
 

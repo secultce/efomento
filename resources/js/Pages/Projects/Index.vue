@@ -23,6 +23,7 @@ import NoStageSelected from './Partials/Actions/noStageSelected.vue';
 const props = defineProps({
     notice: { type: Object, default: null },
     projects: { type: Array, default: () => [] },
+    noticeDocuments: { type: Array, default: () => [] },
     filters: { type: Object, default: null },
     phases: { type: Array, default: () => [] },
     instrumentTypes: { type: Array, default: () => [] },
@@ -380,6 +381,7 @@ function handleAction({ action, item }) {
                         :notice="notice"
                         :selected-projects="selectedProjects"
                         :projects="projects"
+                        :notice-documents="noticeDocuments"
                         :has-budget-allocations="hasBudgetAllocations"
                         @saved="handleSaved"
                     />

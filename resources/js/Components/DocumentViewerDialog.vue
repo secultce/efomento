@@ -14,9 +14,16 @@ const isOpen = computed({
     set: (val) => emit('update:modelValue', val),
 });
 
-const title = computed(
-    () => props.document?.project?.title_project ?? props.document?.project?.agent?.name ?? 'documento'
-);
+const title = computed(() => {
+    return (
+        props.document?.project?.title_project ??
+        props.document?.project?.agent?.name ??
+        props.document?.notice?.name ??
+        'documento'
+    );
+});
+
+const contextLabel = computed(() => (props.document?.project ? 'Documento do projeto' : 'Documento do edital'));
 
 const resolvedBody = computed(() => {
     if (props.document?.resolved_body != null) {
@@ -59,7 +66,7 @@ function close() {
         <v-card class="rounded-lg d-flex flex-column" max-height="85vh">
             <v-card-title class="d-flex justify-space-between items-center pa-4 pb-2 flex-shrink-0">
                 <span class="font-weight-bold text-sm">
-                    Documento do projeto: {{ title.length > 50 ? title.substr(0, 49) + '...' : title }}
+                    {{ contextLabel }}: {{ title.length > 50 ? title.substr(0, 49) + '...' : title }}
                 </span>
                 <v-btn icon size="small" variant="text" @click="close">
                     <v-icon size="18">mdi-close</v-icon>

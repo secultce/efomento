@@ -17,6 +17,7 @@ const props = defineProps({
     },
     selectedProjects: { type: Array, default: () => [] },
     projects: { type: Array, default: () => [] },
+    noticeDocuments: { type: Array, default: () => [] },
     hasBudgetAllocations: Boolean,
 });
 
@@ -39,7 +40,23 @@ const selectedProjectsList = computed(() =>
     props.projects.filter((project) => props.selectedProjects.includes(project.id))
 );
 
+function isNoticeLevelDocument(type) {
+    return type === DOCUMENT_TYPES.PI;
+}
+
+function noticeDocument(type) {
+    return props.noticeDocuments.find((document) => document.type === type) ?? null;
+}
+
 const selectedDocument = computed(() => {
+    if (isNoticeLevelDocument(documentType.value)) {
+        const document = noticeDocument(documentType.value);
+
+        if (!document) return null;
+
+        return documentEditData(document);
+    }
+
     const project = selectedProjectsList.value.find((item) =>
         item.documents?.some((document) => document.type === documentType.value)
     );
@@ -47,6 +64,10 @@ const selectedDocument = computed(() => {
 
     if (!document) return null;
 
+    return documentEditData(document);
+});
+
+function documentEditData(document) {
     return {
         content: document.body,
         headerImages: (document.images ?? []).filter(
@@ -56,18 +77,24 @@ const selectedDocument = computed(() => {
             (image) => image.section === 'footer' || image.section?.value === 'footer'
         ),
     };
-});
+}
 
-const selectedDocuments = computed(() =>
-    selectedProjectsList.value.flatMap((project) =>
+const selectedDocuments = computed(() => {
+    if (isNoticeLevelDocument(documentType.value)) {
+        const document = noticeDocument(documentType.value);
+
+        return document ? [{ ...document, notice: props.notice }] : [];
+    }
+
+    return selectedProjectsList.value.flatMap((project) =>
         (project.documents ?? [])
             .filter((document) => document.type === documentType.value)
             .map((document) => ({
                 ...document,
                 project,
             }))
-    )
-);
+    );
+});
 
 const budgetOpinionDocuments = computed(() =>
     [DOCUMENT_TYPES.PI, DOCUMENT_TYPES.PF].map((type) => ({
@@ -78,12 +105,16 @@ const budgetOpinionDocuments = computed(() =>
     }))
 );
 
-function selectedProjectHasDocument(type) {
+function hasDocument(type) {
+    if (isNoticeLevelDocument(type)) {
+        return Boolean(noticeDocument(type));
+    }
+
     return selectedProjectsList.value.some((project) => project.documents?.some((document) => document.type === type));
 }
 
 function openDocumentDialog(type) {
-    if (!canManageBudget.value || !props.selectedProjects.length) {
+    if (!canManageBudget.value || (!isNoticeLevelDocument(type) && !props.selectedProjects.length)) {
         return;
     }
 
@@ -95,7 +126,21 @@ function handleDocumentSaved() {
     emit('saved');
 }
 
-async function downloadZip(type) {
+async function downloadDocuments(type) {
+    if (isNoticeLevelDocument(type)) {
+        const document = noticeDocument(type);
+
+        if (!document) {
+            showSnackbar('Crie o parecer orçamentário inicial antes de baixá-lo.', 'warning');
+
+            return;
+        }
+
+        window.open(`/projetos/documentos/${document.id}/download`, '_blank');
+
+        return;
+    }
+
     if (!props.selectedProjects.length) {
         showSnackbar('Selecione pelo menos 1 projeto para baixar os documentos.', 'warning');
 
@@ -225,6 +270,7 @@ function openNoticeHistory() {
         v-model="documentDialog"
         :type="documentType"
         :project-ids="selectedProjects"
+        :notice-id="isNoticeLevelDocument(documentType) ? noticeId : null"
         :edit-data="selectedDocument"
         @saved="handleDocumentSaved"
     />
@@ -293,10 +339,12 @@ function openNoticeHistory() {
                         }"
                     >
                         <v-btn
-                            v-if="selectedProjectHasDocument(document.type)"
+                            v-if="hasDocument(document.type)"
                             variant="outlined"
                             class="w-full !shadow-none !font-bold !border-gray-300 !bg-white !text-[#2d353fFF] rounded-lg text-xs gap-6"
-                            :disabled="!selectedProjects.length || !canManageBudget"
+                            :disabled="
+                                (!isNoticeLevelDocument(document.type) && !selectedProjects.length) || !canManageBudget
+                            "
                             @click="openDocumentDialog(document.type)"
                         >
                             <span class="w-full text-left">{{ document.editLabel }}</span>
@@ -309,7 +357,9 @@ function openNoticeHistory() {
                         <v-btn
                             v-else
                             class="w-full rounded-lg px-4 py-2 text-xs !bg-[#ffcc05FF] !font-bold !text-[#2d353fFF] !shadow-none"
-                            :disabled="!selectedProjects.length || !canManageBudget"
+                            :disabled="
+                                (!isNoticeLevelDocument(document.type) && !selectedProjects.length) || !canManageBudget
+                            "
                             @click="openDocumentDialog(document.type)"
                         >
                             {{ document.createLabel }}
@@ -322,15 +372,23 @@ function openNoticeHistory() {
                             color="primary"
                             class="flex-1 !shadow-none !border-primary !text-primary rounded-lg text-xs"
                             :loading="downloadingType === document.type"
-                            :disabled="!selectedProjects.length"
-                            @click="downloadZip(document.type)"
+                            :disabled="
+                                isNoticeLevelDocument(document.type)
+                                    ? !hasDocument(document.type)
+                                    : !selectedProjects.length
+                            "
+                            @click="downloadDocuments(document.type)"
                         >
-                            Baixar todos
+                            {{ isNoticeLevelDocument(document.type) ? 'Baixar' : 'Baixar todos' }}
                         </v-btn>
 
                         <v-btn
                             class="flex-1 !shadow-none !font-bold !bg-[#ffcc05FF] !text-[#2d353fFF] rounded-lg text-xs"
-                            :disabled="!selectedProjects.length"
+                            :disabled="
+                                isNoticeLevelDocument(document.type)
+                                    ? !hasDocument(document.type)
+                                    : !selectedProjects.length
+                            "
                             @click="openDocumentList(document.type)"
                         >
                             Conferir documentos
