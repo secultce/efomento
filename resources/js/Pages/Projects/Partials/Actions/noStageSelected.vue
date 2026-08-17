@@ -1,5 +1,6 @@
 <script setup>
 import axios from 'axios';
+import { router } from '@inertiajs/vue3';
 import NoticeHistoryDialog from '@/Pages/Projects/Partials/Actions/NoticeHistoryDialog.vue';
 import BudgetAllocationImportDialog from '@/Pages/Projects/Partials/Actions/BudgetAllocationImportDialog.vue';
 import HandleDocumentsDialog from '@/Pages/Projects/Partials/Actions/HandleDocumentsDialog.vue';
@@ -182,6 +183,17 @@ function openBudgetAllocationUpload() {
     budgetAllocationInput.value?.click();
 }
 
+function reloadBudgetAllocationData() {
+    return new Promise((resolve) => {
+        router.reload({
+            only: ['projects', 'noticeDocuments', 'hasBudgetAllocations'],
+            preserveState: true,
+            preserveScroll: true,
+            onFinish: resolve,
+        });
+    });
+}
+
 async function handleBudgetAllocationUpload(event) {
     const file = event.target.files?.[0];
 
@@ -240,10 +252,12 @@ async function confirmBudgetAllocationImport() {
         const imported = Number(data.summary?.created ?? 0) + Number(data.summary?.updated ?? 0);
         const allocationMessage = imported === 1 ? 'vinculação processada' : 'vinculações processadas';
 
-        showSnackbar(`Importação concluída. ${imported} ${allocationMessage}.`, 'success');
+        await reloadBudgetAllocationData();
+
         budgetAllocationDialog.value = false;
         selectedBudgetAllocationFile.value = null;
         hasExistingBudgetAllocations.value = true;
+        showSnackbar(`Importação concluída. ${imported} ${allocationMessage}.`, 'success');
     } catch (error) {
         const errors = error.response?.data?.errors;
         const message = errors
