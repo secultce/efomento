@@ -2,15 +2,25 @@ export const DOCUMENT_TYPES = {
     CI: 'ci',
     TC: 'tc',
     PJ: 'pj',
+    PI: 'pi',
+    PF: 'pf',
     ET: 'et',
     DO: 'do',
     DP: 'dp',
 };
 
-const placeHoldersDocsSchema = [
+const noticePlaceHoldersDocsSchema = [
     { label: 'Nome Edital', value: 'notice_name' },
     { label: 'Nup Mãe', value: 'nup_mother' },
     { label: 'Finalidade', value: 'finality' },
+    {
+        label: 'Tabela das dotações por região',
+        value: 'budget_allocations_by_region_table',
+    },
+];
+
+const placeHoldersDocsSchema = [
+    ...noticePlaceHoldersDocsSchema,
     { label: 'Nup Projeto', value: 'project_nup' },
     { label: 'Nome do Projeto', value: 'project_name' },
     { label: 'Nome do Agente', value: 'agent_name' },
@@ -34,6 +44,26 @@ const placeHoldersDocsSchema = [
 const installmentPlaceHoldersDocsSchema = [
     ...placeHoldersDocsSchema,
     { label: 'Número da parcela para este agente', value: 'notice_installment_number' },
+];
+
+const budgetOpinionPlaceHoldersDocsSchema = [
+    ...placeHoldersDocsSchema,
+    {
+        label: 'Informações PPA SIAP',
+        value: 'budget_allocation_data',
+    },
+    {
+        label: 'Tabela de orçamento do resultado',
+        value: 'budget_result_table',
+    },
+];
+
+const initialBudgetOpinionPlaceHoldersDocsSchema = [
+    ...noticePlaceHoldersDocsSchema,
+    {
+        label: 'Informações PPA SIAP',
+        value: 'budget_allocation_data',
+    },
 ];
 
 export const documentConfigs = {
@@ -67,6 +97,22 @@ export const documentConfigs = {
         titleEdit: 'Editar parecer jurídico (PJ)',
         save: 'pj',
         placeholders: placeHoldersDocsSchema,
+    },
+
+    [DOCUMENT_TYPES.PI]: {
+        name: 'Parecer Orçamentário Inicial',
+        titleCreate: 'Criar parecer orçamentário inicial (PI)',
+        titleEdit: 'Editar parecer orçamentário inicial (PI)',
+        save: 'pi',
+        placeholders: initialBudgetOpinionPlaceHoldersDocsSchema,
+    },
+
+    [DOCUMENT_TYPES.PF]: {
+        name: 'Parecer Orçamentário Final',
+        titleCreate: 'Criar parecer orçamentário final (PF)',
+        titleEdit: 'Editar parecer orçamentário final (PF)',
+        save: 'pf',
+        placeholders: budgetOpinionPlaceHoldersDocsSchema,
     },
 
     [DOCUMENT_TYPES.DO]: {

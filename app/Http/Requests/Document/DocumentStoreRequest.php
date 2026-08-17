@@ -6,6 +6,7 @@ use App\Enums\DocumentImagePosition;
 use App\Enums\DocumentImageSection;
 use App\Enums\DocumentPhase;
 use App\Enums\DocumentType;
+use App\Enums\Role;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -13,7 +14,10 @@ class DocumentStoreRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        return true;
+        $type = DocumentType::tryFrom($this->string('type')->toString());
+
+        return ! $type?->isBudgetOpinion()
+            || $this->user()?->hasAnyRole(Role::budgetRoles());
     }
 
     public function rules(): array
@@ -23,7 +27,11 @@ class DocumentStoreRequest extends FormRequest
             'phase' => ['required', Rule::enum(DocumentPhase::class)],
             'body' => ['required', 'string'],
             'notice_id' => ['required', 'exists:notices,id'],
-            'project_id' => ['required', 'exists:projects,id'],
+            'project_id' => [
+                Rule::requiredIf(fn () => $this->input('type') !== DocumentType::PI->value),
+                'nullable',
+                'exists:projects,id',
+            ],
             'images' => ['nullable', 'array'],
             'images.*.section' => ['required_with:images', Rule::enum(DocumentImageSection::class)],
             'images.*.position' => ['required_with:images', Rule::enum(DocumentImagePosition::class)],

@@ -30,7 +30,7 @@ class DocumentService
 
         $document = Document::create([
             'notice_id' => $data['notice_id'],
-            'project_id' => $data['project_id'],
+            'project_id' => $data['project_id'] ?? null,
             'type' => $data['type'],
             'phase' => $data['phase'],
             'body' => $data['body'],

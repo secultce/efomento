@@ -5,6 +5,8 @@ namespace App\Http\Requests\Document;
 use App\Enums\DocumentImagePosition;
 use App\Enums\DocumentImageSection;
 use App\Enums\DocumentStatus;
+use App\Enums\Role;
+use App\Models\Document;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -12,7 +14,11 @@ class DocumentUpdateRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        return true;
+        $document = $this->route('document');
+
+        return ! $document instanceof Document
+            || ! $document->type->isBudgetOpinion()
+            || $this->user()?->hasAnyRole(Role::budgetRoles());
     }
 
     public function rules(): array
