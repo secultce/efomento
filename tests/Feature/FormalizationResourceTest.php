@@ -21,6 +21,7 @@ class FormalizationResourceTest extends TestCase
         $this->assertSame($formalization->id, $data['id']);
         $this->assertSame($formalization->project_id, $data['project_id']);
         $this->assertSame($formalization->term_number, $data['term_number']);
+        $this->assertEquals($formalization->term_signed_at, $data['term_signed_at']);
         $this->assertSame($formalization->report_status?->value, $data['report_status']);
         $this->assertSame($formalization->deliberation?->value, $data['deliberation']);
         $this->assertSame($formalization->sacc_number, $data['sacc_number']);

@@ -34,6 +34,8 @@ class FormalizationTab {
 
         cy.get(el.termNumberInput).should('be.visible').type(termNumber);
 
+        cy.get(el.termSignedAtInput).should('be.visible').type('10/03/2023');
+
         cy.get(el.sentToOfficeAt).should('be.visible').type('10/03/2023');
 
         cy.get(el.signedByOfficeAtInput).should('be.visible').type('10/03/2023');
@@ -62,7 +64,7 @@ class FormalizationTab {
             .should('exist')
             .and(
                 'contain.text',
-                'Preencha os campos obrigatórios antes de tramitar: Data de tramitação da finalística para a ASJUR, Data de recebimento do processo pela ASJUR, Processo distribuído para, Data de tramitação na ASJUR, Número do termo, Data de envio para Gabinete, Data de assinatura do termo pelo Gabinete, Número do SACC, Data de envio para Casa Civil, Data de Publicação do Diário Oficial do Estado, Data de início da vigência do instrumento, Data de término da vigência do instrumento, Data do parecer jurídico.'
+                'Preencha os campos obrigatórios antes de tramitar: Data de tramitação da finalística para a ASJUR, Data de recebimento do processo pela ASJUR, Processo distribuído para, Data de tramitação na ASJUR, Número do termo, Data da assinatura do termo, Data de envio para Gabinete, Data de assinatura do termo pelo Gabinete, Número do SACC, Data de envio para Casa Civil, Data de Publicação do Diário Oficial do Estado, Data de início da vigência do instrumento, Data de término da vigência do instrumento, Data do parecer jurídico.'
             );
     }
 

@@ -22,6 +22,7 @@ class FormalizationResource extends JsonResource
             'asjur_processing_date' => $this->asjur_processing_date,
             'term_number' => $this->term_number,
 
+            'term_signed_at' => $this->term_signed_at,
             'sent_to_office_at' => $this->sent_to_office_at,
             'signed_by_office_at' => $this->signed_by_office_at,
 

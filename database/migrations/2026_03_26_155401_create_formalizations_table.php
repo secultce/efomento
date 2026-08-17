@@ -27,6 +27,7 @@ return new class extends Migration
             $table->date('asjur_processing_date')->nullable();
             $table->string('term_number')->nullable();
 
+            $table->date('term_signed_at')->nullable();
             $table->date('sent_to_office_at')->nullable();
             $table->date('signed_by_office_at')->nullable();
 

@@ -74,6 +74,7 @@ const form = useForm({
     eparcerias_certificate_date: null,
     asjur_processing_date: null,
     term_number: null,
+    term_signed_at: null,
     sent_to_office_at: null,
     signed_by_office_at: null,
     sacc_number: null,
@@ -96,6 +97,7 @@ onMounted(() => {
     form.eparcerias_certificate_date = normalizeDate(formalization.eparcerias_certificate_date) ?? null;
     form.asjur_processing_date = normalizeDate(formalization.asjur_processing_date) ?? null;
     form.term_number = formalization.term_number ?? null;
+    form.term_signed_at = normalizeDate(formalization.term_signed_at) ?? null;
     form.sent_to_office_at = normalizeDate(formalization.sent_to_office_at) ?? null;
     form.signed_by_office_at = normalizeDate(formalization.signed_by_office_at) ?? null;
     form.sacc_number = formalization.sacc_number ?? null;
@@ -157,6 +159,7 @@ const hasGeneratedRequiredDocuments = computed(() => missingGeneratedDocuments.v
 const hasRequiredFieldsFilled = computed(() => {
     return (
         hasText(form.term_number) &&
+        hasText(form.term_signed_at) &&
         hasText(form.signed_by_office_at) &&
         hasText(form.sacc_number) &&
         hasText(form.official_gazette_published_at) &&
@@ -174,6 +177,7 @@ const errors = computed(() => {
 
     return {
         term_number: !hasText(form.term_number) ? standardMessage : null,
+        term_signed_at: !hasText(form.term_signed_at) ? standardMessage : null,
         signed_by_office_at: !hasText(form.signed_by_office_at) ? standardMessage : null,
         sacc_number: !hasText(form.sacc_number) ? standardMessage : null,
         official_gazette_published_at: !hasText(form.official_gazette_published_at) ? standardMessage : null,
@@ -464,6 +468,20 @@ const permissionMessage = computed(() => {
 
                             <template v-else-if="section.key === 'signing_term'">
                                 <div class="grid grid-cols-2 gap-4">
+                                    <FormField
+                                        label="Data da assinatura do termo"
+                                        required
+                                        :error="errors.term_signed_at"
+                                    >
+                                        <TextField
+                                            v-model="form.term_signed_at"
+                                            type="date"
+                                            label="Insira a data de assinatura do proponente"
+                                            data-cy="term-signed-at-input"
+                                            :error="errors.term_signed_at"
+                                        />
+                                    </FormField>
+
                                     <FormField label="Data de envio para Gabinete">
                                         <TextField
                                             v-model="form.sent_to_office_at"

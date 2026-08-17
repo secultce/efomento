@@ -63,6 +63,23 @@ class FormalizationTest extends TestCase
         ]);
     }
 
+    public function test_store_persists_term_signed_at(): void
+    {
+        $project = Project::factory()->create();
+
+        $this->actingAs($this->user)
+            ->post(
+                route('projects.formalizations.store', $project),
+                $this->validPayload(['term_signed_at' => '2026-05-10'])
+            )
+            ->assertSessionHasNoErrors();
+
+        $this->assertDatabaseHas('formalizations', [
+            'project_id' => $project->id,
+            'term_signed_at' => '2026-05-10 00:00:00',
+        ]);
+    }
+
     public function test_store_allows_empty_payload(): void
     {
         $project = Project::factory()->create();

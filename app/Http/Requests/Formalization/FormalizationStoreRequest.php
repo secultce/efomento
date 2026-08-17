@@ -27,6 +27,7 @@ class FormalizationStoreRequest extends FormRequest
             'asjur_processing_date' => ['nullable', 'date'],
             'term_number' => ['nullable', 'string', 'max:255'],
 
+            'term_signed_at' => ['nullable', 'date'],
             'sent_to_office_at' => ['nullable', 'date'],
             'signed_by_office_at' => ['nullable', 'date'],
 

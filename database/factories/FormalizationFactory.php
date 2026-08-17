@@ -25,6 +25,7 @@ class FormalizationFactory extends Factory
             'eparcerias_certificate_date' => $this->faker->date(),
             'asjur_processing_date' => $this->faker->date(),
             'term_number' => $this->faker->unique()->numerify('TERM-###'),
+            'term_signed_at' => $this->faker->date(),
             'sent_to_office_at' => $this->faker->date(),
             'signed_by_office_at' => $this->faker->date(),
             'sacc_number' => $this->faker->bothify('SACC-#####'),

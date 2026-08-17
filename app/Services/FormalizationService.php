@@ -44,6 +44,7 @@ class FormalizationService implements StageValidatorInterface
     {
         $requiredFields = [
             'term_number' => 'Número do termo',
+            'term_signed_at' => 'Data da assinatura do termo',
             'signed_by_office_at' => 'Data de assinatura do termo pelo Gabinete',
             'sacc_number' => 'Número do SACC',
             'official_gazette_published_at' => 'Data de Publicação do Diário Oficial do Estado',

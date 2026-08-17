@@ -9,6 +9,7 @@ export const elements = {
     eparceriasCertificateDate: '[data-cy=eparcerias-certificate-date]',
     asjurProcessingDateInput: '[data-cy=asjur-processing-date-input]',
     termNumberInput: '[data-cy=term-number-input]',
+    termSignedAtInput: '[data-cy=term-signed-at-input]',
     sentToOfficeAt: '[data-cy=sent-to-office-at-input]',
     signedByOfficeAtInput: '[data-cy=signed-by-office-at-input]',
     saccNumberInput: '[data-cy=sacc-number-input]',
