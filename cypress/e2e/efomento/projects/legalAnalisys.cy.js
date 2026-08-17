@@ -16,7 +16,7 @@ describe('Legal Analysis', () => {
         });
     });
 
-    describe.only('Process Project', () => {
+    describe('Process Project', () => {
         it('should process project to formalization successfully', function () {
             LegalAnalysisWorkflow.tramitProcessToFormalizationPhase({
                 role: 'formalization',
