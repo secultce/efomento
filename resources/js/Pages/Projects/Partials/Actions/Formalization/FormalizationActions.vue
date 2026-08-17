@@ -57,7 +57,7 @@ const downloadingZip = ref(false);
 const errorMessage = ref('');
 const showError = ref(false);
 
-async function downloadZip(documentType) {
+async function downloadZip(documentType, format) {
     if (!props.selectedProjects?.length) {
         errorMessage.value = 'Selecione pelo menos 1 projeto para baixar os documentos.';
         showError.value = true;
@@ -67,7 +67,7 @@ async function downloadZip(documentType) {
     downloadingZip.value = true;
 
     try {
-        await downloadDocumentsZip(props.selectedProjects, documentType);
+        await downloadDocumentsZip(props.selectedProjects, documentType, format);
     } catch {
         errorMessage.value = 'Erro ao baixar os documentos. Tente novamente.';
         showError.value = true;
@@ -177,16 +177,39 @@ const selectedDocument = computed(() => {
                     </div>
 
                     <div class="w-full flex flex-col sm:flex-row gap-2">
-                        <v-btn
-                            variant="outlined"
-                            class="flex-1 !shadow-none !border-primary !text-primary rounded-lg text-xs"
-                            :loading="downloadingZip"
-                            color="primary"
-                            :disabled="!selectedProjects?.length"
-                            @click="downloadZip(doc.type)"
-                        >
-                            Baixar todos
-                        </v-btn>
+                        <v-menu location="bottom">
+                            <template #activator="{ props: menuProps }">
+                                <v-btn
+                                    v-bind="menuProps"
+                                    variant="outlined"
+                                    class="flex-1 !shadow-none !border-primary !text-primary rounded-lg text-xs"
+                                    :loading="downloadingZip"
+                                    color="primary"
+                                    :disabled="!selectedProjects?.length"
+                                >
+                                    Baixar todos
+                                    <v-icon end size="16">mdi-chevron-down</v-icon>
+                                </v-btn>
+                            </template>
+
+                            <v-list density="compact">
+                                <v-list-item
+                                    title="PDF"
+                                    prepend-icon="mdi-file-pdf-box"
+                                    @click="downloadZip(doc.type, 'pdf')"
+                                />
+                                <v-list-item
+                                    title="DOCX"
+                                    prepend-icon="mdi-file-word-box"
+                                    @click="downloadZip(doc.type, 'docx')"
+                                />
+                                <v-list-item
+                                    title="DOCX Casa Civil"
+                                    prepend-icon="mdi-file-word-box"
+                                    @click="downloadZip(doc.type, 'docx_casa_civil')"
+                                />
+                            </v-list>
+                        </v-menu>
 
                         <v-btn
                             class="flex-1 !shadow-none !font-bold !bg-[#ffcc05FF] !text-[#2d353fFF] rounded-lg text-xs"

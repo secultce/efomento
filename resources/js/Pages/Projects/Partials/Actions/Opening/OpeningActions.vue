@@ -78,7 +78,7 @@ const errorMessage = ref('');
 const showError = ref(false);
 const downloadingZip = ref(false);
 
-async function downloadZip() {
+async function downloadZip(format) {
     if (!props.selectedProjects?.length) {
         errorMessage.value = 'Selecione pelo menos 1 projeto para baixar os documentos.';
         showError.value = true;
@@ -87,7 +87,7 @@ async function downloadZip() {
 
     downloadingZip.value = true;
     try {
-        await downloadDocumentsZip(props.selectedProjects, 'ci');
+        await downloadDocumentsZip(props.selectedProjects, 'ci', format);
     } catch {
         errorMessage.value = 'Erro ao baixar os documentos. Tente novamente.';
         showError.value = true;
@@ -162,15 +162,31 @@ function openNoticeHistory() {
                 </template>
             </div>
             <div class="w-full flex flex-col sm:flex-row gap-2">
-                <v-btn
-                    variant="outlined"
-                    class="flex-1 !shadow-none !border-primary !text-primary rounded-lg text-xs"
-                    :loading="downloadingZip"
-                    color="primary"
-                    @click="downloadZip"
-                >
-                    Baixar todos
-                </v-btn>
+                <v-menu location="bottom">
+                    <template #activator="{ props: menuProps }">
+                        <v-btn
+                            v-bind="menuProps"
+                            variant="outlined"
+                            class="flex-1 !shadow-none !border-primary !text-primary rounded-lg text-xs"
+                            :loading="downloadingZip"
+                            :disabled="!selectedProjects?.length"
+                            color="primary"
+                        >
+                            Baixar todos
+                            <v-icon end size="16">mdi-chevron-down</v-icon>
+                        </v-btn>
+                    </template>
+
+                    <v-list density="compact">
+                        <v-list-item title="PDF" prepend-icon="mdi-file-pdf-box" @click="downloadZip('pdf')" />
+                        <v-list-item title="DOCX" prepend-icon="mdi-file-word-box" @click="downloadZip('docx')" />
+                        <v-list-item
+                            title="DOCX Casa Civil"
+                            prepend-icon="mdi-file-word-box"
+                            @click="downloadZip('docx_casa_civil')"
+                        />
+                    </v-list>
+                </v-menu>
                 <v-btn
                     data-cy="btnConferirDocumentos"
                     class="flex-1 !shadow-none !font-bold !bg-[#ffcc05FF] !text-[#2d353fFF] rounded-lg text-xs"

@@ -54,8 +54,8 @@ const resolvedBody = computed(() => {
     );
 });
 
-function download() {
-    window.open(`/projetos/documentos/${props.document.id}/download`, '_blank');
+function download(format) {
+    window.open(`/projetos/documentos/${props.document.id}/download?format=${format}`, '_blank');
 }
 
 function close() {
@@ -77,11 +77,9 @@ function close() {
             <v-divider />
 
             <v-card-text class="flex-grow-1 overflow-y-auto pa-6">
-                <SanitizedHtml
-                    v-if="resolvedBody"
-                    :content="resolvedBody"
-                    class="text-sm text-[#3b3b3c] leading-relaxed"
-                />
+                <div v-if="resolvedBody" class="document-preview text-sm text-[#3b3b3c] leading-relaxed">
+                    <SanitizedHtml :content="resolvedBody" />
+                </div>
                 <div v-else class="text-center text-gray-400 py-6">Sem conteúdo disponível.</div>
             </v-card-text>
 
@@ -89,9 +87,79 @@ function close() {
 
             <v-card-actions class="pa-4 flex-shrink-0">
                 <v-spacer />
-                <v-btn variant="outlined" color="primary" class="rounded-lg text-xs" @click="download"> Baixar </v-btn>
+                <v-menu location="top end">
+                    <template #activator="{ props: menuProps }">
+                        <v-btn v-bind="menuProps" variant="outlined" color="primary" class="rounded-lg text-xs">
+                            Baixar
+                            <v-icon end size="16">mdi-chevron-down</v-icon>
+                        </v-btn>
+                    </template>
+
+                    <v-list density="compact">
+                        <v-list-item title="Baixar PDF" prepend-icon="mdi-file-pdf-box" @click="download('pdf')" />
+                        <v-list-item title="Baixar DOCX" prepend-icon="mdi-file-word-box" @click="download('docx')" />
+                        <v-list-item
+                            title="Baixar DOCX Casa Civil"
+                            prepend-icon="mdi-file-word-box"
+                            @click="download('docx_casa_civil')"
+                        />
+                    </v-list>
+                </v-menu>
                 <v-btn class="rounded-lg bg-secondary text-black mr-2" @click="close"> Fechar </v-btn>
             </v-card-actions>
         </v-card>
     </v-dialog>
 </template>
+
+<style scoped>
+.document-preview {
+    max-width: 100%;
+    overflow-wrap: anywhere;
+}
+
+.document-preview :deep(p) {
+    margin: 0 0 0.75rem;
+}
+
+.document-preview :deep(ul),
+.document-preview :deep(ol) {
+    margin: 0 0 0.75rem;
+    padding-left: 1.5rem;
+}
+
+.document-preview :deep(table) {
+    width: 100% !important;
+    max-width: 100%;
+    table-layout: fixed;
+    border-collapse: collapse;
+    margin-bottom: 1rem;
+}
+
+.document-preview :deep(th),
+.document-preview :deep(td) {
+    min-width: 0;
+    padding: 0.375rem 0.5rem;
+    border: 1px solid #d1d5db;
+    vertical-align: top;
+    white-space: normal !important;
+    overflow-wrap: anywhere;
+    word-break: break-word;
+}
+
+.document-preview :deep(th) {
+    background-color: #e6f1e3;
+    font-weight: 700;
+}
+
+.document-preview :deep(img) {
+    max-width: 100%;
+    height: auto;
+}
+
+.document-preview :deep(pre) {
+    max-width: 100%;
+    overflow-x: auto;
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+}
+</style>

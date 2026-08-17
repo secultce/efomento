@@ -126,7 +126,7 @@ function handleDocumentSaved() {
     emit('saved');
 }
 
-async function downloadDocuments(type) {
+async function downloadDocuments(type, format) {
     if (isNoticeLevelDocument(type)) {
         const document = noticeDocument(type);
 
@@ -136,7 +136,7 @@ async function downloadDocuments(type) {
             return;
         }
 
-        window.open(`/projetos/documentos/${document.id}/download`, '_blank');
+        window.open(`/projetos/documentos/${document.id}/download?format=${format}`, '_blank');
 
         return;
     }
@@ -150,7 +150,7 @@ async function downloadDocuments(type) {
     downloadingType.value = type;
 
     try {
-        await downloadDocumentsZip(props.selectedProjects, type);
+        await downloadDocumentsZip(props.selectedProjects, type, format);
     } catch {
         showSnackbar('Erro ao baixar os documentos. Tente novamente.', 'error');
     } finally {
@@ -367,20 +367,43 @@ function openNoticeHistory() {
                     </div>
 
                     <div class="flex w-full flex-col gap-2 sm:flex-row">
-                        <v-btn
-                            variant="outlined"
-                            color="primary"
-                            class="flex-1 !shadow-none !border-primary !text-primary rounded-lg text-xs"
-                            :loading="downloadingType === document.type"
-                            :disabled="
-                                isNoticeLevelDocument(document.type)
-                                    ? !hasDocument(document.type)
-                                    : !selectedProjects.length
-                            "
-                            @click="downloadDocuments(document.type)"
-                        >
-                            {{ isNoticeLevelDocument(document.type) ? 'Baixar' : 'Baixar todos' }}
-                        </v-btn>
+                        <v-menu location="bottom">
+                            <template #activator="{ props: menuProps }">
+                                <v-btn
+                                    v-bind="menuProps"
+                                    variant="outlined"
+                                    color="primary"
+                                    class="flex-1 !shadow-none !border-primary !text-primary rounded-lg text-xs"
+                                    :loading="downloadingType === document.type"
+                                    :disabled="
+                                        isNoticeLevelDocument(document.type)
+                                            ? !hasDocument(document.type)
+                                            : !selectedProjects.length
+                                    "
+                                >
+                                    {{ isNoticeLevelDocument(document.type) ? 'Baixar' : 'Baixar todos' }}
+                                    <v-icon end size="16">mdi-chevron-down</v-icon>
+                                </v-btn>
+                            </template>
+
+                            <v-list density="compact">
+                                <v-list-item
+                                    title="PDF"
+                                    prepend-icon="mdi-file-pdf-box"
+                                    @click="downloadDocuments(document.type, 'pdf')"
+                                />
+                                <v-list-item
+                                    title="DOCX"
+                                    prepend-icon="mdi-file-word-box"
+                                    @click="downloadDocuments(document.type, 'docx')"
+                                />
+                                <v-list-item
+                                    title="DOCX Casa Civil"
+                                    prepend-icon="mdi-file-word-box"
+                                    @click="downloadDocuments(document.type, 'docx_casa_civil')"
+                                />
+                            </v-list>
+                        </v-menu>
 
                         <v-btn
                             class="flex-1 !shadow-none !font-bold !bg-[#ffcc05FF] !text-[#2d353fFF] rounded-lg text-xs"
