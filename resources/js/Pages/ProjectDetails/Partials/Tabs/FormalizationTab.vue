@@ -518,18 +518,17 @@ const permissionMessage = computed(() => {
                                                 :error="errors.sacc_number"
                                             />
                                         </FormField>
+                                        <FormField label="Chamado CGE atende">
+                                            <SelectField
+                                                v-model="form.cge_atende_ticket"
+                                                :items="cgeAtendeStatus"
+                                                item-title="label"
+                                                item-value="value"
+                                                label="Selecione um status"
+                                                data-cy="cge-atende-ticket-select"
+                                            />
+                                        </FormField>
                                     </div>
-
-                                    <FormField label="Chamado CGE atende">
-                                        <SelectField
-                                            v-model="form.cge_atende_ticket"
-                                            :items="cgeAtendeStatus"
-                                            item-title="label"
-                                            item-value="value"
-                                            label="Selecione um status"
-                                            data-cy="cge-atende-ticket-select"
-                                        />
-                                    </FormField>
 
                                     <FormField label="Deliberação">
                                         <SelectField
@@ -555,21 +554,21 @@ const permissionMessage = computed(() => {
                                                 type="date"
                                             />
                                         </FormField>
-                                    </div>
 
-                                    <FormField
-                                        label="Data de Publicação do Diário Oficial do Estado"
-                                        required
-                                        :error="errors.official_gazette_published_at"
-                                    >
-                                        <TextField
-                                            v-model="form.official_gazette_published_at"
-                                            type="date"
-                                            label="Insira a data"
-                                            data-cy="official-gazette-published-at-input"
+                                        <FormField
+                                            label="Data de Publicação do Diário Oficial do Estado"
+                                            required
                                             :error="errors.official_gazette_published_at"
-                                        />
-                                    </FormField>
+                                        >
+                                            <TextField
+                                                v-model="form.official_gazette_published_at"
+                                                type="date"
+                                                label="Insira a data"
+                                                data-cy="official-gazette-published-at-input"
+                                                :error="errors.official_gazette_published_at"
+                                            />
+                                        </FormField>
+                                    </div>
                                 </div>
                             </template>
 
