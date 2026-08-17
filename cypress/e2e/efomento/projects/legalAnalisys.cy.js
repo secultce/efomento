@@ -1,17 +1,28 @@
-import LegalAnalisysWorkflow from '../../../support/workflows/FormalizationWorkflow.js';
+import LegalAnalysisWorkflow from '../../../support/workflows/LegalAnalysisWorkflow.js';
 
-describe('Legal Analisys', () => {
+describe('Legal Analysis', () => {
     beforeEach(() => {
         cy.fixture('notices').as('notice');
         cy.fixture('projects').as('project');
     });
 
     describe('Navigation', () => {
-        it('should access legal analisys tab', function () {
-            LegalAnalisysWorkflow.accessFormalizationTab({
+        it('should access legal analysis tab', function () {
+            LegalAnalysisWorkflow.accessLegalAnalysisTab({
                 role: 'formalization',
                 notice: this.notice,
                 project: this.project,
+            });
+        });
+    });
+
+    describe.only('Process Project', () => {
+        it('should process project to formalization successfully', function () {
+            LegalAnalysisWorkflow.tramitProcessToFormalizationPhase({
+                role: 'formalization',
+                notice: this.notice,
+                project: this.project,
+                fileStatus: 'De acordo',
             });
         });
     });

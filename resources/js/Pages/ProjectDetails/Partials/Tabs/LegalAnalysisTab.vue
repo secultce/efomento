@@ -84,7 +84,7 @@ const permissionMessage = computed(() => {
         </template>
 
         <template #right-content>
-            <div class="space-y-6">
+            <div class="space-y-6" data-cy="legal-analysis-right-panel">
                 <div class="flex items-center justify-between">
                     <p class="font-bold text-lg">Campos para você avaliar</p>
                 </div>
@@ -110,6 +110,7 @@ const permissionMessage = computed(() => {
                             :groups="groups"
                             :project="project"
                             :status-options="statusOptions"
+                            data-cy="document-evaluation-list"
                             @status-updated="onStatusUpdated"
                         />
 

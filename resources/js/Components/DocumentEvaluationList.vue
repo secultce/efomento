@@ -29,6 +29,7 @@ const emit = defineEmits(['status-updated']);
                     :file="file"
                     :project="project"
                     :status-options="statusOptions"
+                    data-cy="document-evaluation-item"
                     @status-updated="emit('status-updated', $event)"
                 />
             </div>
