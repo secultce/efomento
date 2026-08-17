@@ -7,6 +7,7 @@ use DOMDocument;
 use DOMElement;
 use DOMNode;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Storage;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
 use ZipArchive;
 
@@ -130,7 +131,7 @@ class DocumentDocxService
             ->filter(fn ($image) => $image->section?->value === $section)
             ->values()
             ->map(function ($image, int $index) use ($section) {
-                $path = public_path('storage/'.$image->path);
+                $path = Storage::disk('public')->path($image->path);
                 $size = is_file($path) ? @getimagesize($path) : false;
 
                 if (! $size) {

@@ -104,6 +104,8 @@ class CIDocumentTest extends TestCase
     #[Test]
     public function it_downloads_an_individual_document_as_docx(): void
     {
+        Storage::fake('public');
+
         $user = User::factory()->create();
         $project = Project::factory()->create();
         $document = Document::factory()->create([
@@ -191,6 +193,8 @@ class CIDocumentTest extends TestCase
     #[Test]
     public function it_applies_the_casa_civil_docx_profile(): void
     {
+        Storage::fake('public');
+
         $user = User::factory()->create();
         $project = Project::factory()->create();
         $document = Document::factory()->create([
