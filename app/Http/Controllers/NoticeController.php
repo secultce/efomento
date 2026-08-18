@@ -6,6 +6,7 @@ use App\Enums\InstrumentType;
 use App\Http\Requests\Notice\NoticeStoreRequest;
 use App\Http\Requests\Notice\NoticeUpdateRequest;
 use App\Http\Resources\AuditResource;
+use App\Jobs\SyncNoticesJob;
 use App\Models\Notice;
 use App\Services\AuditService;
 use App\Services\NoticeService;
@@ -82,5 +83,12 @@ class NoticeController extends Controller
         $audits = $this->auditService->getAudits($notice);
 
         return AuditResource::collection($audits);
+    }
+
+    public function sync()
+    {
+        SyncNoticesJob::dispatch();
+
+        return back()->with('success', 'Sincronização de editais iniciada com sucesso.');
     }
 }
