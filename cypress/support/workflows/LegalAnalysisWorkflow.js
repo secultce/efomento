@@ -31,10 +31,10 @@ class LegalAnalisysWorkflow {
         TramitProcess.tramit();
     }
 
-    returnProcessToOpeningPhase({ role, notice, project }) {
+    returnProcessToOpeningPhase({ role, notice, project, documentType }) {
         this.accessLegalAnalysisTab({ role, notice, project });
 
-        ProcessReturn.retunProcesss();
+        ProcessReturn.retunProcesss(documentType);
     }
 }
 

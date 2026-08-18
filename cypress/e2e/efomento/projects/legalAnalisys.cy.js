@@ -1,4 +1,5 @@
 import LegalAnalysisWorkflow from '../../../support/workflows/LegalAnalysisWorkflow.js';
+import { DOCUMENTS } from '../../../support/constants/documents.js';
 
 describe('Legal Analysis', () => {
     beforeEach(() => {
@@ -26,11 +27,12 @@ describe('Legal Analysis', () => {
             });
         });
 
-        it.only('should return project to opening tab successfully', function () {
+        it('should return project to opening tab successfully', function () {
             LegalAnalysisWorkflow.returnProcessToOpeningPhase({
                 role: 'formalization',
                 notice: this.notice,
                 project: this.project,
+                documentType: DOCUMENTS.devolutionMotive,
             });
         });
     });
