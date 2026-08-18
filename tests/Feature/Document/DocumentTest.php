@@ -6,6 +6,7 @@ use App\Enums\DocumentPhase;
 use App\Enums\DocumentStatus;
 use App\Enums\DocumentType;
 use App\Exceptions\Domain\BusinessRuleException;
+use App\Http\Requests\Document\DocumentUpdateRequest;
 use App\Models\Budget;
 use App\Models\BudgetAllocation;
 use App\Models\Document;
@@ -475,6 +476,35 @@ class DocumentTest extends TestCase
         $this->assertStringNotContainsString('PRIMEIRA LINHA DO EDITAL', $resolvedBody);
     }
 
+    public function test_resolver_uses_one_allocation_for_all_budget_opinion_placeholders(): void
+    {
+        $project = Project::factory()->create();
+        BudgetAllocation::factory()->create([
+            'notice_id' => $project->notice_id,
+            'allocation_code' => 'FIRST-CODE',
+            'management_unit' => 'PRIMEIRA LINHA DO EDITAL',
+        ]);
+        BudgetAllocation::factory()->create([
+            'notice_id' => $project->notice_id,
+            'allocation_code' => 'LATEST-CODE',
+            'management_unit' => 'ÚLTIMA LINHA DO EDITAL',
+        ]);
+        $document = Document::factory()->create([
+            'project_id' => $project->id,
+            'notice_id' => $project->notice_id,
+            'type' => DocumentType::PF,
+            'phase' => DocumentPhase::BUDGET,
+            'body' => '[allocation_code] | [budget_allocation_data]',
+        ]);
+
+        $resolvedBody = app(DocumentPlaceholderResolver::class)->resolve($document);
+
+        $this->assertStringContainsString('LATEST-CODE', $resolvedBody);
+        $this->assertStringContainsString('ÚLTIMA LINHA DO EDITAL', $resolvedBody);
+        $this->assertStringNotContainsString('FIRST-CODE', $resolvedBody);
+        $this->assertStringNotContainsString('PRIMEIRA LINHA DO EDITAL', $resolvedBody);
+    }
+
     public function test_resolver_replaces_allocation_using_the_agent_macroregion_before_budget_exists(): void
     {
         $notice = Notice::factory()->create();
@@ -802,6 +832,19 @@ class DocumentTest extends TestCase
 
         $response->assertStatus(422)
             ->assertJsonFragment(['message' => "Combinação de tipo e fase inválida: tipo={$type->value}, fase={$invalidPhase->value}."]);
+    }
+
+    public function test_update_request_denies_access_when_the_document_is_not_resolved(): void
+    {
+        $request = new class extends DocumentUpdateRequest
+        {
+            public function route($param = null, $default = null): mixed
+            {
+                return null;
+            }
+        };
+
+        $this->assertFalse($request->authorize());
     }
 
     // -------------------------------------------------------------------------

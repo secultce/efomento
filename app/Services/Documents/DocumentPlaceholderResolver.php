@@ -41,9 +41,10 @@ class DocumentPlaceholderResolver
         $notice = $document->project?->notice ?? $document->notice;
         $currentInstallment = $document->project?->budgets?->installments
             ?->firstWhere('installment_number', $document->project?->current_installment_cycle);
-        $budgetAllocation = $document->project
-            ? $this->budgetAllocationResolver->resolve($document->project)
-            : null;
+        $body = (string) $document->body;
+        $budgetAllocation = str_contains($body, '[budget_allocation_data]')
+            ? $this->budgetAllocationResolver->resolveForBudgetOpinion($document->project, $notice)
+            : ($document->project ? $this->budgetAllocationResolver->resolve($document->project) : null);
 
         $replacements = [
             '[notice_name]' => $notice?->name ?? '',
@@ -72,9 +73,9 @@ class DocumentPlaceholderResolver
             '[project_category]' => $document->project?->category?->name ?? '',
         ];
 
-        $body = str_replace(array_keys($replacements), array_values($replacements), (string) $document->body);
+        $body = str_replace(array_keys($replacements), array_values($replacements), $body);
 
-        $body = $this->replaceBudgetAllocationData($body, $document->project, $notice);
+        $body = $this->replaceBudgetAllocationDataWithAllocation($body, $budgetAllocation);
 
         return $this->replaceBudgetAllocationsByRegionTable($body, $notice);
     }
@@ -85,10 +86,9 @@ class DocumentPlaceholderResolver
             return $content;
         }
 
-        return str_replace(
-            '[budget_allocation_data]',
-            $this->budgetAllocationData($project, $notice),
+        return $this->replaceBudgetAllocationDataWithAllocation(
             $content,
+            $this->budgetAllocationResolver->resolveForBudgetOpinion($project, $notice),
         );
     }
 
@@ -144,19 +144,15 @@ class DocumentPlaceholderResolver
         return str_replace($placeholder, $table, $content);
     }
 
-    private function budgetAllocationData(?Project $project, ?Notice $notice): string
-    {
-        if (! $project && ! $notice) {
-            return '';
-        }
-
-        $allocation = $this->budgetAllocationResolver->resolveForBudgetOpinion($project, $notice);
-
-        if (! $allocation) {
-            return '';
-        }
-
-        return $this->budgetAllocationBlock($allocation);
+    private function replaceBudgetAllocationDataWithAllocation(
+        string $content,
+        ?BudgetAllocation $allocation,
+    ): string {
+        return str_replace(
+            '[budget_allocation_data]',
+            $allocation ? $this->budgetAllocationBlock($allocation) : '',
+            $content,
+        );
     }
 
     private function budgetAllocationBlock(BudgetAllocation $allocation): string

@@ -66,10 +66,10 @@ class DocumentController extends Controller
         return DocumentResource::make($document->load('images'));
     }
 
-    public function destroy(Document $document): JsonResponse
+    public function destroy(Request $request, Document $document): JsonResponse
     {
         if ($document->type->isBudgetOpinion()) {
-            abort_unless(request()->user()->hasAnyRole(Role::budgetRoles()), 403);
+            abort_unless($request->user()?->hasAnyRole(Role::budgetRoles()) ?? false, 403);
         }
 
         $document->delete();

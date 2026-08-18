@@ -16,8 +16,11 @@ class DocumentUpdateRequest extends FormRequest
     {
         $document = $this->route('document');
 
-        return ! $document instanceof Document
-            || ! $document->type->isBudgetOpinion()
+        if (! $document instanceof Document) {
+            return false;
+        }
+
+        return ! $document->type->isBudgetOpinion()
             || $this->user()?->hasAnyRole(Role::budgetRoles());
     }
 

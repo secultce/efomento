@@ -113,9 +113,19 @@ class CIDocumentTest extends TestCase
             'notice_id' => $project->notice_id,
             'type' => 'ci',
             'phase' => 'opening',
-            'body' => '<p>Conteúdo <strong>editável</strong></p>'
-                .'<table><thead><tr><th>Campo</th><th>Valor</th></tr></thead>'
-                .'<tbody><tr><td>Identificador</td><td>valor-muito-longo-sem-espacos-para-validar-a-largura</td></tr></tbody></table>',
+            'body' => '<h2>Subtítulo</h2>'
+                .'<p style="font-family: Georgia; font-size: 18px; color: rgb(18, 52, 86); background-color: #fed; text-align: right; margin-left: 20px; line-height: 1.25">'
+                .'Conteúdo <strong>editável</strong><sup>2</sup></p>'
+                .'<div style="font-family: Courier New; color: #654321; text-align: center"><p>Formatação herdada</p></div>'
+                ."<pre>linha 1\n  linha 2</pre>"
+                .'<ul><li>Primeiro item</li><li>Segundo item</li></ul>'
+                .'<table style="font-size: 8px; text-align: left"><thead><tr>'
+                .'<th style="width: 34%; border: 1px solid #9ca3af; padding: 6px 7px; background-color: #d9d9d9; text-align: center">Campo</th>'
+                .'<th style="width: 66%; border: 1px solid #9ca3af; padding: 6px 7px; background-color: #d9d9d9; text-align: center">Valor</th>'
+                .'</tr></thead><tbody><tr>'
+                .'<td style="border: 1px solid #9ca3af; padding: 5px 7px">Identificador</td>'
+                .'<td style="border: 1px solid #9ca3af; padding: 5px 7px">valor-muito-longo-sem-espacos-para-validar-a-largura</td>'
+                .'</tr></tbody></table>',
             'created_by' => $user->id,
         ]);
         $imagePath = 'documents/docx-test-header.png';
@@ -145,13 +155,63 @@ class CIDocumentTest extends TestCase
         $zip = new ZipArchive;
         $this->assertTrue($zip->open($response->getFile()->getPathname()));
         $documentXml = $zip->getFromName('word/document.xml');
+        $stylesXml = $zip->getFromName('word/styles.xml');
+        $numberingXml = $zip->getFromName('word/numbering.xml');
 
         $this->assertIsString($documentXml);
+        $this->assertIsString($stylesXml);
+        $this->assertIsString($numberingXml);
         $this->assertStringContainsString('Conteúdo', $documentXml);
         $this->assertStringContainsString('<w:b/>', $documentXml);
+        $this->assertStringContainsString(
+            '<w:rFonts w:ascii="Georgia" w:hAnsi="Georgia" w:eastAsia="Georgia" w:cs="Georgia"/>',
+            $documentXml
+        );
+        $this->assertStringContainsString('<w:sz w:val="27"/><w:szCs w:val="27"/>', $documentXml);
+        $this->assertStringContainsString('<w:color w:val="123456"/>', $documentXml);
+        $this->assertStringContainsString('<w:shd w:val="clear" w:color="auto" w:fill="FFEEDD"/>', $documentXml);
+        $this->assertStringContainsString('<w:spacing w:line="300" w:lineRule="auto"/>', $documentXml);
+        $this->assertStringContainsString('<w:ind w:left="300"/>', $documentXml);
+        $this->assertStringContainsString('<w:jc w:val="right"/>', $documentXml);
+        $this->assertStringContainsString('<w:vertAlign w:val="superscript"/>', $documentXml);
+        $this->assertStringContainsString(
+            '<w:rFonts w:ascii="Courier New" w:hAnsi="Courier New" w:eastAsia="Courier New" w:cs="Courier New"/>',
+            $documentXml
+        );
+        $this->assertStringContainsString('<w:color w:val="654321"/>', $documentXml);
+        $this->assertStringContainsString('linha 1</w:t><w:br/><w:t xml:space="preserve">  linha 2', $documentXml);
+        $this->assertStringContainsString('<w:spacing w:before="225" w:after="225"/>', $documentXml);
         $this->assertStringContainsString('<w:tblW w:w="5000" w:type="pct"/>', $documentXml);
         $this->assertStringContainsString('<w:tblLayout w:type="fixed"/>', $documentXml);
-        $this->assertStringContainsString('<w:gridCol w:w="5103"/>', $documentXml);
+        $this->assertStringContainsString('<w:gridCol w:w="3538"/><w:gridCol w:w="6868"/>', $documentXml);
+        $this->assertStringContainsString('<w:top w:val="single" w:sz="6" w:color="CCCCCC"/>', $documentXml);
+        $this->assertStringContainsString('<w:top w:val="single" w:sz="6" w:color="9CA3AF"/>', $documentXml);
+        $this->assertStringContainsString('<w:shd w:val="clear" w:color="auto" w:fill="D9D9D9"/>', $documentXml);
+        $this->assertStringContainsString(
+            '<w:tcMar><w:top w:w="90" w:type="dxa"/><w:left w:w="105" w:type="dxa"/><w:bottom w:w="90" w:type="dxa"/><w:right w:w="105" w:type="dxa"/></w:tcMar>',
+            $documentXml
+        );
+        $this->assertStringContainsString('<w:sz w:val="12"/><w:szCs w:val="12"/>', $documentXml);
+        $this->assertStringContainsString(
+            '<w:spacing w:after="0" w:before="0" w:line="408" w:lineRule="auto"/><w:jc w:val="center"/>',
+            $documentXml
+        );
+        $this->assertStringContainsString(
+            '<w:pgMar w:top="1800" w:right="750" w:bottom="1500" w:left="750" w:header="375" w:footer="0" w:gutter="0"/>',
+            $documentXml
+        );
+        $this->assertStringContainsString('DejaVu Sans', $stylesXml);
+        $this->assertStringContainsString('<w:sz w:val="18"/><w:szCs w:val="18"/>', $stylesXml);
+        $this->assertStringContainsString('<w:color w:val="1A1A1A"/>', $stylesXml);
+        $this->assertStringContainsString(
+            '<w:spacing w:after="180" w:before="0" w:line="408" w:lineRule="auto"/>',
+            $stylesXml
+        );
+        $this->assertStringNotContainsString('Times New Roman', $stylesXml);
+        $this->assertStringContainsString(
+            '<w:tab w:val="num" w:pos="300"/></w:tabs><w:ind w:left="300" w:hanging="180"/>',
+            $numberingXml
+        );
         $this->assertNotFalse($zip->locateName('word/header1.xml'));
         $this->assertNotFalse($zip->locateName('word/media/header_1.png'));
         $zip->close();
@@ -202,7 +262,7 @@ class CIDocumentTest extends TestCase
             'notice_id' => $project->notice_id,
             'type' => 'ci',
             'phase' => 'opening',
-            'body' => '<h1 style="font-size: 30px">Título Casa Civil</h1>'
+            'body' => '<h1 style="font-family: Georgia; font-size: 30px">Título Casa Civil</h1>'
                 .'<p>Texto justificado em tamanho institucional.</p>'
                 .'<table><tr><th>Campo</th><th>Valor</th></tr><tr><td>Um</td><td>Dois</td></tr></table>',
             'created_by' => $user->id,
@@ -247,6 +307,7 @@ class CIDocumentTest extends TestCase
         );
         $this->assertStringContainsString('<w:sz w:val="16"/><w:szCs w:val="16"/>', $documentXml);
         $this->assertStringNotContainsString('<w:sz w:val="60"/>', $documentXml);
+        $this->assertStringNotContainsString('Georgia', $documentXml);
         $this->assertStringContainsString(
             '<w:spacing w:after="0" w:before="0" w:line="240" w:lineRule="auto"/>',
             $documentXml
