@@ -16,13 +16,21 @@ describe('Legal Analysis', () => {
         });
     });
 
-    describe('Process Project', () => {
+    describe('Process and return Project', () => {
         it('should process project to formalization successfully', function () {
             LegalAnalysisWorkflow.tramitProcessToFormalizationPhase({
                 role: 'formalization',
                 notice: this.notice,
                 project: this.project,
                 fileStatus: 'De acordo',
+            });
+        });
+
+        it.only('should return project to opening tab successfully', function () {
+            LegalAnalysisWorkflow.returnProcessToOpeningPhase({
+                role: 'formalization',
+                notice: this.notice,
+                project: this.project,
             });
         });
     });
