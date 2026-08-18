@@ -1,6 +1,10 @@
 <script setup>
+import { ref } from 'vue';
 import { router } from '@inertiajs/vue3';
 import AppNotificationMenu from '@/Components/AppNotificationMenu.vue';
+import { useSnackbar } from '@/Composables/useSnackbar';
+
+const { showSnackbar } = useSnackbar();
 
 defineProps({
     user: {
@@ -22,6 +26,30 @@ const iniciais = (name) =>
         .toUpperCase() ?? '?';
 
 const logout = () => router.post(route('logout'));
+
+const syncing = ref(false);
+
+const syncNotices = () => {
+    router.post(
+        route('notices.sync'),
+        {},
+        {
+            preserveScroll: true,
+            onStart: () => {
+                syncing.value = true;
+            },
+            onSuccess: (page) => {
+                showSnackbar(page.props.flash?.success ?? 'Sincronização iniciada com sucesso!', 'success');
+            },
+            onError: () => {
+                showSnackbar('Erro ao iniciar a sincronização.', 'error');
+            },
+            onFinish: () => {
+                syncing.value = false;
+            },
+        }
+    );
+};
 </script>
 
 <template>
@@ -34,8 +62,10 @@ const logout = () => router.post(route('logout'));
 
         <template #append>
             <v-btn variant="text" color="white" href="/editais"> Editais </v-btn>
-
             <v-btn variant="text" color="white"> Indicadores </v-btn>
+            <v-btn variant="text" color="white" :loading="syncing" :disabled="syncing" @click="syncNotices">
+                Sincronismo
+            </v-btn>
             <app-notification-menu :notifications-count="notificationsCount" />
             <v-menu location="bottom end">
                 <template #activator="{ props: menuProps }">

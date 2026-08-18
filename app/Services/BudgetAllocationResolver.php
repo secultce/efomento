@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Models\BudgetAllocation;
+use App\Models\Notice;
 use App\Models\Project;
 use Illuminate\Support\Str;
 
@@ -54,6 +55,29 @@ class BudgetAllocationResolver
         return $allocations->count() === 1
             ? $allocations->first()
             : null;
+    }
+
+    public function resolveForBudgetOpinion(?Project $project, ?Notice $notice = null): ?BudgetAllocation
+    {
+        if ($project) {
+            $project->loadMissing([
+                'budgets.installments.budgetAllocation',
+                'notice.budgetAllocations',
+            ]);
+
+            $currentInstallment = $project->budgets?->installments
+                ?->firstWhere('installment_number', $project->current_installment_cycle);
+
+            if ($currentInstallment?->budgetAllocation) {
+                return $currentInstallment->budgetAllocation;
+            }
+
+            $notice = $project->notice ?? $notice;
+        }
+
+        $notice?->loadMissing('budgetAllocations');
+
+        return $notice?->budgetAllocations?->sortByDesc('id')->first();
     }
 
     private function normalizeMacroregion(mixed $value): ?string

@@ -45,8 +45,12 @@ function typeName(doc) {
     return doc.type_name ?? doc.type_label ?? doc.type;
 }
 
-function projectName(doc) {
-    return doc.project?.title_project ?? doc.project?.agent?.name ?? 'Projeto';
+function contextLabel(doc) {
+    return doc.project ? 'do projeto' : 'do edital';
+}
+
+function contextName(doc) {
+    return doc.project?.title_project ?? doc.project?.agent?.name ?? doc.notice?.name ?? 'Edital';
 }
 
 function download(doc) {
@@ -83,8 +87,8 @@ function close() {
                     class="d-flex items-center justify-between border rounded-lg px-4 py-3 mb-2"
                 >
                     <span class="text-sm text-[#3b3b3c] font-medium">
-                        {{ typeName(doc) }} do projeto:
-                        {{ projectName(doc) }}
+                        {{ typeName(doc) }} {{ contextLabel(doc) }}:
+                        {{ contextName(doc) }}
                     </span>
 
                     <div class="d-flex gap-1 flex-shrink-0 ml-3">

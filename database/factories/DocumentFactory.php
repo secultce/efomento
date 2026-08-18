@@ -21,6 +21,8 @@ class DocumentFactory extends Factory
             [DocumentType::TC, DocumentPhase::FORMALIZATION],
             [DocumentType::ET, DocumentPhase::FORMALIZATION],
             [DocumentType::PJ, DocumentPhase::JURIDICAL],
+            [DocumentType::PI, DocumentPhase::BUDGET],
+            [DocumentType::PF, DocumentPhase::BUDGET],
             [DocumentType::DO, DocumentPhase::BUDGET],
             [DocumentType::DP, DocumentPhase::PAYMENT],
         ];

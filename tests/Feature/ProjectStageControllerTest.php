@@ -201,7 +201,7 @@ class ProjectStageControllerTest extends TestCase
         $this->assertEquals(ProjectStageStatus::EM_ANDAMENTO, $stage->fresh()->status);
     }
 
-    public function test_cannot_advance_abertura_stage_without_formalization_data(): void
+    public function test_advances_abertura_stage_without_alternate_supervisor(): void
     {
         $project = Project::factory()->create();
         $stage = $project->stages()
@@ -216,13 +216,18 @@ class ProjectStageControllerTest extends TestCase
             'is_active' => true,
             'assigned_at' => now(),
         ]);
+        Formalization::factory()->create([
+            'project_id' => $project->id,
+            'report_status' => 'REGULAR E_ADIMPLENTE',
+            'eparcerias_certificate_date' => now()->toDateString(),
+        ]);
         $user = $this->createUserWithRoles('fomentation');
 
         $this->actingAs($user)
             ->patch(route('projects.stages.advance', [$project, $stage]))
-            ->assertSessionHasErrors(['opening']);
+            ->assertSessionHas('success');
 
-        $this->assertEquals(ProjectStageStatus::EM_ANDAMENTO, $stage->fresh()->status);
+        $this->assertEquals(ProjectStageStatus::APROVADO, $stage->fresh()->status);
     }
 
     public function test_advance_returns_error_message_when_user_lacks_role(): void

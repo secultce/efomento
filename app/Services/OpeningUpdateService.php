@@ -108,10 +108,6 @@ class OpeningUpdateService implements StageValidatorInterface
             $missingFields->push('Fiscal titular');
         }
 
-        if (! $opening->alternateSupervisor()->exists()) {
-            $missingFields->push('Fiscal suplente');
-        }
-
         if ($missingFields->isNotEmpty()) {
             throw ValidationException::withMessages([
                 'opening' => 'Preencha e salve os campos obrigatórios antes de tramitar: '
