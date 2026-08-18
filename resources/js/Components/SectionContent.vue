@@ -66,6 +66,7 @@ const copyValue = async (value) => {
                 v-for="(field, index) in section.fields"
                 :key="field.label"
                 class="flex flex-col w-full"
+                :class="{ 'md:col-span-2': field.fullWidth }"
                 @mouseenter="hoveredIndex = index"
                 @mouseleave="hoveredIndex = null"
             >
