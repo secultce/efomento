@@ -1,6 +1,7 @@
 <script setup>
 import { computed, ref } from 'vue';
 
+import DocumentDownloadMenu from '@/Components/DocumentDownloadMenu.vue';
 import NoticeHistoryDialog from '@/Pages/Projects/Partials/Actions/NoticeHistoryDialog.vue';
 import HandleDocumentsDialog from '../HandleDocumentsDialog.vue';
 import DocumentListDialog from '../DocumentListDialog.vue';
@@ -177,39 +178,13 @@ const selectedDocument = computed(() => {
                     </div>
 
                     <div class="w-full flex flex-col sm:flex-row gap-2">
-                        <v-menu location="bottom">
-                            <template #activator="{ props: menuProps }">
-                                <v-btn
-                                    v-bind="menuProps"
-                                    variant="outlined"
-                                    class="flex-1 !shadow-none !border-primary !text-primary rounded-lg text-xs"
-                                    :loading="downloadingZip"
-                                    color="primary"
-                                    :disabled="!selectedProjects?.length"
-                                >
-                                    Baixar todos
-                                    <v-icon end size="16">mdi-chevron-down</v-icon>
-                                </v-btn>
-                            </template>
-
-                            <v-list density="compact">
-                                <v-list-item
-                                    title="PDF"
-                                    prepend-icon="mdi-file-pdf-box"
-                                    @click="downloadZip(doc.type, 'pdf')"
-                                />
-                                <v-list-item
-                                    title="DOCX"
-                                    prepend-icon="mdi-file-word-box"
-                                    @click="downloadZip(doc.type, 'docx')"
-                                />
-                                <v-list-item
-                                    title="DOCX Casa Civil"
-                                    prepend-icon="mdi-file-word-box"
-                                    @click="downloadZip(doc.type, 'docx_casa_civil')"
-                                />
-                            </v-list>
-                        </v-menu>
+                        <DocumentDownloadMenu
+                            label="Baixar todos"
+                            button-class="flex-1 !shadow-none !border-primary !text-primary rounded-lg text-xs"
+                            :loading="downloadingZip"
+                            :disabled="!selectedProjects?.length"
+                            @download="downloadZip(doc.type, $event)"
+                        />
 
                         <v-btn
                             class="flex-1 !shadow-none !font-bold !bg-[#ffcc05FF] !text-[#2d353fFF] rounded-lg text-xs"

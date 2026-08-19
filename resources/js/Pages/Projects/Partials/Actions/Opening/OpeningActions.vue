@@ -1,5 +1,6 @@
 <script setup>
 import { computed, ref } from 'vue';
+import DocumentDownloadMenu from '@/Components/DocumentDownloadMenu.vue';
 import SupervisorDialog from '@/Pages/Projects/Partials/Actions/SupervisorDialog.vue';
 import { useAuth } from '@/Composables/useAuth';
 import { usePermissions } from '@/Composables/usePermissions';
@@ -162,31 +163,13 @@ function openNoticeHistory() {
                 </template>
             </div>
             <div class="w-full flex flex-col sm:flex-row gap-2">
-                <v-menu location="bottom">
-                    <template #activator="{ props: menuProps }">
-                        <v-btn
-                            v-bind="menuProps"
-                            variant="outlined"
-                            class="flex-1 !shadow-none !border-primary !text-primary rounded-lg text-xs"
-                            :loading="downloadingZip"
-                            :disabled="!selectedProjects?.length"
-                            color="primary"
-                        >
-                            Baixar todos
-                            <v-icon end size="16">mdi-chevron-down</v-icon>
-                        </v-btn>
-                    </template>
-
-                    <v-list density="compact">
-                        <v-list-item title="PDF" prepend-icon="mdi-file-pdf-box" @click="downloadZip('pdf')" />
-                        <v-list-item title="DOCX" prepend-icon="mdi-file-word-box" @click="downloadZip('docx')" />
-                        <v-list-item
-                            title="DOCX Casa Civil"
-                            prepend-icon="mdi-file-word-box"
-                            @click="downloadZip('docx_casa_civil')"
-                        />
-                    </v-list>
-                </v-menu>
+                <DocumentDownloadMenu
+                    label="Baixar todos"
+                    button-class="flex-1 !shadow-none !border-primary !text-primary rounded-lg text-xs"
+                    :loading="downloadingZip"
+                    :disabled="!selectedProjects?.length"
+                    @download="downloadZip"
+                />
                 <v-btn
                     data-cy="btnConferirDocumentos"
                     class="flex-1 !shadow-none !font-bold !bg-[#ffcc05FF] !text-[#2d353fFF] rounded-lg text-xs"

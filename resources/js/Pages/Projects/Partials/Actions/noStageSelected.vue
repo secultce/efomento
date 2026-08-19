@@ -3,6 +3,7 @@ import axios from 'axios';
 import { router } from '@inertiajs/vue3';
 import NoticeHistoryDialog from '@/Pages/Projects/Partials/Actions/NoticeHistoryDialog.vue';
 import BudgetAllocationImportDialog from '@/Pages/Projects/Partials/Actions/BudgetAllocationImportDialog.vue';
+import DocumentDownloadMenu from '@/Components/DocumentDownloadMenu.vue';
 import HandleDocumentsDialog from '@/Pages/Projects/Partials/Actions/HandleDocumentsDialog.vue';
 import DocumentListDialog from '@/Pages/Projects/Partials/Actions/DocumentListDialog.vue';
 import { computed, ref, watch } from 'vue';
@@ -381,43 +382,17 @@ function openNoticeHistory() {
                     </div>
 
                     <div class="flex w-full flex-col gap-2 sm:flex-row">
-                        <v-menu location="bottom">
-                            <template #activator="{ props: menuProps }">
-                                <v-btn
-                                    v-bind="menuProps"
-                                    variant="outlined"
-                                    color="primary"
-                                    class="flex-1 !shadow-none !border-primary !text-primary rounded-lg text-xs"
-                                    :loading="downloadingType === document.type"
-                                    :disabled="
-                                        isNoticeLevelDocument(document.type)
-                                            ? !hasDocument(document.type)
-                                            : !selectedProjects.length
-                                    "
-                                >
-                                    {{ isNoticeLevelDocument(document.type) ? 'Baixar' : 'Baixar todos' }}
-                                    <v-icon end size="16">mdi-chevron-down</v-icon>
-                                </v-btn>
-                            </template>
-
-                            <v-list density="compact">
-                                <v-list-item
-                                    title="PDF"
-                                    prepend-icon="mdi-file-pdf-box"
-                                    @click="downloadDocuments(document.type, 'pdf')"
-                                />
-                                <v-list-item
-                                    title="DOCX"
-                                    prepend-icon="mdi-file-word-box"
-                                    @click="downloadDocuments(document.type, 'docx')"
-                                />
-                                <v-list-item
-                                    title="DOCX Casa Civil"
-                                    prepend-icon="mdi-file-word-box"
-                                    @click="downloadDocuments(document.type, 'docx_casa_civil')"
-                                />
-                            </v-list>
-                        </v-menu>
+                        <DocumentDownloadMenu
+                            :label="isNoticeLevelDocument(document.type) ? 'Baixar' : 'Baixar todos'"
+                            button-class="flex-1 !shadow-none !border-primary !text-primary rounded-lg text-xs"
+                            :loading="downloadingType === document.type"
+                            :disabled="
+                                isNoticeLevelDocument(document.type)
+                                    ? !hasDocument(document.type)
+                                    : !selectedProjects.length
+                            "
+                            @download="downloadDocuments(document.type, $event)"
+                        />
 
                         <v-btn
                             class="flex-1 !shadow-none !font-bold !bg-[#ffcc05FF] !text-[#2d353fFF] rounded-lg text-xs"

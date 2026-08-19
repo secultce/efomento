@@ -1,5 +1,6 @@
 <script setup>
 import { computed } from 'vue';
+import DocumentDownloadMenu from '@/Components/DocumentDownloadMenu.vue';
 import SanitizedHtml from '@/Components/SanitizedHtml.vue';
 import { getBudgetAllocation } from '@/Schemas/getBudgetAllocation';
 
@@ -65,9 +66,9 @@ function close() {
 
 <template>
     <v-dialog v-model="isOpen" max-width="720" persistent scrollable>
-        <v-card class="rounded-lg d-flex flex-column" max-height="85vh">
-            <v-card-title class="d-flex justify-space-between items-center pa-4 pb-2 flex-shrink-0">
-                <span class="font-weight-bold text-sm">
+        <v-card class="flex flex-col rounded-lg" max-height="85vh">
+            <v-card-title class="flex shrink-0 items-center justify-between p-4 pb-2">
+                <span class="text-sm font-bold">
                     {{ contextLabel }}: {{ title.length > 50 ? title.substr(0, 49) + '...' : title }}
                 </span>
                 <v-btn icon size="small" variant="text" @click="close">
@@ -76,90 +77,23 @@ function close() {
             </v-card-title>
             <v-divider />
 
-            <v-card-text class="flex-grow-1 overflow-y-auto pa-6">
-                <div v-if="resolvedBody" class="document-preview text-sm text-[#3b3b3c] leading-relaxed">
+            <v-card-text class="min-h-0 flex-1 overflow-y-auto p-6">
+                <div
+                    v-if="resolvedBody"
+                    class="max-w-full text-sm leading-relaxed text-[#3b3b3c] [overflow-wrap:anywhere] [&_p]:mb-3 [&_ol]:mb-3 [&_ol]:pl-6 [&_ul]:mb-3 [&_ul]:pl-6 [&_table]:mb-4 [&_table]:max-w-full [&_table]:table-fixed [&_table]:border-collapse [&_table]:!w-full [&_td]:min-w-0 [&_td]:border [&_td]:border-gray-300 [&_td]:px-2 [&_td]:py-1.5 [&_td]:align-top [&_td]:!whitespace-normal [&_td]:[overflow-wrap:anywhere] [&_td]:[word-break:break-word] [&_th]:min-w-0 [&_th]:border [&_th]:border-gray-300 [&_th]:bg-[#e6f1e3] [&_th]:px-2 [&_th]:py-1.5 [&_th]:align-top [&_th]:font-bold [&_th]:!whitespace-normal [&_th]:[overflow-wrap:anywhere] [&_th]:[word-break:break-word] [&_img]:h-auto [&_img]:max-w-full [&_pre]:max-w-full [&_pre]:overflow-x-auto [&_pre]:whitespace-pre-wrap [&_pre]:[overflow-wrap:anywhere]"
+                >
                     <SanitizedHtml :content="resolvedBody" />
                 </div>
-                <div v-else class="text-center text-gray-400 py-6">Sem conteúdo disponível.</div>
+                <div v-else class="py-6 text-center text-gray-400">Sem conteúdo disponível.</div>
             </v-card-text>
 
             <v-divider />
 
-            <v-card-actions class="pa-4 flex-shrink-0">
+            <v-card-actions class="shrink-0 p-4">
                 <v-spacer />
-                <v-menu location="top end">
-                    <template #activator="{ props: menuProps }">
-                        <v-btn v-bind="menuProps" variant="outlined" color="primary" class="rounded-lg text-xs">
-                            Baixar
-                            <v-icon end size="16">mdi-chevron-down</v-icon>
-                        </v-btn>
-                    </template>
-
-                    <v-list density="compact">
-                        <v-list-item title="Baixar PDF" prepend-icon="mdi-file-pdf-box" @click="download('pdf')" />
-                        <v-list-item title="Baixar DOCX" prepend-icon="mdi-file-word-box" @click="download('docx')" />
-                        <v-list-item
-                            title="Baixar DOCX Casa Civil"
-                            prepend-icon="mdi-file-word-box"
-                            @click="download('docx_casa_civil')"
-                        />
-                    </v-list>
-                </v-menu>
-                <v-btn class="rounded-lg bg-secondary text-black mr-2" @click="close"> Fechar </v-btn>
+                <DocumentDownloadMenu location="top end" button-class="rounded-lg text-xs" @download="download" />
+                <v-btn class="mr-2 rounded-lg bg-secondary text-black" @click="close"> Fechar </v-btn>
             </v-card-actions>
         </v-card>
     </v-dialog>
 </template>
-
-<style scoped>
-.document-preview {
-    max-width: 100%;
-    overflow-wrap: anywhere;
-}
-
-.document-preview :deep(p) {
-    margin: 0 0 0.75rem;
-}
-
-.document-preview :deep(ul),
-.document-preview :deep(ol) {
-    margin: 0 0 0.75rem;
-    padding-left: 1.5rem;
-}
-
-.document-preview :deep(table) {
-    width: 100% !important;
-    max-width: 100%;
-    table-layout: fixed;
-    border-collapse: collapse;
-    margin-bottom: 1rem;
-}
-
-.document-preview :deep(th),
-.document-preview :deep(td) {
-    min-width: 0;
-    padding: 0.375rem 0.5rem;
-    border: 1px solid #d1d5db;
-    vertical-align: top;
-    white-space: normal !important;
-    overflow-wrap: anywhere;
-    word-break: break-word;
-}
-
-.document-preview :deep(th) {
-    background-color: #e6f1e3;
-    font-weight: 700;
-}
-
-.document-preview :deep(img) {
-    max-width: 100%;
-    height: auto;
-}
-
-.document-preview :deep(pre) {
-    max-width: 100%;
-    overflow-x: auto;
-    white-space: pre-wrap;
-    overflow-wrap: anywhere;
-}
-</style>

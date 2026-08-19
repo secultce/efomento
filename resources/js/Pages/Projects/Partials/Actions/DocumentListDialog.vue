@@ -1,5 +1,6 @@
 <script setup>
 import { computed, ref } from 'vue';
+import DocumentDownloadMenu from '@/Components/DocumentDownloadMenu.vue';
 import DocumentViewerDialog from '@/Components/DocumentViewerDialog.vue';
 
 const props = defineProps({
@@ -92,38 +93,15 @@ function close() {
                     </span>
 
                     <div class="d-flex gap-1 flex-shrink-0 ml-3">
-                        <v-menu v-if="showDownload" location="bottom end">
-                            <template #activator="{ props: menuProps }">
-                                <v-btn
-                                    v-bind="menuProps"
-                                    icon
-                                    size="small"
-                                    variant="text"
-                                    color="#008344"
-                                    aria-label="Baixar documento"
-                                >
-                                    <v-icon size="20"> mdi-download </v-icon>
-                                </v-btn>
-                            </template>
-
-                            <v-list density="compact">
-                                <v-list-item
-                                    title="Baixar PDF"
-                                    prepend-icon="mdi-file-pdf-box"
-                                    @click="download(doc, 'pdf')"
-                                />
-                                <v-list-item
-                                    title="Baixar DOCX"
-                                    prepend-icon="mdi-file-word-box"
-                                    @click="download(doc, 'docx')"
-                                />
-                                <v-list-item
-                                    title="Baixar DOCX Casa Civil"
-                                    prepend-icon="mdi-file-word-box"
-                                    @click="download(doc, 'docx_casa_civil')"
-                                />
-                            </v-list>
-                        </v-menu>
+                        <DocumentDownloadMenu
+                            v-if="showDownload"
+                            icon-only
+                            size="small"
+                            variant="text"
+                            color="#008344"
+                            location="bottom end"
+                            @download="download(doc, $event)"
+                        />
 
                         <v-btn v-if="showPreview" icon size="small" variant="text" color="#008344" @click="view(doc)">
                             <v-icon size="20"> mdi-eye-outline </v-icon>
