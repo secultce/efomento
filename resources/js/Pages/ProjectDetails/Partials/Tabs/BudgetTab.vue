@@ -57,7 +57,6 @@ const form = useForm({
     notice_installment_number: null,
     installment_amount: null,
     installment_request_date: null,
-    installment_justification: null,
     installment_observations: null,
     _method: null,
 });
@@ -74,7 +73,6 @@ onMounted(() => {
     form.notice_installment_number = currentInstallment?.notice_installment_number ?? null;
     form.installment_amount = currentInstallment?.amount ?? null;
     form.installment_request_date = normalizeDate(currentInstallment?.request_date) ?? null;
-    form.installment_justification = currentInstallment?.justification ?? null;
     form.installment_observations = currentInstallment?.observations ?? null;
 });
 
@@ -450,17 +448,6 @@ const permissionMessage = computed(() => {
                                             />
                                         </FormField>
                                     </div>
-
-                                    <FormField label="Justificativa da parcela">
-                                        <v-textarea
-                                            v-model="form.installment_justification"
-                                            label="Descreva a justificativa"
-                                            rows="2"
-                                            no-resize
-                                            variant="outlined"
-                                            class="mt-2"
-                                        />
-                                    </FormField>
 
                                     <FormField label="Observações sobre parcela">
                                         <v-textarea

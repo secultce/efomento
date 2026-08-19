@@ -21,7 +21,6 @@ return new class extends Migration
             $table->decimal('amount', 10, 2)->nullable();
             $table->date('request_date')->nullable();
 
-            $table->text('justification')->nullable();
             $table->text('observations')->nullable();
 
             $table->integer('installment_number');

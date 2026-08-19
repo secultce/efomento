@@ -111,7 +111,6 @@ class BudgetService implements StageValidatorInterface
             'notice_installment_number' => $data['notice_installment_number'] ?? null,
             'amount' => $data['installment_amount'] ?? null,
             'request_date' => $data['installment_request_date'] ?? null,
-            'justification' => $data['installment_justification'] ?? null,
             'observations' => $data['installment_observations'] ?? null,
         ];
     }

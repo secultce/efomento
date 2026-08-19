@@ -23,7 +23,6 @@ class InstallmentFactory extends Factory
             'amount' => $this->faker->randomFloat(2, 100, 10000),
             'request_date' => $this->faker->dateTimeBetween('-1 year', 'now'),
 
-            'justification' => $this->faker->optional()->sentence(),
             'observations' => $this->faker->optional()->paragraph(),
 
             'installment_number' => $this->faker->numberBetween(1, 10),
