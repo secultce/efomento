@@ -2,11 +2,14 @@
 
 namespace App\Http\Controllers;
 
+use App\Enums\DocumentType;
 use App\Enums\Role;
 use App\Http\Requests\Document\DocumentStoreRequest;
 use App\Http\Requests\Document\DocumentUpdateRequest;
 use App\Http\Resources\DocumentResource;
 use App\Models\Document;
+use App\Models\Project;
+use App\Services\Documents\DocumentDocxService;
 use App\Services\Documents\DocumentPdfService;
 use App\Services\Documents\DocumentPlaceholderResolver;
 use App\Services\Documents\DocumentService;
@@ -14,6 +17,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 use Illuminate\Http\Response;
+use Illuminate\Validation\Rule;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
 class DocumentController extends Controller
@@ -21,6 +25,7 @@ class DocumentController extends Controller
     public function __construct(
         private readonly DocumentService $documentService,
         private readonly DocumentPdfService $documentPdfService,
+        private readonly DocumentDocxService $documentDocxService,
         private readonly DocumentPlaceholderResolver $placeholderResolver,
     ) {}
 
@@ -64,10 +69,10 @@ class DocumentController extends Controller
         return DocumentResource::make($document->load('images'));
     }
 
-    public function destroy(Document $document): JsonResponse
+    public function destroy(Request $request, Document $document): JsonResponse
     {
         if ($document->type->isBudgetOpinion()) {
-            abort_unless(request()->user()->hasAnyRole(Role::budgetRoles()), 403);
+            abort_unless($request->user()?->hasAnyRole(Role::budgetRoles()) ?? false, 403);
         }
 
         $document->delete();
@@ -75,17 +80,46 @@ class DocumentController extends Controller
         return response()->json(null, 204);
     }
 
-    public function download(Document $document): Response
+    public function download(Request $request, Document $document): Response|BinaryFileResponse
     {
+        $format = $request->validate([
+            'format' => ['sometimes', 'string', 'in:pdf,docx,docx_casa_civil'],
+        ])['format'] ?? 'pdf';
+
+        if (in_array($format, ['docx', 'docx_casa_civil'], true)) {
+            $profile = $format === 'docx_casa_civil'
+                ? DocumentDocxService::PROFILE_CASA_CIVIL
+                : DocumentDocxService::PROFILE_STANDARD;
+
+            return $this->documentDocxService->download($document, profile: $profile);
+        }
+
         return $this->documentPdfService->download($document);
     }
 
     public function downloadZip(Request $request): BinaryFileResponse
     {
-        $projectIds = $request->validate(['project_ids' => 'required|array|min:1'])['project_ids'];
-        $type = $request->validate(['type' => 'required|string'])['type'];
+        $validated = $request->validate([
+            'project_ids' => ['required', 'array', 'min:1'],
+            'project_ids.*' => ['integer', 'distinct', Rule::exists(Project::class, 'id')],
+            'type' => ['required', Rule::enum(DocumentType::class)],
+            'format' => ['sometimes', 'string', 'in:pdf,docx,docx_casa_civil'],
+        ]);
+        $format = $validated['format'] ?? 'pdf';
+        $path = match ($format) {
+            'docx' => $this->documentDocxService->buildZip(
+                $validated['project_ids'],
+                $validated['type'],
+            ),
+            'docx_casa_civil' => $this->documentDocxService->buildZip(
+                $validated['project_ids'],
+                $validated['type'],
+                DocumentDocxService::PROFILE_CASA_CIVIL,
+            ),
+            default => $this->documentPdfService->buildZip($validated['project_ids'], $validated['type']),
+        };
 
-        return response()->download($this->documentPdfService->buildZip($projectIds, $type), 'documentos.zip', [
+        return response()->download($path, 'documentos.zip', [
             'Content-Type' => 'application/zip',
         ])->deleteFileAfterSend();
     }

@@ -93,6 +93,8 @@
         .content {
             line-height: 1.7;
             text-align: justify;
+            overflow-wrap: anywhere;
+            word-wrap: break-word;
         }
 
         .content p {
@@ -106,7 +108,9 @@
         }
 
         .content table {
-            width: 100%;
+            width: 100% !important;
+            max-width: 100% !important;
+            table-layout: fixed;
             border-collapse: collapse;
             margin-bottom: 15px;
         }
@@ -115,6 +119,25 @@
         .content table th {
             border: 1px solid #ccc;
             padding: 6px 8px;
+            white-space: normal;
+            overflow-wrap: anywhere;
+            word-wrap: break-word;
+            vertical-align: top;
+        }
+
+        .content table th {
+            background: #e6f1e3;
+            font-weight: bold;
+        }
+
+        .content img {
+            max-width: 100%;
+            height: auto;
+        }
+
+        .content pre {
+            white-space: pre-wrap;
+            word-wrap: break-word;
         }
     </style>
 </head>

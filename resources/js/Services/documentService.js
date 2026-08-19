@@ -5,10 +5,10 @@ export function saveDocument(payload, options = {}) {
     return router.post('/projetos/criar-documento', payload, options);
 }
 
-export async function downloadDocumentsZip(projectIds, type) {
+export async function downloadDocumentsZip(projectIds, type, format = 'pdf') {
     const response = await axios.post(
         '/projetos/documentos/download-zip',
-        { project_ids: projectIds, type: type },
+        { project_ids: projectIds, type, format },
         { responseType: 'blob' }
     );
 
