@@ -6,6 +6,8 @@ use App\Models\Document;
 use App\Services\Documents\DocumentPlaceholderResolver;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Storage;
+use RuntimeException;
+use Throwable;
 use ZipArchive;
 
 class DocumentDocxPackageBuilder
@@ -31,24 +33,38 @@ class DocumentDocxPackageBuilder
         $headerImages = $this->images($document, 'header');
         $footerImages = $this->images($document, 'footer');
         $body = $this->placeholderResolver->resolve($document);
-        $tempFile = tempnam(sys_get_temp_dir(), 'document_').'.docx';
+        $tempFile = $this->temporaryFile('document_');
         $zip = new ZipArchive;
-        $zip->open($tempFile, ZipArchive::CREATE | ZipArchive::OVERWRITE);
 
-        $zip->addFromString('[Content_Types].xml', $this->contentTypes($headerImages, $footerImages));
-        $zip->addFromString('_rels/.rels', $this->packageRelationships());
-        $zip->addFromString('docProps/core.xml', $this->coreProperties($document));
-        $zip->addFromString('docProps/app.xml', $this->appProperties());
-        $zip->addFromString('word/document.xml', $this->documentXml($body, $headerImages, $footerImages, $profile));
-        $zip->addFromString('word/styles.xml', $this->stylesXml($profile));
-        $zip->addFromString('word/numbering.xml', $this->numberingXml($profile));
-        $zip->addFromString('word/settings.xml', $this->settingsXml());
-        $zip->addFromString('word/_rels/document.xml.rels', $this->documentRelationships($headerImages, $footerImages));
+        if ($zip->open($tempFile, ZipArchive::CREATE | ZipArchive::OVERWRITE) !== true) {
+            @unlink($tempFile);
 
-        $this->addHeaderOrFooter($zip, 'header', $headerImages, $profile, $drawingId);
-        $this->addHeaderOrFooter($zip, 'footer', $footerImages, $profile, $drawingId);
+            throw new RuntimeException('Não foi possível criar o pacote DOCX.');
+        }
 
-        $zip->close();
+        try {
+            $this->addString($zip, '[Content_Types].xml', $this->contentTypes($headerImages, $footerImages));
+            $this->addString($zip, '_rels/.rels', $this->packageRelationships());
+            $this->addString($zip, 'docProps/core.xml', $this->coreProperties($document));
+            $this->addString($zip, 'docProps/app.xml', $this->appProperties());
+            $this->addString($zip, 'word/document.xml', $this->documentXml($body, $headerImages, $footerImages, $profile));
+            $this->addString($zip, 'word/styles.xml', $this->stylesXml($profile));
+            $this->addString($zip, 'word/numbering.xml', $this->numberingXml($profile));
+            $this->addString($zip, 'word/settings.xml', $this->settingsXml());
+            $this->addString($zip, 'word/_rels/document.xml.rels', $this->documentRelationships($headerImages, $footerImages));
+
+            $this->addHeaderOrFooter($zip, 'header', $headerImages, $profile, $drawingId);
+            $this->addHeaderOrFooter($zip, 'footer', $footerImages, $profile, $drawingId);
+
+            if (! $zip->close()) {
+                throw new RuntimeException('Não foi possível finalizar o pacote DOCX.');
+            }
+        } catch (Throwable $exception) {
+            $zip->close();
+            @unlink($tempFile);
+
+            throw $exception;
+        }
 
         return $tempFile;
     }
@@ -62,8 +78,8 @@ class DocumentDocxPackageBuilder
             ->filter(fn ($image) => $image->section?->value === $section)
             ->values()
             ->map(function ($image, int $index) use ($section) {
-                $path = Storage::disk('public')->path($image->path);
-                $size = is_file($path) ? @getimagesize($path) : false;
+                $path = $this->documentImagePath((string) $image->path);
+                $size = $path ? @getimagesize($path) : false;
 
                 if (! $size) {
                     return null;
@@ -101,17 +117,21 @@ class DocumentDocxPackageBuilder
             return;
         }
 
-        $zip->addFromString(
+        $this->addString(
+            $zip,
             "word/{$section}1.xml",
             $this->headerFooterXml($section, $images, $profile, $drawingId),
         );
-        $zip->addFromString(
+        $this->addString(
+            $zip,
             "word/_rels/{$section}1.xml.rels",
             $this->imageRelationships($images),
         );
 
         foreach ($images as $image) {
-            $zip->addFile($image['path'], 'word/media/'.$image['target']);
+            if (! $zip->addFile($image['path'], 'word/media/'.$image['target'])) {
+                throw new RuntimeException('Não foi possível adicionar uma imagem ao pacote DOCX.');
+            }
         }
     }
 
@@ -165,7 +185,11 @@ class DocumentDocxPackageBuilder
                     .'<w:p><w:pPr><w:jc w:val="'.$position.'"/></w:pPr>'
                     .($image ? $this->imageDrawing($image, 170, 80, $drawingId) : '').'</w:p></w:tc>';
             }
-            $content = '<w:tbl><w:tblPr><w:tblW w:w="5000" w:type="pct"/></w:tblPr><w:tr>'.$cells.'</w:tr></w:tbl>';
+            $columnWidth = intdiv($profile->contentWidthTwips(), 3);
+            $lastColumnWidth = $profile->contentWidthTwips() - (2 * $columnWidth);
+            $grid = '<w:tblGrid><w:gridCol w:w="'.$columnWidth.'"/><w:gridCol w:w="'.$columnWidth.'"/>'
+                .'<w:gridCol w:w="'.$lastColumnWidth.'"/></w:tblGrid>';
+            $content = '<w:tbl><w:tblPr><w:tblW w:w="5000" w:type="pct"/></w:tblPr>'.$grid.'<w:tr>'.$cells.'</w:tr></w:tbl>';
         }
 
         return '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'
@@ -199,6 +223,40 @@ class DocumentDocxPackageBuilder
             .'<pic:spPr><a:xfrm><a:off x="0" y="0"/><a:ext cx="'.$width.'" cy="'.$height.'"/></a:xfrm>'
             .'<a:prstGeom prst="rect"><a:avLst/></a:prstGeom></pic:spPr>'
             .'</pic:pic></a:graphicData></a:graphic></wp:inline></w:drawing></w:r>';
+    }
+
+    private function documentImagePath(string $relativePath): ?string
+    {
+        if (! preg_match('/\Adocuments\/[A-Za-z0-9_-]+\.(?:gif|jpe?g|png)\z/i', $relativePath)) {
+            return null;
+        }
+
+        $documentsDirectory = realpath(Storage::disk('public')->path('documents'));
+        $path = realpath(Storage::disk('public')->path($relativePath));
+
+        if ($documentsDirectory === false || $path === false) {
+            return null;
+        }
+
+        return str_starts_with($path, $documentsDirectory.DIRECTORY_SEPARATOR) ? $path : null;
+    }
+
+    private function temporaryFile(string $prefix): string
+    {
+        $temporaryFile = tempnam(sys_get_temp_dir(), $prefix);
+
+        if ($temporaryFile === false) {
+            throw new RuntimeException('Não foi possível criar um arquivo temporário.');
+        }
+
+        return $temporaryFile;
+    }
+
+    private function addString(ZipArchive $zip, string $name, string $contents): void
+    {
+        if (! $zip->addFromString($name, $contents)) {
+            throw new RuntimeException("Não foi possível adicionar {$name} ao pacote DOCX.");
+        }
     }
 
     private function contentTypes(Collection $headerImages, Collection $footerImages): string

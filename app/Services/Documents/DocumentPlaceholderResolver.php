@@ -42,9 +42,11 @@ class DocumentPlaceholderResolver
         $currentInstallment = $document->project?->budgets?->installments
             ?->firstWhere('installment_number', $document->project?->current_installment_cycle);
         $body = (string) $document->body;
-        $budgetAllocation = str_contains($body, '[budget_allocation_data]')
+        // Budget-opinion content uses the current installment, while notice-level documents
+        // fall back to the notice's latest allocation for every allocation placeholder.
+        $budgetAllocation = str_contains($body, '[budget_allocation_data]') || ! $document->project
             ? $this->budgetAllocationResolver->resolveForBudgetOpinion($document->project, $notice)
-            : ($document->project ? $this->budgetAllocationResolver->resolve($document->project) : null);
+            : $this->budgetAllocationResolver->resolve($document->project);
 
         $replacements = [
             '[notice_name]' => $notice?->name ?? '',

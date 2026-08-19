@@ -114,7 +114,7 @@ class BudgetOpinionDocumentTest extends TestCase
             'phase' => 'budget',
         ]);
 
-        $this->deleteJson("/api/documents/{$document->id}")->assertForbidden();
+        $this->deleteJson("/api/documents/{$document->id}")->assertUnauthorized();
 
         $this->assertDatabaseHas('documents', [
             'id' => $document->id,

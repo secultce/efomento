@@ -2,10 +2,12 @@
 
 namespace Tests\Feature;
 
+use App\Models\Agent;
 use App\Models\Document;
 use App\Models\Opening;
 use App\Models\Project;
 use App\Models\User;
+use App\Services\Documents\DocumentDocxService;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Storage;
@@ -153,14 +155,17 @@ class CIDocumentTest extends TestCase
             );
 
         $zip = new ZipArchive;
-        $this->assertTrue($zip->open($response->getFile()->getPathname()));
+        $docxPath = $response->getFile()->getPathname();
+        $this->assertTrue($zip->open($docxPath));
         $documentXml = $zip->getFromName('word/document.xml');
         $stylesXml = $zip->getFromName('word/styles.xml');
         $numberingXml = $zip->getFromName('word/numbering.xml');
+        $headerXml = $zip->getFromName('word/header1.xml');
 
         $this->assertIsString($documentXml);
         $this->assertIsString($stylesXml);
         $this->assertIsString($numberingXml);
+        $this->assertIsString($headerXml);
         $this->assertStringContainsString('Conteúdo', $documentXml);
         $this->assertStringContainsString('<w:b/>', $documentXml);
         $this->assertStringContainsString(
@@ -214,6 +219,8 @@ class CIDocumentTest extends TestCase
         );
         $this->assertNotFalse($zip->locateName('word/header1.xml'));
         $this->assertNotFalse($zip->locateName('word/media/header_1.png'));
+        $this->assertStringContainsString('<w:tblGrid>', $headerXml);
+        $this->assertSame(3, substr_count($headerXml, '<w:gridCol '));
         $zip->close();
 
         Storage::disk('public')->delete($imagePath);
@@ -243,11 +250,87 @@ class CIDocumentTest extends TestCase
         $response->assertOk()->assertHeader('Content-Type', 'application/zip');
 
         $zip = new ZipArchive;
-        $this->assertTrue($zip->open($response->getFile()->getPathname()));
+        $zipPath = $response->getFile()->getPathname();
+        $this->assertTrue($zip->open($zipPath));
         $this->assertSame(1, $zip->numFiles);
         $this->assertStringEndsWith('.docx', $zip->getNameIndex(0));
         $this->assertStringContainsString('_CASA_CIVIL.docx', $zip->getNameIndex(0));
         $zip->close();
+    }
+
+    #[Test]
+    public function it_keeps_every_document_when_zip_filenames_would_otherwise_collide(): void
+    {
+        $agent = Agent::factory()->create(['name' => 'Mesmo agente']);
+        $projects = collect([1, 2])->map(fn () => Project::factory()->create([
+            'agent_id' => $agent->id,
+        ]));
+        $createdAt = now()->startOfSecond();
+
+        foreach ($projects as $project) {
+            Document::factory()->create([
+                'project_id' => $project->id,
+                'notice_id' => $project->notice_id,
+                'type' => 'ci',
+                'phase' => 'opening',
+                'body' => '<p>Comunicação interna</p>',
+                'created_at' => $createdAt,
+            ]);
+        }
+
+        $path = app(DocumentDocxService::class)->buildZip($projects->pluck('id')->all(), 'ci');
+        $zip = new ZipArchive;
+
+        try {
+            $this->assertTrue($zip->open($path));
+            $names = collect(range(0, $zip->numFiles - 1))
+                ->map(fn (int $index) => $zip->getNameIndex($index));
+
+            $this->assertCount(2, $names);
+            $this->assertCount(2, $names->unique());
+            foreach ($projects as $project) {
+                $this->assertTrue($names->contains(fn (string $name) => str_starts_with($name, $project->id.'_')));
+            }
+        } finally {
+            $zip->close();
+            @unlink($path);
+        }
+    }
+
+    #[Test]
+    public function it_does_not_package_images_outside_the_documents_directory(): void
+    {
+        Storage::fake('public');
+        Storage::disk('public')->put(
+            'private.png',
+            base64_decode('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=')
+        );
+        $project = Project::factory()->create();
+        $document = Document::factory()->create([
+            'project_id' => $project->id,
+            'notice_id' => $project->notice_id,
+            'type' => 'ci',
+            'phase' => 'opening',
+            'body' => '<p>Documento seguro</p>',
+        ]);
+        $document->images()->create([
+            'section' => 'header',
+            'position' => 'center',
+            'path' => 'documents/../private.png',
+            'is_full_width' => false,
+        ]);
+
+        $path = app(DocumentDocxService::class)->download($document)->getFile()->getPathname();
+        $zip = new ZipArchive;
+
+        try {
+            $this->assertTrue($zip->open($path));
+            $this->assertFalse($zip->locateName('word/header1.xml'));
+            $this->assertFalse($zip->locateName('word/media/header_1.png'));
+        } finally {
+            $zip->close();
+            @unlink($path);
+        }
     }
 
     #[Test]
@@ -371,6 +454,33 @@ class CIDocumentTest extends TestCase
                 'project_ids' => [$project->id],
             ])
             ->assertSessionHasErrors('type');
+    }
+
+    #[Test]
+    public function it_rejects_an_unknown_document_type_for_download(): void
+    {
+        $user = User::factory()->create();
+        $project = Project::factory()->create();
+
+        $this->actingAs($user)
+            ->post(route('documents.download-zip'), [
+                'project_ids' => [$project->id],
+                'type' => 'unknown',
+            ])
+            ->assertSessionHasErrors('type');
+    }
+
+    #[Test]
+    public function it_rejects_a_missing_project_for_download(): void
+    {
+        $user = User::factory()->create();
+
+        $this->actingAs($user)
+            ->post(route('documents.download-zip'), [
+                'project_ids' => [PHP_INT_MAX],
+                'type' => 'ci',
+            ])
+            ->assertSessionHasErrors('project_ids.0');
     }
 
     #[Test]

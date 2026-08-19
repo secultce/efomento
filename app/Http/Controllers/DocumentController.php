@@ -2,11 +2,13 @@
 
 namespace App\Http\Controllers;
 
+use App\Enums\DocumentType;
 use App\Enums\Role;
 use App\Http\Requests\Document\DocumentStoreRequest;
 use App\Http\Requests\Document\DocumentUpdateRequest;
 use App\Http\Resources\DocumentResource;
 use App\Models\Document;
+use App\Models\Project;
 use App\Services\Documents\DocumentDocxService;
 use App\Services\Documents\DocumentPdfService;
 use App\Services\Documents\DocumentPlaceholderResolver;
@@ -15,6 +17,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 use Illuminate\Http\Response;
+use Illuminate\Validation\Rule;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
 class DocumentController extends Controller
@@ -98,8 +101,8 @@ class DocumentController extends Controller
     {
         $validated = $request->validate([
             'project_ids' => ['required', 'array', 'min:1'],
-            'project_ids.*' => ['integer', 'distinct'],
-            'type' => ['required', 'string'],
+            'project_ids.*' => ['integer', 'distinct', Rule::exists(Project::class, 'id')],
+            'type' => ['required', Rule::enum(DocumentType::class)],
             'format' => ['sometimes', 'string', 'in:pdf,docx,docx_casa_civil'],
         ]);
         $format = $validated['format'] ?? 'pdf';

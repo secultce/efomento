@@ -8,6 +8,11 @@ use DOMNode;
 
 class DocumentDocxHtmlConverter
 {
+    private const BLOCK_TAGS = [
+        'p', 'div', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6',
+        'ul', 'ol', 'table', 'blockquote', 'pre', 'hr',
+    ];
+
     public function __construct(
         private readonly DocumentDocxProfile $profile,
     ) {}
@@ -69,7 +74,7 @@ class DocumentDocxHtmlConverter
 
             $tag = strtolower($node->tagName);
             $isBlockSpan = $tag === 'span' && str_contains(strtolower($node->getAttribute('style')), 'display: block');
-            $isBlock = in_array($tag, ['p', 'div', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'ul', 'ol', 'table', 'blockquote', 'pre', 'hr'], true) || $isBlockSpan;
+            $isBlock = in_array($tag, self::BLOCK_TAGS, true) || $isBlockSpan;
 
             if (! $isBlock) {
                 $inlineNodes[] = $node;
@@ -394,7 +399,10 @@ class DocumentDocxHtmlConverter
             ? max(1, (int) floor(($contentWidth - $specifiedWidth) / $unspecifiedColumns))
             : 0;
         $widths = array_map(fn (?int $width) => $width ?? $fallbackWidth, $widths);
-        $widths[$columnCount - 1] += $contentWidth - array_sum($widths);
+        $widths[$columnCount - 1] = max(
+            1,
+            $widths[$columnCount - 1] + $contentWidth - array_sum($widths),
+        );
 
         return $widths;
     }
@@ -524,7 +532,7 @@ class DocumentDocxHtmlConverter
     private function hasBlockChildren(DOMElement $node): bool
     {
         foreach ($node->childNodes as $child) {
-            if ($child instanceof DOMElement && in_array(strtolower($child->tagName), ['p', 'div', 'ul', 'ol', 'table', 'h1', 'h2', 'h3', 'blockquote', 'pre'], true)) {
+            if ($child instanceof DOMElement && in_array(strtolower($child->tagName), self::BLOCK_TAGS, true)) {
                 return true;
             }
 

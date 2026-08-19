@@ -46,7 +46,11 @@ class DocumentStoreRequest extends FormRequest
             'images' => ['nullable', 'array'],
             'images.*.section' => ['required_with:images', Rule::enum(DocumentImageSection::class)],
             'images.*.position' => ['required_with:images', Rule::enum(DocumentImagePosition::class)],
-            'images.*.path' => ['required_with:images', 'string'],
+            'images.*.path' => [
+                'required_with:images',
+                'string',
+                'regex:/\Adocuments\/[A-Za-z0-9_-]+\.(?:gif|jpe?g|png)\z/i',
+            ],
         ];
     }
 

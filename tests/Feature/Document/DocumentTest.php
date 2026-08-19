@@ -505,6 +505,28 @@ class DocumentTest extends TestCase
         $this->assertStringNotContainsString('PRIMEIRA LINHA DO EDITAL', $resolvedBody);
     }
 
+    public function test_resolver_uses_notice_allocation_for_notice_level_code_placeholders(): void
+    {
+        $notice = Notice::factory()->create();
+        BudgetAllocation::factory()->create([
+            'notice_id' => $notice->id,
+            'allocation_code' => 'NOTICE-CODE',
+            'allocation_number' => 'NOTICE-NUMBER',
+        ]);
+        $document = Document::factory()->create([
+            'project_id' => null,
+            'notice_id' => $notice->id,
+            'type' => DocumentType::PI,
+            'phase' => DocumentPhase::BUDGET,
+            'body' => '[allocation_code] | [allocation_number]',
+        ]);
+
+        $this->assertSame(
+            'NOTICE-CODE | NOTICE-NUMBER',
+            app(DocumentPlaceholderResolver::class)->resolve($document),
+        );
+    }
+
     public function test_resolver_replaces_allocation_using_the_agent_macroregion_before_budget_exists(): void
     {
         $notice = Notice::factory()->create();
@@ -811,6 +833,40 @@ class DocumentTest extends TestCase
 
         $response->assertStatus(422)
             ->assertJsonValidationErrors(['type', 'phase', 'body']);
+    }
+
+    public function test_store_endpoint_rejects_document_image_path_traversal(): void
+    {
+        $this->actingAs($this->user)
+            ->postJson('/api/documents', [
+                'type' => DocumentType::CI->value,
+                'phase' => DocumentPhase::OPENING->value,
+                'notice_id' => $this->notice->id,
+                'project_id' => $this->project->id,
+                'body' => 'Conteúdo.',
+                'images' => [[
+                    'section' => 'header',
+                    'position' => 'center',
+                    'path' => 'documents/../private.png',
+                ]],
+            ])
+            ->assertUnprocessable()
+            ->assertJsonValidationErrors('images.0.path');
+    }
+
+    public function test_guest_cannot_delete_a_non_budget_document(): void
+    {
+        $document = Document::factory()->create([
+            'type' => DocumentType::CI,
+            'phase' => DocumentPhase::OPENING,
+        ]);
+
+        $this->deleteJson("/api/documents/{$document->id}")->assertUnauthorized();
+
+        $this->assertDatabaseHas('documents', [
+            'id' => $document->id,
+            'deleted_at' => null,
+        ]);
     }
 
     public function test_store_endpoint_returns_422_for_invalid_combination(): void
