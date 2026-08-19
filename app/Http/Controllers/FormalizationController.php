@@ -22,23 +22,13 @@ class FormalizationController extends Controller
     {
         $data = $request->validated();
 
-        unset($data['official_gazette_file']);
-
-        $formalization = $project->formalizations()->updateOrCreate(
+        $project->formalizations()->updateOrCreate(
             ['project_id' => $project->id],
             [
                 ...$data,
                 'created_by' => auth()->id(),
             ]
         );
-
-        if ($request->hasFile('official_gazette_file')) {
-            $this->formalizationService->saveOfficialGazetteFile(
-                $request->file('official_gazette_file'),
-                $project,
-                $formalization
-            );
-        }
 
         return back();
     }
@@ -48,19 +38,7 @@ class FormalizationController extends Controller
         Project $project,
         Formalization $formalization
     ): RedirectResponse {
-        $data = $request->validated();
-
-        unset($data['official_gazette_file']);
-
-        $formalization->update($data);
-
-        if ($request->hasFile('official_gazette_file')) {
-            $this->formalizationService->saveOfficialGazetteFile(
-                $request->file('official_gazette_file'),
-                $project,
-                $formalization
-            );
-        }
+        $formalization->update($request->validated());
 
         return back();
     }

@@ -10,9 +10,11 @@ import PaymentTab from './Tabs/PaymentTab.vue';
 const props = defineProps({
     project: { type: Object, default: null },
     supervisorsAvailable: { type: Array, default: () => [] },
+    usersAvailableForFormalization: { type: Array, default: () => [] },
     agentStatus: { type: Array, default: () => [] },
     reportStatus: { type: Array, default: () => [] },
     deliberation: { type: Array, default: () => [] },
+    cgeAtendeStatus: { type: Array, default: () => [] },
     accountType: { type: Array, default: () => [] },
     currentStage: { type: Object, default: null },
     canReturn: { type: Boolean, default: false },
@@ -80,6 +82,8 @@ const tabs = [
                     :can-advance="canAdvance"
                     :report-status="reportStatus"
                     :deliberation="deliberation"
+                    :cge-atende-status="cgeAtendeStatus"
+                    :users-available-for-formalization="usersAvailableForFormalization"
                 />
 
                 <BudgetTab
