@@ -34,7 +34,6 @@ class BudgetControllerTest extends TestCase
                 'notice_installment_number' => 3,
                 'installment_amount' => 1000.50,
                 'installment_request_date' => '2026-01-20',
-                'installment_justification' => 'Justificativa teste',
                 'installment_observations' => 'Observações teste',
             ]
         );
@@ -138,7 +137,6 @@ class BudgetControllerTest extends TestCase
                 'notice_installment_number' => 4,
                 'installment_amount' => 1500,
                 'installment_request_date' => '2026-02-20',
-                'installment_justification' => 'Nova justificativa',
                 'installment_observations' => 'Nova observação',
             ]
         );
@@ -153,7 +151,6 @@ class BudgetControllerTest extends TestCase
 
         $this->assertEquals(1500, $installment->amount);
         $this->assertEquals(4, $installment->notice_installment_number);
-        $this->assertEquals('Nova justificativa', $installment->justification);
         $this->assertEquals('Nova observação', $installment->observations);
     }
 
@@ -225,7 +222,6 @@ class BudgetControllerTest extends TestCase
                 'notice_installment_number' => 5,
                 'installment_amount' => 2000,
                 'installment_request_date' => '2026-03-01',
-                'installment_justification' => 'Segunda parcela',
                 'installment_observations' => 'Observação segunda parcela',
             ]
         );
@@ -270,7 +266,6 @@ class BudgetControllerTest extends TestCase
                 'notice_installment_number' => 6,
                 'installment_amount' => 9999,
                 'installment_request_date' => '2026-04-01',
-                'installment_justification' => 'Atualizada',
                 'installment_observations' => 'Atualizada',
             ]
         );
@@ -279,7 +274,6 @@ class BudgetControllerTest extends TestCase
 
         $this->assertEquals(9999, $installment->amount);
         $this->assertEquals(6, $installment->notice_installment_number);
-        $this->assertEquals('Atualizada', $installment->justification);
         $this->assertEquals('Atualizada', $installment->observations);
     }
 

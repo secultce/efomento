@@ -20,7 +20,6 @@ class BudgetStoreRequest extends FormRequest
             'notice_installment_number' => ['nullable', 'integer', 'min:1'],
             'installment_amount' => ['nullable', 'numeric', 'min:0.01', 'max:99999999.99'],
             'installment_request_date' => ['nullable', 'date'],
-            'installment_justification' => ['nullable', 'string'],
             'installment_observations' => ['nullable', 'string'],
         ];
     }
@@ -39,8 +38,6 @@ class BudgetStoreRequest extends FormRequest
             'installment_amount.min' => 'O valor da parcela deve ser maior que zero.',
             'installment_amount.max' => 'O valor da parcela não pode ser superior a 99.999.999,99.',
             'installment_request_date.date' => 'A data de solicitação da parcela deve ser uma data válida.',
-
-            'installment_justification.string' => 'A justificativa da parcela deve ser um texto válido.',
 
             'installment_observations.string' => 'As observações da parcela devem ser um texto válido.',
         ];
