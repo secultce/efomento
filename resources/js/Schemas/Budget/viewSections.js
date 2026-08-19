@@ -9,7 +9,7 @@ function getInstallmentJustification(project) {
     const categoryName = project?.category?.name;
     const noticeNup = maskProcessNumber(project?.notice?.nup);
 
-    if (!agentName && !noticeName && !categoryName && !noticeNup) return null;
+    if (!agentName || !noticeName || !categoryName || !noticeNup) return null;
 
     return `Repasse de recurso para o/a proponente ${agentName ?? ''}, selecionado no ${noticeName ?? ''}, na categoria - ${categoryName ?? ''}, conforme ${noticeNup ?? ''}`;
 }

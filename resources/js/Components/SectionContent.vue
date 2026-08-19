@@ -79,7 +79,7 @@ const copyValue = async (value) => {
                         v-show="hoveredIndex === index"
                         size="14"
                         class="cursor-pointer"
-                        @click.stop="copyValue(getFieldValue(field.key))"
+                        @click.stop="copyValue(displayValue(field))"
                     >
                         mdi-content-copy
                     </v-icon>
