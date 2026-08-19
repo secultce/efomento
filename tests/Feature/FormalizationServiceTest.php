@@ -108,17 +108,14 @@ class FormalizationServiceTest extends TestCase
         }
     }
 
-    public function test_ensure_can_advance_throws_when_term_signed_at_is_missing(): void
+    public function test_ensure_can_advance_ignores_missing_term_signed_at(): void
     {
         $formalization = Formalization::factory()->create(['term_signed_at' => null]);
+        $this->createRequiredDocuments($formalization->project);
 
-        try {
-            $this->service->ensureCanAdvance($formalization->project);
-            $this->fail('Expected ValidationException was not thrown.');
-        } catch (ValidationException $e) {
-            $this->assertArrayHasKey('formalization', $e->errors());
-            $this->assertStringContainsString('Data da assinatura do termo', $e->errors()['formalization'][0]);
-        }
+        $this->service->ensureCanAdvance($formalization->project);
+
+        $this->assertTrue(true);
     }
 
     public function test_ensure_can_advance_throws_when_required_documents_are_missing(): void

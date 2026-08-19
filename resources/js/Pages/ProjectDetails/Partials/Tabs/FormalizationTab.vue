@@ -159,7 +159,6 @@ const hasGeneratedRequiredDocuments = computed(() => missingGeneratedDocuments.v
 const hasRequiredFieldsFilled = computed(() => {
     return (
         hasText(form.term_number) &&
-        hasText(form.term_signed_at) &&
         hasText(form.signed_by_office_at) &&
         hasText(form.sacc_number) &&
         hasText(form.official_gazette_published_at) &&
@@ -177,7 +176,6 @@ const errors = computed(() => {
 
     return {
         term_number: !hasText(form.term_number) ? standardMessage : null,
-        term_signed_at: !hasText(form.term_signed_at) ? standardMessage : null,
         signed_by_office_at: !hasText(form.signed_by_office_at) ? standardMessage : null,
         sacc_number: !hasText(form.sacc_number) ? standardMessage : null,
         official_gazette_published_at: !hasText(form.official_gazette_published_at) ? standardMessage : null,
@@ -468,17 +466,12 @@ const permissionMessage = computed(() => {
 
                             <template v-else-if="section.key === 'signing_term'">
                                 <div class="grid grid-cols-2 gap-4">
-                                    <FormField
-                                        label="Data da assinatura do termo"
-                                        required
-                                        :error="errors.term_signed_at"
-                                    >
+                                    <FormField label="Data da assinatura do termo">
                                         <TextField
                                             v-model="form.term_signed_at"
                                             type="date"
                                             label="Insira a data de assinatura do proponente"
                                             data-cy="term-signed-at-input"
-                                            :error="errors.term_signed_at"
                                         />
                                     </FormField>
 

@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Enums\CgeAtendeStatus;
 use App\Exceptions\Integration\ExternalServiceException;
 use App\Models\Budget;
 use App\Models\Formalization;
@@ -10,7 +11,9 @@ use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Http\Client\RequestException;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
 use RuntimeException;
+use Throwable;
 
 class GoogleSheetsService
 {
@@ -98,14 +101,50 @@ class GoogleSheetsService
 
             $record = ['process_supervisor_id' => $userId, 'created_by' => $userId];
             foreach ($columnMap as $sheetColumn => $modelField) {
-                $record[$modelField] = $row[$sheetColumn] ?? null;
+                $value = $row[$sheetColumn] ?? null;
+
+                if ($modelField === 'cge_atende_ticket') {
+                    $value = $this->normalizeCgeAtendeStatus($value, $project->number);
+                }
+
+                $record[$modelField] = $value;
             }
 
-            Formalization::updateOrCreate(['project_id' => $project->id], $record);
-            $count++;
+            try {
+                Formalization::updateOrCreate(['project_id' => $project->id], $record);
+                $count++;
+            } catch (Throwable $e) {
+                Log::warning('spreadsheet.import.formalization_sync_failed', [
+                    'project_number' => $project->number,
+                    'message' => $e->getMessage(),
+                ]);
+            }
         }
 
         return $count;
+    }
+
+    /**
+     * Normaliza o valor bruto da coluna "CHAMADO CGE ATENDE" para o enum CgeAtendeStatus.
+     * Valores que não correspondam a nenhum case (números de chamado antigos, texto fora do padrão)
+     * são descartados (null) e registrados em log, em vez de interromper a sincronização.
+     */
+    private function normalizeCgeAtendeStatus(mixed $value, ?string $projectNumber): ?string
+    {
+        if (blank($value)) {
+            return null;
+        }
+
+        $normalized = CgeAtendeStatus::tryFrom(mb_strtoupper(trim((string) $value)));
+
+        if ($normalized === null) {
+            Log::warning('spreadsheet.import.cge_atende_ticket_invalid', [
+                'project_number' => $projectNumber,
+                'value' => $value,
+            ]);
+        }
+
+        return $normalized?->value;
     }
 
     /**
