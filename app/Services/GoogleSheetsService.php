@@ -5,7 +5,9 @@ namespace App\Services;
 use App\Exceptions\Integration\ExternalServiceException;
 use App\Models\Budget;
 use App\Models\Formalization;
+use App\Models\Opening;
 use App\Models\Project;
+use App\Support\Import;
 use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Http\Client\RequestException;
 use Illuminate\Support\Collection;
@@ -102,6 +104,12 @@ class GoogleSheetsService
             }
 
             Formalization::updateOrCreate(['project_id' => $project->id], $record);
+
+            $nup = Import::normalizeNup($row[$config['opening_nup_column'] ?? 'N° DO PROCESSO (NUP)'] ?? null);
+            if ($nup !== null) {
+                Opening::where('project_id', $project->id)->update(['opening_nup' => $nup]);
+            }
+
             $count++;
         }
 

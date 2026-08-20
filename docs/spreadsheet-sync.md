@@ -14,22 +14,25 @@ diretamente para os models Eloquent, via comando Artisan ou endpoint HTTP.
 | Arquivo | Papel |
 |---|---|
 | `app/Services/GoogleSheetsService.php` | Busca e parseia a planilha; contém a lógica de sync por aba (`importSheet`, `syncFormalization`, `syncBudget`) |
-| `app/Services/SpreadsheetImportService.php` | Processa linhas da aba Abertura: cria Agent, Category, Project e Opening |
+| `app/Services/SpreadsheetImportService.php` | Processa linhas da aba Abertura: cria/atualiza Agent, Category, Project e Opening |
 | `app/Console/Commands/ImportGoogleSheetsCommand.php` | Comando Artisan unificado — aceita `--aba` para escolher quais abas importar |
-| `app/Http/Controllers/SpreadsheetSyncController.php` | Controller HTTP fino — delega para `GoogleSheetsService` |
 | `config/spreadsheet_mappings.php` | Mapeamento `coluna da planilha → campo do model` por aba |
-| `routes/web.php` | `POST /sync/formalizacao`, `POST /sync/orcamento` |
+
+> **Planejado, não implementado**: o endpoint HTTP (`app/Http/Controllers/SpreadsheetSyncController.php` e as rotas `POST /sync/formalizacao` / `POST /sync/orcamento`) ainda não existe no repositório. Só o comando Artisan foi implementado até agora — ver seção "Como executar".
 
 ---
 
 ## Como funciona
 
-**Aba Abertura** (cria entidades novas):
+**Aba Abertura** (cria entidades novas + atualiza Opening):
 ```
 Planilha → fetchSheet() → rows[] por label
         → SpreadsheetImportService::processRow()
-        → cria/atualiza Agent (CPF ou CNPJ), Category, Project, Opening
+        → cria/atualiza Agent (CPF ou CNPJ), Category, Project
+        → resolveOpening(): Opening::updateOrCreate(['project_id' => $id], $record)
 ```
+
+> **Atenção — Opening já existe antes do resolveOpening rodar**: `ProjectObserver::created()` cria um `Opening` vazio (`$project->openings()->create()`) assim que o `Project` é criado dentro do mesmo `processRow()`. Por isso `resolveOpening()` usa `Opening::updateOrCreate()` (não `firstOrCreate()`) — com `firstOrCreate` o registro já existente faria o Eloquent ignorar silenciosamente o array de valores, deixando `opening_date`, `agent_status`, `opened_by`, `bank`, etc. sempre em branco. A planilha sempre sobrescreve os campos do Opening a cada execução (mesmo comportamento de Formalização/Orçamento abaixo).
 
 **Abas Formalização e Orçamento** (enriquece projetos existentes):
 ```
@@ -51,6 +54,26 @@ Planilha → fetchSheet() → rows[] por label
 - Formalização: linhas com `STATUS = 'Desclassificado'` ou `STATUS = 'Desistente'` são ignoradas
 - Abertura: aceita CPF (11 dígitos) e CNPJ (14 dígitos) no campo `CPF / CNPJ DO PROPONENTE`
 
+### Campo cross-tab: `opening_nup`
+A coluna `N° DO PROCESSO (NUP)` **não existe mais na aba Abertura** — foi movida para a aba **Formalização** na planilha viva (o CSV de amostra local `database/importSheet/musica_abertura.csv` ainda tem essa coluna em Abertura e está desatualizado). Por isso `Opening::opening_nup` **não** é preenchido em `resolveOpening()`; ele é atualizado em `GoogleSheetsService::syncFormalization()`, que lê a coluna configurada em `spreadsheet_mappings.formalizacao.opening_nup_column` e aplica em `Opening::where('project_id', $project->id)->update(['opening_nup' => $nup])` após sincronizar a `Formalization`. Isso significa que rodar só `--aba="Abertura"` nunca preenche `opening_nup` — é necessário rodar também `--aba="Formalização"`.
+
+---
+
+## Mapeamento atual — Abertura
+
+| Coluna na planilha | Campo no banco (`openings`) |
+|---|---|
+| DATA ABERTURA DE PROCESSO | `opening_date`, `started_at` |
+| STATUS | `agent_status` |
+| RESPONSÁVEL POR ABRIR PROCESSO | `opened_by` |
+| BANCO | `bank` |
+| TIPO DE CONTA | `account_type` |
+| AGÊNCIA | `branch` |
+| CONTA | `account` |
+| DATA DE CERTIDÃO GERADA | `certificate_date` |
+
+> `opening_nup` **não** está nessa lista — vem da aba Formalização, ver "Campo cross-tab: `opening_nup`" acima.
+
 ---
 
 ## Mapeamento atual — Formalização
@@ -58,6 +81,7 @@ Planilha → fetchSheet() → rows[] por label
 | Coluna na planilha | Campo no banco (`formalizations`) |
 |---|---|
 | CÓDIGO INSCRIÇÃO MAPAS | *(lookup do `project_id`)* |
+| N° DO PROCESSO (NUP) | *(cross-tab → `openings.opening_nup`, não é campo de `formalizations`)* |
 | DATA TRAMITAÇÃO FINALÍSTICA > ASJUR | `asjur_finalistic_processing_date` |
 | NÚMERO DO TERMO | `term_number` |
 | TERMO DE FOMENTO ENVIADO PARA ASSINATURA DO PROPONENTE (DATA) | `term_signature_sent_at` |
@@ -111,7 +135,9 @@ Opções disponíveis:
 | `--notice-id` | não | ID do edital fallback (necessário para Abertura quando `external_id` não bate) |
 | `--with-files` | não | Baixar arquivos do MAPAS ao importar projetos (apenas Abertura) |
 
-### 3. Via endpoint HTTP
+### 3. Via endpoint HTTP (planejado, não implementado)
+
+Ainda não existe `SpreadsheetSyncController` nem as rotas abaixo em `routes/web.php` — o exemplo mostra a interface **planejada**, para quando for implementada:
 
 ```bash
 curl -X POST https://<seu-dominio>/sync/formalizacao \
@@ -120,7 +146,7 @@ curl -X POST https://<seu-dominio>/sync/formalizacao \
   -d '{"spreadsheet_id": "ID_DA_PLANILHA_AQUI"}'
 ```
 
-Rotas disponíveis: `POST /sync/formalizacao`, `POST /sync/orcamento`
+Rotas planejadas: `POST /sync/formalizacao`, `POST /sync/orcamento`
 
 ### 4. Inspecionar colunas via Tinker (diagnóstico)
 
@@ -191,7 +217,7 @@ Route::post('/pagamento', [SpreadsheetSyncController::class, 'syncPagamento'])
 | Aba | Model(s) | Método no service |
 |---|---|---|
 | Abertura | `Agent`, `Category`, `Project`, `Opening` | `importSheet()` |
-| Formalização | `Formalization` | `syncFormalization()` |
+| Formalização | `Formalization`, `Opening` (só `opening_nup`, cross-tab) | `syncFormalization()` |
 | Orçamento | `Budget` | `syncBudget()` |
 
 ## Abas pendentes (aguardando confirmação da equipe)
