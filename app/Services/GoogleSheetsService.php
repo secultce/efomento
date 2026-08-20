@@ -114,10 +114,12 @@ class GoogleSheetsService
 
             try {
                 Formalization::updateOrCreate(['project_id' => $project->id], $record);
+
+                // Sempre sobrescreve (mesmo quando null): um NUP removido/corrigido
+                // na planilha precisa refletir em Opening, não ficar com valor antigo.
                 $nup = Import::normalizeNup($row[$config['opening_nup_column'] ?? 'N° DO PROCESSO (NUP)'] ?? null);
-                if ($nup !== null) {
-                    Opening::where('project_id', $project->id)->update(['opening_nup' => $nup]);
-                }
+                Opening::where('project_id', $project->id)->update(['opening_nup' => $nup]);
+
                 $count++;
             } catch (Throwable $e) {
                 Log::warning('spreadsheet.import.formalization_sync_failed', [

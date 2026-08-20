@@ -159,17 +159,19 @@ class SpreadsheetImportService
         if ($supervisor) {
             $opening->assignSupervisors([
                 ['id' => $supervisor->id, 'type' => OpeningSupervisor::TYPE_PRINCIPAL],
-            ]);
+            ], $userId);
         }
 
         return $opening;
     }
 
     /**
-     * Resolve o usuário Fiscal pela coluna "FISCAL" (busca por users.name).
-     * Cria o usuário (sem role de acesso) se ainda não existir, usando
-     * "CPF FISCAL" / "MATRICULA DO FISCAL" e um e-mail sintético,
-     * já que a planilha não traz e-mail do fiscal.
+     * Resolve o usuário Fiscal pela coluna "FISCAL". Prioriza identificadores
+     * estáveis (CPF, depois matrícula) para evitar que dois fiscais com o
+     * mesmo nome sejam confundidos; "name" é só o último fallback.
+     * Cria o usuário (sem acesso ativo além da role monitoring) se não existir,
+     * com um e-mail sintético sob domínio reservado/não roteável, já que a
+     * planilha não traz e-mail do fiscal.
      */
     private function resolveSupervisor(array $row): ?User
     {
@@ -179,7 +181,18 @@ class SpreadsheetImportService
             return null;
         }
 
-        $user = User::where('name', $name)->first();
+        $cpf = DocumentNumber::normalize($row['CPF FISCAL'] ?? null);
+        $registrationNumber = trim((string) ($row['MATRICULA DO FISCAL'] ?? '')) ?: null;
+
+        // Quando a planilha traz um identificador estável, ele é a única fonte de
+        // verdade (não cai para "name" mesmo sem achar match) — dois fiscais
+        // podem ter o mesmo nome, e reaproveitar por coincidência de nome
+        // atribuiria o processo ao fiscal errado.
+        $user = match (true) {
+            $cpf !== null => User::where('cpf', $cpf)->first(),
+            $registrationNumber !== null => User::where('registration_number', $registrationNumber)->first(),
+            default => User::where('name', $name)->first(),
+        };
 
         if ($user) {
             return $user;
@@ -187,10 +200,10 @@ class SpreadsheetImportService
 
         return $this->userService->create([
             'name' => $name,
-            'email' => Str::slug($name, '.').'@mail.com',
+            'email' => Str::slug($name, '.').'.'.Str::random(6).'@fiscal.invalid',
             'password' => Str::password(32),
-            'cpf' => trim((string) ($row['CPF FISCAL'] ?? '')) ?: null,
-            'registration_number' => trim((string) ($row['MATRICULA DO FISCAL'] ?? '')) ?: null,
+            'cpf' => $cpf,
+            'registration_number' => $registrationNumber,
             'role' => Role::MONITORING->value,
         ]);
     }
