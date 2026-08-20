@@ -44,9 +44,16 @@ return [
         ],
     ],
 
+    'pagamento' => [
+        'column_for_project_lookup' => 'CÓDIGO INSCRIÇÃO MAPAS',
+
+        // Cross-tab: só alimenta Opening::creditor_number por enquanto.
+        // Sincronização completa do model Payment aguarda confirmação da equipe.
+        'creditor_number_column' => 'Nº CREDOR',
+    ],
+
     // Demais abas serão adicionadas após confirmação com a equipe
     // 'parcela'           => [],
-    // 'pagamento'         => [],
     // 'monitoramento'     => [],
     // 'prestacao_contas'  => [],
 

@@ -151,6 +151,41 @@ class GoogleSheetsService
     }
 
     /**
+     * Sincroniza a aba de Pagamento com Opening::creditor_number (cross-tab).
+     * A aba Pagamento ainda não tem model próprio sincronizado — só este campo.
+     * Retorna o número de registros atualizados.
+     */
+    public function syncPagamento(string $spreadsheetId, string $sheetName, int $userId): int
+    {
+        $config = config('spreadsheet_mappings.pagamento');
+        $projectLookupColumn = $config['column_for_project_lookup'];
+        $creditorNumberColumn = $config['creditor_number_column'];
+
+        ['rows' => $rows] = $this->fetchSheet($spreadsheetId, $sheetName);
+
+        $projects = $this->preloadProjectsByNumber($rows, $projectLookupColumn);
+
+        $count = 0;
+        foreach ($rows as $row) {
+            $project = $projects->get($row[$projectLookupColumn] ?? null);
+
+            if (! $project) {
+                continue;
+            }
+
+            $creditorNumber = trim((string) ($row[$creditorNumberColumn] ?? ''));
+
+            Opening::where('project_id', $project->id)->update([
+                'creditor_number' => $creditorNumber !== '' ? $creditorNumber : null,
+            ]);
+
+            $count++;
+        }
+
+        return $count;
+    }
+
+    /**
      * @param  array<int, array<string, mixed>>  $rows
      * @return Collection<string, Project>
      */

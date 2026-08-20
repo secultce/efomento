@@ -70,25 +70,36 @@ class Import
             return null;
         }
 
-        try {
-            if ($value instanceof DateTimeInterface) {
-                return $value->format('Y-m-d');
-            }
+        if ($value instanceof DateTimeInterface) {
+            return $value->format('Y-m-d');
+        }
 
-            if (is_numeric($value)) {
+        if (is_numeric($value)) {
+            try {
                 return ExcelDate::excelToDateTimeObject($value)->format('Y-m-d');
+            } catch (\Throwable) {
+                return null;
             }
+        }
 
-            $value = trim((string) $value);
+        $value = trim((string) $value);
 
-            foreach (['d/m/Y', 'd-m-Y', 'Y-m-d', 'd/m/y', 'd-m-y'] as $format) {
+        foreach (['d/m/Y', 'd-m-Y', 'Y-m-d', 'd/m/y', 'd-m-y'] as $format) {
+            // Carbon::createFromFormat() lança exceção (não retorna false) quando o
+            // valor não bate com o formato — precisa capturar por tentativa para
+            // não abortar o loop inteiro e nunca chegar nos formatos seguintes.
+            try {
                 $date = Carbon::createFromFormat($format, $value);
 
                 if ($date !== false) {
                     return $date->format('Y-m-d');
                 }
+            } catch (\Throwable) {
+                continue;
             }
+        }
 
+        try {
             return Carbon::parse($value)->format('Y-m-d');
         } catch (\Throwable) {
             return null;
