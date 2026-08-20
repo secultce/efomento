@@ -1,7 +1,9 @@
 <script setup>
 import axios from 'axios';
+import { router } from '@inertiajs/vue3';
 import NoticeHistoryDialog from '@/Pages/Projects/Partials/Actions/NoticeHistoryDialog.vue';
 import BudgetAllocationImportDialog from '@/Pages/Projects/Partials/Actions/BudgetAllocationImportDialog.vue';
+import DocumentDownloadMenu from '@/Components/DocumentDownloadMenu.vue';
 import HandleDocumentsDialog from '@/Pages/Projects/Partials/Actions/HandleDocumentsDialog.vue';
 import DocumentListDialog from '@/Pages/Projects/Partials/Actions/DocumentListDialog.vue';
 import { computed, ref, watch } from 'vue';
@@ -126,7 +128,7 @@ function handleDocumentSaved() {
     emit('saved');
 }
 
-async function downloadDocuments(type) {
+async function downloadDocuments(type, format) {
     if (isNoticeLevelDocument(type)) {
         const document = noticeDocument(type);
 
@@ -136,7 +138,7 @@ async function downloadDocuments(type) {
             return;
         }
 
-        window.open(`/projetos/documentos/${document.id}/download`, '_blank');
+        window.open(`/projetos/documentos/${document.id}/download?format=${format}`, '_blank');
 
         return;
     }
@@ -150,7 +152,7 @@ async function downloadDocuments(type) {
     downloadingType.value = type;
 
     try {
-        await downloadDocumentsZip(props.selectedProjects, type);
+        await downloadDocumentsZip(props.selectedProjects, type, format);
     } catch {
         showSnackbar('Erro ao baixar os documentos. Tente novamente.', 'error');
     } finally {
@@ -180,6 +182,17 @@ function openBudgetAllocationUpload() {
     }
 
     budgetAllocationInput.value?.click();
+}
+
+function reloadBudgetAllocationData() {
+    return new Promise((resolve) => {
+        router.reload({
+            only: ['projects', 'noticeDocuments', 'hasBudgetAllocations'],
+            preserveState: true,
+            preserveScroll: true,
+            onFinish: resolve,
+        });
+    });
 }
 
 async function handleBudgetAllocationUpload(event) {
@@ -240,10 +253,12 @@ async function confirmBudgetAllocationImport() {
         const imported = Number(data.summary?.created ?? 0) + Number(data.summary?.updated ?? 0);
         const allocationMessage = imported === 1 ? 'vinculação processada' : 'vinculações processadas';
 
-        showSnackbar(`Importação concluída. ${imported} ${allocationMessage}.`, 'success');
+        await reloadBudgetAllocationData();
+
         budgetAllocationDialog.value = false;
         selectedBudgetAllocationFile.value = null;
         hasExistingBudgetAllocations.value = true;
+        showSnackbar(`Importação concluída. ${imported} ${allocationMessage}.`, 'success');
     } catch (error) {
         const errors = error.response?.data?.errors;
         const message = errors
@@ -367,20 +382,17 @@ function openNoticeHistory() {
                     </div>
 
                     <div class="flex w-full flex-col gap-2 sm:flex-row">
-                        <v-btn
-                            variant="outlined"
-                            color="primary"
-                            class="flex-1 !shadow-none !border-primary !text-primary rounded-lg text-xs"
+                        <DocumentDownloadMenu
+                            :label="isNoticeLevelDocument(document.type) ? 'Baixar' : 'Baixar todos'"
+                            button-class="flex-1 !shadow-none !border-primary !text-primary rounded-lg text-xs"
                             :loading="downloadingType === document.type"
                             :disabled="
                                 isNoticeLevelDocument(document.type)
                                     ? !hasDocument(document.type)
                                     : !selectedProjects.length
                             "
-                            @click="downloadDocuments(document.type)"
-                        >
-                            {{ isNoticeLevelDocument(document.type) ? 'Baixar' : 'Baixar todos' }}
-                        </v-btn>
+                            @download="downloadDocuments(document.type, $event)"
+                        />
 
                         <v-btn
                             class="flex-1 !shadow-none !font-bold !bg-[#ffcc05FF] !text-[#2d353fFF] rounded-lg text-xs"

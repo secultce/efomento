@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\CgeAtendeStatus;
 use App\Enums\DeliberationType;
 use App\Enums\ReportStatus;
 use App\Traits\HasCreatedBy;
@@ -24,9 +25,7 @@ class Formalization extends Model implements Auditable
         'report_status',
         'eparcerias_certificate_date',
         'asjur_processing_date',
-        'responsible_at_asjur',
         'term_number',
-        'term_signature_sent_at',
         'term_signed_at',
         'sent_to_office_at',
         'signed_by_office_at',
@@ -47,10 +46,10 @@ class Formalization extends Model implements Auditable
         'report_status' => ReportStatus::class,
         'eparcerias_certificate_date' => 'date',
         'asjur_processing_date' => 'date',
-        'term_signature_sent_at' => 'date',
         'term_signed_at' => 'date',
         'sent_to_office_at' => 'date',
         'signed_by_office_at' => 'date',
+        'cge_atende_ticket' => CgeAtendeStatus::class,
         'deliberation' => DeliberationType::class,
         'sent_to_chief_of_staff_at' => 'date',
         'official_gazette_published_at' => 'date',
@@ -68,5 +67,10 @@ class Formalization extends Model implements Auditable
     public function user()
     {
         return $this->belongsTo(User::class);
+    }
+
+    public function processAssignedTo()
+    {
+        return $this->belongsTo(User::class, 'process_assigned_to');
     }
 }

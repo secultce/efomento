@@ -25,6 +25,8 @@ class ProjectControllerTest extends TestCase
         Role::firstOrCreate(['name' => 'monitoring', 'guard_name' => 'web']);
         Role::firstOrCreate(['name' => 'coord_monitoring', 'guard_name' => 'web']);
         Role::firstOrCreate(['name' => 'super_admin', 'guard_name' => 'web']);
+        Role::firstOrCreate(['name' => 'legal_analysis', 'guard_name' => 'web']);
+        Role::firstOrCreate(['name' => 'coord_legal', 'guard_name' => 'web']);
 
         $this->user = User::factory()->create();
     }

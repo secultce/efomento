@@ -9,6 +9,30 @@ export const DOCUMENT_TYPES = {
     DP: 'dp',
 };
 
+export const DOCUMENT_DOWNLOAD_FORMATS = {
+    PDF: 'pdf',
+    DOCX: 'docx',
+    DOCX_CASA_CIVIL: 'docx_casa_civil',
+};
+
+export const DOCUMENT_DOWNLOAD_OPTIONS = [
+    {
+        value: DOCUMENT_DOWNLOAD_FORMATS.PDF,
+        title: 'Baixar PDF',
+        icon: 'mdi-file-pdf-box',
+    },
+    {
+        value: DOCUMENT_DOWNLOAD_FORMATS.DOCX,
+        title: 'Baixar DOCX',
+        icon: 'mdi-file-word-box',
+    },
+    {
+        value: DOCUMENT_DOWNLOAD_FORMATS.DOCX_CASA_CIVIL,
+        title: 'Baixar DOCX Casa Civil',
+        icon: 'mdi-file-word-box',
+    },
+];
+
 const noticePlaceHoldersDocsSchema = [
     { label: 'Nome Edital', value: 'notice_name' },
     { label: 'Nup Mãe', value: 'nup_mother' },

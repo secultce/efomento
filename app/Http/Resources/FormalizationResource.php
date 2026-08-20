@@ -20,16 +20,14 @@ class FormalizationResource extends JsonResource
             'eparcerias_certificate_date' => $this->eparcerias_certificate_date,
 
             'asjur_processing_date' => $this->asjur_processing_date,
-            'responsible_at_asjur' => $this->responsible_at_asjur,
             'term_number' => $this->term_number,
 
-            'term_signature_sent_at' => $this->term_signature_sent_at,
             'term_signed_at' => $this->term_signed_at,
             'sent_to_office_at' => $this->sent_to_office_at,
             'signed_by_office_at' => $this->signed_by_office_at,
 
             'sacc_number' => $this->sacc_number,
-            'cge_atende_ticket' => $this->cge_atende_ticket,
+            'cge_atende_ticket' => $this->cge_atende_ticket?->value,
             'deliberation' => $this->deliberation?->value,
 
             'sent_to_chief_of_staff_at' => $this->sent_to_chief_of_staff_at,

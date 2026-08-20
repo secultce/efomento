@@ -6,6 +6,7 @@ use App\Enums\DocumentPhase;
 use App\Enums\DocumentStatus;
 use App\Enums\DocumentType;
 use App\Exceptions\Domain\BusinessRuleException;
+use App\Http\Requests\Document\DocumentUpdateRequest;
 use App\Models\Budget;
 use App\Models\BudgetAllocation;
 use App\Models\Document;
@@ -475,6 +476,57 @@ class DocumentTest extends TestCase
         $this->assertStringNotContainsString('PRIMEIRA LINHA DO EDITAL', $resolvedBody);
     }
 
+    public function test_resolver_uses_one_allocation_for_all_budget_opinion_placeholders(): void
+    {
+        $project = Project::factory()->create();
+        BudgetAllocation::factory()->create([
+            'notice_id' => $project->notice_id,
+            'allocation_code' => 'FIRST-CODE',
+            'management_unit' => 'PRIMEIRA LINHA DO EDITAL',
+        ]);
+        BudgetAllocation::factory()->create([
+            'notice_id' => $project->notice_id,
+            'allocation_code' => 'LATEST-CODE',
+            'management_unit' => 'ÚLTIMA LINHA DO EDITAL',
+        ]);
+        $document = Document::factory()->create([
+            'project_id' => $project->id,
+            'notice_id' => $project->notice_id,
+            'type' => DocumentType::PF,
+            'phase' => DocumentPhase::BUDGET,
+            'body' => '[allocation_code] | [budget_allocation_data]',
+        ]);
+
+        $resolvedBody = app(DocumentPlaceholderResolver::class)->resolve($document);
+
+        $this->assertStringContainsString('LATEST-CODE', $resolvedBody);
+        $this->assertStringContainsString('ÚLTIMA LINHA DO EDITAL', $resolvedBody);
+        $this->assertStringNotContainsString('FIRST-CODE', $resolvedBody);
+        $this->assertStringNotContainsString('PRIMEIRA LINHA DO EDITAL', $resolvedBody);
+    }
+
+    public function test_resolver_uses_notice_allocation_for_notice_level_code_placeholders(): void
+    {
+        $notice = Notice::factory()->create();
+        BudgetAllocation::factory()->create([
+            'notice_id' => $notice->id,
+            'allocation_code' => 'NOTICE-CODE',
+            'allocation_number' => 'NOTICE-NUMBER',
+        ]);
+        $document = Document::factory()->create([
+            'project_id' => null,
+            'notice_id' => $notice->id,
+            'type' => DocumentType::PI,
+            'phase' => DocumentPhase::BUDGET,
+            'body' => '[allocation_code] | [allocation_number]',
+        ]);
+
+        $this->assertSame(
+            'NOTICE-CODE | NOTICE-NUMBER',
+            app(DocumentPlaceholderResolver::class)->resolve($document),
+        );
+    }
+
     public function test_resolver_replaces_allocation_using_the_agent_macroregion_before_budget_exists(): void
     {
         $notice = Notice::factory()->create();
@@ -783,6 +835,40 @@ class DocumentTest extends TestCase
             ->assertJsonValidationErrors(['type', 'phase', 'body']);
     }
 
+    public function test_store_endpoint_rejects_document_image_path_traversal(): void
+    {
+        $this->actingAs($this->user)
+            ->postJson('/api/documents', [
+                'type' => DocumentType::CI->value,
+                'phase' => DocumentPhase::OPENING->value,
+                'notice_id' => $this->notice->id,
+                'project_id' => $this->project->id,
+                'body' => 'Conteúdo.',
+                'images' => [[
+                    'section' => 'header',
+                    'position' => 'center',
+                    'path' => 'documents/../private.png',
+                ]],
+            ])
+            ->assertUnprocessable()
+            ->assertJsonValidationErrors('images.0.path');
+    }
+
+    public function test_guest_cannot_delete_a_non_budget_document(): void
+    {
+        $document = Document::factory()->create([
+            'type' => DocumentType::CI,
+            'phase' => DocumentPhase::OPENING,
+        ]);
+
+        $this->deleteJson("/api/documents/{$document->id}")->assertUnauthorized();
+
+        $this->assertDatabaseHas('documents', [
+            'id' => $document->id,
+            'deleted_at' => null,
+        ]);
+    }
+
     public function test_store_endpoint_returns_422_for_invalid_combination(): void
     {
         $type = DocumentType::TC;
@@ -802,6 +888,19 @@ class DocumentTest extends TestCase
 
         $response->assertStatus(422)
             ->assertJsonFragment(['message' => "Combinação de tipo e fase inválida: tipo={$type->value}, fase={$invalidPhase->value}."]);
+    }
+
+    public function test_update_request_denies_access_when_the_document_is_not_resolved(): void
+    {
+        $request = new class extends DocumentUpdateRequest
+        {
+            public function route($param = null, $default = null): mixed
+            {
+                return null;
+            }
+        };
+
+        $this->assertFalse($request->authorize());
     }
 
     // -------------------------------------------------------------------------

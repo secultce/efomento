@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Enums\Role;
+use App\Models\Document;
 use App\Models\Notice;
 use App\Models\Project;
 use App\Models\User;
@@ -84,6 +85,43 @@ class BudgetOpinionDocumentTest extends TestCase
         ]);
     }
 
+    public function test_api_rejects_a_duplicate_notice_level_initial_opinion(): void
+    {
+        $user = $this->userWithRole(Role::BUDGETARY);
+        $notice = Notice::factory()->create();
+        $payload = [
+            'type' => 'pi',
+            'phase' => 'budget',
+            'notice_id' => $notice->id,
+            'body' => 'Conteúdo do parecer orçamentário.',
+        ];
+
+        $this->actingAs($user)->postJson('/api/documents', $payload)->assertCreated();
+
+        $this->actingAs($user)
+            ->postJson('/api/documents', $payload)
+            ->assertUnprocessable()
+            ->assertJsonValidationErrors('notice_id');
+
+        $this->assertDatabaseCount('documents', 1);
+    }
+
+    public function test_guest_cannot_delete_a_budget_opinion(): void
+    {
+        $document = Document::factory()->create([
+            'project_id' => null,
+            'type' => 'pi',
+            'phase' => 'budget',
+        ]);
+
+        $this->deleteJson("/api/documents/{$document->id}")->assertUnauthorized();
+
+        $this->assertDatabaseHas('documents', [
+            'id' => $document->id,
+            'deleted_at' => null,
+        ]);
+    }
+
     #[DataProvider('budgetRoles')]
     public function test_each_budget_role_can_create_initial_opinion(string $role): void
     {
@@ -96,6 +134,7 @@ class BudgetOpinionDocumentTest extends TestCase
                 'notice_id' => $project->notice_id,
                 'content' => 'Conteúdo do PI.',
             ])
+            ->assertRedirect()
             ->assertSessionHasNoErrors();
     }
 

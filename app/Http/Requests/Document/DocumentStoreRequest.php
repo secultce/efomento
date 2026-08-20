@@ -22,11 +22,22 @@ class DocumentStoreRequest extends FormRequest
 
     public function rules(): array
     {
+        $noticeRules = ['required', 'exists:notices,id'];
+
+        if ($this->input('type') === DocumentType::PI->value && blank($this->input('project_id'))) {
+            $noticeRules[] = Rule::unique('documents', 'notice_id')
+                ->where(fn ($query) => $query
+                    ->where('type', DocumentType::PI->value)
+                    ->where('phase', DocumentPhase::BUDGET->value)
+                    ->whereNull('project_id')
+                    ->whereNull('deleted_at'));
+        }
+
         return [
             'type' => ['required', Rule::enum(DocumentType::class)],
             'phase' => ['required', Rule::enum(DocumentPhase::class)],
             'body' => ['required', 'string'],
-            'notice_id' => ['required', 'exists:notices,id'],
+            'notice_id' => $noticeRules,
             'project_id' => [
                 Rule::requiredIf(fn () => $this->input('type') !== DocumentType::PI->value),
                 'nullable',
@@ -35,7 +46,11 @@ class DocumentStoreRequest extends FormRequest
             'images' => ['nullable', 'array'],
             'images.*.section' => ['required_with:images', Rule::enum(DocumentImageSection::class)],
             'images.*.position' => ['required_with:images', Rule::enum(DocumentImagePosition::class)],
-            'images.*.path' => ['required_with:images', 'string'],
+            'images.*.path' => [
+                'required_with:images',
+                'string',
+                'regex:/\Adocuments\/[A-Za-z0-9_-]+\.(?:gif|jpe?g|png)\z/i',
+            ],
         ];
     }
 
@@ -44,6 +59,7 @@ class DocumentStoreRequest extends FormRequest
         return [
             'notice_id.required' => 'O edital é obrigatório.',
             'notice_id.exists' => 'O edital informado não existe.',
+            'notice_id.unique' => 'Já existe um parecer orçamentário inicial para este edital.',
             'project_id.required' => 'O projeto é obrigatório.',
             'project_id.exists' => 'O projeto informado não existe.',
             'type.required' => 'O tipo do documento é obrigatório.',

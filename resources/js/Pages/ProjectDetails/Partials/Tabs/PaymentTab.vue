@@ -110,7 +110,6 @@ const installments = computed(() => {
 
                 amount: savedInstallment?.amount ?? null,
                 request_date: savedInstallment?.request_date ?? null,
-                justification: savedInstallment?.justification ?? null,
                 observations: savedInstallment?.observations ?? null,
                 remarks: savedInstallment?.remarks ?? null,
 
