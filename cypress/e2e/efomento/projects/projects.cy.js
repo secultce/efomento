@@ -1,5 +1,5 @@
 import Login from '../../../pages/auth';
-import Notice from '../../../pages/notice';
+import Notice from '../../../pages/notice/NoticePage';
 import Project from '../../../pages/project/ProjectPage';
 
 describe('Project Page', () => {

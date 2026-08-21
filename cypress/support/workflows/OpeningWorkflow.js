@@ -1,5 +1,5 @@
 import '../commands.js';
-import Notice from '../../pages/notice/index.js';
+import Notice from '../../pages/notice/NoticePage.js';
 import Project from '../../pages/project/ProjectPage';
 
 class OpeningWorkflow {

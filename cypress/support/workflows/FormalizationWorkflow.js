@@ -1,5 +1,5 @@
 import '../commands.js';
-import Notice from '../../pages/notice/index.js';
+import Notice from '../../pages/notice/NoticePage.js';
 import Project from '../../pages/project/ProjectPage';
 import FormalizationTab from '../../pages/project/formalizationTab/FormalizationTab.js';
 
@@ -27,8 +27,8 @@ class ForamlizationWorkflow {
         Notice.searchNoticeByNup(notice.noticeNup);
         Notice.goToNoticeDetailsPage(notice.noticeNup);
 
-        Project.clickFilterFormalizationPhase();
-        Project.validateFilterFormalizationPhase();
+        Project.clickFilterPhase();
+        Project.validateFilterPhase();
         Project.findProjectByProjectNup(project.projectNup);
 
         Project.selectProject();
@@ -50,8 +50,8 @@ class ForamlizationWorkflow {
         Notice.searchNoticeByNup(notice.noticeNup);
         Notice.goToNoticeDetailsPage(notice.noticeNup);
 
-        Project.clickFilterFormalizationPhase();
-        Project.validateFilterFormalizationPhase();
+        Project.clickFilterPhase();
+        Project.validateFilterPhase();
         Project.findProjectByProjectNup(project.projectNup);
 
         Project.selectProject();
