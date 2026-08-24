@@ -49,7 +49,6 @@ const copyValue = async (value) => {
 
         showSnackbar('Copiado!', 'success');
     } catch (e) {
-        console.error('Erro ao copiar', e);
         showSnackbar('Erro ao copiar', 'error');
     }
 };
@@ -85,7 +84,12 @@ const copyValue = async (value) => {
                     </v-icon>
                 </div>
 
-                <span class="font-bold break-words" :class="{ 'whitespace-pre-line': field.multiline }">
+                <div v-if="field.items" class="space-y-1">
+                    <p v-for="(item, itemIndex) in field.items(project)" :key="itemIndex" class="break-words">
+                        {{ item.label }}: <span class="font-bold">{{ item.value }}</span>
+                    </p>
+                </div>
+                <span v-else class="font-bold break-words" :class="{ 'whitespace-pre-line': field.multiline }">
                     {{ displayValue(field) }}
                 </span>
             </div>

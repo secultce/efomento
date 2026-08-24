@@ -60,12 +60,20 @@ export const viewSections = [
         fields: [{ label: 'Campos extras', key: 'extra_fields' }],
     },
     {
-        title: 'Ficha de Abertura (Mapas Cultural)',
+        title: 'Ficha de Inscrição (Mapas Cultural)',
         fields: [
             {
                 label: 'Campos da inscrição',
                 fullWidth: true,
                 multiline: true,
+                items: (project) => {
+                    const fields = project.opening?.registration_data?.fields ?? [];
+
+                    return fields.map((f) => ({
+                        label: f.titleField,
+                        value: parseRegistrationFieldValue(f.valueField),
+                    }));
+                },
                 compute: (project) => {
                     const fields = project.opening?.registration_data?.fields ?? [];
 
