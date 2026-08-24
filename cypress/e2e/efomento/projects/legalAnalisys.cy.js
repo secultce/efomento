@@ -19,7 +19,7 @@ describe('Legal Analysis', () => {
     });
 
     describe('Process Project', () => {
-        it.only('should process project to formalization successfully', function () {
+        it('should process project to formalization successfully', function () {
             //Arrange
             cy.loginByRole('formalization');
 
