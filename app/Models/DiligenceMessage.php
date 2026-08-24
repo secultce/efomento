@@ -4,8 +4,10 @@ namespace App\Models;
 
 use App\Enums\DiligenceDirection;
 use App\Traits\HasCreatedBy;
+use App\Traits\HasFiles;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use OwenIt\Auditing\Auditable as AuditableTrait;
@@ -13,7 +15,7 @@ use OwenIt\Auditing\Contracts\Auditable;
 
 class DiligenceMessage extends Model implements Auditable
 {
-    use AuditableTrait, HasCreatedBy, HasFactory, SoftDeletes;
+    use AuditableTrait, HasCreatedBy, HasFactory, HasFiles, SoftDeletes;
 
     protected $fillable = [
         'diligenceable_type',
@@ -39,5 +41,10 @@ class DiligenceMessage extends Model implements Auditable
     public function diligenceable(): MorphTo
     {
         return $this->morphTo();
+    }
+
+    public function attachments(): MorphMany
+    {
+        return $this->files()->where('grp', 'attachments');
     }
 }

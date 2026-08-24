@@ -5,7 +5,7 @@
     <title>{{ $diligenceMessage->subject }}</title>
 </head>
 <body style="font-family: Arial, sans-serif; color: #333; line-height: 1.6;">
-    <p>{!! nl2br(e($diligenceMessage->body)) !!}</p>
+    <div>{!! $formattedBody !!}</div>
 
     <hr style="border: none; border-top: 1px solid #ccc; margin: 24px 0;">
     <p style="font-size: 12px; color: #666;">
