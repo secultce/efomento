@@ -16,6 +16,7 @@ diretamente para os models Eloquent, via comando Artisan ou endpoint HTTP.
 | `app/Services/GoogleSheetsService.php` | Busca e parseia a planilha; contém a lógica de sync por aba (`importSheet`, `syncFormalization`, `syncBudget`, `syncPagamento`) |
 | `app/Services/SpreadsheetImportService.php` | Processa linhas da aba Abertura: cria/atualiza Agent, Category, Project, Opening e o usuário Fiscal (`User`/`OpeningSupervisor`) |
 | `app/Console/Commands/ImportGoogleSheetsCommand.php` | Comando Artisan unificado — aceita `--aba` para escolher quais abas importar |
+| `app/Jobs/SyncOpeningRegistrationDataJob.php` | Job assíncrono (fila `details`) que busca a ficha de inscrição via `MapasClient::registrationDetails()` e grava em `Opening.registration_data` |
 | `config/spreadsheet_mappings.php` | Mapeamento `coluna da planilha → campo do model` por aba |
 
 > **Planejado, não implementado**: o endpoint HTTP (`app/Http/Controllers/SpreadsheetSyncController.php` e as rotas `POST /sync/formalizacao` / `POST /sync/orcamento`) ainda não existe no repositório. Só o comando Artisan foi implementado até agora — ver seção "Como executar".
@@ -37,6 +38,8 @@ Planilha → fetchSheet() → rows[] por label
 > **Atenção — Opening já existe antes do resolveOpening rodar**: `ProjectObserver::created()` cria um `Opening` vazio (`$project->openings()->create()`) assim que o `Project` é criado dentro do mesmo `processRow()`. Por isso `resolveOpening()` usa `Opening::updateOrCreate()` (não `firstOrCreate()`) — com `firstOrCreate` o registro já existente faria o Eloquent ignorar silenciosamente o array de valores, deixando `opening_date`, `agent_status`, `opened_by`, `bank`, etc. sempre em branco. A planilha sempre sobrescreve os campos do Opening a cada execução (mesmo comportamento de Formalização/Orçamento abaixo).
 
 > **Fiscal (`FISCAL`)**: `resolveSupervisor()` busca um `User` por `name` igual ao valor da coluna `FISCAL`. Se não encontrar, cria um novo `User` via `UserService::create()` com `cpf` = coluna `CPF FISCAL`, `registration_number` = coluna `MATRICULA DO FISCAL`, senha aleatória (`Str::password(32)`) e role `monitoring` — a planilha não tem e-mail do fiscal, então é gerado um sintético: `Str::slug(nome, '.').'@mail.com'`. O usuário resolvido preenche `Opening::supervisor_id` **e** é registrado como fiscal titular via `Opening::assignSupervisors()` (mesmo método usado por `ProjectSupervisorService`), para aparecer corretamente nos documentos gerados (`[fiscal_name]`) e nas regras de negócio da etapa. Se a coluna `FISCAL` vier vazia numa linha, `supervisor_id` é limpo (`null`), mas o vínculo já existente em `OpeningSupervisor` **não** é desfeito automaticamente.
+
+> **`registration_data` (ficha de inscrição via API do Mapas) — opt-in, requer `--with-registration-data`**: `processRow()` já extrai o id numérico da inscrição (`extractRegistrationId()`, a partir da URL na coluna `LINK FICHA DE INSCRIÇÃO` — mesmo valor gravado em `Project::registration_id`, sem o prefixo `"on-"`). Se a flag `--with-registration-data` for passada ao comando, `SyncOpeningRegistrationDataJob` é despachado (`afterCommit()`, fila `details`) para cada linha, chama `MapasClient::registrationDetails($registrationId)` e grava um subconjunto seguro da resposta (`registration.id/number/status/files`, `fileConfigurations`, `fields`) em `Opening.registration_data` (json). **Sem a flag, o campo fica `null`** — não é preenchido por padrão, para não disparar uma chamada à API do Mapas por linha em toda importação. Como o job é assíncrono, também é necessário que o worker da fila `details` (`efomento-queue`) esteja rodando para o campo ser efetivamente preenchido. No frontend, a Tab de Abertura (`OpeningTab.vue`) exibe os campos de `registration_data.fields` diretamente no painel esquerdo "Dados disponíveis para consulta" — seção "Ficha de Abertura (Mapas Cultural)" em `resources/js/Schemas/Opening/viewSections.js`, junto com os demais campos da Abertura (não é um botão/dialog separado, diferente do padrão usado em Monitoramento). O parse do valor bruto de cada campo (`valueField`, que a API do Mapas retorna como string JSON-encoded) usa `resources/js/Schemas/parseRegistrationFieldValue.js`.
 
 **Abas Formalização, Orçamento e Pagamento** (enriquece projetos/Opening existentes):
 ```
@@ -162,6 +165,7 @@ Opções disponíveis:
 | `--user-id` | **sim** | ID do usuário para `created_by` / `user_id` |
 | `--notice-id` | não | ID do edital fallback (necessário para Abertura quando `external_id` não bate) |
 | `--with-files` | não | Baixar arquivos do MAPAS ao importar projetos (apenas Abertura) |
+| `--with-registration-data` | não | Sincroniza `Opening.registration_data` via API do Mapas (`MapasClient::registrationDetails()`), assíncrono na fila `details` (apenas Abertura) |
 
 ### 3. Via endpoint HTTP (planejado, não implementado)
 
@@ -245,7 +249,7 @@ Route::post('/monitoramento', [SpreadsheetSyncController::class, 'syncMonitorame
 
 | Aba | Model(s) | Método no service |
 |---|---|---|
-| Abertura | `Agent`, `Category`, `Project`, `Opening`, `User`/`OpeningSupervisor` (Fiscal) | `importSheet()` |
+| Abertura | `Agent`, `Category`, `Project`, `Opening`, `User`/`OpeningSupervisor` (Fiscal), `Opening.registration_data` (opt-in, `--with-registration-data`, via `SyncOpeningRegistrationDataJob`) | `importSheet()` |
 | Formalização | `Formalization`, `Opening` (só `opening_nup`, cross-tab) | `syncFormalization()` |
 | Orçamento | `Budget` | `syncBudget()` |
 | Pagamento | `Opening` (só `creditor_number`, cross-tab) | `syncPagamento()` |

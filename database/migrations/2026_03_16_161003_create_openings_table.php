@@ -55,6 +55,8 @@ return new class extends Migration
             $table->timestamp('submitted_at')->nullable();
             $table->timestamp('concluded_at')->nullable();
 
+            $table->json('registration_data')->nullable();
+
             $table->timestamps();
             $table->softDeletes();
         });

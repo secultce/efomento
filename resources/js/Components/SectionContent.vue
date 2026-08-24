@@ -85,7 +85,7 @@ const copyValue = async (value) => {
                     </v-icon>
                 </div>
 
-                <span class="font-bold break-words">
+                <span class="font-bold break-words" :class="{ 'whitespace-pre-line': field.multiline }">
                     {{ displayValue(field) }}
                 </span>
             </div>

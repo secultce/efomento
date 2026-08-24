@@ -1,4 +1,5 @@
 import { getLegalType } from '../getLegalType';
+import { parseRegistrationFieldValue } from '../parseRegistrationFieldValue';
 
 export const viewSections = [
     {
@@ -57,5 +58,24 @@ export const viewSections = [
     {
         title: 'Campos Extras e Documentos',
         fields: [{ label: 'Campos extras', key: 'extra_fields' }],
+    },
+    {
+        title: 'Ficha de Abertura (Mapas Cultural)',
+        fields: [
+            {
+                label: 'Campos da inscrição',
+                fullWidth: true,
+                multiline: true,
+                compute: (project) => {
+                    const fields = project.opening?.registration_data?.fields ?? [];
+
+                    if (!fields.length) return 'Nenhum dado de inscrição disponível.';
+
+                    return fields
+                        .map((f) => `${f.titleField}: ${parseRegistrationFieldValue(f.valueField)}`)
+                        .join('\n');
+                },
+            },
+        ],
     },
 ];
