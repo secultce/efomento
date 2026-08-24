@@ -3,6 +3,7 @@
 namespace App\Mail;
 
 use App\Models\DiligenceMessage;
+use App\Support\RichTextSanitizer;
 use Illuminate\Bus\Queueable;
 use Illuminate\Mail\Mailable;
 use Illuminate\Mail\Mailables\Content;
@@ -30,6 +31,9 @@ class DiligenceMail extends Mailable
     {
         return new Content(
             view: 'mail.diligence',
+            with: [
+                'formattedBody' => RichTextSanitizer::sanitize($this->diligenceMessage->body),
+            ],
         );
     }
 
