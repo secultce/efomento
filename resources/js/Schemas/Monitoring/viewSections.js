@@ -22,9 +22,10 @@ export const viewSections = [
                     if (!paymentDate || !signedAt) return null;
 
                     const daysBetweenSignedAndPayment = daysBetweenDates(signedAt, paymentDate);
+                    const requestDeadlineDays = Number(project.notice?.monitoring_report_request_deadline_days ?? 120);
 
                     const date = new Date(paymentDate);
-                    date.setDate(date.getDate() + 120 + daysBetweenSignedAndPayment);
+                    date.setDate(date.getDate() + requestDeadlineDays + daysBetweenSignedAndPayment);
 
                     return formatDate(date);
                 },

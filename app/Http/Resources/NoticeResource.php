@@ -29,6 +29,8 @@ class NoticeResource extends JsonResource
             'process_manager_email' => $this->process_manager_email,
             'creditor_registration_nup' => $this->creditor_registration_nup,
             'creditor_registration_request_date' => optional($this->creditor_registration_request_date)->format('Y-m-d'),
+            'monitoring_report_request_deadline' => $this->monitoring_report_request_deadline?->value,
+            'monitoring_report_request_deadline_days' => $this->monitoring_report_request_deadline_days,
             'created_at' => $this->created_at?->toDateTimeString(),
         ];
     }

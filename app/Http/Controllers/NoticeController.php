@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Enums\InstrumentType;
+use App\Enums\MonitoringReportRequestDeadline;
 use App\Http\Requests\Notice\NoticeStoreRequest;
 use App\Http\Requests\Notice\NoticeUpdateRequest;
 use App\Http\Resources\AuditResource;
@@ -29,6 +30,7 @@ class NoticeController extends Controller
                 ->getNoticesForDashboard($request->query('search')),
             'totais' => $this->noticeService->getTotals(),
             'instrumentTypes' => InstrumentType::values(),
+            'monitoringReportRequestDeadlines' => MonitoringReportRequestDeadline::options(),
         ]);
     }
 

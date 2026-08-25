@@ -10,6 +10,7 @@ import { useMask } from '@/Composables/useMask';
 const props = defineProps({
     notice: { type: Object, default: null },
     instrumentTypes: { type: Array, default: () => [] },
+    monitoringReportRequestDeadlines: { type: Array, default: () => [] },
 });
 
 const form = useForm({
@@ -147,6 +148,17 @@ const saveAll = () => {
                     :min="1"
                     :step="1"
                     data-cy="quota-number-show-all-information"
+                />
+                <EditableField
+                    v-model="form.monitoring_report_request_deadline"
+                    :disabled="!canManageNotices"
+                    label="Prazo para solicitação do relatório de monitoramento:"
+                    type="select"
+                    :items="monitoringReportRequestDeadlines"
+                    item-title="label"
+                    item-value="value"
+                    :error="form.errors.monitoring_report_request_deadline"
+                    data-cy="monitoring-report-request-deadline-show-all-information"
                 />
                 <EditableField
                     v-model="form.budget_allocation_nup"

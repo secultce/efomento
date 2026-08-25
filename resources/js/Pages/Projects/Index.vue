@@ -27,6 +27,7 @@ const props = defineProps({
     filters: { type: Object, default: null },
     phases: { type: Array, default: () => [] },
     instrumentTypes: { type: Array, default: () => [] },
+    monitoringReportRequestDeadlines: { type: Array, default: () => [] },
     supervisorsAvailable: { type: Array, default: () => [] },
     monitoringReportsCount: { type: Number, default: 0 },
     hasBudgetAllocations: Boolean,
@@ -354,7 +355,11 @@ function handleAction({ action, item }) {
 
     <AuthenticatedLayout>
         <AppSubHeader back-route="/editais">
-            <ProjectNoticeEdit :notice="notice" :instrument-types="instrumentTypes" />
+            <ProjectNoticeEdit
+                :notice="notice"
+                :instrument-types="instrumentTypes"
+                :monitoring-report-request-deadlines="monitoringReportRequestDeadlines"
+            />
         </AppSubHeader>
 
         <AppContainer>

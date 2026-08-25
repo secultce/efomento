@@ -12,6 +12,7 @@ const props = defineProps({
     modelValue: { type: Boolean, default: false },
     item: { type: Object, default: null },
     instrumentTypes: { type: Array, default: () => [] },
+    monitoringReportRequestDeadlines: { type: Array, default: () => [] },
 });
 
 const { showSnackbar } = useSnackbar();
@@ -32,6 +33,7 @@ const form = useForm({
     budget_allocation_request_date: '',
     creditor_registration_nup: '',
     creditor_registration_request_date: '',
+    monitoring_report_request_deadline: 'PNAB',
 });
 
 watch(
@@ -39,6 +41,7 @@ watch(
     (notice) => {
         if (!notice) return;
         form.nup = notice.mae ?? '';
+        form.monitoring_report_request_deadline = notice.monitoring_report_request_deadline ?? 'PNAB';
     }
 );
 
@@ -164,6 +167,24 @@ const valorExtenso = computed(() => {
                                     type="number"
                                     data-cy="quota-number-identification-data-form"
                                     min="0"
+                                />
+                            </FormField>
+                        </v-col>
+
+                        <v-col cols="12" md="6">
+                            <FormField
+                                label="Prazo para solicitação do relatório de monitoramento"
+                                :error="form.errors.monitoring_report_request_deadline"
+                                required
+                            >
+                                <SelectField
+                                    v-model="form.monitoring_report_request_deadline"
+                                    :items="monitoringReportRequestDeadlines"
+                                    item-title="label"
+                                    item-value="value"
+                                    placeholder="Selecione o prazo"
+                                    required
+                                    data-cy="monitoring-report-request-deadline-identification-data-form-select"
                                 />
                             </FormField>
                         </v-col>
