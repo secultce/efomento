@@ -138,23 +138,28 @@ class SpreadsheetImportService
 
     private function resolveOpening(array $row, int $projectId, int $userId, ?User $supervisor): Opening
     {
-        $opening = Opening::updateOrCreate(
-            ['project_id' => $projectId],
-            [
-                'opening_date' => $this->parseDate(trim((string) ($row['DATA ABERTURA DE PROCESSO'] ?? ''))),
-                'agent_status' => $this->mapAgentStatus(trim((string) ($row['STATUS'] ?? ''))),
-                'opened_by' => trim((string) ($row['RESPONSÁVEL POR ABRIR PROCESSO'] ?? '')),
-                'bank' => trim((string) ($row['BANCO'] ?? '')),
-                'account_type' => $this->mapAccountType(trim((string) ($row['TIPO DE CONTA'] ?? ''))),
-                'branch' => trim((string) ($row['AGÊNCIA'] ?? '')),
-                'account' => trim((string) ($row['CONTA'] ?? '')),
-                'is_draft' => true,
-                'certificate_date' => $this->parseDate(trim((string) ($row['DATA DE CERTIDÃO GERADA'] ?? ''))),
-                'started_at' => $this->parseDate(trim((string) ($row['DATA ABERTURA DE PROCESSO'] ?? ''))),
-                'user_id' => $userId,
-                'supervisor_id' => $supervisor?->id,
-            ]
-        );
+        $opening = Opening::firstOrNew(['project_id' => $projectId]);
+
+        $attributes = [
+            'opening_date' => $this->parseDate(trim((string) ($row['DATA ABERTURA DE PROCESSO'] ?? ''))),
+            'agent_status' => $this->mapAgentStatus(trim((string) ($row['STATUS'] ?? ''))),
+            'opened_by' => trim((string) ($row['RESPONSÁVEL POR ABRIR PROCESSO'] ?? '')),
+            'bank' => trim((string) ($row['BANCO'] ?? '')),
+            'account_type' => $this->mapAccountType(trim((string) ($row['TIPO DE CONTA'] ?? ''))),
+            'branch' => trim((string) ($row['AGÊNCIA'] ?? '')),
+            'account' => trim((string) ($row['CONTA'] ?? '')),
+            'certificate_date' => $this->parseDate(trim((string) ($row['DATA DE CERTIDÃO GERADA'] ?? ''))),
+            'started_at' => $this->parseDate(trim((string) ($row['DATA ABERTURA DE PROCESSO'] ?? ''))),
+            'user_id' => $userId,
+            'supervisor_id' => $supervisor?->id,
+        ];
+
+        if (! $opening->exists) {
+            $attributes['is_draft'] = true;
+        }
+
+        $opening->fill($attributes);
+        $opening->save();
 
         if ($supervisor) {
             $opening->assignSupervisors([
