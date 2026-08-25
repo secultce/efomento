@@ -7,7 +7,6 @@ use App\Enums\DeliberationType;
 use App\Exceptions\Integration\ExternalServiceException;
 use App\Models\Budget;
 use App\Models\Formalization;
-use App\Models\Opening;
 use App\Models\Project;
 use App\Support\Import;
 use Illuminate\Http\Client\ConnectionException;
@@ -129,7 +128,7 @@ class GoogleSheetsService
                 // Sempre sobrescreve (mesmo quando null): um NUP removido/corrigido
                 // na planilha precisa refletir em Opening, não ficar com valor antigo.
                 $nup = Import::normalizeNup($row[$config['opening_nup_column'] ?? 'N° DO PROCESSO (NUP)'] ?? null);
-                Opening::where('project_id', $project->id)->update(['opening_nup' => $nup]);
+                $project->opening?->update(['opening_nup' => $nup]);
 
                 $count++;
             } catch (Throwable $e) {
@@ -252,7 +251,7 @@ class GoogleSheetsService
 
             $creditorNumber = trim((string) ($row[$creditorNumberColumn] ?? ''));
 
-            Opening::where('project_id', $project->id)->update([
+            $project->opening?->update([
                 'creditor_number' => $creditorNumber !== '' ? $creditorNumber : null,
             ]);
 
@@ -275,7 +274,10 @@ class GoogleSheetsService
             ->values()
             ->all();
 
-        return Project::whereIn('number', $numbers)->get()->keyBy('number');
+        return Project::whereIn('number', $numbers)
+            ->with('opening')
+            ->get()
+            ->keyBy('number');
     }
 
     /**
