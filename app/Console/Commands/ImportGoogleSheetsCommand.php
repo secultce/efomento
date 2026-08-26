@@ -10,14 +10,14 @@ class ImportGoogleSheetsCommand extends Command
 {
     protected $signature = 'app:import-google-sheets
                             {spreadsheet-id : ID da planilha pública do Google Sheets}
-                            {--aba=* : Abas a importar: Abertura, Formalização, Orçamento}
+                            {--aba=* : Abas a importar: Abertura, Formalização, Orçamento, Pagamento}
                             {--user-id= : ID do usuário para created_by / user_id}
                             {--notice-id= : ID do edital fallback quando não encontrado pela planilha (apenas Abertura)}
                             {--with-files : Baixar arquivos do MAPAS ao importar projetos (apenas Abertura)}';
 
     protected $description = 'Importa dados de uma ou mais abas do Google Sheets para o banco';
 
-    private const ABA_NAMES = ['Abertura', 'Formalização', 'Orçamento'];
+    private const ABA_NAMES = ['Abertura', 'Formalização', 'Orçamento', 'Pagamento'];
 
     public function handle(GoogleSheetsService $service): int
     {
@@ -43,6 +43,7 @@ class ImportGoogleSheetsCommand extends Command
                     'Abertura' => $service->importSheet($spreadsheetId, $aba, $withFiles, $userId, $noticeId),
                     'Formalização' => $service->syncFormalization($spreadsheetId, $aba, $userId),
                     'Orçamento' => $service->syncBudget($spreadsheetId, $aba, $userId),
+                    'Pagamento' => $service->syncPagamento($spreadsheetId, $aba, $userId),
                     default => throw new RuntimeException("Aba \"{$aba}\" não reconhecida. Use: ".implode(', ', self::ABA_NAMES)),
                 };
 

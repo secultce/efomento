@@ -287,7 +287,7 @@ function submit() {
                         <template v-if="section.key === 'opinion'">
                             <div v-for="(opinion, i) in form.technical_opinions" :key="i" class="mb-2">
                                 <div class="grid grid-cols-2 gap-4">
-                                    <form-field label="Número do parecer no SUITE" required>
+                                    <form-field label="Número do parecer no SUITE">
                                         <text-field v-model="opinion.suite_number" />
                                     </form-field>
                                     <form-field label="Data da tramitação do parecer via Suite">
