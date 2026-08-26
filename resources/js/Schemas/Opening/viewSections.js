@@ -1,6 +1,6 @@
 import { useDate } from '@/Composables/useDate';
 import { useMask } from '@/Composables/useMask';
-import { getLegalType } from '../getLegalType';
+import { getLegalType } from '@/Schemas/getLegalType';
 
 const { getDate } = useDate();
 const { getCpfCnpj } = useMask();

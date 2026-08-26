@@ -53,11 +53,11 @@ export function useMask() {
         if (!digits) return fallback;
 
         if (digits.length === 11) {
-            return applyMask(digits, '###.###.###-##');
+            return maskCpf(digits, fallback);
         }
 
         if (digits.length === 14) {
-            return applyMask(digits, '##.###.###/####-##');
+            return maskCnpj(digits, fallback);
         }
 
         return digits;
