@@ -1,5 +1,5 @@
 import Login from '../../../pages/auth';
-import Notice from '../../../pages/notice';
+import Notice from '../../../pages/notice/NoticePage';
 
 describe('Notice Page - E2E Tests', () => {
     beforeEach(() => {

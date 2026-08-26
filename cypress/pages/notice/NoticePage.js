@@ -1,4 +1,3 @@
-import { validateNumber } from 'vuetify/lib/components/VCalendar/util/timestamp.mjs';
 import { elements as el } from './elements';
 
 class Notice {

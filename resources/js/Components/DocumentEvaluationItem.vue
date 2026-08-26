@@ -90,6 +90,7 @@ function downloadFile() {
                         :loading="loading"
                         :disabled="loading"
                         class="w-52"
+                        data-cy="document-evaluation-status"
                         @update:model-value="onStatusChange"
                     />
                 </div>
