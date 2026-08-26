@@ -1,5 +1,6 @@
 <script setup>
 import { computed, ref } from 'vue';
+import DocumentDownloadMenu from '@/Components/DocumentDownloadMenu.vue';
 import DocumentViewerDialog from '@/Components/DocumentViewerDialog.vue';
 
 const props = defineProps({
@@ -45,12 +46,16 @@ function typeName(doc) {
     return doc.type_name ?? doc.type_label ?? doc.type;
 }
 
-function projectName(doc) {
-    return doc.project?.title_project ?? doc.project?.agent?.name ?? 'Projeto';
+function contextLabel(doc) {
+    return doc.project ? 'do projeto' : 'do edital';
 }
 
-function download(doc) {
-    window.open(`/projetos/documentos/${doc.id}/download`, '_blank');
+function contextName(doc) {
+    return doc.project?.title_project ?? doc.project?.agent?.name ?? doc.notice?.name ?? 'Edital';
+}
+
+function download(doc, format) {
+    window.open(`/projetos/documentos/${doc.id}/download?format=${format}`, '_blank');
 }
 
 function view(doc) {
@@ -83,21 +88,20 @@ function close() {
                     class="d-flex items-center justify-between border rounded-lg px-4 py-3 mb-2"
                 >
                     <span class="text-sm text-[#3b3b3c] font-medium">
-                        {{ typeName(doc) }} do projeto:
-                        {{ projectName(doc) }}
+                        {{ typeName(doc) }} {{ contextLabel(doc) }}:
+                        {{ contextName(doc) }}
                     </span>
 
                     <div class="d-flex gap-1 flex-shrink-0 ml-3">
-                        <v-btn
+                        <DocumentDownloadMenu
                             v-if="showDownload"
-                            icon
+                            icon-only
                             size="small"
                             variant="text"
                             color="#008344"
-                            @click="download(doc)"
-                        >
-                            <v-icon size="20"> mdi-download </v-icon>
-                        </v-btn>
+                            location="bottom end"
+                            @download="download(doc, $event)"
+                        />
 
                         <v-btn v-if="showPreview" icon size="small" variant="text" color="#008344" @click="view(doc)">
                             <v-icon size="20"> mdi-eye-outline </v-icon>

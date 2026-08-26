@@ -6,6 +6,7 @@ use App\Enums\DocumentImagePosition;
 use App\Enums\DocumentImageSection;
 use App\Enums\DocumentPhase;
 use App\Enums\DocumentType;
+use App\Enums\Role;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -13,21 +14,43 @@ class DocumentStoreRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        return true;
+        $type = DocumentType::tryFrom($this->string('type')->toString());
+
+        return ! $type?->isBudgetOpinion()
+            || $this->user()?->hasAnyRole(Role::budgetRoles());
     }
 
     public function rules(): array
     {
+        $noticeRules = ['required', 'exists:notices,id'];
+
+        if ($this->input('type') === DocumentType::PI->value && blank($this->input('project_id'))) {
+            $noticeRules[] = Rule::unique('documents', 'notice_id')
+                ->where(fn ($query) => $query
+                    ->where('type', DocumentType::PI->value)
+                    ->where('phase', DocumentPhase::BUDGET->value)
+                    ->whereNull('project_id')
+                    ->whereNull('deleted_at'));
+        }
+
         return [
             'type' => ['required', Rule::enum(DocumentType::class)],
             'phase' => ['required', Rule::enum(DocumentPhase::class)],
             'body' => ['required', 'string'],
-            'notice_id' => ['required', 'exists:notices,id'],
-            'project_id' => ['required', 'exists:projects,id'],
+            'notice_id' => $noticeRules,
+            'project_id' => [
+                Rule::requiredIf(fn () => $this->input('type') !== DocumentType::PI->value),
+                'nullable',
+                'exists:projects,id',
+            ],
             'images' => ['nullable', 'array'],
             'images.*.section' => ['required_with:images', Rule::enum(DocumentImageSection::class)],
             'images.*.position' => ['required_with:images', Rule::enum(DocumentImagePosition::class)],
-            'images.*.path' => ['required_with:images', 'string'],
+            'images.*.path' => [
+                'required_with:images',
+                'string',
+                'regex:/\Adocuments\/[A-Za-z0-9_-]+\.(?:gif|jpe?g|png)\z/i',
+            ],
         ];
     }
 
@@ -36,6 +59,7 @@ class DocumentStoreRequest extends FormRequest
         return [
             'notice_id.required' => 'O edital é obrigatório.',
             'notice_id.exists' => 'O edital informado não existe.',
+            'notice_id.unique' => 'Já existe um parecer orçamentário inicial para este edital.',
             'project_id.required' => 'O projeto é obrigatório.',
             'project_id.exists' => 'O projeto informado não existe.',
             'type.required' => 'O tipo do documento é obrigatório.',

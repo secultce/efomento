@@ -1,5 +1,6 @@
 <?php
 
+use App\Enums\CgeAtendeStatus;
 use App\Enums\DeliberationType;
 use App\Enums\ReportStatus;
 use Illuminate\Database\Migrations\Migration;
@@ -19,21 +20,19 @@ return new class extends Migration
 
             $table->date('asjur_finalistic_processing_date')->nullable();
             $table->date('asjur_received_at')->nullable();
-            $table->string('process_assigned_to')->nullable();
+            $table->foreignId('process_assigned_to')->nullable()->constrained('users')->nullOnDelete();
             $table->enum('report_status', ReportStatus::cases())->nullable()->default(ReportStatus::SEM_CADASTRO->value);
             $table->date('eparcerias_certificate_date')->nullable();
 
             $table->date('asjur_processing_date')->nullable();
-            $table->string('responsible_at_asjur')->nullable();
             $table->string('term_number')->nullable();
 
-            $table->date('term_signature_sent_at')->nullable();
             $table->date('term_signed_at')->nullable();
             $table->date('sent_to_office_at')->nullable();
             $table->date('signed_by_office_at')->nullable();
 
             $table->string('sacc_number')->nullable();
-            $table->string('cge_atende_ticket')->nullable();
+            $table->enum('cge_atende_ticket', CgeAtendeStatus::cases())->nullable();
             $table->enum('deliberation', DeliberationType::cases())->nullable()->default(DeliberationType::MANUAL->value);
 
             $table->date('sent_to_chief_of_staff_at')->nullable();

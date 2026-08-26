@@ -63,6 +63,23 @@ class FormalizationTest extends TestCase
         ]);
     }
 
+    public function test_store_persists_term_signed_at(): void
+    {
+        $project = Project::factory()->create();
+
+        $this->actingAs($this->user)
+            ->post(
+                route('projects.formalizations.store', $project),
+                $this->validPayload(['term_signed_at' => '2026-05-10'])
+            )
+            ->assertSessionHasNoErrors();
+
+        $this->assertDatabaseHas('formalizations', [
+            'project_id' => $project->id,
+            'term_signed_at' => '2026-05-10 00:00:00',
+        ]);
+    }
+
     public function test_store_allows_empty_payload(): void
     {
         $project = Project::factory()->create();
@@ -98,24 +115,6 @@ class FormalizationTest extends TestCase
         ]);
     }
 
-    public function test_store_saves_official_gazette_file_when_uploaded(): void
-    {
-        $project = Project::factory()->create();
-
-        $this->actingAs($this->user)
-            ->post(route('projects.formalizations.store', $project), $this->validPayload([
-                'official_gazette_file' => UploadedFile::fake()->create('doe.pdf', 100, 'application/pdf'),
-            ]))
-            ->assertSessionHasNoErrors();
-
-        $formalization = Formalization::where('project_id', $project->id)->firstOrFail();
-        $file = $formalization->files()->where('grp', 'official_gazette')->first();
-
-        $this->assertNotNull($file);
-        $this->assertSame('doe.pdf', $file->name);
-        Storage::disk($this->disk)->assertExists($file->path);
-    }
-
     public function test_store_rejects_invalid_enum_values(): void
     {
         $project = Project::factory()->create();
@@ -143,28 +142,6 @@ class FormalizationTest extends TestCase
             ->assertSessionHasErrors(['validity_end_at']);
     }
 
-    public function test_store_rejects_official_gazette_file_with_invalid_mime(): void
-    {
-        $project = Project::factory()->create();
-
-        $this->actingAs($this->user)
-            ->post(route('projects.formalizations.store', $project), $this->validPayload([
-                'official_gazette_file' => UploadedFile::fake()->create('foto.jpg', 100, 'image/jpeg'),
-            ]))
-            ->assertSessionHasErrors(['official_gazette_file']);
-    }
-
-    public function test_store_rejects_official_gazette_file_above_max_size(): void
-    {
-        $project = Project::factory()->create();
-
-        $this->actingAs($this->user)
-            ->post(route('projects.formalizations.store', $project), $this->validPayload([
-                'official_gazette_file' => UploadedFile::fake()->create('doe.pdf', 10241, 'application/pdf'),
-            ]))
-            ->assertSessionHasErrors(['official_gazette_file']);
-    }
-
     public function test_update_modifies_existing_formalization(): void
     {
         $formalization = Formalization::factory()->create();
@@ -180,28 +157,6 @@ class FormalizationTest extends TestCase
             'id' => $formalization->id,
             'term_number' => 'TERM-ATUALIZADO',
         ]);
-    }
-
-    public function test_update_saves_official_gazette_file_when_uploaded(): void
-    {
-        $formalization = Formalization::factory()->create();
-
-        $this->actingAs($this->user)
-            ->patch(
-                route('projects.formalizations.update', [$formalization->project, $formalization]),
-                $this->validPayload([
-                    'official_gazette_file' => UploadedFile::fake()->create('doe-novo.pdf', 100, 'application/pdf'),
-                ])
-            )
-            ->assertSessionHasNoErrors();
-
-        $file = $formalization->files()
-            ->where('grp', 'official_gazette')
-            ->where('name', 'doe-novo.pdf')
-            ->first();
-
-        $this->assertNotNull($file);
-        Storage::disk($this->disk)->assertExists($file->path);
     }
 
     public function test_update_rejects_formalization_from_another_project(): void

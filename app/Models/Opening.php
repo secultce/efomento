@@ -94,7 +94,7 @@ class Opening extends Model implements Auditable
             ->ofMany(['assigned_at' => 'max'], fn ($q) => $q->where('is_active', true)->where('type', OpeningSupervisor::TYPE_ALTERNATE));
     }
 
-    public function assignSupervisors(array $supervisors): void
+    public function assignSupervisors(array $supervisors, ?int $assignedBy = null): void
     {
         foreach ($supervisors as $supervisor) {
             $type = $supervisor['type'] ?? null;
@@ -124,7 +124,7 @@ class Opening extends Model implements Auditable
                 'opening_id' => $this->id,
                 'user_id' => $newUserId,
                 'type' => $type,
-                'assigned_by' => Auth::id(),
+                'assigned_by' => $assignedBy ?? Auth::id(),
                 'assigned_at' => now(),
                 'is_active' => true,
             ]);

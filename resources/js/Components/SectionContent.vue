@@ -66,6 +66,7 @@ const copyValue = async (value) => {
                 v-for="(field, index) in section.fields"
                 :key="field.label"
                 class="flex flex-col w-full"
+                :class="{ 'md:col-span-2': field.fullWidth }"
                 @mouseenter="hoveredIndex = index"
                 @mouseleave="hoveredIndex = null"
             >
@@ -78,7 +79,7 @@ const copyValue = async (value) => {
                         v-show="hoveredIndex === index"
                         size="14"
                         class="cursor-pointer"
-                        @click.stop="copyValue(getFieldValue(field.key))"
+                        @click.stop="copyValue(displayValue(field))"
                     >
                         mdi-content-copy
                     </v-icon>

@@ -252,9 +252,6 @@ const isNupValid = computed(() => String(form.opening.opening_nup ?? '').replace
 const hasPrincipalSupervisor = computed(() =>
     (form.opening.supervisors ?? []).some((s) => s.type === 'principal' && !!s.id)
 );
-const hasAlternateSupervisor = computed(() =>
-    (form.opening.supervisors ?? []).some((s) => s.type === 'alternate' && !!s.id)
-);
 
 const hasText = (value) => String(value ?? '').trim().length > 0;
 
@@ -268,8 +265,7 @@ const allRequiredFilled = computed(() => {
         opening.account_type &&
         hasText(opening.branch) &&
         hasText(opening.account) &&
-        hasPrincipalSupervisor.value &&
-        hasAlternateSupervisor.value
+        hasPrincipalSupervisor.value
     );
 });
 
@@ -286,7 +282,6 @@ const errors = computed(() => {
         branch: !hasText(form.opening.branch) ? standardMessage : null,
         account: !hasText(form.opening.account) ? standardMessage : null,
         principalSupervisor: !hasPrincipalSupervisor.value ? standardMessage : null,
-        alternateSupervisor: !hasAlternateSupervisor.value ? standardMessage : null,
     };
 });
 
@@ -494,13 +489,12 @@ const activeEditIndex = ref('all');
                                         />
                                     </form-field>
 
-                                    <form-field label="Fiscal suplente" required :error="errors.alternateSupervisor">
+                                    <form-field label="Fiscal suplente">
                                         <user-autocomplete-field
                                             v-model="form.opening.supervisors[1].id"
                                             label="Selecione o fiscal suplente"
                                             variant="outlined"
                                             :items="availableAlternate"
-                                            :error="errors.alternateSupervisor"
                                             @update:model-value="() => syncSupervisor(1)"
                                         />
                                     </form-field>

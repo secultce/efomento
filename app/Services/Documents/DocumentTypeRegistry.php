@@ -29,6 +29,16 @@ class DocumentTypeRegistry
             'requires_sign' => true,
             'requires_legal' => true,
         ],
+        'pi+budget' => [
+            'label' => 'Parecer Orçamentário Inicial',
+            'requires_sign' => true,
+            'requires_legal' => false,
+        ],
+        'pf+budget' => [
+            'label' => 'Parecer Orçamentário Final',
+            'requires_sign' => true,
+            'requires_legal' => false,
+        ],
         'do+budget' => [
             'label' => 'Despacho Orçamentário',
             'requires_sign' => true,

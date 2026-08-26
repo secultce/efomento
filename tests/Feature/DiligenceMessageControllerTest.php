@@ -6,10 +6,12 @@ use App\Enums\DiligenceDirection;
 use App\Mail\DiligenceMail;
 use App\Models\DiligenceMessage;
 use App\Models\Monitoring;
+use App\Models\ProfileSnapshot;
 use App\Models\Project;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Storage;
 use Tests\TestCase;
 
 class DiligenceMessageControllerTest extends TestCase
@@ -50,7 +52,7 @@ class DiligenceMessageControllerTest extends TestCase
             'created_by' => $this->user->id,
         ]);
 
-        $this->monitoring->diligenceMessages()->create([
+        $inbound = $this->monitoring->diligenceMessages()->create([
             'direction' => DiligenceDirection::INBOUND,
             'from_email' => 'agente@example.com',
             'to_email' => 'efomento@example.com',
@@ -59,6 +61,16 @@ class DiligenceMessageControllerTest extends TestCase
             'imap_message_id' => '<resposta_test_1@example.com>',
             'in_reply_to' => '<diligence_test_1@efomento>',
             'sent_at' => now(),
+        ]);
+
+        $attachment = $inbound->attachments()->create([
+            'mime_type' => 'application/pdf',
+            'name' => 'relatorio.pdf',
+            'source' => 'imap',
+            'external_id' => 'anexo-1',
+            'grp' => 'attachments',
+            'path' => 'diligence-messages/2/anexo-1',
+            'private' => true,
         ]);
 
         $response = $this->actingAs($this->user)
@@ -78,12 +90,86 @@ class DiligenceMessageControllerTest extends TestCase
                         'sent_at',
                         'read_at',
                         'creator',
+                        'attachments',
                     ],
                 ],
             ])
             ->assertJsonPath('messages.0.direction', 'OUTBOUND')
             ->assertJsonPath('messages.0.creator', $this->user->name)
-            ->assertJsonPath('messages.1.direction', 'INBOUND');
+            ->assertJsonPath('messages.1.direction', 'INBOUND')
+            ->assertJsonPath('messages.1.attachments.0.name', 'relatorio.pdf')
+            ->assertJsonPath(
+                'messages.1.attachments.0.url',
+                route('diligences.attachments.download', [
+                    'project' => $this->project,
+                    'stage' => 'monitoramento',
+                    'message' => $inbound,
+                    'file' => $attachment,
+                ])
+            );
+    }
+
+    public function test_authenticated_user_can_download_message_attachment(): void
+    {
+        $disk = config('efomento.file_disk', 'public');
+        Storage::fake($disk);
+
+        $message = DiligenceMessage::factory()->inbound()->create([
+            'diligenceable_type' => 'monitoring',
+            'diligenceable_id' => $this->monitoring->id,
+        ]);
+        $attachment = $message->attachments()->create([
+            'mime_type' => 'application/pdf',
+            'name' => 'relatorio.pdf',
+            'source' => 'imap',
+            'external_id' => 'anexo-1',
+            'grp' => 'attachments',
+            'path' => 'diligence-messages/1/anexo-1',
+            'private' => true,
+        ]);
+        Storage::disk($disk)->put($attachment->path, 'conteudo-pdf');
+
+        $this->actingAs($this->user)
+            ->get(route('diligences.attachments.download', [
+                'project' => $this->project,
+                'stage' => 'monitoramento',
+                'message' => $message,
+                'file' => $attachment,
+            ]))
+            ->assertOk()
+            ->assertDownload('relatorio.pdf');
+    }
+
+    public function test_attachment_download_returns_404_for_file_from_another_message(): void
+    {
+        Storage::fake(config('efomento.file_disk', 'public'));
+
+        $message = DiligenceMessage::factory()->inbound()->create([
+            'diligenceable_type' => 'monitoring',
+            'diligenceable_id' => $this->monitoring->id,
+        ]);
+        $otherMessage = DiligenceMessage::factory()->inbound()->create([
+            'diligenceable_type' => 'monitoring',
+            'diligenceable_id' => $this->monitoring->id,
+        ]);
+        $attachment = $otherMessage->attachments()->create([
+            'mime_type' => 'application/pdf',
+            'name' => 'outro.pdf',
+            'source' => 'imap',
+            'external_id' => 'anexo-outro',
+            'grp' => 'attachments',
+            'path' => 'diligence-messages/2/anexo-outro',
+            'private' => true,
+        ]);
+
+        $this->actingAs($this->user)
+            ->get(route('diligences.attachments.download', [
+                'project' => $this->project,
+                'stage' => 'monitoramento',
+                'message' => $message,
+                'file' => $attachment,
+            ]))
+            ->assertNotFound();
     }
 
     public function test_index_does_not_leak_messages_from_other_projects(): void
@@ -145,6 +231,30 @@ class DiligenceMessageControllerTest extends TestCase
         Mail::assertSent(DiligenceMail::class, function (DiligenceMail $mail) {
             return $mail->hasTo('agente@example.com');
         });
+    }
+
+    public function test_store_copies_the_agents_secondary_email(): void
+    {
+        Mail::fake();
+
+        ProfileSnapshot::factory()->create([
+            'object_type' => 'agent',
+            'object_id' => $this->project->agent_id,
+            'email' => 'agente@example.com',
+            'secondary_email' => 'agente.secundario@example.com',
+            'recorded_at' => now(),
+        ]);
+
+        $this->actingAs($this->user)
+            ->postJson(route('diligences.store', ['project' => $this->project, 'stage' => 'monitoramento']), [
+                'subject' => 'Diligência — Monitoramento',
+                'body' => 'Favor enviar o relatório de monitoramento atualizado.',
+                'to_email' => 'agente@example.com',
+            ])
+            ->assertCreated();
+
+        Mail::assertSent(DiligenceMail::class, fn (DiligenceMail $mail) => $mail->hasTo('agente@example.com')
+            && $mail->hasCc('agente.secundario@example.com'));
     }
 
     public function test_store_builds_rfc_compliant_email_headers(): void

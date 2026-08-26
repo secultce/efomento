@@ -1,4 +1,18 @@
 import { getBudgetAllocation } from '../getBudgetAllocation';
+import { useMask } from '@/Composables/useMask';
+
+const { maskProcessNumber } = useMask();
+
+function getInstallmentJustification(project) {
+    const agentName = project?.agent?.name;
+    const noticeName = project?.notice?.name;
+    const categoryName = project?.category?.name;
+    const openingNup = maskProcessNumber(project?.opening_nup);
+
+    if (!agentName || !noticeName || !categoryName || !openingNup) return null;
+
+    return `Repasse de recurso para o/a proponente ${agentName ?? ''}, selecionado no ${noticeName ?? ''}, na categoria - ${categoryName ?? ''}, conforme ${openingNup ?? ''}`;
+}
 
 export const viewSections = [
     {
@@ -39,6 +53,16 @@ export const viewSections = [
             { label: 'Dotação orçamentária', compute: (project) => getBudgetAllocation(project)?.allocation_number },
             { label: 'Cidade do agente', compute: (project) => project?.agent?.latest_snapshot?.city },
             { label: 'Macrorregião', compute: (project) => project?.agent?.latest_snapshot?.macroregion },
+        ],
+    },
+    {
+        title: 'Justificativa da parcela',
+        fields: [
+            {
+                label: 'Texto da justificativa',
+                compute: (project) => getInstallmentJustification(project),
+                fullWidth: true,
+            },
         ],
     },
     {

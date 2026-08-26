@@ -19,7 +19,6 @@ class Installment extends Model implements Auditable
         'budget_allocation_id',
         'amount',
         'request_date',
-        'justification',
         'observations',
         'installment_number',
         'notice_installment_number',

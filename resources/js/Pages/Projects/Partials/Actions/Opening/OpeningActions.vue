@@ -1,5 +1,6 @@
 <script setup>
 import { computed, ref } from 'vue';
+import DocumentDownloadMenu from '@/Components/DocumentDownloadMenu.vue';
 import SupervisorDialog from '@/Pages/Projects/Partials/Actions/SupervisorDialog.vue';
 import { useAuth } from '@/Composables/useAuth';
 import { usePermissions } from '@/Composables/usePermissions';
@@ -78,7 +79,7 @@ const errorMessage = ref('');
 const showError = ref(false);
 const downloadingZip = ref(false);
 
-async function downloadZip() {
+async function downloadZip(format) {
     if (!props.selectedProjects?.length) {
         errorMessage.value = 'Selecione pelo menos 1 projeto para baixar os documentos.';
         showError.value = true;
@@ -87,7 +88,7 @@ async function downloadZip() {
 
     downloadingZip.value = true;
     try {
-        await downloadDocumentsZip(props.selectedProjects, 'ci');
+        await downloadDocumentsZip(props.selectedProjects, 'ci', format);
     } catch {
         errorMessage.value = 'Erro ao baixar os documentos. Tente novamente.';
         showError.value = true;
@@ -162,15 +163,13 @@ function openNoticeHistory() {
                 </template>
             </div>
             <div class="w-full flex flex-col sm:flex-row gap-2">
-                <v-btn
-                    variant="outlined"
-                    class="flex-1 !shadow-none !border-primary !text-primary rounded-lg text-xs"
+                <DocumentDownloadMenu
+                    label="Baixar todos"
+                    button-class="flex-1 !shadow-none !border-primary !text-primary rounded-lg text-xs"
                     :loading="downloadingZip"
-                    color="primary"
-                    @click="downloadZip"
-                >
-                    Baixar todos
-                </v-btn>
+                    :disabled="!selectedProjects?.length"
+                    @download="downloadZip"
+                />
                 <v-btn
                     data-cy="btnConferirDocumentos"
                     class="flex-1 !shadow-none !font-bold !bg-[#ffcc05FF] !text-[#2d353fFF] rounded-lg text-xs"

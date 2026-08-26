@@ -6,6 +6,7 @@ use App\Enums\DocumentPhase;
 use App\Enums\DocumentStatus;
 use App\Enums\DocumentType;
 use App\Exceptions\Domain\BusinessRuleException;
+use App\Http\Requests\Document\DocumentUpdateRequest;
 use App\Models\Budget;
 use App\Models\BudgetAllocation;
 use App\Models\Document;
@@ -54,6 +55,8 @@ class DocumentTest extends TestCase
         $this->assertSame('tc', DocumentType::TC->value);
         $this->assertSame('et', DocumentType::ET->value);
         $this->assertSame('pj', DocumentType::PJ->value);
+        $this->assertSame('pi', DocumentType::PI->value);
+        $this->assertSame('pf', DocumentType::PF->value);
         $this->assertSame('do', DocumentType::DO->value);
         $this->assertSame('dp', DocumentType::DP->value);
 
@@ -82,6 +85,40 @@ class DocumentTest extends TestCase
 
         $this->assertSoftDeleted('documents', ['id' => $document->id]);
         $this->assertNotNull(Document::withTrashed()->find($document->id));
+    }
+
+    public function test_only_one_active_notice_level_document_exists_per_type_and_phase(): void
+    {
+        Document::factory()->create([
+            'notice_id' => $this->notice->id,
+            'project_id' => null,
+            'type' => DocumentType::PI,
+            'phase' => DocumentPhase::BUDGET,
+        ]);
+
+        $this->expectException(QueryException::class);
+
+        Document::factory()->create([
+            'notice_id' => $this->notice->id,
+            'project_id' => null,
+            'type' => DocumentType::PI,
+            'phase' => DocumentPhase::BUDGET,
+        ]);
+    }
+
+    public function test_nullable_project_migration_refuses_to_delete_notice_documents_on_rollback(): void
+    {
+        Document::factory()->create([
+            'notice_id' => $this->notice->id,
+            'project_id' => null,
+            'type' => DocumentType::PI,
+            'phase' => DocumentPhase::BUDGET,
+        ]);
+
+        $migration = require database_path('migrations/2026_08_14_000001_make_document_project_nullable.php');
+
+        $this->expectException(\RuntimeException::class);
+        $migration->down();
     }
 
     public function test_cannot_create_document_without_required_fields(): void
@@ -116,6 +153,14 @@ class DocumentTest extends TestCase
         $this->assertSame('Despacho Orçamentário', $result['label']);
         $this->assertTrue($result['requires_sign']);
         $this->assertTrue($result['requires_legal']);
+
+        $result = $registry->resolve(DocumentType::PI, DocumentPhase::BUDGET);
+
+        $this->assertSame('Parecer Orçamentário Inicial', $result['label']);
+
+        $result = $registry->resolve(DocumentType::PF, DocumentPhase::BUDGET);
+
+        $this->assertSame('Parecer Orçamentário Final', $result['label']);
 
         $result = $registry->resolve(DocumentType::DP, DocumentPhase::PAYMENT);
 
@@ -209,6 +254,277 @@ class DocumentTest extends TestCase
         $resolvedBody = app(DocumentPlaceholderResolver::class)->resolve($document);
 
         $this->assertSame('Número da parcela: ', $resolvedBody);
+    }
+
+    public function test_resolver_replaces_budget_allocation_data_with_formatted_notice_data(): void
+    {
+        $project = Project::factory()->create([
+            'current_installment_cycle' => 1,
+        ]);
+        BudgetAllocation::factory()->create([
+            'notice_id' => $project->notice_id,
+            'management_unit' => '27200004 - FUNDO ESTADUAL DA CULTURA',
+            'work_program' => '131 - PROMOÇÃO E DESENVOLVIMENTO DA ARTE',
+            'objective' => 'Democratizar, fomentar e ampliar o acesso',
+            'deliverable' => '1894 - PROJETO APOIADO',
+            'budget_function' => '13 - CULTURA',
+            'budget_subfunction' => '392 - DIFUSÃO CULTURAL',
+            'project_activity' => '11684 - PROMOÇÃO DO EDITAL',
+            'expense_element' => '339048 - OUTROS AUXÍLIOS FINANCEIROS',
+            'funding_source' => '719 - TRANSFERÊNCIAS DA POLÍTICA NACIONAL',
+            'mapp' => '635 - FOMENTO A PROJETOS',
+            'finalistic_project' => "272040102920251 - CAPITAL\n272040103020251 - INTERIOR",
+        ]);
+        $document = Document::factory()->create([
+            'project_id' => $project->id,
+            'notice_id' => $project->notice_id,
+            'type' => DocumentType::PI,
+            'phase' => DocumentPhase::BUDGET,
+            'body' => '<p>[budget_allocation_data]</p>',
+        ]);
+
+        $resolvedBody = app(DocumentPlaceholderResolver::class)->resolve($document);
+
+        $this->assertStringNotContainsString('[budget_allocation_data]', $resolvedBody);
+        $this->assertStringContainsString('<strong>Gestão/Unidade:</strong>', $resolvedBody);
+        $this->assertStringContainsString('27200004 - FUNDO ESTADUAL DA CULTURA', $resolvedBody);
+        $this->assertStringContainsString('<strong>Ação:</strong>', $resolvedBody);
+        $this->assertStringContainsString('CAPITAL<br>', $resolvedBody);
+        $this->assertStringContainsString('272040103020251 - INTERIOR', $resolvedBody);
+    }
+
+    public function test_resolver_replaces_notice_fields_and_budget_data_without_a_project(): void
+    {
+        $notice = Notice::factory()->create([
+            'name' => 'Edital das Artes',
+            'nup' => '12345.678901/2026-10',
+            'instrument_type' => 'TERMO DE FOMENTO',
+            'budget_allocation_nup' => 'NUP-DOTACAO-123',
+            'creditor_registration_nup' => 'NUP-CREDOR-456',
+        ]);
+        BudgetAllocation::factory()->create([
+            'notice_id' => $notice->id,
+            'management_unit' => 'UNIDADE DO EDITAL',
+        ]);
+        $document = Document::factory()->create([
+            'project_id' => null,
+            'notice_id' => $notice->id,
+            'type' => DocumentType::PI,
+            'phase' => DocumentPhase::BUDGET,
+            'body' => '[notice_name] | [nup_mother] | [finality] | [budget_allocation_nup] | [creditor_registration_nup] | [budget_allocation_data]',
+        ]);
+
+        $resolvedBody = app(DocumentPlaceholderResolver::class)->resolve($document);
+
+        $this->assertStringContainsString('Edital das Artes', $resolvedBody);
+        $this->assertStringContainsString('12345.678901/2026-10', $resolvedBody);
+        $this->assertStringContainsString('TERMO DE FOMENTO', $resolvedBody);
+        $this->assertStringContainsString('NUP-DOTACAO-123', $resolvedBody);
+        $this->assertStringContainsString('NUP-CREDOR-456', $resolvedBody);
+        $this->assertStringContainsString('UNIDADE DO EDITAL', $resolvedBody);
+        $this->assertStringNotContainsString('[budget_allocation_data]', $resolvedBody);
+    }
+
+    public function test_resolver_builds_the_budget_allocations_by_region_table_from_the_notice_import(): void
+    {
+        $notice = Notice::factory()->create();
+        BudgetAllocation::factory()->create([
+            'notice_id' => $notice->id,
+            'region_code' => '02',
+            'planning_macroregion' => 'CENTRO SUL',
+            'allocation_code' => '1001424',
+            'allocation_number' => '27200004.13.392.131.11687.02.339048.2.7199200000.1',
+        ]);
+        BudgetAllocation::factory()->create([
+            'notice_id' => $notice->id,
+            'region_code' => '01',
+            'planning_macroregion' => 'CARIRI',
+            'allocation_code' => '1001789',
+            'allocation_number' => '27200004.13.392.131.11687.01.339048.2.7199200000.1',
+        ]);
+        $document = Document::factory()->create([
+            'project_id' => null,
+            'notice_id' => $notice->id,
+            'type' => DocumentType::PI,
+            'phase' => DocumentPhase::BUDGET,
+            'body' => '[budget_allocations_by_region_table]',
+        ]);
+
+        $resolvedBody = app(DocumentPlaceholderResolver::class)->resolve($document);
+
+        $this->assertStringNotContainsString('[budget_allocations_by_region_table]', $resolvedBody);
+        $this->assertStringContainsString('<table', $resolvedBody);
+        $this->assertStringContainsString('Macrorregião de Planejamento', $resolvedBody);
+        $this->assertStringContainsString('Dotações', $resolvedBody);
+        $this->assertStringContainsString('01 – CARIRI', $resolvedBody);
+        $this->assertStringContainsString(
+            '1001789 - 27200004.13.392.131.11687.01.339048.2.7199200000.1',
+            $resolvedBody,
+        );
+        $this->assertLessThan(
+            strpos($resolvedBody, '02 – CENTRO SUL'),
+            strpos($resolvedBody, '01 – CARIRI'),
+        );
+    }
+
+    public function test_resolver_uses_the_loaded_allocations_when_building_the_region_table(): void
+    {
+        $notice = Notice::factory()->create();
+        BudgetAllocation::factory()->create([
+            'notice_id' => $notice->id,
+            'planning_macroregion' => 'CARIRI',
+            'allocation_code' => '1001789',
+        ]);
+        $notice->load('budgetAllocations');
+        $document = Document::factory()->create([
+            'project_id' => null,
+            'notice_id' => $notice->id,
+            'type' => DocumentType::PI,
+            'phase' => DocumentPhase::BUDGET,
+            'body' => '[budget_allocations_by_region_table]',
+        ]);
+        $document->setRelation('notice', $notice);
+
+        DB::flushQueryLog();
+        DB::enableQueryLog();
+
+        app(DocumentPlaceholderResolver::class)->resolve($document);
+
+        $allocationQueries = collect(DB::getQueryLog())
+            ->filter(fn (array $query) => str_contains($query['query'], 'budget_allocations'));
+        DB::disableQueryLog();
+
+        $this->assertCount(0, $allocationQueries);
+    }
+
+    public function test_resolver_escapes_budget_allocation_values(): void
+    {
+        $project = Project::factory()->create();
+        BudgetAllocation::factory()->create([
+            'notice_id' => $project->notice_id,
+            'objective' => '<script>alert("xss")</script>',
+        ]);
+        $document = Document::factory()->create([
+            'project_id' => $project->id,
+            'notice_id' => $project->notice_id,
+            'body' => '[budget_allocation_data]',
+        ]);
+
+        $resolvedBody = app(DocumentPlaceholderResolver::class)->resolve($document);
+
+        $this->assertStringNotContainsString('<script>', $resolvedBody);
+        $this->assertStringContainsString('&lt;script&gt;', $resolvedBody);
+    }
+
+    public function test_resolver_prefers_the_projects_linked_budget_allocation(): void
+    {
+        $project = Project::factory()->create([
+            'current_installment_cycle' => 1,
+        ]);
+        BudgetAllocation::factory()->create([
+            'notice_id' => $project->notice_id,
+            'management_unit' => 'PRIMEIRA LINHA DO EDITAL',
+        ]);
+        $linkedAllocation = BudgetAllocation::factory()->create([
+            'notice_id' => $project->notice_id,
+            'management_unit' => 'VINCULAÇÃO DO PROJETO',
+        ]);
+        $budget = Budget::factory()->create([
+            'project_id' => $project->id,
+        ]);
+        Installment::factory()->create([
+            'budget_id' => $budget->id,
+            'installment_number' => $project->current_installment_cycle,
+            'budget_allocation_id' => $linkedAllocation->id,
+        ]);
+        $document = Document::factory()->create([
+            'project_id' => $project->id,
+            'notice_id' => $project->notice_id,
+            'type' => DocumentType::PI,
+            'phase' => DocumentPhase::BUDGET,
+            'body' => '[budget_allocation_data]',
+        ]);
+
+        $resolvedBody = app(DocumentPlaceholderResolver::class)->resolve($document);
+
+        $this->assertStringContainsString('VINCULAÇÃO DO PROJETO', $resolvedBody);
+        $this->assertStringNotContainsString('PRIMEIRA LINHA DO EDITAL', $resolvedBody);
+    }
+
+    public function test_resolver_falls_back_to_the_latest_notice_allocation(): void
+    {
+        $project = Project::factory()->create();
+        BudgetAllocation::factory()->create([
+            'notice_id' => $project->notice_id,
+            'management_unit' => 'PRIMEIRA LINHA DO EDITAL',
+        ]);
+        BudgetAllocation::factory()->create([
+            'notice_id' => $project->notice_id,
+            'management_unit' => 'SEGUNDA LINHA DO EDITAL',
+        ]);
+        $document = Document::factory()->create([
+            'project_id' => $project->id,
+            'notice_id' => $project->notice_id,
+            'type' => DocumentType::PF,
+            'phase' => DocumentPhase::BUDGET,
+            'body' => '[budget_allocation_data]',
+        ]);
+
+        $resolvedBody = app(DocumentPlaceholderResolver::class)->resolve($document);
+
+        $this->assertStringContainsString('SEGUNDA LINHA DO EDITAL', $resolvedBody);
+        $this->assertStringNotContainsString('PRIMEIRA LINHA DO EDITAL', $resolvedBody);
+    }
+
+    public function test_resolver_uses_one_allocation_for_all_budget_opinion_placeholders(): void
+    {
+        $project = Project::factory()->create();
+        BudgetAllocation::factory()->create([
+            'notice_id' => $project->notice_id,
+            'allocation_code' => 'FIRST-CODE',
+            'management_unit' => 'PRIMEIRA LINHA DO EDITAL',
+        ]);
+        BudgetAllocation::factory()->create([
+            'notice_id' => $project->notice_id,
+            'allocation_code' => 'LATEST-CODE',
+            'management_unit' => 'ÚLTIMA LINHA DO EDITAL',
+        ]);
+        $document = Document::factory()->create([
+            'project_id' => $project->id,
+            'notice_id' => $project->notice_id,
+            'type' => DocumentType::PF,
+            'phase' => DocumentPhase::BUDGET,
+            'body' => '[allocation_code] | [budget_allocation_data]',
+        ]);
+
+        $resolvedBody = app(DocumentPlaceholderResolver::class)->resolve($document);
+
+        $this->assertStringContainsString('LATEST-CODE', $resolvedBody);
+        $this->assertStringContainsString('ÚLTIMA LINHA DO EDITAL', $resolvedBody);
+        $this->assertStringNotContainsString('FIRST-CODE', $resolvedBody);
+        $this->assertStringNotContainsString('PRIMEIRA LINHA DO EDITAL', $resolvedBody);
+    }
+
+    public function test_resolver_uses_notice_allocation_for_notice_level_code_placeholders(): void
+    {
+        $notice = Notice::factory()->create();
+        BudgetAllocation::factory()->create([
+            'notice_id' => $notice->id,
+            'allocation_code' => 'NOTICE-CODE',
+            'allocation_number' => 'NOTICE-NUMBER',
+        ]);
+        $document = Document::factory()->create([
+            'project_id' => null,
+            'notice_id' => $notice->id,
+            'type' => DocumentType::PI,
+            'phase' => DocumentPhase::BUDGET,
+            'body' => '[allocation_code] | [allocation_number]',
+        ]);
+
+        $this->assertSame(
+            'NOTICE-CODE | NOTICE-NUMBER',
+            app(DocumentPlaceholderResolver::class)->resolve($document),
+        );
     }
 
     public function test_resolver_replaces_allocation_using_the_agent_macroregion_before_budget_exists(): void
@@ -492,7 +808,8 @@ class DocumentTest extends TestCase
 
     public function test_store_endpoint_creates_document(): void
     {
-        [$type, $phase] = $this->getRandomTypeAndPhase();
+        $type = DocumentType::TC;
+        $phase = $type->phase();
 
         $response = $this->actingAs($this->user)
             ->postJson('/api/documents', [
@@ -518,9 +835,43 @@ class DocumentTest extends TestCase
             ->assertJsonValidationErrors(['type', 'phase', 'body']);
     }
 
+    public function test_store_endpoint_rejects_document_image_path_traversal(): void
+    {
+        $this->actingAs($this->user)
+            ->postJson('/api/documents', [
+                'type' => DocumentType::CI->value,
+                'phase' => DocumentPhase::OPENING->value,
+                'notice_id' => $this->notice->id,
+                'project_id' => $this->project->id,
+                'body' => 'Conteúdo.',
+                'images' => [[
+                    'section' => 'header',
+                    'position' => 'center',
+                    'path' => 'documents/../private.png',
+                ]],
+            ])
+            ->assertUnprocessable()
+            ->assertJsonValidationErrors('images.0.path');
+    }
+
+    public function test_guest_cannot_delete_a_non_budget_document(): void
+    {
+        $document = Document::factory()->create([
+            'type' => DocumentType::CI,
+            'phase' => DocumentPhase::OPENING,
+        ]);
+
+        $this->deleteJson("/api/documents/{$document->id}")->assertUnauthorized();
+
+        $this->assertDatabaseHas('documents', [
+            'id' => $document->id,
+            'deleted_at' => null,
+        ]);
+    }
+
     public function test_store_endpoint_returns_422_for_invalid_combination(): void
     {
-        $type = collect(DocumentType::cases())->random();
+        $type = DocumentType::TC;
 
         $invalidPhase = collect(DocumentPhase::cases())
             ->reject(fn (DocumentPhase $phase) => $phase === $type->phase())
@@ -537,6 +888,19 @@ class DocumentTest extends TestCase
 
         $response->assertStatus(422)
             ->assertJsonFragment(['message' => "Combinação de tipo e fase inválida: tipo={$type->value}, fase={$invalidPhase->value}."]);
+    }
+
+    public function test_update_request_denies_access_when_the_document_is_not_resolved(): void
+    {
+        $request = new class extends DocumentUpdateRequest
+        {
+            public function route($param = null, $default = null): mixed
+            {
+                return null;
+            }
+        };
+
+        $this->assertFalse($request->authorize());
     }
 
     // -------------------------------------------------------------------------

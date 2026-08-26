@@ -1,6 +1,6 @@
 import { elements as el, TIMEOUTS } from './elements';
 import { elements as noticeEl } from '../notice/elements';
-import Notice from '../notice/index.js';
+import Notice from '../notice/NoticePage.js';
 
 class Project {
     accessProjectPage(noticeId) {
@@ -111,11 +111,28 @@ class Project {
         });
     }
 
-    clickFilterFormalizationPhase(phase) {
+    getProjectRowByNup(projectNup) {
+        const expectedNup = Notice.normalizeNup(projectNup);
+
+        return cy
+            .get(el.projectNupProjectList, {
+                timeout: TIMEOUTS.SEARCH,
+            })
+            .filter((index, element) => {
+                const currentNup = Notice.normalizeNup(Cypress.$(element).text());
+
+                return currentNup === expectedNup;
+            })
+            .first()
+            .should('exist')
+            .closest(el.rowTableProjectList);
+    }
+
+    clickFilterPhase(phase) {
         cy.get(el.filterProjectPhaseCard).contains(phase).should('be.visible').click();
     }
 
-    validateFilterFormalizationPhase(phase) {
+    validateFilterPhase(phase) {
         cy.get(el.projectPhase).contains(phase).should('be.visible');
     }
 
@@ -224,6 +241,22 @@ class Project {
     verifySuccessMessageSaveDocument() {
         // Verify success message
         cy.get(el.successAlert, { timeout: 5000 }).contains('Documento salvo com sucesso!').should('be.visible');
+    }
+
+    validateCurrentPhase(projectNup, expectedPhase) {
+        const expectedNup = Notice.normalizeNup(projectNup);
+
+        cy.get(el.projectNupProjectList)
+            .filter((index, element) => {
+                const currentNup = Notice.normalizeNup(Cypress.$(element).text());
+
+                return currentNup === expectedNup;
+            })
+            .first()
+            .closest(el.rowTableProjectList)
+            .within(() => {
+                cy.get(el.projectPhase).should('be.visible').and('have.text', expectedPhase);
+            });
     }
 }
 

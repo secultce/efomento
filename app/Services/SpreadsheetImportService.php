@@ -6,22 +6,27 @@ use App\Enums\AccountType;
 use App\Enums\AgentStatus;
 use App\Enums\DisabilityType;
 use App\Enums\ProfileSnapshotSource;
+use App\Enums\Role;
 use App\Jobs\LoadSpreadsheetProjectFilesJob;
 use App\Models\Notice;
 use App\Models\Opening;
+use App\Models\OpeningSupervisor;
 use App\Models\Project;
+use App\Models\User;
 use App\Support\DocumentNumber;
 use App\Support\Import;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Str;
 
 class SpreadsheetImportService
 {
     public function __construct(
         private readonly ProfileSnapshotService $snapshotService,
         private readonly CategoryService $categoryService,
-        private readonly AgentService $agentService
+        private readonly AgentService $agentService,
+        private readonly UserService $userService,
     ) {}
 
     /**
@@ -99,7 +104,9 @@ class SpreadsheetImportService
                 ProfileSnapshotSource::PROJECT_REGISTRATION,
             );
 
-            $this->resolveOpening($row, $project->id, $userId);
+            $supervisor = $this->resolveSupervisor($row);
+
+            $this->resolveOpening($row, $project->id, $userId, $supervisor);
 
             if ($withFiles) {
                 LoadSpreadsheetProjectFilesJob::dispatch(
@@ -121,6 +128,7 @@ class SpreadsheetImportService
             'gender' => trim((string) ($row['GÊNERO DA PESSOA FÍSICA'] ?? '')) ?: null,
             'has_disability' => $this->mapDisability(trim((string) ($row['POSSUI DEFICIENCIA (PESSOA FÍSICA)'] ?? ''))),
             'email' => trim((string) ($row['E-MAIL PRINCIPAL DO PROPONENTE'] ?? '')) ?: null,
+            'secondary_email' => trim((string) ($row['E-MAIL SECUNDÁRIO DO PROPONENTE'] ?? '')) ?: null,
             'phone' => trim((string) ($row['TELEFONE PRINCIPAL DO PROPONENTE'] ?? '')) ?: null,
             'birth_date' => $this->parseDate(trim((string) ($row['DATA DE NASCIMENTO DA PESSOA FÍSICA'] ?? ''))),
             'street' => trim((string) ($row['ENDEREÇO COMPLETO DO PROPONENTE'] ?? '')) ?: null,
@@ -128,25 +136,81 @@ class SpreadsheetImportService
         ];
     }
 
-    private function resolveOpening(array $row, int $projectId, int $userId): Opening
+    private function resolveOpening(array $row, int $projectId, int $userId, ?User $supervisor): Opening
     {
-        return Opening::firstOrCreate(
-            ['project_id' => $projectId],
-            [
-                'opening_nup' => trim((string) (Import::normalizeNup($row['N° DO PROCESSO (NUP)']) ?? '')),
-                'opening_date' => $this->parseDate(trim((string) ($row['DATA ABERTURA DE PROCESSO'] ?? ''))),
-                'agent_status' => $this->mapAgentStatus(trim((string) ($row['STATUS'] ?? ''))),
-                'opened_by' => trim((string) ($row['RESPONSÁVEL POR ABRIR PROCESSO'] ?? '')),
-                'bank' => trim((string) ($row['BANCO'] ?? '')),
-                'account_type' => $this->mapAccountType(trim((string) ($row['TIPO DE CONTA'] ?? ''))),
-                'branch' => trim((string) ($row['AGÊNCIA'] ?? '')),
-                'account' => trim((string) ($row['CONTA'] ?? '')),
-                'is_draft' => true,
-                'certificate_date' => $this->parseDate(trim((string) ($row['DATA DE CERTIDÃO GERADA'] ?? ''))),
-                'started_at' => $this->parseDate(trim((string) ($row['DATA ABERTURA DE PROCESSO'] ?? ''))),
-                'user_id' => $userId,
-            ]
-        );
+        $opening = Opening::firstOrNew(['project_id' => $projectId]);
+
+        $attributes = [
+            'opening_date' => $this->parseDate(trim((string) ($row['DATA ABERTURA DE PROCESSO'] ?? ''))),
+            'agent_status' => $this->mapAgentStatus(trim((string) ($row['STATUS'] ?? ''))),
+            'opened_by' => trim((string) ($row['RESPONSÁVEL POR ABRIR PROCESSO'] ?? '')),
+            'bank' => trim((string) ($row['BANCO'] ?? '')),
+            'account_type' => $this->mapAccountType(trim((string) ($row['TIPO DE CONTA'] ?? ''))),
+            'branch' => trim((string) ($row['AGÊNCIA'] ?? '')),
+            'account' => trim((string) ($row['CONTA'] ?? '')),
+            'certificate_date' => $this->parseDate(trim((string) ($row['DATA DE CERTIDÃO GERADA'] ?? ''))),
+            'started_at' => $this->parseDate(trim((string) ($row['DATA ABERTURA DE PROCESSO'] ?? ''))),
+            'user_id' => $userId,
+            'supervisor_id' => $supervisor?->id,
+        ];
+
+        if (! $opening->exists) {
+            $attributes['is_draft'] = true;
+        }
+
+        $opening->fill($attributes);
+        $opening->save();
+
+        if ($supervisor) {
+            $opening->assignSupervisors([
+                ['id' => $supervisor->id, 'type' => OpeningSupervisor::TYPE_PRINCIPAL],
+            ], $userId);
+        }
+
+        return $opening;
+    }
+
+    /**
+     * Resolve o usuário Fiscal pela coluna "FISCAL". Prioriza identificadores
+     * estáveis (CPF, depois matrícula) para evitar que dois fiscais com o
+     * mesmo nome sejam confundidos; "name" é só o último fallback.
+     * Cria o usuário (sem acesso ativo além da role monitoring) se não existir,
+     * com um e-mail sintético sob domínio reservado/não roteável, já que a
+     * planilha não traz e-mail do fiscal.
+     */
+    private function resolveSupervisor(array $row): ?User
+    {
+        $name = trim((string) ($row['FISCAL'] ?? ''));
+
+        if ($name === '') {
+            return null;
+        }
+
+        $cpf = DocumentNumber::normalize($row['CPF FISCAL'] ?? null);
+        $registrationNumber = trim((string) ($row['MATRICULA DO FISCAL'] ?? '')) ?: null;
+
+        // Quando a planilha traz um identificador estável, ele é a única fonte de
+        // verdade (não cai para "name" mesmo sem achar match) — dois fiscais
+        // podem ter o mesmo nome, e reaproveitar por coincidência de nome
+        // atribuiria o processo ao fiscal errado.
+        $user = match (true) {
+            $cpf !== null => User::where('cpf', $cpf)->first(),
+            $registrationNumber !== null => User::where('registration_number', $registrationNumber)->first(),
+            default => User::where('name', $name)->first(),
+        };
+
+        if ($user) {
+            return $user;
+        }
+
+        return $this->userService->create([
+            'name' => $name,
+            'email' => Str::slug($name, '.').'.'.Str::random(6).'@fiscal.invalid',
+            'password' => Str::password(32),
+            'cpf' => $cpf,
+            'registration_number' => $registrationNumber,
+            'role' => Role::MONITORING->value,
+        ]);
     }
 
     private function extractRegistrationId(string $url): ?string
@@ -199,14 +263,11 @@ class SpreadsheetImportService
 
     private function parseDate(string $value): ?Carbon
     {
-        if (! $value) {
-            return null;
-        }
+        // Carbon::parse() sozinho é ambíguo para datas com barra (ex: "01/03/2026"
+        // vira 3 de janeiro em vez de 1º de março). Import::date() tenta 'd/m/Y'
+        // antes de qualquer outro formato, resolvendo a ambiguidade.
+        $normalized = Import::date($value);
 
-        try {
-            return Carbon::parse($value);
-        } catch (\Exception) {
-            return null;
-        }
+        return $normalized ? Carbon::parse($normalized) : null;
     }
 }

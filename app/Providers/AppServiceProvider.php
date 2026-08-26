@@ -5,6 +5,7 @@ namespace App\Providers;
 use App\Contracts\InstallmentCycleStrategy;
 use App\Enums\ProjectStageSlug;
 use App\Models\Agent;
+use App\Models\DiligenceMessage;
 use App\Models\Monitoring;
 use App\Models\Notice;
 use App\Models\Opening;
@@ -50,6 +51,7 @@ class AppServiceProvider extends ServiceProvider
             'project' => Project::class,
             'opening' => Opening::class,
             'monitoring' => Monitoring::class,
+            'diligence_message' => DiligenceMessage::class,
         ]);
 
         Notice::observe(NoticeObserver::class);

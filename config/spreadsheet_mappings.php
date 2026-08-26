@@ -14,11 +14,13 @@ return [
         // 'project_id' é resolvido via lookup: Project::where('number', row['CÓDIGO INSCRIÇÃO MAPAS'])
         'column_for_project_lookup' => 'CÓDIGO INSCRIÇÃO MAPAS',
 
+        // Campo cross-tab: não pertence ao model Formalization, é aplicado em Opening::opening_nup
+        // (a coluna NUP não existe mais na aba Abertura, só aqui em Formalização)
+        'opening_nup_column' => 'N° DO PROCESSO (NUP)',
+
         'column_map' => [
             'DATA TRAMITAÇÃO FINALÍSTICA > ASJUR' => 'asjur_finalistic_processing_date',
             'NÚMERO DO TERMO' => 'term_number',
-            'TERMO DE FOMENTO ENVIADO PARA ASSINATURA DO PROPONENTE (DATA)' => 'term_signature_sent_at',
-            'TERMO DE FOMENTO ASSINADO PELO PROPONENTE (DATA)' => 'term_signed_at',
             'DATA TRAMITAÇÃO ASJUR > GAB' => 'sent_to_office_at',
             'DATA DE ASSINATURA DO TERMO PELA SECRETÁRIA' => 'data_sign_gabinete',
             'N° SACC' => 'sacc_number',
@@ -40,9 +42,16 @@ return [
         ],
     ],
 
+    'pagamento' => [
+        'column_for_project_lookup' => 'CÓDIGO INSCRIÇÃO MAPAS',
+
+        // Cross-tab: só alimenta Opening::creditor_number por enquanto.
+        // Sincronização completa do model Payment aguarda confirmação da equipe.
+        'creditor_number_column' => 'Nº CREDOR',
+    ],
+
     // Demais abas serão adicionadas após confirmação com a equipe
     // 'parcela'           => [],
-    // 'pagamento'         => [],
     // 'monitoramento'     => [],
     // 'prestacao_contas'  => [],
 

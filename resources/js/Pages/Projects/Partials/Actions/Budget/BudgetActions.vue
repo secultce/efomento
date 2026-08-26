@@ -1,6 +1,7 @@
 <script setup>
 import { ref, computed } from 'vue';
 
+import DocumentDownloadMenu from '@/Components/DocumentDownloadMenu.vue';
 import HandleDocumentsDialog from '../HandleDocumentsDialog.vue';
 import NoticeHistoryDialog from '@/Pages/Projects/Partials/Actions/NoticeHistoryDialog.vue';
 import DocumentListDialog from '../DocumentListDialog.vue';
@@ -87,7 +88,7 @@ function openDocumentDialog(docType) {
     documentDialog.value = true;
 }
 
-async function downloadZip(documentType) {
+async function downloadZip(documentType, format) {
     if (!props.selectedProjects?.length) {
         errorMessage.value = 'Selecione pelo menos 1 projeto para baixar os documentos.';
         showError.value = true;
@@ -97,7 +98,7 @@ async function downloadZip(documentType) {
     downloadingZip.value = true;
 
     try {
-        await downloadDocumentsZip(props.selectedProjects, documentType);
+        await downloadDocumentsZip(props.selectedProjects, documentType, format);
     } catch {
         errorMessage.value = 'Erro ao baixar os documentos. Tente novamente.';
         showError.value = true;
@@ -173,16 +174,13 @@ function openNoticeHistory() {
                     </div>
 
                     <div class="w-full flex flex-col sm:flex-row gap-2">
-                        <v-btn
-                            variant="outlined"
-                            class="flex-1 !shadow-none !border-primary !text-primary rounded-lg text-xs"
+                        <DocumentDownloadMenu
+                            label="Baixar todos"
+                            button-class="flex-1 !shadow-none !border-primary !text-primary rounded-lg text-xs"
                             :loading="downloadingZip"
-                            color="primary"
                             :disabled="!selectedProjects?.length"
-                            @click="downloadZip(doc.type)"
-                        >
-                            Baixar todos
-                        </v-btn>
+                            @download="downloadZip(doc.type, $event)"
+                        />
 
                         <v-btn
                             class="flex-1 !shadow-none !font-bold !bg-[#ffcc05FF] !text-[#2d353fFF] rounded-lg text-xs"

@@ -14,6 +14,8 @@ class DocumentTypeTest extends TestCase
             DocumentType::TC->value => 'TC',
             DocumentType::ET->value => 'ET',
             DocumentType::PJ->value => 'PJ',
+            DocumentType::PI->value => 'PI',
+            DocumentType::PF->value => 'PF',
             DocumentType::DP->value => 'DP',
             DocumentType::DO->value => 'DO',
             DocumentType::CI->value => 'CI',
@@ -30,6 +32,8 @@ class DocumentTypeTest extends TestCase
             DocumentType::TC->value => 'Termo de Execução Cultural',
             DocumentType::ET->value => 'Extrato',
             DocumentType::PJ->value => 'Parecer Jurídico',
+            DocumentType::PI->value => 'Parecer Orçamentário Inicial',
+            DocumentType::PF->value => 'Parecer Orçamentário Final',
             DocumentType::DP->value => 'Despacho de Pagamento',
             DocumentType::DO->value => 'Despacho Orçamentário',
             DocumentType::CI->value => 'Comunicação Interna',
@@ -46,6 +50,8 @@ class DocumentTypeTest extends TestCase
         $this->assertSame(DocumentPhase::FORMALIZATION, DocumentType::TC->phase());
         $this->assertSame(DocumentPhase::FORMALIZATION, DocumentType::ET->phase());
         $this->assertSame(DocumentPhase::FORMALIZATION, DocumentType::PJ->phase());
+        $this->assertSame(DocumentPhase::BUDGET, DocumentType::PI->phase());
+        $this->assertSame(DocumentPhase::BUDGET, DocumentType::PF->phase());
         $this->assertSame(DocumentPhase::BUDGET, DocumentType::DO->phase());
         $this->assertSame(DocumentPhase::PAYMENT, DocumentType::DP->phase());
     }
