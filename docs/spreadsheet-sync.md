@@ -13,31 +13,39 @@ diretamente para os models Eloquent, via comando Artisan ou endpoint HTTP.
 
 | Arquivo | Papel |
 |---|---|
-| `app/Services/GoogleSheetsService.php` | Busca e parseia a planilha; contém a lógica de sync por aba (`importSheet`, `syncFormalization`, `syncBudget`) |
-| `app/Services/SpreadsheetImportService.php` | Processa linhas da aba Abertura: cria Agent, Category, Project e Opening |
+| `app/Services/GoogleSheetsService.php` | Busca e parseia a planilha; contém a lógica de sync por aba (`importSheet`, `syncFormalization`, `syncBudget`, `syncPagamento`) |
+| `app/Services/SpreadsheetImportService.php` | Processa linhas da aba Abertura: cria/atualiza Agent, Category, Project, Opening e o usuário Fiscal (`User`/`OpeningSupervisor`) |
 | `app/Console/Commands/ImportGoogleSheetsCommand.php` | Comando Artisan unificado — aceita `--aba` para escolher quais abas importar |
-| `app/Http/Controllers/SpreadsheetSyncController.php` | Controller HTTP fino — delega para `GoogleSheetsService` |
 | `config/spreadsheet_mappings.php` | Mapeamento `coluna da planilha → campo do model` por aba |
-| `routes/web.php` | `POST /sync/formalizacao`, `POST /sync/orcamento` |
+
+> **Planejado, não implementado**: o endpoint HTTP (`app/Http/Controllers/SpreadsheetSyncController.php` e as rotas `POST /sync/formalizacao` / `POST /sync/orcamento`) ainda não existe no repositório. Só o comando Artisan foi implementado até agora — ver seção "Como executar".
 
 ---
 
 ## Como funciona
 
-**Aba Abertura** (cria entidades novas):
+**Aba Abertura** (cria entidades novas + atualiza Opening + resolve o Fiscal):
 ```
 Planilha → fetchSheet() → rows[] por label
         → SpreadsheetImportService::processRow()
-        → cria/atualiza Agent (CPF ou CNPJ), Category, Project, Opening
+        → cria/atualiza Agent (CPF ou CNPJ), Category, Project
+        → resolveSupervisor(): User::where('name', row['FISCAL'])->first() ou cria via UserService
+        → resolveOpening(): Opening::updateOrCreate(['project_id' => $id], $record)
+                             + assignSupervisors() → OpeningSupervisor (fiscal titular)
 ```
 
-**Abas Formalização e Orçamento** (enriquece projetos existentes):
+> **Atenção — Opening já existe antes do resolveOpening rodar**: `ProjectObserver::created()` cria um `Opening` vazio (`$project->openings()->create()`) assim que o `Project` é criado dentro do mesmo `processRow()`. Por isso `resolveOpening()` usa `Opening::updateOrCreate()` (não `firstOrCreate()`) — com `firstOrCreate` o registro já existente faria o Eloquent ignorar silenciosamente o array de valores, deixando `opening_date`, `agent_status`, `opened_by`, `bank`, etc. sempre em branco. A planilha sempre sobrescreve os campos do Opening a cada execução (mesmo comportamento de Formalização/Orçamento abaixo).
+
+> **Fiscal (`FISCAL`)**: `resolveSupervisor()` busca um `User` por `name` igual ao valor da coluna `FISCAL`. Se não encontrar, cria um novo `User` via `UserService::create()` com `cpf` = coluna `CPF FISCAL`, `registration_number` = coluna `MATRICULA DO FISCAL`, senha aleatória (`Str::password(32)`) e role `monitoring` — a planilha não tem e-mail do fiscal, então é gerado um sintético: `Str::slug(nome, '.').'@mail.com'`. O usuário resolvido preenche `Opening::supervisor_id` **e** é registrado como fiscal titular via `Opening::assignSupervisors()` (mesmo método usado por `ProjectSupervisorService`), para aparecer corretamente nos documentos gerados (`[fiscal_name]`) e nas regras de negócio da etapa. Se a coluna `FISCAL` vier vazia numa linha, `supervisor_id` é limpo (`null`), mas o vínculo já existente em `OpeningSupervisor` **não** é desfeito automaticamente.
+
+**Abas Formalização, Orçamento e Pagamento** (enriquece projetos/Opening existentes):
 ```
 Planilha → fetchSheet() → rows[] por label
-        → GoogleSheetsService::syncFormalization() / syncBudget()
+        → GoogleSheetsService::syncFormalization() / syncBudget() / syncPagamento()
         → lê config/spreadsheet_mappings.php
         → Project::where('number', row['CÓDIGO INSCRIÇÃO MAPAS'])
         → Formalization/Budget::updateOrCreate(['project_id' => $id], $record)
+        → (Pagamento) Opening::where('project_id', $id)->update(['creditor_number' => ...])
 ```
 
 > Datas no formato gviz `Date(Y,M,D)` são convertidas automaticamente para `Y-m-d` antes de chegar ao Eloquent.
@@ -51,6 +59,40 @@ Planilha → fetchSheet() → rows[] por label
 - Formalização: linhas com `STATUS = 'Desclassificado'` ou `STATUS = 'Desistente'` são ignoradas
 - Abertura: aceita CPF (11 dígitos) e CNPJ (14 dígitos) no campo `CPF / CNPJ DO PROPONENTE`
 
+### Campos cross-tab (não vêm da aba Abertura)
+Alguns campos de `Opening` vêm de outras abas — a planilha viva reorganizou colunas que originalmente pareciam pertencer à Abertura:
+
+- **`opening_nup`** — a coluna `N° DO PROCESSO (NUP)` **não existe mais na aba Abertura**, foi movida para a aba **Formalização** (o CSV de amostra local `database/importSheet/musica_abertura.csv` ainda tem essa coluna em Abertura e está desatualizado). É atualizado em `GoogleSheetsService::syncFormalization()`, lendo a coluna configurada em `spreadsheet_mappings.formalizacao.opening_nup_column`.
+- **`creditor_number`** — vem da coluna `Nº CREDOR` na aba **Pagamento**. É atualizado em `GoogleSheetsService::syncPagamento()`, lendo a coluna configurada em `spreadsheet_mappings.pagamento.creditor_number_column`. Essa aba ainda não sincroniza o model `Payment` (só este campo em `Opening`) — ver "Abas pendentes" mais abaixo.
+
+Isso significa que rodar só `--aba="Abertura"` nunca preenche `opening_nup` nem `creditor_number` — é necessário rodar também `--aba="Formalização"` e `--aba="Pagamento"`, respectivamente.
+
+---
+
+## Mapeamento atual — Abertura
+
+| Coluna na planilha | Campo no banco (`openings`) |
+|---|---|
+| DATA ABERTURA DE PROCESSO | `opening_date`, `started_at` |
+| STATUS | `agent_status` |
+| RESPONSÁVEL POR ABRIR PROCESSO | `opened_by` |
+| BANCO | `bank` |
+| TIPO DE CONTA | `account_type` |
+| AGÊNCIA | `branch` |
+| CONTA | `account` |
+| DATA DE CERTIDÃO GERADA | `certificate_date` |
+| FISCAL | `supervisor_id` (via lookup/criação de `User`) + `OpeningSupervisor` (fiscal titular) |
+| CPF FISCAL | `users.cpf` *(só na criação do Fiscal)* |
+| MATRICULA DO FISCAL | `users.registration_number` *(só na criação do Fiscal)* |
+
+> `opening_nup` e `creditor_number` **não** estão nessa lista — vêm de outras abas, ver "Campos cross-tab" acima.
+
+Também alimenta `profile_snapshots` (via `buildSnapshotData()`, aplicado tanto no `Agent` quanto no `Project`):
+
+| Coluna na planilha | Campo no banco (`profile_snapshots`) |
+|---|---|
+| E-MAIL SECUNDÁRIO DO PROPONENTE | `secondary_email` |
+
 ---
 
 ## Mapeamento atual — Formalização
@@ -58,6 +100,7 @@ Planilha → fetchSheet() → rows[] por label
 | Coluna na planilha | Campo no banco (`formalizations`) |
 |---|---|
 | CÓDIGO INSCRIÇÃO MAPAS | *(lookup do `project_id`)* |
+| N° DO PROCESSO (NUP) | *(cross-tab → `openings.opening_nup`, não é campo de `formalizations`)* |
 | DATA TRAMITAÇÃO FINALÍSTICA > ASJUR | `asjur_finalistic_processing_date` |
 | NÚMERO DO TERMO | `term_number` |
 | TERMO DE FOMENTO ENVIADO PARA ASSINATURA DO PROPONENTE (DATA) | `term_signature_sent_at` |
@@ -84,6 +127,15 @@ Planilha → fetchSheet() → rows[] por label
 
 ---
 
+## Mapeamento atual — Pagamento
+
+| Coluna na planilha | Campo no banco |
+|---|---|
+| CÓDIGO INSCRIÇÃO MAPAS | *(lookup do `project_id`)* |
+| Nº CREDOR | `openings.creditor_number` *(cross-tab; model `Payment` ainda não é sincronizado)* |
+
+---
+
 ## Como executar
 
 ### 1. Rodar a migration (apenas uma vez)
@@ -97,7 +149,7 @@ docker exec <container_php> php artisan migrate
 ```bash
 docker exec <container_php> php artisan app:import-google-sheets \
   ID_DA_PLANILHA \
-  --aba="Abertura" --aba="Formalização" --aba="Orçamento" \
+  --aba="Abertura" --aba="Formalização" --aba="Orçamento" --aba="Pagamento" \
   --user-id=<id_do_usuario> \
   --notice-id=<id_do_edital>   # fallback quando o edital não é encontrado pelo external_id
 ```
@@ -111,7 +163,9 @@ Opções disponíveis:
 | `--notice-id` | não | ID do edital fallback (necessário para Abertura quando `external_id` não bate) |
 | `--with-files` | não | Baixar arquivos do MAPAS ao importar projetos (apenas Abertura) |
 
-### 3. Via endpoint HTTP
+### 3. Via endpoint HTTP (planejado, não implementado)
+
+Ainda não existe `SpreadsheetSyncController` nem as rotas abaixo em `routes/web.php` — o exemplo mostra a interface **planejada**, para quando for implementada:
 
 ```bash
 curl -X POST https://<seu-dominio>/sync/formalizacao \
@@ -120,7 +174,7 @@ curl -X POST https://<seu-dominio>/sync/formalizacao \
   -d '{"spreadsheet_id": "ID_DA_PLANILHA_AQUI"}'
 ```
 
-Rotas disponíveis: `POST /sync/formalizacao`, `POST /sync/orcamento`
+Rotas planejadas: `POST /sync/formalizacao`, `POST /sync/orcamento`
 
 ### 4. Inspecionar colunas via Tinker (diagnóstico)
 
@@ -147,7 +201,7 @@ print_r($data['rows'][0]);
 
 1. **Adicionar o mapeamento** em `config/spreadsheet_mappings.php`:
 ```php
-'pagamento' => [
+'monitoramento' => [
     'column_for_project_lookup' => 'CÓDIGO INSCRIÇÃO MAPAS',
     'column_map' => [
         'COLUNA DA PLANILHA' => 'campo_do_model',
@@ -157,31 +211,32 @@ print_r($data['rows'][0]);
 
 2. **Adicionar método** em `GoogleSheetsService`:
 ```php
-public function syncPagamento(string $spreadsheetId, string $sheetName, int $userId): int
+public function syncMonitoramento(string $spreadsheetId, string $sheetName, int $userId): int
 {
-    $config = config('spreadsheet_mappings.pagamento');
+    $config = config('spreadsheet_mappings.monitoramento');
     // ... mesmo padrão de syncFormalization / syncBudget
+    // (ou padrão cross-tab, como em syncPagamento(), se o campo pertencer a outro model)
 }
 ```
 
-3. **Registrar no comando** em `ImportGoogleSheetsCommand` (bloco `match`):
+3. **Registrar no comando** em `ImportGoogleSheetsCommand` (const `ABA_NAMES` + bloco `match`):
 ```php
-'Pagamento' => $service->syncPagamento($spreadsheetId, $aba, $userId),
+'Monitoramento' => $service->syncMonitoramento($spreadsheetId, $aba, $userId),
 ```
 
-4. **Adicionar método no controller** (para o endpoint HTTP):
+4. **Adicionar método no controller** (para o endpoint HTTP — ver nota no topo do doc: ainda não implementado):
 ```php
-public function syncPagamento(Request $request): RedirectResponse
+public function syncMonitoramento(Request $request): RedirectResponse
 {
-    $count = $this->sheets->syncPagamento(..., userId: Auth::id());
+    $count = $this->sheets->syncMonitoramento(..., userId: Auth::id());
     return back()->with('success', "{$count} registros sincronizados.");
 }
 ```
 
 5. **Adicionar rota** em `routes/web.php`:
 ```php
-Route::post('/pagamento', [SpreadsheetSyncController::class, 'syncPagamento'])
-    ->name('pagamento');
+Route::post('/monitoramento', [SpreadsheetSyncController::class, 'syncMonitoramento'])
+    ->name('monitoramento');
 ```
 
 ---
@@ -190,13 +245,14 @@ Route::post('/pagamento', [SpreadsheetSyncController::class, 'syncPagamento'])
 
 | Aba | Model(s) | Método no service |
 |---|---|---|
-| Abertura | `Agent`, `Category`, `Project`, `Opening` | `importSheet()` |
-| Formalização | `Formalization` | `syncFormalization()` |
+| Abertura | `Agent`, `Category`, `Project`, `Opening`, `User`/`OpeningSupervisor` (Fiscal) | `importSheet()` |
+| Formalização | `Formalization`, `Opening` (só `opening_nup`, cross-tab) | `syncFormalization()` |
 | Orçamento | `Budget` | `syncBudget()` |
+| Pagamento | `Opening` (só `creditor_number`, cross-tab) | `syncPagamento()` |
 
 ## Abas pendentes (aguardando confirmação da equipe)
 
 - Parcela → `Installment`
-- Pagamento → `Payment`
+- Pagamento → `Payment` completo (hoje só `Opening.creditor_number` é sincronizado — o model `Payment`, que já tem `creditor_registration_number` e outros campos, ainda não é populado)
 - Monitoramento → `Monitoring`
 - Prestação de Contas → (a definir)

@@ -7,6 +7,7 @@ use App\Exceptions\Integration\ExternalServiceException;
 use App\Models\Budget;
 use App\Models\Formalization;
 use App\Models\Project;
+use App\Support\Import;
 use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Http\Client\RequestException;
 use Illuminate\Support\Collection;
@@ -112,6 +113,12 @@ class GoogleSheetsService
 
             try {
                 Formalization::updateOrCreate(['project_id' => $project->id], $record);
+
+                // Sempre sobrescreve (mesmo quando null): um NUP removido/corrigido
+                // na planilha precisa refletir em Opening, não ficar com valor antigo.
+                $nup = Import::normalizeNup($row[$config['opening_nup_column'] ?? 'N° DO PROCESSO (NUP)'] ?? null);
+                $project->opening?->update(['opening_nup' => $nup]);
+
                 $count++;
             } catch (Throwable $e) {
                 Log::warning('spreadsheet.import.formalization_sync_failed', [
@@ -182,6 +189,41 @@ class GoogleSheetsService
     }
 
     /**
+     * Sincroniza a aba de Pagamento com Opening::creditor_number (cross-tab).
+     * A aba Pagamento ainda não tem model próprio sincronizado — só este campo.
+     * Retorna o número de registros atualizados.
+     */
+    public function syncPagamento(string $spreadsheetId, string $sheetName, int $userId): int
+    {
+        $config = config('spreadsheet_mappings.pagamento');
+        $projectLookupColumn = $config['column_for_project_lookup'];
+        $creditorNumberColumn = $config['creditor_number_column'];
+
+        ['rows' => $rows] = $this->fetchSheet($spreadsheetId, $sheetName);
+
+        $projects = $this->preloadProjectsByNumber($rows, $projectLookupColumn);
+
+        $count = 0;
+        foreach ($rows as $row) {
+            $project = $projects->get($row[$projectLookupColumn] ?? null);
+
+            if (! $project) {
+                continue;
+            }
+
+            $creditorNumber = trim((string) ($row[$creditorNumberColumn] ?? ''));
+
+            $project->opening?->update([
+                'creditor_number' => $creditorNumber !== '' ? $creditorNumber : null,
+            ]);
+
+            $count++;
+        }
+
+        return $count;
+    }
+
+    /**
      * @param  array<int, array<string, mixed>>  $rows
      * @return Collection<string, Project>
      */
@@ -194,7 +236,10 @@ class GoogleSheetsService
             ->values()
             ->all();
 
-        return Project::whereIn('number', $numbers)->get()->keyBy('number');
+        return Project::whereIn('number', $numbers)
+            ->with('opening')
+            ->get()
+            ->keyBy('number');
     }
 
     /**
