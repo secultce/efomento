@@ -1,5 +1,6 @@
 import { useDate } from '@/Composables/useDate';
 import { useMask } from '@/Composables/useMask';
+import { getLegalType } from '../getLegalType';
 
 const { getDate } = useDate();
 const { getCpfCnpj } = useMask();
@@ -9,7 +10,7 @@ export const viewSections = [
         title: 'Dados do agente e do projeto',
         fields: [
             { label: 'Nome social / Nome fantasia', key: 'agent.name' },
-            { label: 'Personalidade jurídica', key: 'agent.legal_type' },
+            { label: 'Personalidade jurídica', compute: getLegalType },
             { label: 'CPF / CNPJ do agente cultural', compute: getCpfCnpj('agent.latest_snapshot.cpf_cnpj') },
             { label: 'Área / linguagem / ciclo', key: 'notice.name' },
             { label: 'Categoria de inscrição', key: 'category.name' },
