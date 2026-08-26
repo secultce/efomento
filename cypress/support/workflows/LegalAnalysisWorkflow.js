@@ -2,6 +2,7 @@ import '../commands.js';
 // import Project from '../../pages/project/ProjectPage.js';
 import TramitProcess from '../../pages/project/processTramit/ProcessTramit.js';
 import LegalAnalisysTab from '../../pages/project/legalAnalysisTab/LegalAnalysisTab.js';
+import ProcessReturn from '../../pages/project/returnProcess/ReturnProcess.js';
 import ProjectWorkflow from './ProjectWorkflow.js';
 
 class LegalAnalisysWorkflow {
@@ -21,6 +22,12 @@ class LegalAnalisysWorkflow {
 
         LegalAnalisysTab.selectFileStatus(fileStatus);
         TramitProcess.tramit();
+    }
+
+    returnProcessToOpeningPhase({ role, notice, project, documentType }) {
+        this.accessLegalAnalysisTab({ role, notice, project });
+
+        ProcessReturn.retunProcesss(documentType);
     }
 }
 

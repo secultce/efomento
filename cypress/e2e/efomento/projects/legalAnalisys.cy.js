@@ -1,4 +1,5 @@
 import LegalAnalysisWorkflow from '../../../support/workflows/LegalAnalysisWorkflow.js';
+import { DOCUMENTS } from '../../../support/constants/documents.js';
 import ProjectWorkflow from '../../../support/workflows/ProjectWorkflow.js';
 import { PHASES } from '../../../support/constants/phases.js';
 
@@ -18,7 +19,7 @@ describe('Legal Analysis', () => {
         });
     });
 
-    describe('Process Project', () => {
+    describe('Process and return Project', () => {
         it('should process project to formalization successfully', function () {
             //Arrange
             cy.loginByRole('formalization');
@@ -35,6 +36,15 @@ describe('Legal Analysis', () => {
                 notice: this.notice,
                 project: this.project,
                 phase: PHASES.FORMALIZATION,
+            });
+        });
+
+        it('should return project to opening tab successfully', function () {
+            LegalAnalysisWorkflow.returnProcessToOpeningPhase({
+                role: 'formalization',
+                notice: this.notice,
+                project: this.project,
+                documentType: DOCUMENTS.devolutionMotive,
             });
         });
     });
