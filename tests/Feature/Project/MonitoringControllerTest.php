@@ -102,7 +102,7 @@ class MonitoringControllerTest extends TestCase
     }
 
     #[Test]
-    public function store_validates_suite_number_is_required_when_opinions_present(): void
+    public function store_accepts_technical_opinion_without_suite_number(): void
     {
         $this->actingAs($this->user)
             ->post(route('projects.monitorings.store', $this->project), [
@@ -110,7 +110,31 @@ class MonitoringControllerTest extends TestCase
                     ['suite_number' => '', 'processing_date' => '2024-03-15'],
                 ],
             ])
-            ->assertSessionHasErrors('technical_opinions.0.suite_number');
+            ->assertRedirect()
+            ->assertSessionHasNoErrors();
+
+        $technicalOpinions = $this->project->fresh()->monitoring->technical_opinions;
+
+        $this->assertCount(1, $technicalOpinions);
+        $this->assertNull($technicalOpinions[0]['suite_number']);
+        $this->assertSame('2024-03-15', $technicalOpinions[0]['processing_date']);
+    }
+
+    #[Test]
+    public function update_accepts_technical_opinion_without_suite_number(): void
+    {
+        $monitoring = Monitoring::factory()->for($this->project)->create();
+
+        $this->actingAs($this->user)
+            ->patch(route('projects.monitorings.update', [$this->project, $monitoring]), [
+                'technical_opinions' => [
+                    ['suite_number' => '', 'processing_date' => '2024-03-15'],
+                ],
+            ])
+            ->assertRedirect()
+            ->assertSessionHasNoErrors();
+
+        $this->assertNull($monitoring->fresh()->technical_opinions[0]['suite_number']);
     }
 
     #[Test]
