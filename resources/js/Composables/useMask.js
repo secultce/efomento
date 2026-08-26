@@ -33,9 +33,52 @@ export function useMask() {
         return applyMask(digits, mask);
     };
 
+    const maskCpf = (value, fallback = 'Não informado') => {
+        if (!value) return fallback;
+        const digits = String(value).replace(/\D/g, '');
+        if (!digits) return fallback;
+        return applyMask(digits, '###.###.###-##');
+    };
+
+    const maskCnpj = (value, fallback = 'Não informado') => {
+        if (!value) return fallback;
+        const digits = String(value).replace(/\D/g, '');
+        if (!digits) return fallback;
+        return applyMask(digits, '##.###.###/####-##');
+    };
+
+    const maskCpfCnpj = (value, fallback = 'Não informado') => {
+        if (!value) return fallback;
+        const digits = String(value).replace(/\D/g, '');
+        if (!digits) return fallback;
+
+        if (digits.length === 11) {
+            return applyMask(digits, '###.###.###-##');
+        }
+
+        if (digits.length === 14) {
+            return applyMask(digits, '##.###.###/####-##');
+        }
+
+        return digits;
+    };
+
+    const resolveKey = (key, obj) => key.split('.').reduce((acc, part) => acc?.[part], obj);
+
+    const getCpfCnpj =
+        (key, fallback = 'Não informado') =>
+        (project) => {
+            const val = resolveKey(key, project);
+            return maskCpfCnpj(val, fallback);
+        };
+
     return {
         applyMask,
         maskProcessNumber,
         maskPhone,
+        maskCpf,
+        maskCnpj,
+        maskCpfCnpj,
+        getCpfCnpj,
     };
 }
