@@ -35,7 +35,7 @@ export const viewSections = [
                         return s.street || null;
                     }
 
-                    return [s.street, s.number, s.neighborhood, s.city, s.state, s.postal_code]
+                    return [s.street, s.number, s.complement, s.neighborhood, s.city, s.state, s.postal_code]
                         .filter(Boolean)
                         .join(', ');
                 },
