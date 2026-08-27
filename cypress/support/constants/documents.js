@@ -27,7 +27,7 @@ export const DOCUMENTS = {
         createButton: 'Criar Despacho Orçamentário',
         editButton: 'Editar Despacho Orçamentário',
         chip: 'DO',
-        text: 'Texto para o Dispacho Orçamentário',
+        text: 'Texto para o Despacho Orçamentário',
     },
     devolutionMotive: 'Texto para devolução de processo',
 };

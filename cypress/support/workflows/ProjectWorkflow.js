@@ -28,7 +28,7 @@ class ProjectWorkflow {
     }
 
     validateDocumentCreated({ project, documentType }) {
-        Project.verifySuccessMessageSaveDocument();
+        cy.reload();
 
         Project.selectProject(project.projectNup);
         Project.clickEditBudgetOrder(documentType.editButton);

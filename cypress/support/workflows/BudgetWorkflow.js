@@ -19,8 +19,6 @@ class BudgetWorkflows {
 
         Project.saveDocument();
         Project.verifySuccessMessageSaveDocument();
-
-        Project.selectProject(project.projectNup);
     }
 }
 
