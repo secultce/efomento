@@ -2,7 +2,9 @@
 
 namespace App\Http\Requests\Notice;
 
+use App\Enums\MonitoringReportRequestDeadline;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rules\Enum;
 
 class NoticeStoreRequest extends FormRequest
 {
@@ -25,6 +27,11 @@ class NoticeStoreRequest extends FormRequest
             'process_manager_email' => 'nullable|email',
             'creditor_registration_nup' => 'nullable|string',
             'creditor_registration_request_date' => 'nullable|date',
+            'monitoring_report_request_deadline' => [
+                'sometimes',
+                'required',
+                new Enum(MonitoringReportRequestDeadline::class),
+            ],
         ];
     }
 }

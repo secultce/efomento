@@ -2,6 +2,7 @@
 
 namespace Tests\Feature\Notice;
 
+use App\Enums\MonitoringReportRequestDeadline;
 use App\Models\Notice;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -109,5 +110,33 @@ class UpdateValidationTest extends TestCase
                 'nup' => $existing->nup,
             ])
             ->assertSessionHasErrors('nup');
+    }
+
+    public function test_monitoring_report_request_deadline_can_be_updated(): void
+    {
+        $notice = Notice::factory()->create();
+
+        $this->actingAs($this->userWithRole)
+            ->patch(route('notices.update', $notice), [
+                'monitoring_report_request_deadline' => MonitoringReportRequestDeadline::MECENAS->value,
+            ])
+            ->assertRedirect()
+            ->assertSessionHasNoErrors();
+
+        $notice->refresh();
+
+        $this->assertSame(MonitoringReportRequestDeadline::MECENAS, $notice->monitoring_report_request_deadline);
+        $this->assertSame(240, $notice->monitoring_report_request_deadline_days);
+    }
+
+    public function test_monitoring_report_request_deadline_must_be_a_supported_value(): void
+    {
+        $notice = Notice::factory()->create();
+
+        $this->actingAs($this->userWithRole)
+            ->patch(route('notices.update', $notice), [
+                'monitoring_report_request_deadline' => 'INVALIDO',
+            ])
+            ->assertSessionHasErrors('monitoring_report_request_deadline');
     }
 }

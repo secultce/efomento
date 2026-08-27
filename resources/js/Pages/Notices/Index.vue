@@ -20,6 +20,10 @@ defineProps({
         type: Array,
         default: () => [],
     },
+    monitoringReportRequestDeadlines: {
+        type: Array,
+        default: () => [],
+    },
 });
 
 const stats = [
@@ -64,7 +68,12 @@ const stats = [
         </template>
 
         <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-6">
-            <NoticesListPage :notices="notices" :total-notices="totais.notices" :instrument-types="instrumentTypes" />
+            <NoticesListPage
+                :notices="notices"
+                :total-notices="totais.notices"
+                :instrument-types="instrumentTypes"
+                :monitoring-report-request-deadlines="monitoringReportRequestDeadlines"
+            />
         </div>
     </AuthenticatedLayout>
 </template>

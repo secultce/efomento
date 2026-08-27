@@ -3,6 +3,7 @@
 namespace App\Http\Requests\Notice;
 
 use App\Enums\InstrumentType;
+use App\Enums\MonitoringReportRequestDeadline;
 use App\Enums\Role;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
@@ -78,6 +79,11 @@ class NoticeUpdateRequest extends FormRequest
             'budget_allocation_request_date' => ['nullable', 'date'],
             'creditor_registration_nup' => ['nullable', 'string'],
             'creditor_registration_request_date' => ['nullable', 'date'],
+            'monitoring_report_request_deadline' => [
+                'sometimes',
+                'required',
+                new Enum(MonitoringReportRequestDeadline::class),
+            ],
         ];
     }
 }
