@@ -7,6 +7,9 @@ services:
         UID: ${UID}
         GID: ${GID}
     container_name: efomento-app
+    environment:
+      REVERB_HOST: reverb
+      REVERB_PORT: 8080
     volumes:
       - .:/var/www
     depends_on:
@@ -72,17 +75,38 @@ services:
         UID: ${UID}
         GID: ${GID}
     container_name: efomento-queue
+    environment:
+      REVERB_HOST: reverb
+      REVERB_PORT: 8080
     volumes:
       - .:/var/www
     depends_on:
       postgres:
         condition: service_healthy
+      reverb:
+        condition: service_started
     command:
       [
         "sh",
         "-c",
         "php artisan queue:work --queue=high,medium,details,default --sleep=1 --tries=3 --timeout=240",
       ]
+    networks:
+      - efomento
+
+  reverb:
+    build:
+      context: ./docker/php
+      dockerfile: Dockerfile
+      args:
+        UID: ${UID}
+        GID: ${GID}
+    container_name: efomento-reverb
+    ports:
+      - "8081:8080"
+    volumes:
+      - .:/var/www
+    command: ["php", "artisan", "reverb:start", "--host=0.0.0.0", "--port=8080"]
     networks:
       - efomento
 

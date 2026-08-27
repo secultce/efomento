@@ -1,5 +1,5 @@
 <script setup>
-import { router, usePage } from '@inertiajs/vue3';
+import { usePage } from '@inertiajs/vue3';
 import AppHeader from '@/Components/AppHeader.vue';
 import AppSubHeader from '@/Components/AppSubHeader.vue';
 import AppSnackbar from '@/Components/AppSnackbar.vue';
@@ -10,33 +10,34 @@ import { computed, onMounted, onUnmounted, ref, watch } from 'vue';
 const page = usePage();
 
 const user = computed(() => page.props.auth.user);
-const notificationsCount = computed(() => page.props.allUnreadCount);
+const notificationsCount = ref(page.props.allUnreadCount ?? 0);
 const previousCount = ref(notificationsCount.value);
 
 const audio = new Audio('/sounds/notification.mp3');
 
 watch(notificationsCount, (newCount) => {
     if (newCount > previousCount.value) {
-        audio.play();
+        audio.play().catch(() => {});
     }
 
     previousCount.value = newCount;
 });
 
-let interval = null;
+watch(
+    () => page.props.allUnreadCount,
+    (newCount) => {
+        notificationsCount.value = newCount ?? 0;
+    }
+);
 
 onMounted(() => {
-    interval = setInterval(() => {
-        router.reload({
-            only: ['allUnreadCount'],
-            preserveState: true,
-            preserveScroll: true,
-        });
-    }, 5000);
+    window.Echo.private(`App.Models.User.${user.value.id}`).notification(() => {
+        notificationsCount.value += 1;
+    });
 });
 
 onUnmounted(() => {
-    clearInterval(interval);
+    window.Echo.leave(`App.Models.User.${user.value.id}`);
 });
 </script>
 
