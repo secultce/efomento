@@ -163,8 +163,20 @@ class Project {
         cy.get(el.editDocumentButon).should('be.visible').and('not.be.disabled').contains(buttonEditDocument).click();
     }
 
+    clickEditBudgetOrder(buttonEditBudgetOrder) {
+        cy.get(el.editBudgetOrderButton)
+            .should('be.visible')
+            .and('not.be.disabled')
+            .contains(buttonEditBudgetOrder)
+            .click();
+    }
+
     clickEditCI(buttonEditCI) {
         cy.get(el.editCIButton).should('be.visible').and('not.be.disabled').contains(buttonEditCI).click();
+    }
+
+    clickCreateBudgetOrder(textButton) {
+        cy.get(el.createBudgetOrderButton).should('be.visible').and('not.be.disabled').contains(textButton).click();
     }
 
     saveDocument() {

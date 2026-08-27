@@ -150,6 +150,7 @@ function openNoticeHistory() {
                                 class="w-full !shadow-none !font-bold !border-gray-300 !bg-white !text-[#2d353fFF] rounded-lg text-xs"
                                 variant="outlined"
                                 :disabled="!selectedProjects?.length || !canManageBudget"
+                                data-cy="edit-budget-order"
                                 @click="openDocumentDialog(doc.type)"
                             >
                                 <span class="w-full text-left">
@@ -166,6 +167,7 @@ function openNoticeHistory() {
                             <v-btn
                                 class="w-full !shadow-none !font-bold !bg-[#ffcc05FF] !text-[#2d353fFF] rounded-lg px-4 py-2 text-xs"
                                 :disabled="!selectedProjects?.length || !canManageBudget"
+                                data-cy="create-budget-order"
                                 @click="openDocumentDialog(doc.type)"
                             >
                                 {{ doc.createLabel }}

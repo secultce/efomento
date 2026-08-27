@@ -23,5 +23,11 @@ export const DOCUMENTS = {
         chip: 'CI',
         text: 'Texto para o CI',
     },
+    budgetOrder: {
+        createButton: 'Criar Despacho Orçamentário',
+        editButton: 'Editar Despacho Orçamentário',
+        chip: 'DO',
+        text: 'Texto para o Dispacho Orçamentário',
+    },
     devolutionMotive: 'Texto para devolução de processo',
 };
