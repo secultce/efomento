@@ -1,5 +1,10 @@
 <?php
 
+$allowedOrigins = env(
+    'REVERB_ALLOWED_ORIGINS',
+    parse_url((string) env('APP_URL', ''), PHP_URL_HOST)
+);
+
 return [
     'default' => env('REVERB_SERVER', 'reverb'),
 
@@ -44,7 +49,10 @@ return [
                     'scheme' => env('REVERB_SCHEME', 'https'),
                     'useTLS' => env('REVERB_SCHEME', 'https') === 'https',
                 ],
-                'allowed_origins' => ['*'],
+                'allowed_origins' => array_values(array_filter(array_map(
+                    'trim',
+                    explode(',', (string) $allowedOrigins)
+                ))),
                 'ping_interval' => env('REVERB_APP_PING_INTERVAL', 60),
                 'activity_timeout' => env('REVERB_APP_ACTIVITY_TIMEOUT', 30),
                 'max_connections' => env('REVERB_APP_MAX_CONNECTIONS'),

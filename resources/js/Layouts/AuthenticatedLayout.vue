@@ -1,5 +1,5 @@
 <script setup>
-import { usePage } from '@inertiajs/vue3';
+import { router, usePage } from '@inertiajs/vue3';
 import AppHeader from '@/Components/AppHeader.vue';
 import AppSubHeader from '@/Components/AppSubHeader.vue';
 import AppSnackbar from '@/Components/AppSnackbar.vue';
@@ -14,6 +14,15 @@ const notificationsCount = ref(page.props.allUnreadCount ?? 0);
 const previousCount = ref(notificationsCount.value);
 
 const audio = new Audio('/sounds/notification.mp3');
+let echoConnection = null;
+
+const syncUnreadCount = () => {
+    router.reload({
+        only: ['allUnreadCount'],
+        preserveState: true,
+        preserveScroll: true,
+    });
+};
 
 watch(notificationsCount, (newCount) => {
     if (newCount > previousCount.value) {
@@ -34,9 +43,13 @@ onMounted(() => {
     window.Echo.private(`App.Models.User.${user.value.id}`).notification(() => {
         notificationsCount.value += 1;
     });
+
+    echoConnection = window.Echo.connector.pusher.connection;
+    echoConnection.bind('connected', syncUnreadCount);
 });
 
 onUnmounted(() => {
+    echoConnection?.unbind('connected', syncUnreadCount);
     window.Echo.leave(`App.Models.User.${user.value.id}`);
 });
 </script>

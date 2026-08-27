@@ -39,6 +39,15 @@ class NotificationBroadcastTest extends TestCase
     }
 
     #[Test]
+    public function reverb_does_not_allow_every_origin(): void
+    {
+        $this->assertNotContains(
+            '*',
+            config('reverb.apps.apps.0.allowed_origins')
+        );
+    }
+
+    #[Test]
     public function users_can_only_authorize_their_own_notification_channel(): void
     {
         [$user, $otherUser] = User::factory()->count(2)->create();
