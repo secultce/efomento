@@ -86,6 +86,8 @@ COPY docker/production/opcache.ini /usr/local/etc/php/conf.d/opcache.ini
 
 RUN chown -R www-data:www-data /var/www
 
+USER www-data
+
 EXPOSE 9000
 
 CMD ["php-fpm"]
