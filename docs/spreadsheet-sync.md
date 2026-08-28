@@ -245,6 +245,39 @@ Route::post('/monitoramento', [SpreadsheetSyncController::class, 'syncMonitorame
 
 ---
 
+## Migração histórica de arquivos e registration_data (planilhas → produção)
+
+Runbook para a carga única de todas as planilhas históricas, incluindo os arquivos anexados no Mapas Cultural (documentos da inscrição) e a ficha de inscrição (`Opening.registration_data`).
+
+**Estratégia definida:** todo o processo — import da planilha, download dos arquivos **e** sync de `registration_data` — roda em homologação. Depois, o `.sql` completo do banco é restaurado em produção e a infraestrutura transfere os arquivos físicos de homologação para produção via `rsync`. Não é necessário nenhum comando artisan dedicado — as flags `--with-files` e `--with-registration-data`, já existentes em `app:import-google-sheets`, resolvem sozinhas, pelos seguintes motivos:
+
+- `DownloadMapasProjectFileJob` grava cada arquivo em path **relativo**: `projects/{project_id}/mapas/{external_id}.{ext}`, no disco `public` (root `storage/app/public`, ver `config/filesystems.php`).
+- `SyncOpeningRegistrationDataJob` grava o subconjunto seguro da ficha diretamente em `Opening.registration_data` (json) — sem nenhuma dependência de storage/arquivo físico, então não precisa de `rsync`: o dump SQL já carrega esse dado sozinho.
+- Como produção restaura o `.sql` **inteiro** do banco (não é merge/insert em banco já existente), os `id` de `projects` ficam idênticos entre homologação e produção — então o path relativo gravado na tabela `files` (que vai junto no mesmo dump) aponta para o lugar certo assim que o `rsync` copiar os arquivos.
+- Os dois pipelines (`LoadSpreadsheetProjectFilesJob`→`SyncProjectFilesJob`→`DownloadMapasProjectFileJob` e `SyncOpeningRegistrationDataJob`) são os mesmos usados no fluxo em tempo real: já têm rate limit (`mapas-api`, 60 req/min) e `DownloadMapasProjectFileJob` é idempotente (verifica `StoredFile::withTrashed()` antes de baixar de novo).
+
+### Passo a passo
+
+1. Rodar os comandos de import em **homologação**, com `--with-files` e `--with-registration-data`:
+   ```bash
+   docker exec <container_php> php artisan app:import-google-sheets ID_DA_PLANILHA \
+     --aba="Abertura" --aba="Formalização" --aba="Orçamento" --aba="Pagamento" \
+     --user-id=<id_do_usuario> --notice-id=<id_do_edital> --with-files --with-registration-data
+   ```
+
+2. **Esperar a fila `details` (e, em cascata, `files`) esvaziarem antes de gerar o dump SQL.** `--with-files` e `--with-registration-data` só *disparam* os jobs (assíncronos, todos entram primeiro na fila `details`: `LoadSpreadsheetProjectFilesJob` e `SyncOpeningRegistrationDataJob`; o primeiro encadeia `SyncProjectFilesJob`/`DownloadMapasProjectFileJob` na fila `files`) — se o dump for tirado antes dos workers terminarem, o `.sql` vai ter os `Project`/`Opening` mas faltar `files` e/ou `Opening.registration_data` de itens ainda em andamento. Não há Horizon no projeto; confirmar fila vazia por:
+    - `job_batches` das batches `sync-project-files:%` (`pending_jobs = 0`);
+    - logs de arquivos (`sync.project.files.queued` vs `sync.project.file.created` / `sync.project.file.failed` / `sync.project.files.empty`) e de registration_data (`sync.opening.registration_data.start` vs `sync.opening.registration_data.done` / `sync.opening.registration_data.failed`) até não sobrar pendência.
+
+3. Gerar o dump `.sql` completo do banco de homologação **só depois** da confirmação acima.
+
+4. Restaurar o `.sql` em produção.
+
+5. Infraestrutura sincroniza `storage/app/public/projects/` de homologação para produção via `rsync` — precisa ser exatamente essa raiz relativa (mesmo disco `public`), senão os paths gravados no banco não resolvem. `registration_data` não precisa de rsync, já veio no dump.
+
+6. Falhas pontuais identificadas nos logs (`sync.project.file.failed` / `sync.opening.registration_data.failed`) podem ser reprocessadas rodando o import novamente com `--with-files`/`--with-registration-data` apenas para o registro afetado (dedup em `DownloadMapasProjectFileJob` evita duplicar arquivo já baixado; `SyncOpeningRegistrationDataJob` apenas sobrescreve `registration_data`, seguro de rodar de novo) — nesse caso repetir os passos 2–5 para esse subconjunto antes do rsync final.
+
+
 ## Abas implementadas
 
 | Aba | Model(s) | Método no service |
