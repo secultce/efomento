@@ -11,9 +11,9 @@ class BudgetTab {
     }
 
     fillRequiredFieldsBudgetOpninion(quotaNumber, installmentAmount) {
-        cy.get(el.noticeInstallmentNumberInput).should('be.visible').type(quotaNumber);
+        cy.get(el.noticeInstallmentNumberInput).should('be.visible').type(String(quotaNumber));
         cy.get(el.installmentAmountInput).should('be.visible').clear();
-        cy.get(el.installmentAmountInput).should('be.visible').type(installmentAmount);
+        cy.get(el.installmentAmountInput).should('be.visible').type(String(installmentAmount));
     }
 }
 
