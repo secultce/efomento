@@ -31,7 +31,7 @@ return Application::configure(basePath: dirname(__DIR__))
 
         $middleware->trustProxies(at: [
             '172.21.4.2',
-            '172.19.16.105'
+            '172.19.16.105',
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
