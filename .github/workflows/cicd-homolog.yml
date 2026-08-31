@@ -41,5 +41,5 @@ jobs:
     steps:
       - name: Pull da imagem do dockerhub
         run: docker pull secultceara/efomento:homolog
-      - name: Restart do docker-compose para atualizar o container com a nova imagem
-        run: cd /srv/docker/efomento && docker-compose down && docker-compose up -d
+      - name: Restart do docker compose para atualizar o container com a nova imagem
+        run: cd /srv/docker/efomento && docker compose down && docker compose up -d
