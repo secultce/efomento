@@ -14,7 +14,7 @@ describe('Budget', () => {
         cy.loginByRole('budgetary');
 
         // Act
-        BudgetWorkflow.createBudgetOrder({
+        BudgetWorkflow.createBudgetOpinion({
             notice: this.notice,
             project: this.project,
             phase: PHASES.BUDGET,
@@ -25,6 +25,29 @@ describe('Budget', () => {
         ProjectWorkflow.validateDocumentCreated({
             project: this.project,
             documentType: DOCUMENTS.budgetOrder,
+        });
+    });
+
+    it('should process project to payment phase', function () {
+        // Arrange
+        cy.loginByRole('budgetary');
+
+        //act
+        ProjectWorkflow.accessProjectByNup({
+            notice: this.notice,
+            project: this.project,
+        });
+
+        BudgetWorkflow.processProjecToPaymentPhase({
+            notice: this.notice,
+            project: this.project,
+        });
+
+        // Assert
+        ProjectWorkflow.validateProjectPhase({
+            notice: this.notice,
+            project: this.project,
+            phase: PHASES.PAYMENT,
         });
     });
 });

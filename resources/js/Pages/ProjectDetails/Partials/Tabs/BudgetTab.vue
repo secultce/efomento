@@ -295,7 +295,7 @@ const permissionMessage = computed(() => {
         </template>
 
         <template #right-content>
-            <div class="space-y-6">
+            <div class="space-y-6" data-cy="budget-right-panel">
                 <div class="flex items-center justify-between">
                     <div>
                         <p class="font-bold text-lg">Campos para você inserir ou editar dados</p>
