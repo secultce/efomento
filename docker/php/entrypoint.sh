@@ -22,6 +22,11 @@ if [ -f vendor/bin/pint ]; then
     ./vendor/bin/pint
 fi
 
+# Gerar APP_KEY apenas se ainda não existir (evita invalidar sessões/dados a cada boot)
+if ! grep -qE '^APP_KEY=base64:.+' .env; then
+    php artisan key:generate --force
+fi
+
 # Gerar caches do Laravel (apenas se artisan existir)
 if [ -f artisan ]; then
     php artisan config:cache
@@ -29,9 +34,8 @@ if [ -f artisan ]; then
     php artisan view:cache
 fi
 
-php artisan key:generate --force
 php artisan migrate --force
-php artisan storage:link
+php artisan storage:link --force
 
 # Iniciar PHP-FPM
 exec php-fpm
