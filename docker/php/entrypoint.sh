@@ -23,7 +23,7 @@ if [ -f vendor/bin/pint ]; then
 fi
 
 # Gerar APP_KEY apenas se ainda não existir (evita invalidar sessões/dados a cada boot)
-if ! grep -qE '^APP_KEY=base64:.+' .env; then
+if ! grep -qE '^APP_KEY=.+' .env; then
     php artisan key:generate --force
 fi
 
