@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\MonitoringReportRequestDeadline;
 use App\Traits\HasCreatedBy;
 use App\Traits\HasFiles;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -32,7 +33,12 @@ class Notice extends Model implements Auditable
         'creditor_registration_request_date',
         'budget_allocation_nup',
         'budget_allocation_request_date',
+        'monitoring_report_request_deadline',
         'created_by',
+    ];
+
+    protected $appends = [
+        'monitoring_report_request_deadline_days',
     ];
 
     protected $casts = [
@@ -40,7 +46,13 @@ class Notice extends Model implements Auditable
         'total_commitment_amount' => 'decimal:2',
         'creditor_registration_request_date' => 'date',
         'installments' => 'integer',
+        'monitoring_report_request_deadline' => MonitoringReportRequestDeadline::class,
     ];
+
+    public function getMonitoringReportRequestDeadlineDaysAttribute(): int
+    {
+        return ($this->monitoring_report_request_deadline ?? MonitoringReportRequestDeadline::PNAB)->days();
+    }
 
     /**
      * Get the projects for the notice.

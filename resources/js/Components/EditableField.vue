@@ -18,6 +18,8 @@ const props = defineProps({
         type: Array,
         default: () => [],
     },
+    itemTitle: { type: String, default: 'title' },
+    itemValue: { type: String, default: 'value' },
     label: { type: String, default: '' },
     error: { type: String, default: '' },
     disabled: { type: Boolean, default: false },
@@ -93,6 +95,8 @@ const stopEdit = () => {
                 v-else-if="type === 'select'"
                 v-model="localValue"
                 :items="items"
+                :item-title="itemTitle"
+                :item-value="itemValue"
                 :error-messages="error"
                 density="compact"
                 data-cy="notice-edit-select"
@@ -132,7 +136,7 @@ const stopEdit = () => {
 
                 <!-- select label -->
                 <template v-else-if="type === 'select'">
-                    {{ modelValue ? (items.find((i) => i.value === modelValue)?.title ?? modelValue) : '-' }}
+                    {{ modelValue ? (items.find((i) => i[itemValue] === modelValue)?.[itemTitle] ?? modelValue) : '-' }}
                 </template>
 
                 <!-- default -->

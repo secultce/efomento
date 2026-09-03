@@ -21,6 +21,17 @@ class DiligenceMessageResource extends JsonResource
             'sent_at' => $this->sent_at?->toISOString(),
             'read_at' => $this->read_at?->toISOString(),
             'creator' => $this->creator?->name,
+            'attachments' => $this->whenLoaded('attachments', fn () => $this->attachments->map(fn ($file) => [
+                'id' => $file->id,
+                'name' => $file->name,
+                'mime_type' => $file->mime_type,
+                'url' => route('diligences.attachments.download', [
+                    'project' => $request->route('project'),
+                    'stage' => $request->route('stage'),
+                    'message' => $this->id,
+                    'file' => $file->id,
+                ]),
+            ])),
         ];
     }
 }

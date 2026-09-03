@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Enums\MonitoringReportRequestDeadline;
 use App\Models\BudgetAllocation;
 use App\Models\Monitoring;
 use App\Models\Notice;
@@ -200,6 +201,21 @@ class ProjectControllerTest extends TestCase
             ->get(route('notices.projects.show', [$notice, $project]))
             ->assertInertia(fn ($page) => $page
                 ->where('project.notice.budget_allocations.0.id', $allocation->id)
+            );
+    }
+
+    public function test_project_detail_includes_monitoring_report_request_deadline_days(): void
+    {
+        $notice = Notice::factory()->create([
+            'monitoring_report_request_deadline' => MonitoringReportRequestDeadline::MECENAS,
+        ]);
+        $project = Project::factory()->create(['notice_id' => $notice->id]);
+
+        $this->actingAs($this->user)
+            ->get(route('notices.projects.show', [$notice, $project]))
+            ->assertInertia(fn ($page) => $page
+                ->where('project.notice.monitoring_report_request_deadline', 'MECENAS')
+                ->where('project.notice.monitoring_report_request_deadline_days', 240)
             );
     }
 

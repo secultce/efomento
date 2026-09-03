@@ -2,6 +2,7 @@
 
 namespace Database\Factories;
 
+use App\Enums\MonitoringReportRequestDeadline;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 class NoticeFactory extends Factory
@@ -22,6 +23,7 @@ class NoticeFactory extends Factory
             'creditor_registration_request_date' => $this->faker->date(),
             'budget_allocation_nup' => $this->faker->unique()->numerify('BA-#####'),
             'budget_allocation_request_date' => $this->faker->date(),
+            'monitoring_report_request_deadline' => MonitoringReportRequestDeadline::PNAB,
         ];
     }
 }

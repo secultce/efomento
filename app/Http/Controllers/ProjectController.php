@@ -8,6 +8,7 @@ use App\Enums\CgeAtendeStatus;
 use App\Enums\DeliberationType;
 use App\Enums\DocumentType;
 use App\Enums\InstrumentType;
+use App\Enums\MonitoringReportRequestDeadline;
 use App\Enums\OpeningStatus;
 use App\Enums\ProjectStageSlug;
 use App\Enums\ProjectStageStatus;
@@ -86,6 +87,8 @@ class ProjectController extends Controller
             ]),
 
             'instrumentTypes' => InstrumentType::values(),
+
+            'monitoringReportRequestDeadlines' => MonitoringReportRequestDeadline::options(),
 
             'phases' => collect(ProjectStageSlug::cases())
                 ->reject(function ($stage) {

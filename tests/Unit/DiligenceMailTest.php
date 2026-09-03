@@ -64,4 +64,33 @@ class DiligenceMailTest extends TestCase
 
         $mail->assertSeeInHtml('Corpo da mensagem de diligência.');
     }
+
+    public function test_mailable_renders_tinymce_formatting_as_html(): void
+    {
+        $mail = new DiligenceMail($this->makeMessage([
+            'body' => '<p>Texto <strong>importante</strong>.</p><ul><li>Primeiro item</li></ul>',
+        ]));
+
+        $mail->assertSeeInHtml('<strong>importante</strong>', false);
+        $mail->assertSeeInHtml('<li>Primeiro item</li>', false);
+        $mail->assertDontSeeInHtml('&lt;strong&gt;', false);
+    }
+
+    public function test_mailable_removes_unsafe_html_from_tinymce_body(): void
+    {
+        $mail = new DiligenceMail($this->makeMessage([
+            'body' => '<p onclick="alert(1)">Olá <a href="javascript:alert(1)">link</a></p>'
+                .'<img src="https://example.com/image.png" onerror="alert(1)"><script>alert(1)</script>'
+                .'<!-- comentário não confiável -->',
+        ]));
+
+        $mail->assertSeeInHtml('<p>Olá <a>link</a></p>', false);
+        $mail->assertSeeInHtml('src="https://example.com/image.png"', false);
+        $mail->assertDontSeeInHtml('onclick=', false);
+        $mail->assertDontSeeInHtml('onerror=', false);
+        $mail->assertDontSeeInHtml('javascript:', false);
+        $mail->assertDontSeeInHtml('<script', false);
+        $mail->assertDontSeeInHtml('alert(1)', false);
+        $mail->assertDontSeeInHtml('comentário não confiável', false);
+    }
 }

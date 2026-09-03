@@ -75,6 +75,7 @@ function openReturnModal() {
             :disabled="cannotReturn"
             class="!shadow-none !font-bold !bg-[#ffcc05FF] !text-[#2d353fFF] rounded-lg text-xs"
             :class="{ 'pointer-events-none': cannotReturn }"
+            data-cy="return-process-button-formalization"
             @click.stop="openReturnModal"
         >
             DEVOLVER PROCESSO

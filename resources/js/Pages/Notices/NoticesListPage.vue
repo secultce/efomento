@@ -20,6 +20,10 @@ const props = defineProps({
         type: Array,
         default: () => [],
     },
+    monitoringReportRequestDeadlines: {
+        type: Array,
+        default: () => [],
+    },
 });
 
 const emit = defineEmits(['search', 'filter-status', 'filter-instrument', 'access', 'pagete', 'change-per-page']);
@@ -220,7 +224,12 @@ async function handleFileUpload(event) {
 </script>
 
 <template>
-    <nup-dialog v-model="dialog" :item="selectedItem" :instrument-types="instrumentTypes" />
+    <nup-dialog
+        v-model="dialog"
+        :item="selectedItem"
+        :instrument-types="instrumentTypes"
+        :monitoring-report-request-deadlines="monitoringReportRequestDeadlines"
+    />
     <v-card flat class="pa-6 bg-white" data-cy="table-notice-list">
         <!-- ── Cabeçalho ──────────────────────────────────────────────────── -->
         <div class="mb-10 flex justify-between gap-4">

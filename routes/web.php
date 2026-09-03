@@ -145,6 +145,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     Route::get('/projetos/{project}/diligencias/{stage}', [DiligenceMessageController::class, 'index'])
         ->name('diligences.index');
+    Route::get('/projetos/{project}/diligencias/{stage}/{message}/anexos/{file}', [DiligenceMessageController::class, 'downloadAttachment'])
+        ->name('diligences.attachments.download');
     Route::post('/projetos/{project}/diligencias/{stage}', [DiligenceMessageController::class, 'store'])
         ->name('diligences.store');
 });

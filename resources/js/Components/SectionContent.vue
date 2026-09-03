@@ -36,9 +36,22 @@ const formatters = {
     },
 };
 
+const isEmpty = (value) => {
+    if (value === null || value === undefined) return true;
+    if (typeof value === 'string' && value.trim() === '') return true;
+    if (Array.isArray(value) && value.length === 0) return true;
+    return false;
+};
+
 const displayValue = (field) => {
     const raw = field.compute ? field.compute(props.project) : getFieldValue(field.key);
-    return field.format && formatters[field.format] ? formatters[field.format](raw) : raw;
+    const value = field.format && formatters[field.format] ? formatters[field.format](raw) : raw;
+
+    if (isEmpty(value)) {
+        return field.fallback ?? 'Não informado';
+    }
+
+    return value;
 };
 
 const copyValue = async (value) => {

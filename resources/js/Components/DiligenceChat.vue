@@ -64,47 +64,22 @@ const canSubmit = computed(() => props.canSend && Boolean(toEmail.value) && plai
 
 const isHtml = (value) => /<[a-z][\s\S]*>/i.test(value ?? '');
 
-// Agrupa cada mensagem enviada com as respostas dela (via in_reply_to);
-// os grupos ficam do mais recente para o mais antigo, mas dentro do grupo
-// a mensagem original vem antes das respostas.
+// Mantém uma conversa contínua em ordem cronológica, como nos aplicativos
+// de mensagens: as mais antigas ficam no topo e as mais recentes no fim.
 const threads = computed(() => {
-    const ascending = [...messages.value].sort(
+    const orderedMessages = [...messages.value].sort(
         (a, b) => dayjs(a.sent_at ?? 0).valueOf() - dayjs(b.sent_at ?? 0).valueOf()
     );
-    const byImapId = new Map(ascending.filter((m) => m.imap_message_id).map((m) => [m.imap_message_id, m]));
 
-    const rootOf = (message) => {
-        let current = message;
-        const visited = new Set([current.id]);
-        while (current.direction === 'INBOUND' && current.in_reply_to) {
-            const parent = byImapId.get(current.in_reply_to);
-            if (!parent || visited.has(parent.id)) break;
-            visited.add(parent.id);
-            current = parent;
-        }
-        return current;
-    };
-
-    const groups = new Map();
-    for (const message of ascending) {
-        const root = rootOf(message);
-        if (!groups.has(root.id)) {
-            groups.set(root.id, { id: root.id, messages: [] });
-        }
-        groups.get(root.id).messages.push(message);
-    }
-
-    return [...groups.values()].sort(
-        (a, b) => dayjs(b.messages.at(-1).sent_at ?? 0).valueOf() - dayjs(a.messages.at(-1).sent_at ?? 0).valueOf()
-    );
+    return orderedMessages.length ? [{ id: 'conversation', messages: orderedMessages }] : [];
 });
 
 const formatSentAt = (value) => (value ? dayjs(value).format('DD/MM/YYYY [às] HH:mm') : '');
 
-async function scrollToTop() {
+async function scrollToBottom() {
     await nextTick();
     if (threadEl.value) {
-        threadEl.value.scrollTop = 0;
+        threadEl.value.scrollTop = threadEl.value.scrollHeight;
     }
 }
 
@@ -119,7 +94,7 @@ async function submit() {
         });
         body.value = '';
         showSnackbar('Mensagem enviada ao agente cultural.', 'success');
-        scrollToTop();
+        scrollToBottom();
     } catch (error) {
         const errors = error.response?.data?.errors;
         const message = errors
@@ -129,12 +104,12 @@ async function submit() {
     }
 }
 
-watch(messages, scrollToTop, { deep: true });
+watch(messages, scrollToBottom, { deep: true, flush: 'post' });
 
 onMounted(async () => {
     try {
         await fetchMessages();
-        scrollToTop();
+        scrollToBottom();
     } catch (error) {
         if (error.response.data.message === '') {
             stageUnavailable.value = false;
@@ -188,6 +163,18 @@ onMounted(async () => {
                                 class="text-gray-800 message-body"
                             />
                             <p v-else class="whitespace-pre-line text-gray-800">{{ message.body }}</p>
+                            <div v-if="message.attachments?.length" class="mt-3 pt-2 border-t border-gray-200">
+                                <p class="text-xs font-semibold text-gray-600 mb-1">Anexos</p>
+                                <a
+                                    v-for="attachment in message.attachments"
+                                    :key="attachment.id"
+                                    :href="attachment.url"
+                                    class="flex items-center gap-1 text-xs text-blue-700 hover:underline"
+                                >
+                                    <v-icon icon="mdi-paperclip" size="14" />
+                                    <span class="break-all">{{ attachment.name }}</span>
+                                </a>
+                            </div>
                             <p class="text-xs text-gray-500 text-right mt-2 font-semibold">
                                 {{ message.direction === 'OUTBOUND' ? 'Enviada em' : 'Recebida em' }}
                                 {{ formatSentAt(message.sent_at) }}

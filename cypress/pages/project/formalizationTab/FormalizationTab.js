@@ -69,36 +69,6 @@ class FormalizationTab {
         cy.get(el.tramitContainer).should('be.visible').click();
     }
 
-    clickReturnProcessButton() {
-        cy.get(el.returnProcessButton).should('be.visible').click();
-    }
-
-    fillReturnMotive(text) {
-        cy.window({ timeout: 10000 }).then((win) => {
-            cy.wrap(null, { log: false }).should(() => {
-                expect(win.tinymce).to.exist;
-                expect(win.tinymce.activeEditor).to.exist;
-                expect(win.tinymce.activeEditor.initialized).to.be.true;
-            });
-        });
-
-        cy.window().then((win) => {
-            const editor = win.tinymce.activeEditor;
-            editor.setContent(`<p>${text}</p>`);
-            editor.focus();
-
-            editor.selection.select(editor.getBody(), true);
-
-            editor.execCommand('Bold');
-            editor.fire('change');
-            editor.save();
-        });
-    }
-
-    clickSaveReturnMotiveButton() {
-        cy.get(el.retunrProcessSentButton).contains('Enviar').click();
-    }
-
     clickTramimtButton() {
         cy.get(el.tramitButton).click();
     }

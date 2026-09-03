@@ -24,6 +24,7 @@ class NoticeService
                 'titulo' => $notice->name,
                 'mae' => $notice->nup,
                 'type_ins' => $notice->instrument_type,
+                'monitoring_report_request_deadline' => $notice->monitoring_report_request_deadline?->value,
                 'status' => $this->resolveStatus($notice),
                 'url' => $notice->notice_url,
                 'created_at' => $notice->created_at,
