@@ -123,6 +123,7 @@ class SpreadsheetImportService
                 SyncOpeningRegistrationDataJob::dispatch(
                     projectId: $project->id,
                     registrationId: (int) $registrationId,
+                    userId: $userId,
                 )
                     ->afterCommit()
                     ->onQueue('details');

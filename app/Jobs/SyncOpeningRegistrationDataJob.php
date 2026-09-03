@@ -12,6 +12,7 @@ use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\Middleware\RateLimited;
 use Illuminate\Queue\Middleware\WithoutOverlapping;
 use Illuminate\Queue\SerializesModels;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 use Throwable;
 
@@ -28,6 +29,7 @@ class SyncOpeningRegistrationDataJob implements ShouldQueue
     public function __construct(
         public int $projectId,
         public int $registrationId,
+        public ?int $userId = null,
     ) {
         $this->onQueue('details');
     }
@@ -68,14 +70,55 @@ class SyncOpeningRegistrationDataJob implements ShouldQueue
             'fields' => data_get($details, 'fields', []),
         ];
 
-        Opening::where('project_id', $this->projectId)->update([
-            'registration_data' => $safeRegistration,
-        ]);
+        $openings = Opening::where('project_id', $this->projectId)->get();
+
+        if ($openings->isEmpty()) {
+            Log::warning('sync.opening.registration_data.no_opening', [
+                'project_id' => $this->projectId,
+                'registration_id' => $this->registrationId,
+            ]);
+
+            return;
+        }
+
+        $this->updateOpeningsAsImporter($openings, $safeRegistration);
 
         Log::info('sync.opening.registration_data.done', [
             'project_id' => $this->projectId,
             'registration_id' => $this->registrationId,
         ]);
+    }
+
+    private function updateOpeningsAsImporter($openings, array $safeRegistration): void
+    {
+        $this->actingAsImporter(function () use ($openings, $safeRegistration): void {
+            foreach ($openings as $opening) {
+                $opening->auditTags = ['mapas-registration-sync'];
+                $opening->update(['registration_data' => $safeRegistration]);
+            }
+        });
+    }
+
+    private function actingAsImporter(callable $callback): void
+    {
+        if ($this->userId === null) {
+            $callback();
+
+            return;
+        }
+
+        $previousUser = Auth::user();
+        Auth::onceUsingId($this->userId);
+
+        try {
+            $callback();
+        } finally {
+            if ($previousUser !== null) {
+                Auth::setUser($previousUser);
+            } else {
+                Auth::forgetUser();
+            }
+        }
     }
 
     public function backoff(): array

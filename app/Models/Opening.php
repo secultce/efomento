@@ -58,6 +58,14 @@ class Opening extends Model implements Auditable
         'registration_data' => 'array',
     ];
 
+    /** @var array<int, string> */
+    public array $auditTags = [];
+
+    public function generateTags(): array
+    {
+        return $this->auditTags;
+    }
+
     public function project()
     {
         return $this->belongsTo(Project::class);
