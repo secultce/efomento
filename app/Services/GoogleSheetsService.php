@@ -109,17 +109,33 @@ class GoogleSheetsService
 
             $record = ['process_supervisor_id' => $userId, 'created_by' => $userId];
             foreach ($columnMap as $sheetColumn => $modelField) {
-                $value = $row[$sheetColumn] ?? null;
+                $rawValue = $row[$sheetColumn] ?? null;
 
                 if ($modelField === 'cge_atende_ticket') {
-                    $value = $this->normalizeCgeAtendeStatus($value, $project->number);
+                    $normalized = $this->normalizeCgeAtendeStatus($rawValue, $project->number);
+
+                    if ($this->rejectedInvalidValue($normalized, $rawValue)) {
+                        continue;
+                    }
+
+                    $record[$modelField] = $normalized;
+
+                    continue;
                 }
 
                 if ($modelField === 'deliberation') {
-                    $value = $this->normalizeDeliberationType($value, $project->number);
+                    $normalized = $this->normalizeDeliberationType($rawValue, $project->number);
+
+                    if ($this->rejectedInvalidValue($normalized, $rawValue)) {
+                        continue;
+                    }
+
+                    $record[$modelField] = $normalized;
+
+                    continue;
                 }
 
-                $record[$modelField] = $value;
+                $record[$modelField] = $rawValue;
             }
 
             try {
@@ -190,6 +206,11 @@ class GoogleSheetsService
         }
 
         return $normalized?->value;
+    }
+
+    private function rejectedInvalidValue(?string $normalized, mixed $rawValue): bool
+    {
+        return $normalized === null && ! blank($rawValue);
     }
 
     /**
