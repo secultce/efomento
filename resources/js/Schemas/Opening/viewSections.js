@@ -1,10 +1,17 @@
+import { useDate } from '@/Composables/useDate';
+import { useMask } from '@/Composables/useMask';
+import { getLegalType } from '@/Schemas/getLegalType';
+
+const { getDate } = useDate();
+const { getCpfCnpj } = useMask();
+
 export const viewSections = [
     {
         title: 'Dados do agente e do projeto',
         fields: [
             { label: 'Nome social / Nome fantasia', key: 'agent.name' },
-            { label: 'Personalidade jurídica', key: 'agent.legal_type' },
-            { label: 'CPF / CNPJ do agente cultural', key: 'agent.cpf' },
+            { label: 'Personalidade jurídica', compute: getLegalType },
+            { label: 'CPF / CNPJ do agente cultural', compute: getCpfCnpj('agent.latest_snapshot.cpf_cnpj') },
             { label: 'Área / linguagem / ciclo', key: 'notice.name' },
             { label: 'Categoria de inscrição', key: 'category.name' },
             { label: 'Título do projeto', key: 'title_project' },
@@ -14,7 +21,25 @@ export const viewSections = [
     {
         title: 'Endereço',
         fields: [
-            { label: 'Endereço completo', key: 'agent.latest_snapshot.address' },
+            {
+                label: 'Endereço completo',
+                compute: (project) => {
+                    const s = project?.agent?.latest_snapshot;
+                    if (!s) return null;
+
+                    const hasDetailedAddress = [s.number, s.complement, s.postal_code, s.neighborhood].some((val) =>
+                        Boolean(val && String(val).trim())
+                    );
+
+                    if (!hasDetailedAddress) {
+                        return s.street || null;
+                    }
+
+                    return [s.street, s.number, s.complement, s.neighborhood, s.city, s.state, s.postal_code]
+                        .filter(Boolean)
+                        .join(', ');
+                },
+            },
             { label: 'Macrorregião', key: 'agent.latest_snapshot.macroregion' },
             { label: 'CEP', key: 'agent.latest_snapshot.postal_code' },
             { label: 'Município', key: 'agent.latest_snapshot.city' },
@@ -24,9 +49,8 @@ export const viewSections = [
         title: 'Campos adicionais',
         fields: [
             { label: 'Nome completo do proponente', key: 'agent.name' },
-            { label: 'Cargo do proponente', key: 'agent.director_position' },
             { label: 'Telefone do proponente', key: 'agent.director_phone' },
-            { label: 'CPF do proponente', key: 'agent.cpf' },
+            { label: 'CPF do proponente', compute: getCpfCnpj('agent.latest_snapshot.cpf_cnpj') },
             { label: 'E-mail do proponente', key: 'agent.latest_snapshot.email' },
             { label: 'E-mail secundário', key: 'agent.latest_snapshot.secondary_email' },
             { label: 'Telefone secundário', key: 'agent.latest_snapshot.secondary_phone' },
@@ -35,7 +59,7 @@ export const viewSections = [
     {
         title: 'Perfil socioeconômico',
         fields: [
-            { label: 'Data de nascimento', key: 'agent.latest_snapshot.birth_date' },
+            { label: 'Data de nascimento', compute: getDate('agent.latest_snapshot.birth_date') },
             { label: 'Escolaridade', key: 'agent.latest_snapshot.education' },
             { label: 'Raça / cor', key: 'agent.latest_snapshot.race' },
             { label: 'Orientação sexual', key: 'agent.latest_snapshot.sexual_orientation' },
