@@ -275,7 +275,11 @@ Runbook para a carga única de todas as planilhas históricas, incluindo os arqu
 
 5. Infraestrutura sincroniza `storage/app/public/projects/` de homologação para produção via `rsync` — precisa ser exatamente essa raiz relativa (mesmo disco `public`), senão os paths gravados no banco não resolvem. `registration_data` não precisa de rsync, já veio no dump.
 
-6. Falhas pontuais identificadas nos logs (`sync.project.file.failed` / `sync.opening.registration_data.failed`) podem ser reprocessadas rodando o import novamente com `--with-files`/`--with-registration-data` apenas para o registro afetado (dedup em `DownloadMapasProjectFileJob` evita duplicar arquivo já baixado; `SyncOpeningRegistrationDataJob` apenas sobrescreve `registration_data`, seguro de rodar de novo) — nesse caso repetir os passos 2–5 para esse subconjunto antes do rsync final.
+6. Falhas pontuais identificadas nos logs (`sync.project.file.failed` / `sync.opening.registration_data.failed`) podem ser reprocessadas re-executando o import. O comando `app:import-google-sheets` **não tem filtro por inscrição/linha** — ele reprocessa a aba inteira. As duas formas suportadas de reprocessar:
+   - **Planilha completa:** rodar o mesmo comando de novo com `--with-files`/`--with-registration-data`. É seguro (`firstOrCreate`/`firstOrNew`/`recordIfChanged` são idempotentes; `DownloadMapasProjectFileJob` deduplica via `StoredFile::withTrashed()`; `SyncOpeningRegistrationDataJob` apenas sobrescreve `registration_data`), mas re-enfileira os jobs para **todas** as linhas, respeitando o rate limit `mapas-api` (60 req/min).
+   - **Subconjunto isolado:** criar uma cópia da planilha contendo só as linhas afetadas e rodar o import apontando para essa cópia (`--aba="Abertura"`). Evita re-enfileirar trabalho para o restante.
+
+   Em ambos os casos, repetir os passos 2–4 (aguardar a fila, gerar novo dump, restaurar) para o conjunto reprocessado antes do rsync final.
 
 
 ## Abas implementadas
