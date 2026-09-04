@@ -54,6 +54,17 @@ const displayValue = (field) => {
     return value;
 };
 
+const copyableValue = (field) => {
+    if (!field.items) {
+        return displayValue(field);
+    }
+
+    return field
+        .items(props.project)
+        .map((item) => `${item.label}: ${item.value}`)
+        .join('\n');
+};
+
 const copyValue = async (value) => {
     if (!value) return;
 
@@ -91,7 +102,7 @@ const copyValue = async (value) => {
                         v-show="hoveredIndex === index"
                         size="14"
                         class="cursor-pointer"
-                        @click.stop="copyValue(displayValue(field))"
+                        @click.stop="copyValue(copyableValue(field))"
                     >
                         mdi-content-copy
                     </v-icon>

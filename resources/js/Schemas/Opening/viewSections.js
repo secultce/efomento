@@ -87,7 +87,6 @@ export const viewSections = [
             {
                 label: 'Campos da inscrição',
                 fullWidth: true,
-                multiline: true,
                 items: (project) => {
                     const fields = project.opening?.registration_data?.fields ?? [];
 
@@ -95,15 +94,6 @@ export const viewSections = [
                         label: f.titleField,
                         value: parseRegistrationFieldValue(f.valueField),
                     }));
-                },
-                compute: (project) => {
-                    const fields = project.opening?.registration_data?.fields ?? [];
-
-                    if (!fields.length) return 'Nenhum dado de inscrição disponível.';
-
-                    return fields
-                        .map((f) => `${f.titleField}: ${parseRegistrationFieldValue(f.valueField)}`)
-                        .join('\n');
                 },
             },
         ],
