@@ -39,9 +39,9 @@
         "updated_email": "user.updated@example.com",
         "new_password": "newpassword"
     },
-    "budget": {
-        "name": "Glaucivane Silveira Barbosa Portel",
-        "valid_email": "glaucivane.portela@secult.ce.gov.br",
+    "budgetary": {
+        "name": "João Ferreira De Almeida Júnior",
+        "valid_email": "jferreira@secult.ce.gov.br",
         "password": "password",
         "invalid_email": "test",
         "incorrect_password": "123456",

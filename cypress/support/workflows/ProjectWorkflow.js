@@ -26,6 +26,16 @@ class ProjectWorkflow {
         Project.findProjectByProjectNup(project.projectNup);
         Project.validateCurrentPhase(project.projectNup, phase);
     }
+
+    validateDocumentCreated({ project, documentType }) {
+        cy.reload();
+
+        Project.selectProject(project.projectNup);
+        Project.clickEditBudgetOrder(documentType.editButton);
+        Project.validateDocumentContent(documentType.text);
+        Project.clickCancelDocumentButton();
+        Project.validateDocumentCreated(project.projectNup, documentType.chip);
+    }
 }
 
 export default new ProjectWorkflow();
