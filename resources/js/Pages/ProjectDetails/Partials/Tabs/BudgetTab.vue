@@ -295,7 +295,7 @@ const permissionMessage = computed(() => {
         </template>
 
         <template #right-content>
-            <div class="space-y-6">
+            <div class="space-y-6" data-cy="budget-right-panel">
                 <div class="flex items-center justify-between">
                     <div>
                         <p class="font-bold text-lg">Campos para você inserir ou editar dados</p>
@@ -326,6 +326,7 @@ const permissionMessage = computed(() => {
                                             v-model="form.processing_date_for_codip"
                                             type="date"
                                             label="Insira a data"
+                                            data-cy="processing-date-codip-input"
                                             :disabled="budgetLocked"
                                         />
                                     </FormField>
@@ -335,6 +336,7 @@ const permissionMessage = computed(() => {
                                             v-model="form.processing_date_for_coafi"
                                             type="date"
                                             label="Insira a data"
+                                            data-cy="processing-date-coafi-input"
                                             :disabled="budgetLocked"
                                         />
                                     </FormField>
@@ -422,6 +424,7 @@ const permissionMessage = computed(() => {
                                             min="1"
                                             step="1"
                                             label="Informe o número da parcela"
+                                            data-cy="notice-installment-number-imput"
                                             :error="errors.notice_installment_number"
                                         />
                                     </FormField>
@@ -435,6 +438,7 @@ const permissionMessage = computed(() => {
                                             v-model="form.installment_amount"
                                             money
                                             label="Insira o valor em reais"
+                                            data-cy="installment-amount-input"
                                             :error="errors.installment_amount"
                                         />
                                     </FormField>
@@ -445,6 +449,7 @@ const permissionMessage = computed(() => {
                                                 v-model="form.installment_request_date"
                                                 type="date"
                                                 label="Insira a data"
+                                                data-cy="installment-request-date-input"
                                             />
                                         </FormField>
                                     </div>
@@ -457,6 +462,7 @@ const permissionMessage = computed(() => {
                                             no-resize
                                             variant="outlined"
                                             class="mt-2"
+                                            data-cy="installments-observations-input"
                                         />
                                     </FormField>
                                 </div>

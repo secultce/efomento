@@ -8,5 +8,6 @@
     "noticeAccompanimentManager": "Saulo Furtado",
     "noticeManagerEmail": "saulo.furtado@example.com",
     "quotaNumber": 5,
+    "installmentAmount": 1500000,
     "quantityPerPage": 25
 }
