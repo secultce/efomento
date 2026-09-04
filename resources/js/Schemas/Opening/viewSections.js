@@ -50,7 +50,8 @@ export const viewSections = [
         title: 'Campos adicionais',
         fields: [
             { label: 'Nome completo do proponente', key: 'agent.name' },
-            { label: 'Telefone do proponente', key: 'agent.director_phone' },
+            { label: 'Cargo do proponente', key: 'agent.director_position' },
+            { label: 'Telefone do proponente', key: 'agent.latest_snapshot.phone' },
             { label: 'CPF do proponente', compute: getCpfCnpj('agent.latest_snapshot.cpf_cnpj') },
             { label: 'E-mail do proponente', key: 'agent.latest_snapshot.email' },
             { label: 'E-mail secundário', key: 'agent.latest_snapshot.secondary_email' },

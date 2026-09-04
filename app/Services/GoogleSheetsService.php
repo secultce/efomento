@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Enums\CgeAtendeStatus;
 use App\Enums\DeliberationType;
+use App\Enums\ReportStatus;
 use App\Exceptions\Integration\ExternalServiceException;
 use App\Models\Budget;
 use App\Models\Formalization;
@@ -123,6 +124,18 @@ class GoogleSheetsService
                     continue;
                 }
 
+                if ($modelField === 'report_status') {
+                    $normalized = $this->normalizeReportStatus($rawValue, $project->number);
+
+                    if ($this->rejectedInvalidValue($normalized, $rawValue)) {
+                        continue;
+                    }
+
+                    $record[$modelField] = $normalized;
+
+                    continue;
+                }
+
                 if ($modelField === 'deliberation') {
                     $normalized = $this->normalizeDeliberationType($rawValue, $project->number);
 
@@ -156,6 +169,39 @@ class GoogleSheetsService
         }
 
         return $count;
+    }
+
+    /**
+     * Normaliza o valor bruto da coluna "REGULARIDADE E ADIMPLÊNCIA" para o enum ReportStatus.
+     */
+    private function normalizeReportStatus(mixed $value, ?string $projectNumber): ?string
+    {
+        if (blank($value)) {
+            return null;
+        }
+
+        $clean = mb_strtoupper(trim((string) $value));
+        $clean = preg_replace('/\s+/', ' ', $clean);
+
+        // Map known variations / typos
+        $status = match (true) {
+            str_contains($clean, 'SEM CADASTRO') => ReportStatus::SEM_CADASTRO,
+            str_contains($clean, 'NÃO SE APLICA') || str_contains($clean, 'NAO SE APLICA') => ReportStatus::NAO_APLICA,
+            str_contains($clean, 'IRREGULAR') && (str_contains($clean, 'INADIMPL') || str_contains($clean, 'INADIMPLE')) => ReportStatus::IRREGULAR_E_INADIMPLENTE,
+            str_contains($clean, 'IRREGULAR') && (str_contains($clean, 'ADIMPL') || str_contains($clean, 'ADIMPLE')) => ReportStatus::IRREGULAR_E_ADIMPLENTE,
+            str_contains($clean, 'REGULAR') && (str_contains($clean, 'INADIMPL') || str_contains($clean, 'INADIMPLE')) => ReportStatus::REGULAR_E_INADIMPLENTE,
+            str_contains($clean, 'REGULAR') && (str_contains($clean, 'ADIMPL') || str_contains($clean, 'ADIMPLE')) => ReportStatus::REGULAR_E_ADIMPLENTE,
+            default => ReportStatus::tryFrom($clean),
+        };
+
+        if ($status === null) {
+            Log::warning('spreadsheet.import.report_status_invalid', [
+                'project_number' => $projectNumber,
+                'value' => $value,
+            ]);
+        }
+
+        return $status?->value;
     }
 
     /**
