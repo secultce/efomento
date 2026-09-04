@@ -3,6 +3,8 @@
 namespace App\Services;
 
 use App\Enums\CgeAtendeStatus;
+use App\Enums\DeliberationType;
+use App\Enums\ReportStatus;
 use App\Exceptions\Integration\ExternalServiceException;
 use App\Models\Budget;
 use App\Models\Formalization;
@@ -60,13 +62,19 @@ class GoogleSheetsService
      * Usando o SpreadsheetImportService::processRow().
      * Retorna o número de linhas gravadas.
      */
-    public function importSheet(string $spreadsheetId, string $sheetName, bool $withFiles, int $userId, ?int $fallbackNoticeId = null): int
-    {
+    public function importSheet(
+        string $spreadsheetId,
+        string $sheetName,
+        bool $withFiles,
+        int $userId,
+        ?int $fallbackNoticeId = null,
+        bool $withRegistrationData = false,
+    ): int {
         ['rows' => $rows] = $this->fetchSheet($spreadsheetId, $sheetName);
 
         $count = 0;
         foreach ($rows as $row) {
-            if ($this->importService->processRow($row, $withFiles, $userId, $fallbackNoticeId) !== null) {
+            if ($this->importService->processRow($row, $withFiles, $userId, $fallbackNoticeId, $withRegistrationData) !== null) {
                 $count++;
             }
         }
@@ -102,13 +110,45 @@ class GoogleSheetsService
 
             $record = ['process_supervisor_id' => $userId, 'created_by' => $userId];
             foreach ($columnMap as $sheetColumn => $modelField) {
-                $value = $row[$sheetColumn] ?? null;
+                $rawValue = $row[$sheetColumn] ?? null;
 
                 if ($modelField === 'cge_atende_ticket') {
-                    $value = $this->normalizeCgeAtendeStatus($value, $project->number);
+                    $normalized = $this->normalizeCgeAtendeStatus($rawValue, $project->number);
+
+                    if ($this->rejectedInvalidValue($normalized, $rawValue)) {
+                        continue;
+                    }
+
+                    $record[$modelField] = $normalized;
+
+                    continue;
                 }
 
-                $record[$modelField] = $value;
+                if ($modelField === 'report_status') {
+                    $normalized = $this->normalizeReportStatus($rawValue, $project->number);
+
+                    if ($this->rejectedInvalidValue($normalized, $rawValue)) {
+                        continue;
+                    }
+
+                    $record[$modelField] = $normalized;
+
+                    continue;
+                }
+
+                if ($modelField === 'deliberation') {
+                    $normalized = $this->normalizeDeliberationType($rawValue, $project->number);
+
+                    if ($this->rejectedInvalidValue($normalized, $rawValue)) {
+                        continue;
+                    }
+
+                    $record[$modelField] = $normalized;
+
+                    continue;
+                }
+
+                $record[$modelField] = $rawValue;
             }
 
             try {
@@ -132,6 +172,39 @@ class GoogleSheetsService
     }
 
     /**
+     * Normaliza o valor bruto da coluna "REGULARIDADE E ADIMPLÊNCIA" para o enum ReportStatus.
+     */
+    private function normalizeReportStatus(mixed $value, ?string $projectNumber): ?string
+    {
+        if (blank($value)) {
+            return null;
+        }
+
+        $clean = mb_strtoupper(trim((string) $value));
+        $clean = preg_replace('/\s+/', ' ', $clean);
+
+        // Map known variations / typos
+        $status = match (true) {
+            str_contains($clean, 'SEM CADASTRO') => ReportStatus::SEM_CADASTRO,
+            str_contains($clean, 'NÃO SE APLICA') || str_contains($clean, 'NAO SE APLICA') => ReportStatus::NAO_APLICA,
+            str_contains($clean, 'IRREGULAR') && (str_contains($clean, 'INADIMPL') || str_contains($clean, 'INADIMPLE')) => ReportStatus::IRREGULAR_E_INADIMPLENTE,
+            str_contains($clean, 'IRREGULAR') && (str_contains($clean, 'ADIMPL') || str_contains($clean, 'ADIMPLE')) => ReportStatus::IRREGULAR_E_ADIMPLENTE,
+            str_contains($clean, 'REGULAR') && (str_contains($clean, 'INADIMPL') || str_contains($clean, 'INADIMPLE')) => ReportStatus::REGULAR_E_INADIMPLENTE,
+            str_contains($clean, 'REGULAR') && (str_contains($clean, 'ADIMPL') || str_contains($clean, 'ADIMPLE')) => ReportStatus::REGULAR_E_ADIMPLENTE,
+            default => ReportStatus::tryFrom($clean),
+        };
+
+        if ($status === null) {
+            Log::warning('spreadsheet.import.report_status_invalid', [
+                'project_number' => $projectNumber,
+                'value' => $value,
+            ]);
+        }
+
+        return $status?->value;
+    }
+
+    /**
      * Normaliza o valor bruto da coluna "CHAMADO CGE ATENDE" para o enum CgeAtendeStatus.
      * Valores que não correspondam a nenhum case (números de chamado antigos, texto fora do padrão)
      * são descartados (null) e registrados em log, em vez de interromper a sincronização.
@@ -152,6 +225,38 @@ class GoogleSheetsService
         }
 
         return $normalized?->value;
+    }
+
+    /**
+     * Normaliza o valor bruto da coluna "DELIBERAÇÃO" para o enum DeliberationType.
+     * A planilha usa o label de exibição (ex.: "LOTE CGE"), não o backing value (BATCH_CGE);
+     * tenta casar por backing value e, se falhar, pelo label antes de descartar (null) e logar.
+     */
+    private function normalizeDeliberationType(mixed $value, ?string $projectNumber): ?string
+    {
+        if (blank($value)) {
+            return null;
+        }
+
+        $normalizedValue = mb_strtoupper(trim((string) $value));
+
+        $normalized = DeliberationType::tryFrom($normalizedValue)
+            ?? collect(DeliberationType::cases())
+                ->first(fn (DeliberationType $case) => mb_strtoupper($case->label()) === $normalizedValue);
+
+        if ($normalized === null) {
+            Log::warning('spreadsheet.import.deliberation_type_invalid', [
+                'project_number' => $projectNumber,
+                'value' => $value,
+            ]);
+        }
+
+        return $normalized?->value;
+    }
+
+    private function rejectedInvalidValue(?string $normalized, mixed $rawValue): bool
+    {
+        return $normalized === null && ! blank($rawValue);
     }
 
     /**
