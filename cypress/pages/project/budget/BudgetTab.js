@@ -6,8 +6,14 @@ class BudgetTab {
     }
 
     validatePage() {
-        cy.get(el.budget).should('have.attr', 'aria-selected', 'true');
-        cy.get(el.rightPanel).should('exist').and('be.visible');
+        cy.get(el.budgetTab).should('have.attr', 'aria-selected', 'true');
+        cy.get(el.budgeRightPanel).should('exist').and('be.visible');
+    }
+
+    fillRequiredFieldsBudgetOpninion(quotaNumber, installmentAmount) {
+        cy.get(el.noticeInstallmentNumberInput).should('be.visible').type(String(quotaNumber));
+        cy.get(el.installmentAmountInput).should('be.visible').clear();
+        cy.get(el.installmentAmountInput).should('be.visible').type(String(installmentAmount));
     }
 }
 

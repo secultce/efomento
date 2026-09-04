@@ -3,4 +3,5 @@ export const PHASES = {
     LEGAL_ANALYSIS: 'Análise Jurídica',
     FORMALIZATION: 'Formalização',
     BUDGET: 'Orçamento',
+    PAYMENT: 'Pagamento',
 };
