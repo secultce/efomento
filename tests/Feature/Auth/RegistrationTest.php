@@ -31,7 +31,7 @@ class RegistrationTest extends TestCase
 
         $this->assertGuest();
         $response->assertRedirect(route('two-factor.show'));
-        $code = Mail::sent(LoginCodeMail::class)->first()->code;
+        $code = Mail::queued(LoginCodeMail::class)->first()->code;
         $this->post(route('two-factor.verify'), ['code' => $code])->assertRedirect('/editais');
         $this->assertAuthenticatedAs($user);
     }

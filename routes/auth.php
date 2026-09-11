@@ -17,10 +17,16 @@ Route::middleware('guest')->group(function () {
 
     Route::post('login', [AuthenticatedSessionController::class, 'store']);
 
-    Route::get('login/code', [LoginCodeController::class, 'show'])->name('two-factor.show');
-    Route::post('login/code', [LoginCodeController::class, 'verify'])->middleware('throttle:10,1')->name('two-factor.verify');
-    Route::post('login/code/resend', [LoginCodeController::class, 'resend'])->middleware('throttle:5,1')->name('two-factor.resend');
-    Route::post('login/code/cancel', [LoginCodeController::class, 'cancel'])->name('two-factor.cancel');
+    Route::get('two-factor-challenge', [LoginCodeController::class, 'show'])->name('two-factor.show');
+    Route::post('two-factor-challenge', [LoginCodeController::class, 'verify'])->middleware('throttle:10,1')->name('two-factor.verify');
+    Route::post('two-factor-challenge/resend', [LoginCodeController::class, 'resend'])->middleware('throttle:1,1,two-factor-resend')->name('two-factor.resend');
+    Route::post('two-factor-challenge/cancel', [LoginCodeController::class, 'cancel'])->name('two-factor.cancel');
+
+    // Keep existing bookmarks and already-open verification forms working.
+    Route::get('login/code', fn () => redirect()->route('two-factor.show'));
+    Route::post('login/code', [LoginCodeController::class, 'verify'])->middleware('throttle:10,1');
+    Route::post('login/code/resend', [LoginCodeController::class, 'resend'])->middleware('throttle:1,1,two-factor-resend');
+    Route::post('login/code/cancel', [LoginCodeController::class, 'cancel']);
 
     Route::get('forgot-password', [PasswordResetLinkController::class, 'create'])
         ->name('password.request');

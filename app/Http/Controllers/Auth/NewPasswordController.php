@@ -3,9 +3,11 @@
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
+use App\Services\TrustedDeviceService;
 use Illuminate\Auth\Events\PasswordReset;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Password;
 use Illuminate\Support\Str;
@@ -32,7 +34,7 @@ class NewPasswordController extends Controller
      *
      * @throws ValidationException
      */
-    public function store(Request $request): RedirectResponse
+    public function store(Request $request, TrustedDeviceService $devices): RedirectResponse
     {
         $request->validate([
             'token' => 'required',
@@ -45,11 +47,14 @@ class NewPasswordController extends Controller
         // database. Otherwise we will parse the error and return the response.
         $status = Password::reset(
             $request->only('email', 'password', 'password_confirmation', 'token'),
-            function ($user) use ($request) {
-                $user->forceFill([
-                    'password' => Hash::make($request->password),
-                    'remember_token' => Str::random(60),
-                ])->save();
+            function ($user) use ($request, $devices) {
+                DB::transaction(function () use ($user, $request, $devices) {
+                    $user->forceFill([
+                        'password' => Hash::make($request->password),
+                        'remember_token' => Str::random(60),
+                    ])->save();
+                    $devices->revokeTrustedDevices($user);
+                });
 
                 event(new PasswordReset($user));
             }

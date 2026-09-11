@@ -7,6 +7,7 @@ use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Mail;
+use Inertia\Testing\AssertableInertia as Assert;
 use Tests\TestCase;
 
 class LoginCodeTest extends TestCase
@@ -25,7 +26,7 @@ class LoginCodeTest extends TestCase
         $this->post('/login', ['email' => $user->email, 'password' => 'password'])
             ->assertRedirect(route('two-factor.show'));
 
-        return Mail::sent(LoginCodeMail::class)->last()->code;
+        return Mail::queued(LoginCodeMail::class)->last()->code;
     }
 
     public function test_password_alone_does_not_allow_access_to_protected_pages(): void
@@ -56,7 +57,7 @@ class LoginCodeTest extends TestCase
     public function test_code_expires(): void
     {
         $code = $this->startLogin();
-        $this->travel(11)->minutes();
+        $this->travel(6)->minutes();
         $this->post(route('two-factor.verify'), ['code' => $code])->assertRedirect(route('login'));
         $this->assertGuest();
     }
@@ -81,17 +82,44 @@ class LoginCodeTest extends TestCase
         $this->assertGuest();
     }
 
+    public function test_direct_code_visit_explains_why_login_is_required(): void
+    {
+        $this->get(route('two-factor.show'))->assertRedirect(route('login'));
+
+        $this->get(route('login'))->assertInertia(fn (Assert $page) => $page
+            ->component('Auth/Login')
+            ->where('status', 'O código expirou ou a solicitação não é mais válida. Entre novamente.')
+        );
+
+        $this->startLogin();
+        $this->get(route('two-factor.show'))->assertInertia(fn (Assert $page) => $page
+            ->component('Auth/LoginCode')
+        );
+        $this->assertGuest();
+    }
+
+    public function test_direct_code_visit_after_expiration_clears_pending_login(): void
+    {
+        $this->startLogin();
+        $this->travel(6)->minutes();
+
+        $this->get(route('two-factor.show'))
+            ->assertRedirect(route('login'))
+            ->assertSessionMissing('login_code');
+        $this->assertGuest();
+    }
+
     public function test_resending_invalidates_previous_code_and_has_cooldown(): void
     {
         $this->startLogin();
         $oldToken = session('login_code');
         $this->post(route('two-factor.resend'))->assertSessionHasErrors('email');
-        Mail::assertSentCount(1);
+        Mail::assertQueuedCount(1);
         $this->travel(61)->seconds();
         $this->post(route('two-factor.resend'))->assertRedirect(route('two-factor.show'));
-        Mail::assertSentCount(2);
+        Mail::assertQueuedCount(2);
         $this->assertNull(Cache::get('login-code:'.$oldToken));
-        $code = Mail::sent(LoginCodeMail::class)->last()->code;
+        $code = Mail::queued(LoginCodeMail::class)->last()->code;
         $this->post(route('two-factor.verify'), ['code' => $code])->assertRedirect('/editais');
         $this->assertAuthenticated();
     }
@@ -104,7 +132,7 @@ class LoginCodeTest extends TestCase
         }
         $this->travel(61)->seconds();
         $this->post(route('two-factor.resend'));
-        $code = Mail::sent(LoginCodeMail::class)->last()->code;
+        $code = Mail::queued(LoginCodeMail::class)->last()->code;
         $this->post(route('two-factor.verify'), ['code' => $code])->assertSessionHasErrors('code');
         $this->assertGuest();
     }
@@ -156,6 +184,6 @@ class LoginCodeTest extends TestCase
     {
         $mail = new LoginCodeMail('123456');
         $mail->assertSeeInHtml('123456');
-        $mail->assertSeeInHtml('10 minutos');
+        $mail->assertSeeInHtml('5 minutos');
     }
 }

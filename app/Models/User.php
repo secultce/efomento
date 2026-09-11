@@ -59,6 +59,11 @@ class User extends Authenticatable implements Auditable
         return $this->hasMany(OpeningSupervisor::class, 'user_id');
     }
 
+    public function trustedDevices(): HasMany
+    {
+        return $this->hasMany(TrustedDevice::class);
+    }
+
     public function assignedSupervisors(): HasMany
     {
         return $this->hasMany(OpeningSupervisor::class, 'assigned_by');

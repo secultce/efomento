@@ -2,6 +2,8 @@
 
 namespace App\Services;
 
+use App\Exceptions\Domain\ExpiredTwoFactorCodeException;
+use App\Exceptions\Domain\InvalidTwoFactorCodeException;
 use App\Mail\LoginCodeMail;
 use App\Models\User;
 use Illuminate\Http\Request;
@@ -18,13 +20,15 @@ class LoginCodeService
     public function send(Request $request, User $user): void
     {
         $key = 'login-code:send:'.$user->id;
-        if (! Cache::add($key, true, 60)) {
-            throw ValidationException::withMessages(['email' => 'Aguarde 60 segundos antes de solicitar outro código.']);
+        $cooldown = config('two_factor.resend_throttle_seconds');
+        if (! Cache::add($key, true, $cooldown)) {
+            throw ValidationException::withMessages(['email' => "Aguarde {$cooldown} segundos antes de solicitar outro código."]);
         }
 
         $this->cancel($request);
         $token = Str::random(64);
-        $code = (string) random_int(100000, 999999);
+        $length = config('two_factor.code_length');
+        $code = (string) random_int(10 ** ($length - 1), (10 ** $length) - 1);
         $challenge = [
             'user_id' => $user->id,
             'hash' => Hash::make($code),
@@ -32,14 +36,15 @@ class LoginCodeService
         ];
 
         try {
-            Mail::to($user->email)->send(new LoginCodeMail($code));
+            Mail::to($user->email)->queue(new LoginCodeMail($code));
         } catch (Throwable $e) {
             report($e);
             throw ValidationException::withMessages(['email' => 'Não foi possível enviar o código. Aguarde um minuto e tente entrar novamente.']);
         }
 
-        Cache::put('login-code:'.$token, $challenge, now()->addMinutes(10));
+        Cache::put('login-code:'.$token, $challenge, now()->addMinutes(config('two_factor.code_ttl_minutes')));
         $request->session()->put('login_code', $token);
+        $request->session()->put('login_code_resend_at', now()->addSeconds($cooldown)->timestamp);
     }
 
     public function pendingUser(Request $request): ?User
@@ -51,17 +56,17 @@ class LoginCodeService
         return $user && hash_equals($challenge['credentials'], $this->fingerprint($user)) ? $user : null;
     }
 
-    public function verify(Request $request, string $code): ?User
+    public function verify(Request $request, string $code): User
     {
         $token = $request->session()->get('login_code');
         if (! $token || ! ($pendingUser = $this->pendingUser($request))) {
-            return null;
+            throw new ExpiredTwoFactorCodeException;
         }
 
         return Cache::lock('login-code:lock:'.$pendingUser->id, 10)->get(function () use ($request, $token, $code) {
             $user = $this->pendingUser($request);
             if (! $user) {
-                return null;
+                throw new ExpiredTwoFactorCodeException;
             }
 
             $attempts = 'login-code:attempts:'.$user->id;
@@ -72,19 +77,20 @@ class LoginCodeService
             RateLimiter::hit($attempts, 600);
             $challenge = Cache::get('login-code:'.$token);
             if (! Hash::check($code, $challenge['hash'])) {
-                throw ValidationException::withMessages(['code' => 'Código inválido. Confira o código recebido por email.']);
+                throw new InvalidTwoFactorCodeException;
             }
 
             $this->cancel($request);
             RateLimiter::clear($attempts);
 
             return $user;
-        }) ?: null;
+        }) ?: throw new ExpiredTwoFactorCodeException;
     }
 
     public function cancel(Request $request): void
     {
         $token = $request->session()->pull('login_code');
+        $request->session()->forget('login_code_resend_at');
         if ($token) {
             Cache::forget('login-code:'.$token);
         }

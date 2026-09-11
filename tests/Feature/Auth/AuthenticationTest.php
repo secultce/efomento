@@ -31,8 +31,8 @@ class AuthenticationTest extends TestCase
 
         $this->assertGuest();
         $response->assertRedirect(route('two-factor.show'));
-        Mail::assertSent(LoginCodeMail::class, fn ($mail) => $mail->hasTo($user->email));
-        $code = Mail::sent(LoginCodeMail::class)->first()->code;
+        Mail::assertQueued(LoginCodeMail::class, fn ($mail) => $mail->hasTo($user->email));
+        $code = Mail::queued(LoginCodeMail::class)->first()->code;
         $this->post(route('two-factor.verify'), ['code' => $code])
             ->assertRedirect(route('notices.index', absolute: false));
         $this->assertAuthenticatedAs($user);
