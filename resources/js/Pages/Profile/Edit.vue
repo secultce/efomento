@@ -1,8 +1,11 @@
 <script setup>
+import TrustedDevices from './Partials/TrustedDevices.vue';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
 import { useAlert } from '@/Composables/useAlert';
 import { Head, useForm, usePage } from '@inertiajs/vue3';
 import { ref } from 'vue';
+
+defineProps({ trustedDevices: { type: Array, default: () => [] } });
 
 const user = usePage().props.auth.user;
 const { showAlert } = useAlert();
@@ -70,7 +73,7 @@ function changePassword() {
             <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
                 <v-container class="mb-6">
                     <v-row align="start" no-gutters>
-                        <v-col cols="3" class="pa-2">
+                        <v-col cols="12" md="3" class="pa-2">
                             <div class="d-flex align-center">
                                 <v-avatar size="50">
                                     <v-img v-if="user.avatar" :src="user.avatar" :alt="user.name" />
@@ -109,11 +112,21 @@ function changePassword() {
                                         </template>
                                         <v-list-item-title>Senha</v-list-item-title>
                                     </v-list-item>
+                                    <v-list-item
+                                        rounded="lg"
+                                        :class="activeTab === 'devices' ? 'bg-white font-weight-bold' : ''"
+                                        :active="activeTab === 'devices'"
+                                        @click="activeTab = 'devices'"
+                                    >
+                                        <template #prepend><v-icon icon="mdi-devices" /></template>
+                                        <v-list-item-title>Dispositivos confiáveis</v-list-item-title>
+                                    </v-list-item>
                                 </v-list>
                             </v-card>
                         </v-col>
 
-                        <v-col cols="9" class="pa-2">
+                        <v-col cols="12" md="9" class="pa-2">
+                            <TrustedDevices v-if="activeTab === 'devices'" :devices="trustedDevices" />
                             <template v-if="activeTab === 'info'">
                                 <h3 class="text-h5 font-weight-bold mb-4">Minhas informações</h3>
                                 <v-card variant="outlined" rounded="lg" class="pa-6">

@@ -11,7 +11,7 @@ use Illuminate\Support\Str;
 
 class TrustedDeviceService
 {
-    public function findTrustedDevice(Request $request, User $user): ?TrustedDevice
+    public function findTrustedDevice(Request $request, User $user, bool $recordUse = true): ?TrustedDevice
     {
         $cookie = $request->cookie('trusted_device');
         if (! is_string($cookie) || ! preg_match('/\A([a-zA-Z0-9]{40})\|([a-zA-Z0-9]{64})\z/', $cookie, $parts)) {
@@ -27,7 +27,13 @@ class TrustedDeviceService
             return null;
         }
 
-        $device->update(['last_used_at' => now()]);
+        if ($recordUse) {
+            $device->update([
+                'last_used_at' => now(),
+                'ip_address' => $request->ip(),
+                'user_agent' => Str::limit($request->userAgent() ?? '', 255, ''),
+            ]);
+        }
 
         return $device;
     }
@@ -77,6 +83,48 @@ class TrustedDeviceService
             ]);
         });
         Cookie::queue(Cookie::forget('trusted_device', '/', config('session.domain')));
+    }
+
+    public function forProfile(Request $request): array
+    {
+        $user = $request->user();
+        $current = $this->findTrustedDevice($request, $user, recordUse: false);
+
+        return $user->trustedDevices()->orderByDesc('last_used_at')->orderByDesc('id')->get()
+            ->map(fn (TrustedDevice $device) => [
+                'id' => $device->id,
+                'user_agent' => $device->user_agent,
+                'ip_address' => $device->ip_address,
+                'created_at' => $device->created_at?->toIso8601String(),
+                'last_used_at' => $device->last_used_at?->toIso8601String(),
+                'expires_at' => $device->expires_at->toIso8601String(),
+                'expired' => $device->expires_at->isPast(),
+                'is_current' => $current?->id === $device->id,
+            ])->all();
+    }
+
+    public function revokeDevice(Request $request, int $id): void
+    {
+        $user = $request->user();
+        $current = $this->findTrustedDevice($request, $user, recordUse: false);
+        DB::transaction(function () use ($user, $id) {
+            $device = $user->trustedDevices()->lockForUpdate()->findOrFail($id);
+            $device->delete();
+            $user->audits()->create([
+                'event' => 'trusted_device_revoked',
+                'user_type' => $user->getMorphClass(),
+                'user_id' => $user->id,
+                'old_values' => ['trusted_device_id' => $id],
+                'new_values' => [],
+                'url' => request()->url(),
+                'ip_address' => request()->ip(),
+                'user_agent' => Str::limit(request()->userAgent() ?? '', 255, ''),
+            ]);
+        });
+
+        if ($current?->id === $id) {
+            Cookie::queue(Cookie::forget('trusted_device', '/', config('session.domain')));
+        }
     }
 
     private function tokenHash(User $user, string $validator): string
