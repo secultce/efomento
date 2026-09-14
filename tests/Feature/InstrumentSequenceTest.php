@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use App\Enums\InstrumentType;
 use App\Models\Document;
+use App\Models\Formalization;
 use App\Models\Notice;
 use App\Models\Project;
 use App\Services\Documents\DocumentPlaceholderResolver;
@@ -102,5 +103,28 @@ class InstrumentSequenceTest extends TestCase
         ]);
 
         $this->assertNull($project->formalizations()->first()->fresh()->term_number);
+    }
+
+    public function test_reconciles_sequence_based_on_term_number_year_suffix_not_created_at_year(): void
+    {
+        $notice = Notice::factory()->create([
+            'instrument_type' => InstrumentType::EXECUCAO_CULTURAL->value,
+        ]);
+
+        $project = Project::factory()->create([
+            'notice_id' => $notice->id,
+        ]);
+
+        Formalization::factory()->create([
+            'project_id' => $project->id,
+            'term_number' => '5/2026',
+            'created_at' => '2025-12-31 23:59:59',
+        ]);
+
+        $service = app(InstrumentSequenceService::class);
+
+        $termNumber = $service->generateNextTermNumber(InstrumentType::EXECUCAO_CULTURAL, 2026);
+
+        $this->assertEquals('6/2026', $termNumber);
     }
 }

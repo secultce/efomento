@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Enums\InstrumentType;
+use App\Models\Formalization;
 use App\Models\InstrumentSequence;
 use Illuminate\Support\Facades\DB;
 
@@ -13,22 +14,36 @@ class InstrumentSequenceService
         $year = $year ?? (int) now()->format('Y');
 
         return DB::transaction(function () use ($instrumentType, $year) {
-            // Garante de forma atômica no banco que a linha base existe, ignorando conflito se outra requisição acabou de criá-la
-            InstrumentSequence::insertOrIgnore([
-                'instrument_type' => $instrumentType->value,
-                'year' => $year,
-                'current_number' => 0,
-                'initial_number' => 1,
-                'created_at' => now(),
-                'updated_at' => now(),
-            ]);
+            $sequence = InstrumentSequence::where('instrument_type', $instrumentType->value)
+                ->where('year', $year)
+                ->first();
+
+            if (! $sequence) {
+                $maxExisting = Formalization::whereHas('project.notice', function ($query) use ($instrumentType) {
+                    $query->where('instrument_type', $instrumentType->value);
+                })
+                    ->where('term_number', 'like', "%/{$year}")
+                    ->get()
+                    ->map(fn ($f) => (int) explode('/', $f->term_number)[0])
+                    ->max() ?? 0;
+
+                InstrumentSequence::insertOrIgnore([
+                    'instrument_type' => $instrumentType->value,
+                    'year' => $year,
+                    'current_number' => $maxExisting,
+                    'initial_number' => 1,
+                    'created_at' => now(),
+                    'updated_at' => now(),
+                ]);
+            }
 
             $sequence = InstrumentSequence::where('instrument_type', $instrumentType->value)
                 ->where('year', $year)
                 ->lockForUpdate()
-                ->first();
+                ->firstOrFail();
 
             $sequence->increment('current_number');
+            $sequence->refresh();
 
             return "{$sequence->current_number}/{$year}";
         });

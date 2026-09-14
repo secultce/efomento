@@ -215,7 +215,6 @@ class DocumentPlaceholderResolver
             return '';
         }
 
-        // Valida se o documento requer a geração do número, seja pela fase ou pela tag
         $phase = $document->phase instanceof \BackedEnum ? $document->phase->value : $document->phase;
         $isFormalizationPhase = $phase === 'formalization';
         $hasPlaceholder = str_contains($body, '[term_number]');
@@ -228,11 +227,9 @@ class DocumentPlaceholderResolver
             return $formalization?->term_number ?? '';
         }
 
-        // Transação atômica bloqueando o projeto para evitar condição de corrida
         return DB::transaction(function () use ($project) {
             $lockedProject = Project::where('id', $project->id)->lockForUpdate()->first();
 
-            // Consulta direto no banco respeitando o lock
             $formalization = $lockedProject->formalizations()->first();
 
             if ($formalization && ! empty($formalization->term_number)) {
@@ -240,7 +237,10 @@ class DocumentPlaceholderResolver
             }
 
             $notice = $lockedProject->notice;
-            $instrumentTypeString = $notice?->instrument_type;
+            $instrumentTypeRaw = $notice?->instrument_type;
+            $instrumentTypeString = $instrumentTypeRaw instanceof \BackedEnum
+                ? $instrumentTypeRaw->value
+                : $instrumentTypeRaw;
 
             $instrumentType = $instrumentTypeString
                 ? InstrumentType::tryFrom($instrumentTypeString)
@@ -257,6 +257,8 @@ class DocumentPlaceholderResolver
             $formalization->update([
                 'term_number' => $termNumber,
             ]);
+
+            $project->load('formalizations');
 
             return $termNumber;
         });

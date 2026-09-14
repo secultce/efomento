@@ -40,16 +40,21 @@ class NoticeUpdateRequest extends FormRequest
             ],
 
             'instrument_type' => [
-                'nullable',
-                new Enum(InstrumentType::class),
+                'sometimes',
                 function (string $attribute, mixed $value, \Closure $fail) use ($notice) {
-                    // Verifica se houve tentativa de alteração do valor existente
-                    if ($notice && $notice->instrument_type !== $value) {
-                        if (! $this->user()->hasRole(Role::SUPER_ADMIN)) {
-                            $fail('Você não tem permissão para alterar o tipo de instrumento do edital.');
+                    if ($notice) {
+                        $currentValue = $notice->instrument_type instanceof \BackedEnum
+                            ? $notice->instrument_type->value
+                            : $notice->instrument_type;
+
+                        if ($currentValue !== $value && ! $this->user()->hasRole(Role::SUPER_ADMIN)) {
+                            $fail('Você não tem permissão para alterar ou remover o tipo de instrumento do edital.');
                         }
                     }
                 },
+                Rule::when(fn () => filled($this->input('instrument_type')), [
+                    new Enum(InstrumentType::class),
+                ]),
             ],
 
             'name' => ['sometimes', 'string'],

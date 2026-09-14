@@ -1,5 +1,5 @@
 <script setup>
-import { computed, onMounted, ref } from 'vue';
+import { computed, onMounted, ref, watch } from 'vue';
 import { router, useForm } from '@inertiajs/vue3';
 
 import SplitScreenTab from '@/Components/SplitScreenTab.vue';
@@ -86,6 +86,14 @@ const form = useForm({
     validity_end_at: null,
     _method: null,
 });
+
+watch(
+    () => props.project?.formalizations,
+    (formalization) => {
+        form.term_number = formalization?.term_number ?? null;
+    },
+    { deep: true, immediate: true }
+);
 
 onMounted(() => {
     const formalization = props.project.formalizations || {};

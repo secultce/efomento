@@ -97,22 +97,22 @@ class NoticeService
                     ->lockForUpdate()
                     ->pluck('id');
 
-                $formalizations = Formalization::whereIn('project_id', $projectIds)
-                    ->lockForUpdate()
-                    ->get();
-
                 $lockedNotice = Notice::where('id', $notice->id)
                     ->lockForUpdate()
                     ->first();
 
-                $instrumentTypeChanged = $data['instrument_type'] !== $lockedNotice->instrument_type;
+                $currentType = $lockedNotice->instrument_type instanceof \BackedEnum
+                    ? $lockedNotice->instrument_type->value
+                    : $lockedNotice->instrument_type;
+
+                $instrumentTypeChanged = $data['instrument_type'] !== $currentType;
 
                 $lockedNotice->update($data);
 
                 if ($instrumentTypeChanged) {
-                    foreach ($formalizations as $formalization) {
-                        $formalization->update(['term_number' => null]);
-                    }
+                    Formalization::whereIn('project_id', $projectIds)
+                        ->lockForUpdate()
+                        ->update(['term_number' => null]);
                 }
 
                 return $lockedNotice;

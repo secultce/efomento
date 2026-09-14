@@ -10,6 +10,7 @@ use App\Models\Project;
 use App\Services\FormalizationService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Storage;
+use Symfony\Component\HttpFoundation\BinaryFileResponse;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class FormalizationController extends Controller
@@ -21,14 +22,18 @@ class FormalizationController extends Controller
     public function store(FormalizationStoreRequest $request, Project $project): RedirectResponse
     {
         $data = $request->validated();
+        $existingFormalization = $project->formalizations()->first();
 
-        $project->formalizations()->updateOrCreate(
-            ['project_id' => $project->id],
-            [
+        $data = $this->formalizationService->prepareData($data, $existingFormalization);
+
+        if ($existingFormalization) {
+            $existingFormalization->update($data);
+        } else {
+            $project->formalizations()->create([
                 ...$data,
                 'created_by' => auth()->id(),
-            ]
-        );
+            ]);
+        }
 
         return back();
     }
@@ -38,7 +43,9 @@ class FormalizationController extends Controller
         Project $project,
         Formalization $formalization
     ): RedirectResponse {
-        $formalization->update($request->validated());
+        $data = $this->formalizationService->prepareData($request->validated(), $formalization);
+
+        $formalization->update($data);
 
         return back();
     }
@@ -57,7 +64,7 @@ class FormalizationController extends Controller
         );
     }
 
-    public function downloadFile(Project $project, Formalization $formalization, File $file)
+    public function downloadFile(Project $project, Formalization $formalization, File $file): BinaryFileResponse|StreamedResponse
     {
         $disk = config('filesystems.default', 'local');
 
