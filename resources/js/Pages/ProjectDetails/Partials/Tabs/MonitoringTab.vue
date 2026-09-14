@@ -292,7 +292,7 @@ function submit() {
                                     variant="text"
                                     color="error"
                                     class="pl-0 font-bold text-xs"
-                                    prepend-icon="mdi-plus"
+                                    prepend-icon="mdi-minus"
                                     @click="removeOpinion(i)"
                                 >
                                     Excluir campos
