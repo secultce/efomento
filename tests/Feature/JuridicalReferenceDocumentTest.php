@@ -135,6 +135,43 @@ class JuridicalReferenceDocumentTest extends TestCase
         ]);
     }
 
+    public function test_legal_user_can_delete_a_juridical_reference(): void
+    {
+        $user = $this->userWithRole(Role::LEGAL_ANALYSIS);
+        $document = Document::factory()->create([
+            'project_id' => null,
+            'type' => 'jr',
+            'phase' => 'juridical',
+        ]);
+
+        $this->actingAs($user)
+            ->deleteJson("/api/documents/{$document->id}")
+            ->assertNoContent();
+
+        $this->assertSoftDeleted('documents', [
+            'id' => $document->id,
+        ]);
+    }
+
+    public function test_user_without_legal_role_cannot_delete_a_juridical_reference(): void
+    {
+        $user = User::factory()->create();
+        $document = Document::factory()->create([
+            'project_id' => null,
+            'type' => 'jr',
+            'phase' => 'juridical',
+        ]);
+
+        $this->actingAs($user)
+            ->deleteJson("/api/documents/{$document->id}")
+            ->assertForbidden();
+
+        $this->assertDatabaseHas('documents', [
+            'id' => $document->id,
+            'deleted_at' => null,
+        ]);
+    }
+
     #[DataProvider('legalAnalysisRoles')]
     public function test_each_legal_role_can_create_juridical_reference(string $role): void
     {

@@ -75,6 +75,10 @@ class DocumentController extends Controller
             abort_unless($request->user()?->hasAnyRole(Role::budgetRoles()) ?? false, 403);
         }
 
+        if ($document->type->isJuridicalReference()) {
+            abort_unless($request->user()?->hasAnyRole(Role::legalAnalysisRoles()) ?? false, 403);
+        }
+
         $document->delete();
 
         return response()->json(null, 204);
