@@ -14,7 +14,7 @@ class DocumentStoreRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        $type = DocumentType::tryFrom($this->string('type')->toString());
+        $type = $this->documentType();
 
         if ($type?->isBudgetOpinion()) {
             return $this->user()?->hasAnyRole(Role::budgetRoles()) ?? false;
@@ -30,7 +30,7 @@ class DocumentStoreRequest extends FormRequest
     public function rules(): array
     {
         $noticeRules = ['required', 'exists:notices,id'];
-        $type = DocumentType::tryFrom($this->input('type'));
+        $type = $this->documentType();
 
         if ($type?->isNoticeLevel() && blank($this->input('project_id'))) {
             $noticeRules[] = Rule::unique('documents', 'notice_id')
@@ -74,5 +74,12 @@ class DocumentStoreRequest extends FormRequest
             'phase.required' => 'A fase do documento é obrigatória.',
             'body.required' => 'O conteúdo do documento é obrigatório.',
         ];
+    }
+
+    private function documentType(): ?DocumentType
+    {
+        $type = $this->input('type');
+
+        return is_string($type) ? DocumentType::tryFrom($type) : null;
     }
 }

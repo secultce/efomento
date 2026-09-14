@@ -11,7 +11,7 @@ class CreateProjectDocumentRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        $type = DocumentType::tryFrom($this->string('type')->toString());
+        $type = $this->documentType();
 
         if ($type?->isBudgetOpinion()) {
             return $this->user()?->hasAnyRole(Role::budgetRoles()) ?? false;
@@ -26,17 +26,19 @@ class CreateProjectDocumentRequest extends FormRequest
 
     public function rules(): array
     {
+        $isNoticeLevel = $this->documentType()?->isNoticeLevel() ?? false;
+
         return [
             'type' => ['required', Rule::enum(DocumentType::class)],
 
             'notice_id' => [
-                Rule::requiredIf(fn () => DocumentType::tryFrom($this->input('type'))?->isNoticeLevel() ?? false),
+                Rule::requiredIf($isNoticeLevel),
                 'nullable',
                 'exists:notices,id',
             ],
 
             'selected_projects' => [
-                Rule::requiredIf(fn () => ! (DocumentType::tryFrom($this->input('type'))?->isNoticeLevel() ?? false)),
+                Rule::requiredIf(! $isNoticeLevel),
                 'array',
                 'min:1',
             ],
@@ -57,5 +59,12 @@ class CreateProjectDocumentRequest extends FormRequest
             'header_layout' => ['nullable', 'in:none,three,full'],
             'footer_layout' => ['nullable', 'in:none,three,full'],
         ];
+    }
+
+    private function documentType(): ?DocumentType
+    {
+        $type = $this->input('type');
+
+        return is_string($type) ? DocumentType::tryFrom($type) : null;
     }
 }
