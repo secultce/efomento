@@ -18,6 +18,7 @@ class PasswordController extends Controller
     public function update(Request $request, TrustedDeviceService $devices): RedirectResponse
     {
         $validated = $request->validate([
+            'current_password' => ['required', 'current_password:web'],
             'password' => ['required', Password::defaults(), 'confirmed'],
         ]);
 

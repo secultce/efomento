@@ -19,6 +19,7 @@ class PasswordUpdateTest extends TestCase
             ->actingAs($user)
             ->from('/profile')
             ->put('/password', [
+                'current_password' => 'password',
                 'password' => 'new-password',
                 'password_confirmation' => 'new-password',
             ]);
@@ -28,5 +29,18 @@ class PasswordUpdateTest extends TestCase
             ->assertRedirect('/profile');
 
         $this->assertTrue(Hash::check('new-password', $user->refresh()->password));
+    }
+
+    public function test_password_update_requires_correct_current_password(): void
+    {
+        $user = User::factory()->create();
+        foreach ([null, 'wrong-password'] as $currentPassword) {
+            $this->actingAs($user)->from('/profile')->put('/password', [
+                'current_password' => $currentPassword,
+                'password' => 'new-password',
+                'password_confirmation' => 'new-password',
+            ])->assertSessionHasErrors('current_password');
+            $this->assertTrue(Hash::check('password', $user->refresh()->password));
+        }
     }
 }

@@ -28,6 +28,8 @@ return Application::configure(basePath: dirname(__DIR__))
             AddLinkHeadersForPreloadedAssets::class,
         ]);
 
+        $middleware->api(append: [RejectRememberedLogin::class]);
+
         $middleware->alias([
             'role' => RoleMiddleware::class,
         ]);

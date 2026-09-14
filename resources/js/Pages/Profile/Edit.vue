@@ -15,6 +15,7 @@ const profileForm = useForm({
 });
 
 const passwordForm = useForm({
+    current_password: '',
     password: '',
     password_confirmation: '',
 });
@@ -52,6 +53,7 @@ function changePassword() {
             });
         },
         onError: () => {
+            passwordForm.reset('current_password');
             if (passwordForm.errors.password) {
                 passwordForm.reset('password', 'password_confirmation');
             }
@@ -147,6 +149,16 @@ function changePassword() {
                             <template v-if="activeTab === 'password'">
                                 <h3 class="text-h5 font-weight-bold mb-4">Senha</h3>
                                 <v-card variant="outlined" rounded="lg" class="pa-6">
+                                    <v-text-field
+                                        v-model="passwordForm.current_password"
+                                        label="Senha atual"
+                                        type="password"
+                                        autocomplete="current-password"
+                                        variant="outlined"
+                                        rounded="lg"
+                                        :error-messages="passwordForm.errors.current_password"
+                                        class="mb-2"
+                                    />
                                     <v-text-field
                                         v-model="passwordForm.password"
                                         label="Nova senha"

@@ -41,6 +41,8 @@ class User extends Authenticatable implements Auditable
         'remember_token',
     ];
 
+    protected $auditExclude = ['password', 'remember_token'];
+
     /**
      * Get the attributes that should be cast.
      *

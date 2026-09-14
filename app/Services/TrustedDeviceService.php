@@ -6,6 +6,7 @@ use App\Models\TrustedDevice;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cookie;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 
 class TrustedDeviceService
@@ -22,7 +23,7 @@ class TrustedDeviceService
             ->where('expires_at', '>', now())
             ->first();
 
-        if (! $device || ! hash_equals($device->token_hash, hash('sha256', $parts[2]))) {
+        if (! $device || ! hash_equals($device->token_hash, $this->tokenHash($user, $parts[2]))) {
             return null;
         }
 
@@ -39,7 +40,7 @@ class TrustedDeviceService
 
         $user->trustedDevices()->create([
             'selector' => $selector,
-            'token_hash' => hash('sha256', $validator),
+            'token_hash' => $this->tokenHash($user, $validator),
             'user_agent' => Str::limit($request->userAgent() ?? '', 255, ''),
             'ip_address' => $request->ip(),
             'last_used_at' => now(),
@@ -61,7 +62,26 @@ class TrustedDeviceService
 
     public function revokeTrustedDevices(User $user): void
     {
-        $user->trustedDevices()->delete();
+        DB::transaction(function () use ($user) {
+            $count = $user->trustedDevices()->delete();
+            $actor = auth()->user();
+            $user->audits()->create([
+                'event' => 'trusted_devices_revoked',
+                'user_type' => $actor?->getMorphClass(),
+                'user_id' => $actor?->getKey(),
+                'old_values' => ['trusted_devices_count' => $count],
+                'new_values' => ['trusted_devices_count' => 0],
+                'url' => request()->url(),
+                'ip_address' => request()->ip(),
+                'user_agent' => Str::limit(request()->userAgent() ?? '', 255, ''),
+            ]);
+        });
         Cookie::queue(Cookie::forget('trusted_device', '/', config('session.domain')));
+    }
+
+    private function tokenHash(User $user, string $validator): string
+    {
+        // Credential changes invalidate trust even outside the password controllers.
+        return hash_hmac('sha256', $user->id.'|'.$user->email.'|'.$user->getAuthPassword().'|'.$validator, config('app.key'));
     }
 }

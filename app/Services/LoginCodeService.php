@@ -33,6 +33,7 @@ class LoginCodeService
             'user_id' => $user->id,
             'hash' => Hash::make($code),
             'credentials' => $this->fingerprint($user),
+            'expires_at' => now()->addMinutes(config('two_factor.code_ttl_minutes'))->timestamp,
         ];
 
         try {
@@ -51,9 +52,8 @@ class LoginCodeService
     {
         $token = $request->session()->get('login_code');
         $challenge = $token ? Cache::get('login-code:'.$token) : null;
-        $user = $challenge ? User::find($challenge['user_id']) : null;
 
-        return $user && hash_equals($challenge['credentials'], $this->fingerprint($user)) ? $user : null;
+        return $this->challengeUser($challenge);
     }
 
     public function verify(Request $request, string $code): User
@@ -64,7 +64,9 @@ class LoginCodeService
         }
 
         return Cache::lock('login-code:lock:'.$pendingUser->id, 10)->get(function () use ($request, $token, $code) {
-            $user = $this->pendingUser($request);
+            // Read one snapshot under the lock; the cache can expire between reads.
+            $challenge = Cache::get('login-code:'.$token);
+            $user = $this->challengeUser($challenge);
             if (! $user) {
                 throw new ExpiredTwoFactorCodeException;
             }
@@ -75,16 +77,19 @@ class LoginCodeService
             }
 
             RateLimiter::hit($attempts, 600);
-            $challenge = Cache::get('login-code:'.$token);
             if (! Hash::check($code, $challenge['hash'])) {
                 throw new InvalidTwoFactorCodeException;
+            }
+
+            if ($challenge['expires_at'] <= now()->timestamp) {
+                throw new ExpiredTwoFactorCodeException;
             }
 
             $this->cancel($request);
             RateLimiter::clear($attempts);
 
             return $user;
-        }) ?: throw new ExpiredTwoFactorCodeException;
+        }) ?: throw ValidationException::withMessages(['code' => 'Uma verificação está em andamento. Tente novamente em instantes.']);
     }
 
     public function cancel(Request $request): void
@@ -94,6 +99,21 @@ class LoginCodeService
         if ($token) {
             Cache::forget('login-code:'.$token);
         }
+    }
+
+    private function challengeUser(mixed $challenge): ?User
+    {
+        if (! is_array($challenge)
+            || ! isset($challenge['user_id'], $challenge['hash'], $challenge['credentials'], $challenge['expires_at'])
+            || ! is_int($challenge['user_id'])
+            || ! is_string($challenge['hash']) || ! is_string($challenge['credentials'])
+            || ! is_int($challenge['expires_at']) || $challenge['expires_at'] <= now()->timestamp) {
+            return null;
+        }
+
+        $user = User::find($challenge['user_id']);
+
+        return $user && hash_equals($challenge['credentials'], $this->fingerprint($user)) ? $user : null;
     }
 
     private function fingerprint(User $user): string

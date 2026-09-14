@@ -6,6 +6,7 @@ use App\Mail\LoginCodeMail;
 use App\Models\TrustedDevice;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Cookie;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Password;
 use Illuminate\Support\Str;
@@ -80,7 +81,8 @@ class TwoFactorAuthenticationTest extends TestCase
         $device = $user->trustedDevices()->sole();
 
         $this->assertSame($selector, $device->selector);
-        $this->assertSame(hash('sha256', $validator), $device->token_hash);
+        $this->assertSame(64, strlen($device->token_hash));
+        $this->assertStringNotContainsString($validator, $device->toJson());
         $this->assertNotSame($validator, $device->token_hash);
         $this->assertSame(now()->addDays(30)->timestamp, $device->expires_at->timestamp);
         $this->assertSame(now()->addDays(30)->timestamp, $cookie->getExpiresTime());
@@ -174,9 +176,11 @@ class TwoFactorAuthenticationTest extends TestCase
         $this->assertDatabaseCount('trusted_devices', 2);
 
         $this->actingAs($user)->put('/password', [
+            'current_password' => 'password',
             'password' => 'new-password', 'password_confirmation' => 'new-password',
         ])->assertSessionHasNoErrors()->assertCookieExpired('trusted_device');
         $this->assertDatabaseCount('trusted_devices', 0);
+        $this->assertRevocationAudit($user, 2, $user->id);
         $this->post('/logout');
         $this->travel(61)->seconds();
         $this->withCookie('trusted_device', $cookie)
@@ -195,6 +199,7 @@ class TwoFactorAuthenticationTest extends TestCase
             'password' => 'new-password', 'password_confirmation' => 'new-password',
         ])->assertSessionHasNoErrors()->assertRedirect('/login');
         $this->assertDatabaseCount('trusted_devices', 0);
+        $this->assertRevocationAudit($user, 1, null);
     }
 
     public function test_legacy_code_url_redirects_to_challenge(): void
@@ -211,5 +216,53 @@ class TwoFactorAuthenticationTest extends TestCase
         $this->travel(61)->seconds();
         $this->withCookie('trusted_device', $cookie);
         $this->startLogin($user);
+    }
+
+    private function assertRevocationAudit(User $user, int $count, ?int $actorId): void
+    {
+        $audit = $user->audits()->where('event', 'trusted_devices_revoked')->sole();
+        $this->assertSame($actorId, $audit->user_id);
+        $this->assertSame(['trusted_devices_count' => $count], $audit->old_values);
+        $this->assertSame(['trusted_devices_count' => 0], $audit->new_values);
+        $audits = $user->audits()->get()->toJson();
+        foreach (['selector', 'token_hash', 'password', 'remember_token'] as $secret) {
+            $this->assertStringNotContainsString('"'.$secret.'"', $audits);
+        }
+    }
+
+    public function test_email_change_invalidates_existing_trust(): void
+    {
+        $user = User::factory()->create();
+        $cookie = $this->trustCookie($user);
+        $user->update(['email' => 'changed@example.com']);
+        $this->travel(61)->seconds();
+        $this->withCookie('trusted_device', $cookie);
+        $this->startLogin($user);
+    }
+
+    public function test_password_change_outside_controller_invalidates_existing_trust(): void
+    {
+        $user = User::factory()->create();
+        $cookie = $this->trustCookie($user);
+        $user->update(['password' => 'new-password']);
+        $this->travel(61)->seconds();
+        $this->withCookie('trusted_device', $cookie)
+            ->post('/login', ['email' => $user->email, 'password' => 'new-password'])
+            ->assertRedirect(route('two-factor.show'));
+        $this->assertGuest();
+        Mail::assertQueuedCount(1);
+    }
+
+    public function test_failed_password_update_keeps_devices_and_does_not_audit_revocation(): void
+    {
+        $user = User::factory()->create();
+        $this->trustCookie($user);
+        Cookie::unqueue('trusted_device');
+        $this->actingAs($user)->put('/password', [
+            'current_password' => 'wrong-password',
+            'password' => 'new-password', 'password_confirmation' => 'new-password',
+        ])->assertSessionHasErrors('current_password')->assertCookieMissing('trusted_device');
+        $this->assertDatabaseCount('trusted_devices', 1);
+        $this->assertFalse($user->audits()->where('event', 'trusted_devices_revoked')->exists());
     }
 }

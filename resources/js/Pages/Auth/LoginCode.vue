@@ -4,7 +4,7 @@ import InputError from '@/Components/InputError.vue';
 import InputLabel from '@/Components/InputLabel.vue';
 import PrimaryButton from '@/Components/PrimaryButton.vue';
 import TextInput from '@/Components/TextInput.vue';
-import { Head, Link, useForm } from '@inertiajs/vue3';
+import { Head, useForm } from '@inertiajs/vue3';
 import { computed, onMounted, onUnmounted, ref } from 'vue';
 
 const props = defineProps({
@@ -16,6 +16,7 @@ const props = defineProps({
 });
 const form = useForm({ code: '', trust_device: false });
 const resendForm = useForm({});
+const cancelForm = useForm({});
 const now = ref(Math.floor(Date.now() / 1000));
 const resendSeconds = computed(() => Math.max(0, (props.resendAvailableAt ?? 0) - now.value));
 let timer;
@@ -72,19 +73,25 @@ const resend = () => {
                 </PrimaryButton>
             </form>
             <form class="mt-5" @submit.prevent="resend">
-                <button
+                <v-btn
+                    variant="text"
                     type="submit"
                     class="text-sm underline disabled:opacity-50"
                     :disabled="resendSeconds > 0 || resendForm.processing || form.processing"
                 >
                     {{ resendSeconds > 0 ? `Reenviar código em ${resendSeconds}s` : 'Reenviar código' }}
-                </button>
+                </v-btn>
                 <p class="mt-1 text-xs text-gray-600">Confira também a pasta de spam.</p>
                 <InputError class="mt-2" :message="resendForm.errors.email" />
             </form>
-            <Link :href="route('two-factor.cancel')" method="post" as="button" class="mt-5 text-sm underline">
+            <v-btn
+                variant="text"
+                class="mt-5 text-sm underline"
+                :disabled="form.processing || resendForm.processing || cancelForm.processing"
+                @click="cancelForm.post(route('two-factor.cancel'))"
+            >
                 Voltar ao login
-            </Link>
+            </v-btn>
         </div>
     </GuestLayout>
 </template>
