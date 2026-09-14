@@ -1,11 +1,14 @@
 <?php
 
 use App\Exceptions\AppException;
+use App\Exceptions\Domain\FileUploadExceededException;
+use App\Http\Middleware\CheckUploadLimits;
 use App\Http\Middleware\HandleInertiaRequests;
 use App\Http\Middleware\RejectRememberedLogin;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
+use Illuminate\Http\Exceptions\PostTooLargeException;
 use Illuminate\Http\Middleware\AddLinkHeadersForPreloadedAssets;
 use Illuminate\Http\Request;
 use Sentry\Laravel\Integration;
@@ -24,11 +27,15 @@ return Application::configure(basePath: dirname(__DIR__))
 
         $middleware->web(append: [
             RejectRememberedLogin::class,
+            CheckUploadLimits::class,
             HandleInertiaRequests::class,
             AddLinkHeadersForPreloadedAssets::class,
         ]);
 
-        $middleware->api(append: [RejectRememberedLogin::class]);
+        $middleware->api(append: [
+            RejectRememberedLogin::class,
+            CheckUploadLimits::class,
+        ]);
 
         $middleware->alias([
             'role' => RoleMiddleware::class,
@@ -43,6 +50,19 @@ return Application::configure(basePath: dirname(__DIR__))
         $exceptions->dontFlash(['code']);
 
         $exceptions->reportable(fn (AppException $e) => $e->shouldReport());
+
+        $exceptions->render(function (PostTooLargeException $e, Request $request) {
+            $uploadException = FileUploadExceededException::fromIniLimits(previous: $e);
+
+            if ($request->expectsJson() || ! $request->hasSession()) {
+                return response()->json([
+                    'message' => $uploadException->getMessage(),
+                    'code' => class_basename($uploadException),
+                ], $uploadException->getHttpStatus());
+            }
+
+            return back()->withErrors(['message' => $uploadException->getMessage()]);
+        });
 
         $exceptions->render(function (AppException $e, Request $request) {
             if ($request->expectsJson() && ! $request->header('X-Inertia')) {
