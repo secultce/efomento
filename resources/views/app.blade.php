@@ -4,6 +4,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="reverb-key" content="{{ config('broadcasting.connections.reverb.key') }}">
 
     <title inertia>{{ config('app.name', 'Laravel') }}</title>
 

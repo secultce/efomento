@@ -79,7 +79,7 @@ caminho do Ubuntu que é '/usr/bin/dot'. A instalação é com `sudo apt install
 ### Subir o projeto
 
 ```bash
-docker compose up -d
+docker compose up --build
 ```
 
 Isso inicia automaticamente:
@@ -87,6 +87,7 @@ Isso inicia automaticamente:
 | Container              | Descrição                                     | Porta          |
 |------------------------|-----------------------------------------------|----------------|
 | efomento-postgres      | PostgreSQL 16 com health check                | 5433 (host)    |
+| efomento-init          | Dependências, Pint, chave, caches e migrations | —              |
 | efomento-app           | PHP-FPM com OPcache + caches Laravel          | 9000 (interno) |
 | efomento-vite          | Vite dev server com HMR                       | 5173           |
 | efomento-nginx         | Proxy reverso                                 | 8080           |
@@ -99,31 +100,43 @@ Isso inicia automaticamente:
 
 Acesse: **http://localhost:8080**
 
+O serviço `init` copia `.env.example` quando necessário e conclui as dependências,
+Pint, chave, caches e migrations. O Compose aguarda sua conclusão com código 0
+antes de iniciar o app e liberar Reverb e workers, sem limite de cinco minutos
+para essa inicialização. É normal o container `init` aparecer como `Exited (0)`.
+O navegador usa WebSockets
+na mesma origem da página (`ws` em HTTP, `wss` em HTTPS), pelo Nginx; a chave
+pública vem do Laravel em runtime, sem depender de `VITE_REVERB_*` no build.
+
+O usuário dos containers acompanha automaticamente o dono da pasta montada;
+não é necessário configurar UID/GID para um checkout local. Para acessar por outro
+hostname/IP, ajuste `APP_URL` e `REVERB_ALLOWED_ORIGINS` no `.env`.
+
 ### Comandos úteis
 
 ```bash
 # Migrations
-docker compose exec app php artisan migrate
+docker compose exec --user devuser app php artisan migrate
 
 # Testes
-docker compose exec app php artisan test
+docker compose exec --user devuser app php artisan test
 
 # Teste específico
-docker compose exec app php artisan test --filter=NomeDoTeste
+docker compose exec --user devuser app php artisan test --filter=NomeDoTeste
 
 # Lint (code style)
-docker compose exec app ./vendor/bin/pint
+docker compose exec --user devuser app ./vendor/bin/pint
 
 # Artisan / Composer / npm
-docker compose exec app php artisan <comando>
-docker compose exec app composer <comando>
-docker compose exec app npm <comando>
-docker exec efomento-app composer require laravel/breeze --dev
-docker exec efomento-app php artisan migrate:fresh --seed
-docker exec efomento-app php artisan db:seed --class=PermissionSeeder
+docker compose exec --user devuser app php artisan <comando>
+docker compose exec --user devuser app composer <comando>
+docker compose exec --user devuser app npm <comando>
+docker exec --user devuser efomento-app composer require laravel/breeze --dev
+docker exec --user devuser efomento-app php artisan migrate:fresh --seed
+docker exec --user devuser efomento-app php artisan db:seed --class=PermissionSeeder
 
 # Forcar Sincronismo dos editais
-docker compose exec app php artisan tinker  --execute="SyncNoticesJob::dispatch()"
+docker compose exec --user devuser app php artisan tinker  --execute="SyncNoticesJob::dispatch()"
 ```
 
 O comando `php artisan db:seed` (inclusive via `migrate:fresh --seed`) respeita
