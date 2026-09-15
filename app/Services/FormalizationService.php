@@ -105,4 +105,13 @@ class FormalizationService implements StageValidatorInterface
                 .'.',
         ]);
     }
+
+    public function prepareData(array $data, ?Formalization $existingFormalization = null): array
+    {
+        if ($existingFormalization?->term_number && blank($data['term_number'] ?? null)) {
+            unset($data['term_number']);
+        }
+
+        return $data;
+    }
 }
