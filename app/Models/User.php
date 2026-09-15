@@ -41,6 +41,8 @@ class User extends Authenticatable implements Auditable
         'remember_token',
     ];
 
+    protected $auditExclude = ['password', 'remember_token'];
+
     /**
      * Get the attributes that should be cast.
      *
@@ -57,6 +59,11 @@ class User extends Authenticatable implements Auditable
     public function supervisorAssignments(): HasMany
     {
         return $this->hasMany(OpeningSupervisor::class, 'user_id');
+    }
+
+    public function trustedDevices(): HasMany
+    {
+        return $this->hasMany(TrustedDevice::class);
     }
 
     public function assignedSupervisors(): HasMany

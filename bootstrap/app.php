@@ -4,6 +4,7 @@ use App\Exceptions\AppException;
 use App\Exceptions\Domain\FileUploadExceededException;
 use App\Http\Middleware\CheckUploadLimits;
 use App\Http\Middleware\HandleInertiaRequests;
+use App\Http\Middleware\RejectRememberedLogin;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
@@ -25,12 +26,14 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->statefulApi();
 
         $middleware->web(append: [
+            RejectRememberedLogin::class,
             CheckUploadLimits::class,
             HandleInertiaRequests::class,
             AddLinkHeadersForPreloadedAssets::class,
         ]);
 
         $middleware->api(append: [
+            RejectRememberedLogin::class,
             CheckUploadLimits::class,
         ]);
 
@@ -44,6 +47,8 @@ return Application::configure(basePath: dirname(__DIR__))
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
+        $exceptions->dontFlash(['code']);
+
         $exceptions->reportable(fn (AppException $e) => $e->shouldReport());
 
         $exceptions->render(function (PostTooLargeException $e, Request $request) {
