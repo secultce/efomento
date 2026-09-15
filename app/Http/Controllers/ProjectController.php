@@ -14,6 +14,7 @@ use App\Enums\ProjectStageSlug;
 use App\Enums\ProjectStageStatus;
 use App\Enums\ReportStatus;
 use App\Enums\Role;
+use App\Http\Requests\Project\CreateProjectDocumentRequest;
 use App\Http\Resources\DocumentResource;
 use App\Http\Resources\ProjectResource;
 use App\Models\Notice;
@@ -67,7 +68,7 @@ class ProjectController extends Controller
 
         $noticeDocuments = $notice->documents()
             ->whereNull('project_id')
-            ->where('type', DocumentType::PI)
+            ->whereIn('type', [DocumentType::PI, DocumentType::JR])
             ->with(['images', 'notice'])
             ->get()
             ->each(fn ($document) => $this->placeholderResolver->prepare($document));
@@ -197,39 +198,12 @@ class ProjectController extends Controller
         return back()->with('success', 'Fiscais atribuídos com sucesso!');
     }
 
-    public function createDocument(Request $request, ProjectDocumentService $service)
+    public function createDocument(CreateProjectDocumentRequest $request, ProjectDocumentService $service)
     {
-        $data = $request->validate([
-            'type' => 'required|in:ci,tc,pj,et,pi,pf,do,dp',
-
-            'notice_id' => 'required_if:type,pi|nullable|exists:notices,id',
-
-            'selected_projects' => 'required_unless:type,pi|array|min:1',
-            'selected_projects.*' => 'exists:projects,id',
-
-            'content' => 'required|string',
-
-            'header_images' => 'nullable|array',
-            'header_images.*.id' => 'nullable|integer',
-            'header_images.*.file' => 'nullable|image',
-            'header_images.*._delete' => 'nullable|in:1',
-
-            'footer_images' => 'nullable|array',
-            'footer_images.*.id' => 'nullable|integer',
-            'footer_images.*.file' => 'nullable|image',
-            'footer_images.*._delete' => 'nullable|in:1',
-
-            'header_layout' => 'nullable|in:none,three,full',
-            'footer_layout' => 'nullable|in:none,three,full',
-        ]);
-
+        $data = $request->validated();
         $type = DocumentType::from($data['type']);
 
-        if ($type->isBudgetOpinion()) {
-            abort_unless($request->user()->hasAnyRole(Role::budgetRoles()), 403);
-        }
-
-        if ($type === DocumentType::PI) {
+        if ($type->isNoticeLevel()) {
             $service->createNoticeDocument(
                 notice: Notice::findOrFail($data['notice_id']),
                 content: $data['content'],
