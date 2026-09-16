@@ -99,6 +99,16 @@ Isso inicia automaticamente:
 
 Acesse: **http://localhost:8080**
 
+### Idioma das mensagens
+
+O idioma padrão é português brasileiro (`pt_BR`). Em ambientes já instalados,
+configure `APP_LOCALE=pt_BR` e `APP_FALLBACK_LOCALE=pt_BR` no `.env` e execute
+`php artisan config:clear` (ou `php artisan config:cache` no deploy) para aplicar
+a alteração. Reinicie os workers de fila para que também usem o novo idioma.
+
+Os nomes dos campos nas mensagens de validação ficam em
+`lang/pt_BR/validation.php`, na chave `attributes`, incluindo os campos aninhados.
+
 ### Comandos úteis
 
 ```bash
