@@ -464,7 +464,7 @@ const permissionMessage = computed(() => {
                                             :error="errors.term_number"
                                             data-cy="term-number-input"
                                         />
-                                        <p class="text-xs text-gray-500">
+                                        <p class="text-xs text-gray-500 mt-n3">
                                             * O número do termo é gerado automaticamente pelo sistema após a criação do
                                             Termo de Execução Cultural.
                                         </p>

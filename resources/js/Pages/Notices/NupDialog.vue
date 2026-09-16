@@ -98,6 +98,9 @@ const valorExtenso = computed(() => {
                                     mask="#####.######/####-##"
                                     data-cy="notice-nup-identification-data-form"
                                 />
+                                <p class="text-xs text-gray-500 mt-n3">
+                                    * O NUP não pode ser editado após completar a adição dos dados. Fique atento.
+                                </p>
                             </FormField>
                         </v-col>
 
