@@ -15,12 +15,12 @@ const messages = {
     403: {
         title: 'Acesso negado',
         description:
-            'Você não tem permissão para acessar página ou conteúdo. Volte para a página inicial e refaça o seu caminho.',
+            'Você não tem permissão para acessar página ou conteúdo. Volte para a páginal inicial e refaça o seu caminho.',
     },
     404: {
         title: 'Página não encontrada',
         description:
-            'A página que você está procurando não foi encontrada. Volte para a página inicial e refaça o seu caminho.',
+            'Um erro ocorreu! A página foi removida ou não existe. Tente voltar para a páginal inicial e refaça o seu caminho.',
     },
 };
 
@@ -89,7 +89,7 @@ h1 {
     flex-direction: column;
     align-items: center;
     width: 100%;
-    max-width: 840px;
+    max-width: 1000px;
     min-height: 320px;
     margin: 0 auto;
     padding: 48px 40px 32px;
@@ -105,7 +105,7 @@ h2 {
 }
 
 p {
-    max-width: 680px;
+    max-width: 100%;
     margin: 16px 0 32px;
     font-size: 16px;
     line-height: 1.5;
@@ -136,6 +136,12 @@ p {
 .home-link:focus-visible {
     outline: 2px solid #2d353f;
     outline-offset: 3px;
+}
+
+@media (min-width: 1024px) {
+    p {
+        white-space: nowrap;
+    }
 }
 
 @media (max-width: 480px) {
