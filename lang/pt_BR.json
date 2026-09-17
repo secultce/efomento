@@ -1,6 +1,6 @@
 {
-    "(and :count more error)": "(e mais :count erros)",
-    "(and :count more errors)": "(e mais :count erros)|(e mais :count erros)|(e mais :count erros)",
+    "(and :count more error)": "(e mais :count erro)",
+    "(and :count more errors)": "{1} (e mais :count erro)|[2,*] (e mais :count erros)",
     "A decryption key is required.": "É necessária uma chave de descriptografia.",
     "A new verification link has been sent to the email address you provided during registration.": "Um novo link de verificação foi enviado para o seu endereço de e-mail fornecido durante o registro.",
     "A new verification link has been sent to your email address.": "Foi enviado um novo link de verificação para o seu endereço de e-mail.",
