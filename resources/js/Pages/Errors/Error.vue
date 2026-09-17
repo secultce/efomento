@@ -15,12 +15,12 @@ const messages = {
     403: {
         title: 'Acesso negado',
         description:
-            'Você não tem permissão para acessar página ou conteúdo. Volte para a páginal inicial e refaça o seu caminho.',
+            'Você não tem permissão para acessar página ou conteúdo. Volte para a página inicial e refaça o seu caminho.',
     },
     404: {
         title: 'Página não encontrada',
         description:
-            'Um erro ocorreu! A página foi removida ou não existe. Tente voltar para a páginal inicial e refaça o seu caminho.',
+            'Um erro ocorreu! A página foi removida ou não existe. Tente voltar para a página inicial e refaça o seu caminho.',
     },
 };
 
