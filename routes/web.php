@@ -170,3 +170,6 @@ Route::middleware('auth')->group(function () {
 });
 
 require __DIR__.'/auth.php';
+
+// Run web middleware so missing pages retain the session and Inertia layout props.
+Route::fallback(fn () => abort(404));
