@@ -33,4 +33,16 @@ class ImportGoogleSheetsCommandTest extends TestCase
         $this->artisan('app:import-google-sheets sheet-id --aba=Abertura --user-id=1')
             ->assertSuccessful();
     }
+
+    public function test_sync_budget_is_called_for_orcamento_tab(): void
+    {
+        $this->mock(GoogleSheetsService::class)
+            ->shouldReceive('syncBudget')
+            ->once()
+            ->with('sheet-id', 'Orçamento', 1)
+            ->andReturn(3);
+
+        $this->artisan('app:import-google-sheets sheet-id --aba=Orçamento --user-id=1')
+            ->assertSuccessful();
+    }
 }

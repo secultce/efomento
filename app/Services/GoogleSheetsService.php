@@ -7,12 +7,14 @@ use App\Enums\DeliberationType;
 use App\Enums\ReportStatus;
 use App\Exceptions\Integration\ExternalServiceException;
 use App\Models\Budget;
+use App\Models\BudgetAllocation;
 use App\Models\Formalization;
 use App\Models\Project;
 use App\Support\Import;
 use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Http\Client\RequestException;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use RuntimeException;
@@ -24,6 +26,7 @@ class GoogleSheetsService
 
     public function __construct(
         private readonly SpreadsheetImportService $importService,
+        private readonly BudgetAllocationResolver $budgetAllocationResolver,
     ) {}
 
     /**
@@ -241,7 +244,7 @@ class GoogleSheetsService
     }
 
     /**
-     * Sincroniza a aba de Orçamento com o model Budget.
+     * Sincroniza a aba de Orçamento com os models Budget, BudgetAllocation e Installment.
      * Retorna o número de registros gravados.
      */
     public function syncBudget(string $spreadsheetId, string $sheetName, int $userId): int
@@ -259,19 +262,152 @@ class GoogleSheetsService
             $project = $projects->get($row[$projectLookupColumn] ?? null);
 
             if (! $project) {
+                Log::warning('spreadsheet.import.budget_project_not_found', [
+                    'project_number' => $row[$projectLookupColumn] ?? null,
+                ]);
+
                 continue;
             }
 
-            $record = ['created_by' => $userId];
-            foreach ($columnMap as $sheetColumn => $modelField) {
-                $record[$modelField] = $row[$sheetColumn] ?? null;
-            }
+            try {
+                $budgetData = ['created_by' => $userId];
+                foreach ($columnMap as $sheetColumn => $modelField) {
+                    $budgetData[$modelField] = Import::date($row[$sheetColumn] ?? null);
+                }
 
-            Budget::updateOrCreate(['project_id' => $project->id], $record);
-            $count++;
+                DB::transaction(function () use ($project, $budgetData, $row, $userId): void {
+                    $budget = Budget::updateOrCreate(
+                        ['project_id' => $project->id],
+                        $budgetData
+                    );
+
+                    $budgetAllocation = $this->syncBudgetAllocation($project, $row, $userId);
+
+                    $this->syncInstallments($budget, $row, $budgetAllocation, $userId);
+                });
+
+                $count++;
+            } catch (Throwable $e) {
+                Log::warning('spreadsheet.import.budget_sync_failed', [
+                    'project_number' => $project->number,
+                    'message' => $e->getMessage(),
+                ]);
+            }
         }
 
         return $count;
+    }
+
+    private function syncBudgetAllocation(Project $project, array $row, ?int $userId = null): ?BudgetAllocation
+    {
+        $allocationCode = Import::string($row['CÓDIGO DA DOTAÇÃO'] ?? null);
+        $allocationNumber = Import::string($row['DOTAÇÃO ORÇAMENTÁRIA'] ?? null);
+        $finalisticProject = Import::string($row['PROJETO FINALISTICO'] ?? null);
+
+        // Se colunas de dotação estiverem preenchidas
+        if ($allocationCode || $allocationNumber || $finalisticProject) {
+            $match = ['notice_id' => $project->notice_id];
+            if ($allocationCode) {
+                $match['allocation_code'] = $allocationCode;
+            } elseif ($allocationNumber) {
+                $match['allocation_number'] = $allocationNumber;
+            } else {
+                $match['finalistic_project'] = $finalisticProject;
+            }
+
+            $values = array_filter([
+                'allocation_code' => $allocationCode,
+                'allocation_number' => $allocationNumber,
+                'finalistic_project' => $finalisticProject,
+                'created_by' => $userId,
+            ], fn ($val) => $val !== null);
+
+            return BudgetAllocation::updateOrCreate($match, $values);
+        }
+
+        // Fallback: resolver dotação disponível
+        return $this->budgetAllocationResolver->resolveAvailable($project);
+    }
+
+    private function syncInstallments(Budget $budget, array $row, ?BudgetAllocation $budgetAllocation = null, ?int $userId = null): void
+    {
+        // Verificar Parcela Única
+        if ($this->hasSingleInstallment($row)) {
+            $this->syncSingleInstallment($budget, $row, $budgetAllocation, $userId);
+
+            return;
+        }
+
+        // Verificar Múltiplas Parcelas
+        $this->syncMultipleInstallments($budget, $row, $budgetAllocation, $userId);
+    }
+
+    private function hasSingleInstallment(array $row): bool
+    {
+        return $this->hasValue($row['VALOR DE REPASSE (PARCELA ÚNICA)'] ?? null);
+    }
+
+    private function hasValue(mixed $value): bool
+    {
+        return $value !== null && trim((string) $value) !== '';
+    }
+
+    private function syncSingleInstallment(Budget $budget, array $row, ?BudgetAllocation $budgetAllocation = null, ?int $userId = null): void
+    {
+        $amount = Import::money($row['VALOR DE REPASSE (PARCELA ÚNICA)'] ?? null);
+        $noticeInstallmentNumber = Import::integer($row['Nº PARCELA'] ?? null) ?? 1;
+
+        $budget->installments()->updateOrCreate(
+            ['installment_number' => 1],
+            [
+                'notice_installment_number' => $noticeInstallmentNumber,
+                'amount' => $amount,
+                'request_date' => Import::date($row['DATA DE SOLICITAÇÃO DA PARCELA'] ?? null),
+                'observations' => Import::string($row['OBSERVAÇÃO'] ?? null),
+                'budget_allocation_id' => $budgetAllocation?->id,
+                'created_by' => $userId,
+            ]
+        );
+
+        $budget->installments()->whereNotIn('installment_number', [1])->delete();
+    }
+
+    private function syncMultipleInstallments(Budget $budget, array $row, ?BudgetAllocation $budgetAllocation = null, ?int $userId = null): void
+    {
+        $processedNumbers = [];
+
+        for ($i = 1; $i <= 3; $i++) {
+            $column = "VALOR DE REPASSE ({$i}ª PARCELA)";
+
+            if ($this->hasValue($row[$column] ?? null)) {
+                $amount = Import::money($row[$column]);
+                $noticeInstallmentNumber = Import::integer($row['Nº PARCELA'] ?? null) ?? $i;
+
+                $data = [
+                    'notice_installment_number' => $noticeInstallmentNumber,
+                    'amount' => $amount,
+                    'created_by' => $userId,
+                ];
+
+                // Apenas 1ª parcela tem request_date, observations e budget_allocation_id
+                if ($i === 1) {
+                    $data['request_date'] = Import::date($row['DATA DE SOLICITAÇÃO DA PARCELA'] ?? null);
+                    $data['observations'] = Import::string($row['OBSERVAÇÃO'] ?? null);
+                    $data['budget_allocation_id'] = $budgetAllocation?->id;
+                }
+
+                $budget->installments()->updateOrCreate(
+                    ['installment_number' => $i],
+                    $data
+                );
+
+                $processedNumbers[] = $i;
+            }
+        }
+
+        if (! empty($processedNumbers)) {
+            $budget->installments()->whereNotIn('installment_number', $processedNumbers)->delete();
+        }
     }
 
     /**
@@ -323,7 +459,7 @@ class GoogleSheetsService
             ->all();
 
         return Project::whereIn('number', $numbers)
-            ->with('opening')
+            ->with(['opening', 'budgets.installments', 'notice.budgetAllocations', 'agent.latestSnapshot'])
             ->get()
             ->keyBy('number');
     }
