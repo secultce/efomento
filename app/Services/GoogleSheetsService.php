@@ -270,16 +270,17 @@ class GoogleSheetsService
             }
 
             try {
-                $budgetData = ['created_by' => $userId];
+                $budgetData = [];
                 foreach ($columnMap as $sheetColumn => $modelField) {
                     $budgetData[$modelField] = Import::date($row[$sheetColumn] ?? null);
                 }
 
                 DB::transaction(function () use ($project, $budgetData, $row, $userId): void {
-                    $budget = Budget::updateOrCreate(
-                        ['project_id' => $project->id],
-                        $budgetData
-                    );
+                    $budget = Budget::firstOrNew(['project_id' => $project->id]);
+                    if (! $budget->exists) {
+                        $budget->created_by = $userId;
+                    }
+                    $budget->fill($budgetData)->save();
 
                     $budgetAllocation = $this->syncBudgetAllocation($project, $row, $userId);
 
@@ -319,10 +320,15 @@ class GoogleSheetsService
                 'allocation_code' => $allocationCode,
                 'allocation_number' => $allocationNumber,
                 'finalistic_project' => $finalisticProject,
-                'created_by' => $userId,
             ], fn ($val) => $val !== null);
 
-            return BudgetAllocation::updateOrCreate($match, $values);
+            $allocation = BudgetAllocation::firstOrNew($match);
+            if (! $allocation->exists) {
+                $allocation->created_by = $userId;
+            }
+            $allocation->fill($values)->save();
+
+            return $allocation;
         }
 
         // Fallback: resolver dotação disponível
@@ -357,17 +363,13 @@ class GoogleSheetsService
         $amount = Import::money($row['VALOR DE REPASSE (PARCELA ÚNICA)'] ?? null);
         $noticeInstallmentNumber = Import::integer($row['Nº PARCELA'] ?? null) ?? 1;
 
-        $budget->installments()->updateOrCreate(
-            ['installment_number' => 1],
-            [
-                'notice_installment_number' => $noticeInstallmentNumber,
-                'amount' => $amount,
-                'request_date' => Import::date($row['DATA DE SOLICITAÇÃO DA PARCELA'] ?? null),
-                'observations' => Import::string($row['OBSERVAÇÃO'] ?? null),
-                'budget_allocation_id' => $budgetAllocation?->id,
-                'created_by' => $userId,
-            ]
-        );
+        $this->saveInstallment($budget, 1, [
+            'notice_installment_number' => $noticeInstallmentNumber,
+            'amount' => $amount,
+            'request_date' => Import::date($row['DATA DE SOLICITAÇÃO DA PARCELA'] ?? null),
+            'observations' => Import::string($row['OBSERVAÇÃO'] ?? null),
+            'budget_allocation_id' => $budgetAllocation?->id,
+        ], $userId);
 
         $budget->installments()->whereNotIn('installment_number', [1])->delete();
     }
@@ -386,7 +388,6 @@ class GoogleSheetsService
                 $data = [
                     'notice_installment_number' => $noticeInstallmentNumber,
                     'amount' => $amount,
-                    'created_by' => $userId,
                 ];
 
                 // Apenas 1ª parcela tem request_date, observations e budget_allocation_id
@@ -396,18 +397,36 @@ class GoogleSheetsService
                     $data['budget_allocation_id'] = $budgetAllocation?->id;
                 }
 
-                $budget->installments()->updateOrCreate(
-                    ['installment_number' => $i],
-                    $data
-                );
+                $this->saveInstallment($budget, $i, $data, $userId);
 
                 $processedNumbers[] = $i;
             }
         }
 
-        if (! empty($processedNumbers)) {
-            $budget->installments()->whereNotIn('installment_number', $processedNumbers)->delete();
+        if (empty($processedNumbers)) {
+            $budget->installments()->delete();
+
+            return;
         }
+
+        $budget->installments()->whereNotIn('installment_number', $processedNumbers)->delete();
+    }
+
+    /**
+     * Cria ou atualiza a parcela preservando o created_by original;
+     * em atualizações registra o usuário da sincronização em updated_by.
+     */
+    private function saveInstallment(Budget $budget, int $number, array $data, ?int $userId): void
+    {
+        $installment = $budget->installments()->firstOrNew(['installment_number' => $number]);
+
+        if ($installment->exists) {
+            $installment->updated_by = $userId;
+        } else {
+            $installment->created_by = $userId;
+        }
+
+        $installment->fill($data)->save();
     }
 
     /**

@@ -302,9 +302,9 @@ class GoogleSheetsBudgetSyncTest extends TestCase
     {
         $project = Project::factory()->create(['number' => 'INSC-600']);
 
-        // Mock BudgetAllocation to throw exception during creation/saving
-        BudgetAllocation::saving(function () {
-            throw new \RuntimeException('Simulated database failure during allocation save');
+        // Falha ao salvar a parcela, depois de Budget e BudgetAllocation já gravados
+        Installment::saving(function () {
+            throw new \RuntimeException('Simulated database failure during installment save');
         });
 
         $this->fakeSheet([
@@ -327,6 +327,7 @@ class GoogleSheetsBudgetSyncTest extends TestCase
         $this->assertSame(0, $count);
         $this->assertNull(Budget::where('project_id', $project->id)->first());
         $this->assertNull(BudgetAllocation::where('allocation_code', 'FAIL-DOT')->first());
+        $this->assertSame(0, Installment::count());
     }
 
     #[Test]
