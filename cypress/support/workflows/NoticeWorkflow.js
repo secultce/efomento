@@ -7,6 +7,14 @@ class NoticeWorkflow {
         Notice.verifyPageLoaded();
     }
 
+    validateDashboardCardsAreVisible() {
+        Notice.verifyDashboardCardsAreVisible();
+    }
+
+    validateAllDashBoardMetrics() {
+        Notice.verifyAllDashboardMetrics();
+    }
+
     accessNoticeDetails(nup) {
         Notice.searchNoticeByNup(nup);
         Notice.findNoticeByNup(nup);
@@ -14,19 +22,31 @@ class NoticeWorkflow {
         cy.url().should('match', /\/editais\/\d+\/projetos$/);
     }
 
+    fillRequiredNoticeIdentificationData(notice) {
+        Notice.openIdentificationDataForm();
+
+        Notice.fillRequiredIdentificationDataFields({
+            noticeNup: notice.noticeNup,
+            instrumentType: notice.instrumentType,
+            totalAmount: notice.totalAmount,
+            quotaNumber: notice.quotaNumber,
+        });
+    }
+
     fillNoticeIdentificationData(notice) {
+        this.gotToNoticePage();
+
+        Notice.searchNoticeByTitle(notice.title);
         Notice.openIdentificationDataForm();
 
         Notice.fillIdentificationDataForm({
             noticeNup: notice.noticeNup,
-            instrumentType: notice.noticeInstrumentType,
-            totalAmount: notice.noticeTotalValue,
-            noticeManager: notice.noticeAccompanimentManager,
-            managerEmail: notice.noticeManagerEmail,
+            instrumentType: notice.instrumentType,
+            totalAmount: notice.totalAmount,
+            accompanimentManager: notice.accompanimentManager,
+            managerEmail: notice.managerEmail,
             quotaNumber: notice.quotaNumber,
         });
-
-        Notice.verifySuccessMessageIdentificationDataForm();
     }
 
     updateNoticeData(currentNotice, newNotice) {
@@ -50,8 +70,29 @@ class NoticeWorkflow {
         Notice.uploadPaymentsReport();
     }
 
+    getInitialNoticeTotal() {
+        return Notice.getTotalNotices();
+    }
+
+    openIdentificationDataForm() {
+        Notice.openIdentificationDataForm();
+    }
+
     validatePaymentReportUpload() {
         Notice.displaySuccessMessagePaymentReportUploaded();
+    }
+
+    validateIdentificationDataFormIsVisible() {
+        Notice.verifyIdentificationDataFormIsVisible();
+    }
+
+    validateAllNoticesAreDisplayed(notice) {
+        Notice.getTotalNotices().then((totalNotices) => {
+            Notice.searchNoticeByNup(notice.noticeNup);
+            Notice.clearNoticeSearch();
+
+            Notice.validateAllNoticesAreDisplayed(totalNotices);
+        });
     }
 }
 

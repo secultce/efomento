@@ -240,7 +240,7 @@ async function handleFileUpload(event) {
 
                 <p class="text-body-2 text-grey-darken-1 mt-1">
                     Total de editais encontrados:
-                    <strong class="text-grey-darken-3">{{ total }}</strong>
+                    <strong class="text-grey-darken-3" data-cy="notice-total-count">{{ total }}</strong>
                 </p>
             </div>
 

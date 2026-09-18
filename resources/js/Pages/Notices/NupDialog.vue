@@ -80,7 +80,7 @@ const valorExtenso = computed(() => {
 <template>
     <v-dialog :model-value="modelValue" max-width="800" persistent>
         <v-card>
-            <v-form ref="formRef" v-model="isValid">
+            <v-form ref="formRef" v-model="isValid" data-cy="identification-data-form">
                 <v-card-title class="text-h6 font-weight-bold">
                     Adicione as informações de identificação e processos
                 </v-card-title>
@@ -130,7 +130,13 @@ const valorExtenso = computed(() => {
 
                         <v-col cols="12" md="6">
                             <FormField label="Valor por extenso">
-                                <TextField :model-value="valorExtenso" readonly capitalize disabled />
+                                <TextField
+                                    :model-value="valorExtenso"
+                                    readonly
+                                    capitalize
+                                    disabled
+                                    data-cy="amount-in-full-information-data"
+                                />
                             </FormField>
                         </v-col>
 
@@ -184,7 +190,7 @@ const valorExtenso = computed(() => {
                                     item-value="value"
                                     placeholder="Selecione o prazo"
                                     required
-                                    data-cy="monitoring-report-request-deadline-identification-data-form-select"
+                                    data-cy="public-policy-identification-data-form-select"
                                 />
                             </FormField>
                         </v-col>
@@ -202,6 +208,7 @@ const valorExtenso = computed(() => {
                                     v-model="form.budget_allocation_nup"
                                     placeholder="Insira o número da dotação"
                                     mask="#####.######/####-##"
+                                    data-cy="budget-allocation-nup"
                                 />
                             </FormField>
                         </v-col>
@@ -211,7 +218,12 @@ const valorExtenso = computed(() => {
                                 label="Data da Solicitação da Dotação"
                                 :error="form.errors.budget_allocation_request_date"
                             >
-                                <TextField v-model="form.budget_allocation_request_date" type="date" min="2016-01-01" />
+                                <TextField
+                                    v-model="form.budget_allocation_request_date"
+                                    type="date"
+                                    min="2016-01-01"
+                                    data-cy="budget-allocation-request-date"
+                                />
                             </FormField>
                         </v-col>
 
@@ -224,6 +236,7 @@ const valorExtenso = computed(() => {
                                     v-model="form.creditor_registration_nup"
                                     placeholder="Número do processo do cadastro do credor"
                                     mask="#####.######/####-##"
+                                    data-cy="creditor-retistration-nup"
                                 />
                             </FormField>
                         </v-col>
@@ -237,6 +250,7 @@ const valorExtenso = computed(() => {
                                     v-model="form.creditor_registration_request_date"
                                     type="date"
                                     min="2016-01-01"
+                                    data-cy="creditor-registration-request-date"
                                 />
                             </FormField>
                         </v-col>
@@ -249,6 +263,7 @@ const valorExtenso = computed(() => {
                     <v-btn
                         class="!inline-flex !bg-[#485465FF] !items-center !justify-center !rounded-md !px-4 !py-2 !text-xs !font-semibold !tracking-widest !transition !duration-150 !ease-in-out !focus:outline-none !focus:ring-2 !focus:ring-gray-800 !focus:ring-offset-2 !text-white"
                         variant="outlined"
+                        data-cy="close-idetification-data-button"
                         @click="close"
                     >
                         Cancelar
