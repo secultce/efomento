@@ -1,5 +1,3 @@
-import project from '../project/ProjectPage';
-
 export const elements = {
     //
     appContainer: '#app',
@@ -10,6 +8,7 @@ export const elements = {
     userAvatarButton: '[data-cy=btnUserAvatar]',
 
     // Tables
+    noticeTotalCount: '[data-cy=notice-total-count]',
     noticeListTable: '[data-cy=table-notice-list]',
     noticeTableRow: '[data-cy=row-table-notice-list]',
     noticeNupNoticesList: '[data-cy=notice-nup-notices-list]',
@@ -27,13 +26,21 @@ export const elements = {
     paginationNumber: '[data-cy=pagination-number-notice-list]',
 
     // Identification Data Form
+    identificationDataForm: '[data-cy=identification-data-form]',
     identificationDataFormButton: '[data-cy=access-identification-data-form-button]',
     noticeNupInput: '[data-cy=notice-nup-identification-data-form]',
     instrumentTypeSelect: '[data-cy=instrument-type-identification-data-form-select]',
     totalAmountInput: '[data-cy=total-amount-notice-identification-data-form]',
+    amountInFullIdentificationData: '[data-cy=amount-in-full-information-data]',
     noticeManagerInput: '[data-cy=notice-manager-accompaniment-identification-data-form]',
     managerEmailInput: '[data-cy=manager-email-identification-data-form]',
     quotaNumberInput: '[data-cy=quota-number-identification-data-form]',
+    publicPolicySelect: '[data-cy=public-policy-identification-data-form-select]',
+    budgeAllocationNupInput: '[data-cy="budget-allocation-nup"]',
+    budgetAllocationRequestDateInput: '[data-cy="budget-allocation-request-date"]',
+    creditorRegistrationNup: '[data-cy="creditor-retistration-nup"]',
+    creditorRegistratioRequestDate: '[data-cy="creditor-registration-request-date"]',
+    closeIdentificationDataButton: '[data-cy="close-idetification-data-button"]',
     submitFormButton: '[data-cy=add-data-identification-data-form-button]',
 
     // List actions
@@ -59,6 +66,8 @@ export const elements = {
     noticeEditTextField: '[data-cy=notice-edit-textfield]',
     noticeEditTextArea: '[data-cy=notice-edit-textarea]',
     noticeEditTextSelect: '[data-cy=notice-edit-select]',
+    paymentsReportFileInput: '[data-cy=payments-report-file-input]',
+    uploadBPaymentsReportButton: '[data-cy=upload-payments-report-button]',
 
     // Alerts
     successAlert: '.v-snackbar',
