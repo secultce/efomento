@@ -375,7 +375,7 @@ const tramit = async () => {
 <template>
     <SplitScreenTab value="payment">
         <template #left-content>
-            <div class="space-y-6">
+            <div class="space-y-6" data-cy="payment-right-panel">
                 <div>
                     <div class="font-bold text-lg d-flex justify-between">
                         <span>Dados disponíveis para consulta</span>
@@ -434,6 +434,7 @@ const tramit = async () => {
                                     <TextField
                                         :model-value="normalizeDate(budget?.processing_date_for_coafi)"
                                         type="date"
+                                        data-cy="processing-date-coafi"
                                         disabled
                                     />
                                 </FormField>
@@ -450,6 +451,7 @@ const tramit = async () => {
                                             :value="installment.installment_number"
                                             filter
                                             variant="outlined"
+                                            data-cy="payment-date"
                                             :class="getInstallmentChipClasses(installment)"
                                         >
                                             <v-icon start size="16">
@@ -498,11 +500,17 @@ const tramit = async () => {
                                             <TextField
                                                 :model-value="formatText(selectedInstallment.notice_installment_number)"
                                                 disabled
+                                                data-cy="notice-installment-number"
                                             />
                                         </FormField>
 
                                         <FormField label="Valor da parcela">
-                                            <TextField :model-value="selectedInstallment.amount" money disabled />
+                                            <TextField
+                                                :model-value="selectedInstallment.amount"
+                                                money
+                                                disabled
+                                                data-cy="amount"
+                                            />
                                         </FormField>
 
                                         <FormField label="Valor pago">
@@ -510,6 +518,7 @@ const tramit = async () => {
                                                 :model-value="selectedInstallment.payment_amount"
                                                 money
                                                 disabled
+                                                data-cy="payment-amount-input"
                                             />
                                         </FormField>
 
@@ -517,6 +526,7 @@ const tramit = async () => {
                                             <TextField
                                                 :model-value="formatText(selectedInstallment.settlement_number)"
                                                 disabled
+                                                data-cy="selltlement-number-input"
                                             />
                                         </FormField>
 
@@ -525,6 +535,7 @@ const tramit = async () => {
                                                 :model-value="normalizeDate(selectedInstallment.settlement_date)"
                                                 type="date"
                                                 disabled
+                                                data-cy="selltlement-date-input"
                                             />
                                         </FormField>
 
@@ -533,6 +544,7 @@ const tramit = async () => {
                                                 :model-value="normalizeDate(selectedInstallment.payment_date)"
                                                 type="date"
                                                 disabled
+                                                data-cy="payment-date"
                                             />
                                         </FormField>
 
@@ -540,6 +552,7 @@ const tramit = async () => {
                                             <TextField
                                                 :model-value="formatText(selectedInstallment.payment_order_number)"
                                                 disabled
+                                                data-cy="payment-order-number"
                                             />
                                         </FormField>
 
@@ -548,6 +561,7 @@ const tramit = async () => {
                                                 :model-value="selectedInstallment.committed_amount"
                                                 money
                                                 disabled
+                                                data-cy="committed-amount-input"
                                             />
                                         </FormField>
 
@@ -556,6 +570,7 @@ const tramit = async () => {
                                                 :model-value="selectedInstallment.settlement_amount"
                                                 money
                                                 disabled
+                                                data-cy="selltlement-amount-input"
                                             />
                                         </FormField>
 
@@ -564,6 +579,7 @@ const tramit = async () => {
                                                 :model-value="normalizeDate(selectedInstallment.request_date)"
                                                 type="date"
                                                 disabled
+                                                data-cy="request-date-input"
                                             />
                                         </FormField>
 
@@ -577,6 +593,7 @@ const tramit = async () => {
                                                     variant="outlined"
                                                     class="mt-2"
                                                     :disabled="!canTramitPayment"
+                                                    data-cy="observation"
                                                 />
                                             </FormField>
                                         </div>
