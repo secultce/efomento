@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Events\InstallmentPaidEvent;
 use App\Exceptions\Domain\BusinessRuleException;
 use App\Models\Budget;
 use App\Models\Installment;
@@ -509,6 +510,10 @@ class InstallmentImportService
         $installment->refresh();
 
         $newStatus = $this->getInstallmentStatus($installment);
+
+        if ($previousStatus !== self::STATUS_PAID_REGULAR && $newStatus === self::STATUS_PAID_REGULAR) {
+            InstallmentPaidEvent::dispatch($installment->id);
+        }
 
         $summary['updated']++;
         $summary['installments'][] = $installment->installment_number;
