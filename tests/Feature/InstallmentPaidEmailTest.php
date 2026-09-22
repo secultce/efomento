@@ -6,6 +6,7 @@ use App\Events\InstallmentPaidEvent;
 use App\Exceptions\Integration\ExternalServiceException;
 use App\Listeners\SendInstallmentPaidEmail;
 use App\Mail\InstallmentPaidMail;
+use App\Models\Agent;
 use App\Models\AgentEmailLog;
 use App\Models\Budget;
 use App\Models\Installment;
@@ -85,31 +86,79 @@ class InstallmentPaidEmailTest extends TestCase
         $this->assertNull(AgentEmailLog::sole()->sent_at);
     }
 
-    public function test_failure_is_recorded_and_retry_reuses_the_log(): void
+    public function test_repeated_failures_and_success_preserve_history_without_console_auditing(): void
     {
+        config(['audit.console' => false]);
+        $this->assertTrue(app()->runningInConsole());
         $installment = $this->installment();
         $mailer = Mail::getFacadeRoot();
-        Mail::shouldReceive('to')->once()->andReturnSelf();
-        Mail::shouldReceive('send')->once()->andReturnUsing(function () {
+        Mail::shouldReceive('to')->twice()->andReturnSelf();
+        Mail::shouldReceive('send')->twice()->andReturnUsing(function () {
             $this->assertSame('queued', AgentEmailLog::sole()->status);
             throw new \RuntimeException('SMTP indisponível');
         });
         $listener = app(SendInstallmentPaidEmail::class);
         $event = new InstallmentPaidEvent($installment->id);
-        try {
-            $listener->handle($event);
-            $this->fail('Expected a mail transport failure');
-        } catch (ExternalServiceException $e) {
-            $this->assertSame('SMTP indisponível', $e->getPrevious()->getMessage());
+        for ($attempt = 0; $attempt < 2; $attempt++) {
+            try {
+                $listener->handle($event);
+                $this->fail('Expected a mail transport failure');
+            } catch (ExternalServiceException $e) {
+                $this->assertSame('SMTP indisponível', $e->getPrevious()->getMessage());
+            }
+            $this->assertSame('failed', AgentEmailLog::sole()->status);
+            $this->assertSame('SMTP indisponível', AgentEmailLog::sole()->error_message);
+            $this->assertNull(AgentEmailLog::sole()->sent_at);
+            $this->assertCount($attempt + 1, AgentEmailLog::sole()->audits()->get()
+                ->filter(fn ($audit) => ($audit->new_values['status'] ?? null) === 'failed'));
         }
-        $this->assertSame('failed', AgentEmailLog::sole()->status);
-        $this->assertSame('SMTP indisponível', AgentEmailLog::sole()->error_message);
         Mail::swap($mailer);
         Mail::fake();
         $listener->handle($event);
-        $this->assertSame('sent', AgentEmailLog::sole()->status);
-        $this->assertNull(AgentEmailLog::sole()->error_message);
+        $log = AgentEmailLog::sole();
+        $this->assertSame('sent', $log->status);
+        $this->assertNull($log->error_message);
+        $this->assertNotNull($log->sent_at);
+        $audits = $log->audits()->orderBy('id')->get();
+        $this->assertSame(['queued', 'failed', 'queued', 'failed', 'queued', 'sent'],
+            $audits->map(fn ($audit) => $audit->new_values['status'])->all());
+        foreach ([1, 3] as $index) {
+            $this->assertSame('SMTP indisponível', $audits[$index]->new_values['error_message']);
+            $this->assertSame('SMTP indisponível', $audits[$index + 1]->old_values['error_message']);
+            $this->assertNull($audits[$index + 1]->new_values['error_message']);
+        }
+        $this->assertNotEmpty($audits->last()->new_values['sent_at']);
+        $listener->handle($event);
+        $this->assertSame($audits->count(), $log->audits()->count());
         Mail::assertSent(InstallmentPaidMail::class, 1);
+    }
+
+    public function test_agent_deletion_preserves_email_log_and_audits(): void
+    {
+        $agent = Agent::factory()->create();
+        $log = AgentEmailLog::create([
+            'agent_id' => $agent->id,
+            'recipient_email' => 'agent@example.com',
+            'recipient_name' => $agent->name,
+            'mail_class' => InstallmentPaidMail::class,
+            'event_type' => 'installment_paid',
+            'subject' => InstallmentPaidMail::SUBJECT,
+            'status' => 'sent',
+            'sent_at' => now(),
+        ]);
+        $auditIds = $log->audits()->pluck('id')->all();
+        $this->assertNotEmpty($auditIds);
+
+        $agent->delete();
+        $this->assertTrue($log->fresh()->agent->is($agent));
+        $agent->forceDelete();
+
+        $log->refresh();
+        $this->assertNull($log->agent_id);
+        $this->assertNull($log->agent);
+        $this->assertSame('agent@example.com', $log->recipient_email);
+        $this->assertSame('sent', $log->status);
+        $this->assertSame($auditIds, $log->audits()->pluck('id')->all());
     }
 
     public function test_event_queues_listener_only_after_commit_and_not_after_rollback(): void

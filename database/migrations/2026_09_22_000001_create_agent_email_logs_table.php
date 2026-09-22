@@ -10,7 +10,7 @@ return new class extends Migration
     {
         Schema::create('agent_email_logs', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('agent_id')->constrained()->cascadeOnDelete();
+            $table->foreignId('agent_id')->nullable()->constrained()->nullOnDelete();
             $table->foreignId('project_id')->nullable()->constrained()->nullOnDelete();
             $table->nullableMorphs('related');
             $table->string('recipient_email');

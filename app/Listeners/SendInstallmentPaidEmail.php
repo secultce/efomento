@@ -54,20 +54,20 @@ class SendInstallmentPaidEmail implements ShouldQueue
             ],
         );
 
-        try {
-            DB::transaction(function () use ($log, $installment, $project): void {
-                $log = AgentEmailLog::lockForUpdate()->findOrFail($log->id);
-                if ($log->status === 'sent') {
-                    return;
-                }
+        $failure = DB::transaction(function () use ($log, $installment, $project): ?Throwable {
+            $log = AgentEmailLog::lockForUpdate()->findOrFail($log->id);
+            if ($log->status === 'sent') {
+                return null;
+            }
 
-                if ($log->recipient_email === '') {
-                    $log->update(['status' => 'failed', 'error_message' => 'Agente sem e-mail válido no snapshot ou no cadastro.']);
+            if ($log->recipient_email === '') {
+                $log->update(['status' => 'failed', 'error_message' => 'Agente sem e-mail válido no snapshot ou no cadastro.']);
 
-                    return;
-                }
+                return null;
+            }
 
-                $log->update(['status' => 'queued', 'error_message' => null]);
+            $log->update(['status' => 'queued', 'error_message' => null]);
+            try {
                 Mail::to($log->recipient_email, $log->recipient_name)->send(new InstallmentPaidMail(
                     recipientName: $log->recipient_name ?? '',
                     processNumber: $installment->process_number ?? $project->opening?->opening_nup ?? 'Não informado',
@@ -76,13 +76,20 @@ class SendInstallmentPaidEmail implements ShouldQueue
                     paymentDate: $installment->payment_date?->format('d/m/Y') ?? 'Não informada',
                     paymentAmount: number_format((float) $installment->payment_amount, 2, ',', '.'),
                 ));
-                $log->update(['status' => 'sent', 'sent_at' => now(), 'error_message' => null]);
-            });
-        } catch (Throwable $e) {
-            AgentEmailLog::whereKey($log->id)->where('status', '!=', 'sent')
-                ->update(['status' => 'failed', 'error_message' => $e->getMessage()]);
+            } catch (Throwable $e) {
+                $log->update(['status' => 'failed', 'error_message' => $e->getMessage()]);
 
-            throw ExternalServiceException::unavailable('Envio de e-mail de pagamento', $e);
+                // Commit the attempt history before rethrowing for the queue retry.
+                return $e;
+            }
+
+            $log->update(['status' => 'sent', 'sent_at' => now(), 'error_message' => null]);
+
+            return null;
+        });
+
+        if ($failure) {
+            throw ExternalServiceException::unavailable('Envio de e-mail de pagamento', $failure);
         }
     }
 }
