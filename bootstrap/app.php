@@ -11,8 +11,10 @@ use Illuminate\Foundation\Configuration\Middleware;
 use Illuminate\Http\Exceptions\PostTooLargeException;
 use Illuminate\Http\Middleware\AddLinkHeadersForPreloadedAssets;
 use Illuminate\Http\Request;
+use Inertia\Inertia;
 use Sentry\Laravel\Integration;
 use Spatie\Permission\Middleware\RoleMiddleware;
+use Symfony\Component\HttpFoundation\Response;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
@@ -48,6 +50,18 @@ return Application::configure(basePath: dirname(__DIR__))
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         $exceptions->dontFlash(['code']);
+
+        $exceptions->respond(function (Response $response, Throwable $e, Request $request) {
+            if (in_array($response->getStatusCode(), [403, 404], true)
+                && ! $request->is('api', 'api/*')
+                && (! $request->expectsJson() || $request->header('X-Inertia'))) {
+                return Inertia::render('Errors/Error', ['status' => $response->getStatusCode()])
+                    ->toResponse($request)
+                    ->setStatusCode($response->getStatusCode());
+            }
+
+            return $response;
+        });
 
         $exceptions->reportable(fn (AppException $e) => $e->shouldReport());
 
