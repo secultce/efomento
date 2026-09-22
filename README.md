@@ -134,6 +134,11 @@ docker exec efomento-app php artisan db:seed --class=PermissionSeeder
 
 # Forcar Sincronismo dos editais
 docker compose exec app php artisan tinker  --execute="SyncNoticesJob::dispatch()"
+
+# Importação de dados via Google Sheets (Abertura, Formalização, Orçamento, Pagamento)
+docker compose exec app php artisan app:import-google-sheets <spreadsheet-id> --user-id=<user_id>
+# Importar apenas a aba de Orçamento
+docker compose exec app php artisan app:import-google-sheets <spreadsheet-id> --aba=Orçamento --user-id=<user_id>
 ```
 
 O comando `php artisan db:seed` (inclusive via `migrate:fresh --seed`) respeita

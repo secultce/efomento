@@ -2,3 +2,4 @@ reviews:
   base_branches:
     - main
     - develop
+  language: "pt-BR"

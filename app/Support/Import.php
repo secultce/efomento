@@ -133,6 +133,29 @@ class Import
         return is_numeric($value) ? (float) $value : null;
     }
 
+    public static function integer(mixed $value): ?int
+    {
+        if ($value === null || $value === '') {
+            return null;
+        }
+
+        if (is_int($value)) {
+            return $value;
+        }
+
+        $value = trim((string) $value);
+
+        if (is_numeric($value)) {
+            return (int) $value;
+        }
+
+        if (preg_match('/\d+/', $value, $matches)) {
+            return (int) $matches[0];
+        }
+
+        return null;
+    }
+
     public static function string(mixed $value): ?string
     {
         if ($value === null) {
