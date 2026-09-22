@@ -43,7 +43,8 @@ class Notice {
 
     // Form Filling
     fillIdentificationDataForm(formData) {
-        const { noticeNup, instrumentType, totalAmount, noticeManager, managerEmail, quotaNumber } = formData;
+        const { noticeNup, instrumentType, totalAmount, noticeManager, managerEmail, quotaNumber, publicPolicy } =
+            formData;
 
         // Fill NUP field
         cy.get(el.noticeNupInput).should('be.visible').type(noticeNup);
@@ -64,6 +65,11 @@ class Notice {
 
         // Fill quota number
         cy.get(el.quotaNumberInput).should('be.visible').type(quotaNumber);
+
+        this.selectDropdownOption(
+            '[data-cy=monitoring-report-request-deadline-identification-data-form-select]',
+            publicPolicy
+        );
 
         // Submit form
         cy.get(el.submitFormButton).should('be.visible').click();

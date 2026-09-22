@@ -152,7 +152,7 @@ const saveAll = () => {
                 <EditableField
                     v-model="form.monitoring_report_request_deadline"
                     :disabled="!canManageNotices"
-                    label="Prazo para solicitação do relatório de monitoramento:"
+                    label="Política Pública:"
                     type="select"
                     :items="monitoringReportRequestDeadlines"
                     item-title="label"

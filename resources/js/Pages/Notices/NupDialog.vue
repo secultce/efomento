@@ -33,7 +33,7 @@ const form = useForm({
     budget_allocation_request_date: '',
     creditor_registration_nup: '',
     creditor_registration_request_date: '',
-    monitoring_report_request_deadline: 'PNAB',
+    monitoring_report_request_deadline: null,
 });
 
 watch(
@@ -41,7 +41,13 @@ watch(
     (notice) => {
         if (!notice) return;
         form.nup = notice.mae ?? '';
-        form.monitoring_report_request_deadline = notice.monitoring_report_request_deadline ?? 'PNAB';
+    }
+);
+
+watch(
+    () => props.modelValue,
+    (isOpen) => {
+        if (isOpen) form.monitoring_report_request_deadline = null;
     }
 );
 
@@ -176,7 +182,7 @@ const valorExtenso = computed(() => {
 
                         <v-col cols="12" md="6">
                             <FormField
-                                label="Prazo para solicitação do relatório de monitoramento"
+                                label="Política Pública"
                                 :error="form.errors.monitoring_report_request_deadline"
                                 required
                             >
@@ -185,7 +191,7 @@ const valorExtenso = computed(() => {
                                     :items="monitoringReportRequestDeadlines"
                                     item-title="label"
                                     item-value="value"
-                                    placeholder="Selecione o prazo"
+                                    placeholder="Selecione uma Política Pública"
                                     required
                                     data-cy="monitoring-report-request-deadline-identification-data-form-select"
                                 />
