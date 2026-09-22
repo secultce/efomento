@@ -175,7 +175,7 @@ function openNoticeHistory() {
                         </template>
                     </div>
 
-                    <div class="w-full flex flex-col sm:flex-row gap-2">
+                    <div class="grid w-full grid-cols-[repeat(auto-fit,minmax(min(100%,9rem),1fr))] gap-2">
                         <DocumentDownloadMenu
                             label="Baixar todos"
                             button-class="flex-1 !shadow-none !border-primary !text-primary rounded-lg text-xs"

@@ -363,12 +363,12 @@ function handleAction({ action, item }) {
         </AppSubHeader>
 
         <AppContainer>
-            <div class="grid grid-cols-4 grid-rows-1 gap-10">
-                <div class="col-span-4 col-start-1 text-[#1a1a1aFF]">
+            <div class="grid min-w-0 grid-cols-1 gap-6 xl:grid-cols-[minmax(0,3fr)_minmax(20rem,1fr)] xl:gap-10">
+                <div class="min-w-0 text-[#1a1a1aFF] xl:col-span-2">
                     <PhaseFilter :phases="phases" :selected-phase="selectedPhase" @select="selectPhase" />
                 </div>
 
-                <div class="col-span-3 row-span-2 col-start-1 row-start-2 flex h-full w-full flex-col">
+                <div class="flex min-w-0 w-full flex-col">
                     <ProjectList
                         v-model="selectedProjects"
                         :projects="projects"
@@ -380,7 +380,10 @@ function handleAction({ action, item }) {
                     />
                 </div>
 
-                <div class="row-span-2 col-start-4 row-start-2">
+                <aside
+                    class="min-w-0 w-full self-start [&_.v-card-title]:whitespace-normal [&_.v-card-title]:[overflow-wrap:anywhere] [&_.v-card-text]:[overflow-wrap:anywhere] [&_.v-btn]:!h-auto [&_.v-btn]:min-h-9 [&_.v-btn]:min-w-0 [&_.v-btn]:max-w-full [&_.v-btn]:py-2 [&_.v-btn]:whitespace-normal [&_.v-btn\_\_content]:min-w-0 [&_.v-btn\_\_content]:whitespace-normal [&_.v-btn\_\_content]:[overflow-wrap:anywhere]"
+                    aria-label="Ações disponíveis para você"
+                >
                     <NoStageSelected
                         v-if="!selectedPhase"
                         :notice="notice"
@@ -427,7 +430,7 @@ function handleAction({ action, item }) {
                         :notice="notice"
                         :monitoring-reports-count="monitoringReportsCount"
                     />
-                </div>
+                </aside>
             </div>
         </AppContainer>
     </AuthenticatedLayout>

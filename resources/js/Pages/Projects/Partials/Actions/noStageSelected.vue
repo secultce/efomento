@@ -403,7 +403,7 @@ function openNoticeHistory() {
                         </v-btn>
                     </div>
 
-                    <div class="flex w-full flex-col gap-2 sm:flex-row">
+                    <div class="grid w-full grid-cols-[repeat(auto-fit,minmax(min(100%,9rem),1fr))] gap-2">
                         <DocumentDownloadMenu
                             :label="isNoticeLevelDocument(document.type) ? 'Baixar' : 'Baixar todos'"
                             button-class="flex-1 !shadow-none !border-primary !text-primary rounded-lg text-xs"
