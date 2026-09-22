@@ -75,6 +75,7 @@ const saveAll = () => {
                     :items="instrumentTypes"
                     :error="form.errors.instrument_type"
                     data-cy="instrument-type-show-all-information"
+                    required
                 />
                 <EditableField
                     v-model="form.process_manager"

@@ -105,12 +105,7 @@ const valorExtenso = computed(() => {
                         </v-col>
 
                         <v-col cols="12" md="6">
-                            <FormField
-                                label="Tipo de instrumento"
-                                :error="form.errors.instrument_type"
-                                required
-                                clearable
-                            >
+                            <FormField label="Tipo de instrumento" :error="form.errors.instrument_type" required>
                                 <SelectField
                                     v-model="form.instrument_type"
                                     :items="instrumentTypes"
