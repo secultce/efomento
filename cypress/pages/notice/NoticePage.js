@@ -77,7 +77,7 @@ class Notice {
         cy.get(el.submitFormButton).should('be.visible').click();
     }
 
-    verifyRequiredFieldValidation() {
+    verifyNoticeNupRequiredFieldError() {
         cy.get(el.noticeNupInput).closest('.v-input').contains('Campo obrigatório').should('be.visible');
     }
 
@@ -206,6 +206,18 @@ class Notice {
         });
     }
 
+    verifyIdentificationData(notice) {
+        cy.get(el.noticeTitleDetail).should('contain', notice.title);
+
+        cy.get(el.noticeNupDetail)
+            .invoke('text')
+            .then((displayedNup) => {
+                expect(this.normalizeNup(displayedNup)).to.equal(this.normalizeNup(notice.noticeNup));
+            });
+
+        cy.get(el.instrumentTypeDetail).should('contain', notice.instrumentType);
+    }
+
     displayCorrectNupInDetailView(nup) {
         const formatedNup = this.normalizeNup(nup);
         cy.get('[data-cy=notice-nup-show-all-information]').should('be.visible').and('contain', formatedNup);
@@ -214,8 +226,10 @@ class Notice {
     changeItemsPerPage(quantity) {
         const quantityStr = quantity.toString();
         this.selectDropdownOption(el.quantityPerPageSelect, quantityStr);
+    }
 
-        cy.get(`${el.noticeListTable} tbody tr`, { timeout: 5000 }).should('have.length', quantity);
+    validateNoticesPerPage(noticesPerPage) {
+        cy.get(`${el.noticeListTable} tbody tr`, { timeout: 5000 }).should('have.length', noticesPerPage);
     }
 
     goToPage(pageNumber) {
@@ -294,6 +308,10 @@ class Notice {
             .and('not.be.disabled')
             .contains('Subir relatório de pagamentos')
             .click();
+    }
+
+    clickShowAllInformationButton() {
+        cy.get(el.showAllInformationButton).should('be.visible').click();
     }
 
     uploadPaymentsReport() {

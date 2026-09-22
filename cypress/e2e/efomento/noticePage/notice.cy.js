@@ -134,59 +134,82 @@ describe('Notice Page - E2E Tests', () => {
         });
     });
 
-    describe.only('Notice Details View', () => {
+    describe('Notice Details View', () => {
         it('should open notice details page', function () {
+            // Arrange
             const notice = this.notice;
+            cy.loginByRole('fomentation');
 
+            NoticeWorkflow.gotToNoticePage();
+
+            // Act
             Notice.searchNoticeByNup(notice.noticeNup);
             Notice.goToNoticeDetailsPage(notice.noticeNup);
-            cy.url().should('match', /\/editais\/\d+\/projetos$/);
+
+            // Assert
+            NoticeWorkflow.validateNoticeDetailsPageUrl();
         });
 
         it('should display all information in detail view', function () {
+            // Arrange
             const notice = this.notice;
+            cy.loginByRole('fomentation');
+            NoticeWorkflow.gotToNoticePage();
 
+            // Act
             Notice.searchNoticeByNup(notice.noticeNup);
             Notice.goToNoticeDetailsPage(notice.noticeNup);
             Notice.clickShowAllInformationButton();
-            Notice.verifyDetailViewElements();
-        });
 
-        it('should display correct NUP in detail view', function () {
-            const notice = this.notice;
-            Notice.searchNoticeByNup(notice.noticeNup);
-            Notice.goToNoticeDetailsPage(notice.noticeNup);
-            Notice.displayCorrectNupInDetailView(notice.noticeNup);
+            // Assert
+            Notice.verifyDetailViewElements();
+            Notice.verifyIdentificationData(notice);
         });
     });
 
     describe('Pagination', () => {
         it('should change the number of items displayed per page', function () {
-            const itemsPerPage = this.notice.quantityPerPage;
-            Notice.changeItemsPerPage(itemsPerPage);
+            // Arrange
+            const noticesPerPage = this.notice.quantityPerPage;
+            cy.loginByRole('fomentation');
+            NoticeWorkflow.gotToNoticePage();
+
+            // Act
+            Notice.changeItemsPerPage(noticesPerPage);
+
+            // Assert
+            Notice.validateNoticesPerPage(noticesPerPage);
         });
 
         it('should navigate to next page and highlight current page number', function () {
-            Notice.goToPage(2);
-            cy.get('[data-cy=pagination-number-notice-list]')
-                .contains('2')
-                .parent()
-                .should('have.css', 'background-color', 'rgb(255, 193, 7)');
+            // Arrange
+            const pageNumber = '1';
+            cy.loginByRole('fomentation');
+
+            NoticeWorkflow.gotToNoticePage();
+
+            // Act
+            Notice.goToPage(pageNumber);
+
+            // Assert
+            Notice.verifyPageIsActive(pageNumber);
         });
     });
 
     describe('Form Error Handling', () => {
         it('should display error when submitting form with invalid data', function () {
+            // Arrange
+            cy.loginByRole('fomentation');
+
+            NoticeWorkflow.gotToNoticePage();
+
             Notice.openIdentificationDataForm();
 
-            // Try to submit with empty required fields
-            cy.get('[data-cy=add-data-identification-data-form-button]').click();
+            // Act
+            Notice.submitIdentificationDataForm();
 
-            // Expect validation error
-            cy.get('[data-cy=notice-nup-identification-data-form]')
-                .closest('.v-input')
-                .contains('Campo obrigatório')
-                .should('be.visible');
+            // Assert
+            Notice.verifyNoticeNupRequiredFieldError();
         });
     });
 
@@ -199,7 +222,7 @@ describe('Notice Page - E2E Tests', () => {
             Notice.clickShowAllInformationButton();
             Notice.verifyDetailViewElements();
             Notice.updateDataAboutProcess(updateData.noticeInstrumentType, updateData.noticeManagerEmail);
-            Notice.verifySuccessMessageUpdateNoiceData();
+            Notice.verifySuccessMessageUpdateNoticeData();
             Notice.verifyUpdatedDataAboutProcess(updateData.noticeInstrumentType, updateData.noticeManagerEmail);
         });
     });

@@ -9,5 +9,5 @@
     "managerEmail": "cypress.manager@example.com",
     "quotaNumber": 3,
     "installmentAmount": 1500000,
-    "quantityPerPage": 25
+    "noticesPerPage": 25
 }

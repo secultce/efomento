@@ -94,6 +94,10 @@ class NoticeWorkflow {
             Notice.validateAllNoticesAreDisplayed(totalNotices);
         });
     }
+
+    validateNoticeDetailsPageUrl() {
+        cy.url().should('match', /\/editais\/\d+\/projetos$/);
+    }
 }
 
 export default new NoticeWorkflow();
