@@ -40,7 +40,7 @@ class NoticeUpdateRequest extends FormRequest
             ],
 
             'instrument_type' => [
-                'sometimes',
+                'required',
                 function (string $attribute, mixed $value, \Closure $fail) use ($notice) {
                     if ($notice) {
                         $currentValue = $notice->instrument_type instanceof \BackedEnum
@@ -52,9 +52,7 @@ class NoticeUpdateRequest extends FormRequest
                         }
                     }
                 },
-                Rule::when(fn () => filled($this->input('instrument_type')), [
-                    new Enum(InstrumentType::class),
-                ]),
+                new Enum(InstrumentType::class),
             ],
 
             'name' => ['sometimes', 'string'],
