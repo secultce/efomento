@@ -47,7 +47,7 @@ class NoticeUpdateRequest extends FormRequest
                             ? $notice->instrument_type->value
                             : $notice->instrument_type;
 
-                        if ($currentValue !== $value && ! $this->user()->hasRole(Role::SUPER_ADMIN)) {
+                        if ($currentValue && $currentValue !== $value && ! $this->user()->hasRole(Role::SUPER_ADMIN)) {
                             $fail('Você não tem permissão para alterar ou remover o tipo de instrumento do edital.');
                         }
                     }
