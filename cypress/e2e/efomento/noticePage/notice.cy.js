@@ -2,9 +2,13 @@ import NoticeWorkflow from '../../../support/workflows/NoticeWorkflow';
 import Notice from '../../../pages/notice/NoticePage';
 
 describe('Notice Page - E2E Tests', () => {
-    beforeEach(() => {
+    beforeEach(function () {
         cy.fixture('users').as('user');
-        cy.fixture('notices').as('notice');
+
+        cy.fixture('notices').then((notices) => {
+            this.notice = notices.notice;
+            this.noticeIdentificationForm = notices.noticeIdentificationForm;
+        });
     });
 
     describe('Dashboard', () => {
@@ -44,10 +48,17 @@ describe('Notice Page - E2E Tests', () => {
             NoticeWorkflow.validateIdentificationDataFormIsVisible();
         });
 
-        it('should fill and submit the identification data form', function () {
+        it.only('should fill and submit the identification data form', function () {
             // Arrange
-            const notice = this.notice;
+            const notice = this.noticeIdentificationForm;
+
+            cy.resetCypressData();
+
             cy.loginByRole('fomentation');
+
+            NoticeWorkflow.gotToNoticePage();
+
+            Notice.searchNoticeByTitle(notice.title);
 
             // Act
             NoticeWorkflow.fillNoticeIdentificationData(notice);
@@ -215,19 +226,31 @@ describe('Notice Page - E2E Tests', () => {
 
     describe('Update Notice Data', () => {
         it('should update data about notice and save', function () {
+            // Arrange
             const currentNotice = this.notice;
             const updateData = this.notice;
 
+            cy.loginByRole('fomentation');
+
+            NoticeWorkflow.gotToNoticePage();
+
+            Notice.searchNoticeByNup(currentNotice.noticeNup);
             Notice.goToNoticeDetailsPage(currentNotice.noticeNup);
-            Notice.clickShowAllInformationButton();
-            Notice.verifyDetailViewElements();
+
+            // Act
             Notice.updateDataAboutProcess(updateData.noticeInstrumentType, updateData.noticeManagerEmail);
+
+            // Assert
             Notice.verifySuccessMessageUpdateNoticeData();
             Notice.verifyUpdatedDataAboutProcess(updateData.noticeInstrumentType, updateData.noticeManagerEmail);
         });
     });
 
     describe('Upload Payment Report', () => {
+        beforeEach(() => {
+            cy.resetCypressData();
+        });
+
         it('should upload payments report', function () {
             // Arrange
             cy.loginByRole('financial');

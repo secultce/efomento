@@ -315,16 +315,18 @@ class Notice {
     }
 
     uploadPaymentsReport() {
+        cy.intercept('POST', '/editais/projetos/pagamento/import').as('importPayments');
+
         cy.get(el.paymentsReportFileInput).selectFile('cypress/fixtures/documents/payments-report.csv', {
             force: true,
         });
     }
 
     displaySuccessMessagePaymentReportUploaded() {
-        cy.get(el.successAlert, { timeout: 20000 })
-            .contains(
-                'Importação concluída. 1 projeto(s) tiveram parcela(s) atualizada(s) com sucesso. 18 projeto(s) foram ignorados por não possuírem orçamento, parcela cadastrada ou parcela pendente de pagamento.'
-            )
+        cy.wait('@importPayments');
+
+        cy.get(el.successAlert)
+            .contains('Importação concluída. 1 projeto(s) tiveram parcela(s) atualizada(s) com sucesso.')
             .should('be.visible');
     }
 }

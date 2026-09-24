@@ -1,4 +1,42 @@
 {
-    "title": "Projects",
-    "projectNup": "12345678901234569"
+    "opening": {
+        "registrationId": "CYPRESS-PROJECT_OPENNING",
+        "phase": "opening",
+        "title": "Projeto Cypress - Abertura",
+        "nup": "27001101234567890"
+    },
+    "legal_analisys": {
+        "registrationId": "CYPRESS-LEGAL_ANALISYS_",
+        "phase": "legal_analisys",
+        "title": "Projeto Cypress - Análise Jurídica",
+        "nup": "27001201234567890"
+    },
+    "formalization": {
+        "registrationId": "CYPRESS-PROJECT-FORMALIZATION",
+        "phase": "formalization",
+        "title": "Projeto Cypress - Formalização",
+        "nup": "27001301234567890"
+    },
+    "budgetary": {
+        "registrationId": "CYPRESS-PROJECT_BUDGETARY",
+        "phase": "budgetary",
+        "title": "Projeto Cypress - Orçamento",
+        "nup": "27001401234567890"
+    },
+    "payment": {
+        "registrationId": "CYPRESS-PROJECT-PAYMENT",
+        "phase": "payment",
+        "title": "Projeto Cypress - Pagamento",
+        "nup": "27001501234567890",
+        "installment": {
+            "number": 1,
+            "amount": 30.08
+        }
+    },
+    "monitoring": {
+        "registrationId": "CYPRESS-PROJECT-MONITORING",
+        "phase": "monitoring",
+        "title": "Projeto Cypress - Monitoramento",
+        "nup": "27001601234567890"
+    }
 }

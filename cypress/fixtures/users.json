@@ -50,7 +50,7 @@
         "new_password": "newpassword"
     },
     "financial": {
-        "name": "Ana Claudia Moreira da Silva",
+        "name": "Claudia Moreira",
         "valid_email": "claudia.moreira@secult.ce.gov.br",
         "password": "password",
         "invalid_email": "test",
