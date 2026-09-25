@@ -1,5 +1,5 @@
 <script setup>
-import { computed, onMounted, ref } from 'vue';
+import { computed, onMounted, ref, watch } from 'vue';
 import { router, useForm } from '@inertiajs/vue3';
 
 import SplitScreenTab from '@/Components/SplitScreenTab.vue';
@@ -86,6 +86,14 @@ const form = useForm({
     validity_end_at: null,
     _method: null,
 });
+
+watch(
+    () => props.project?.formalizations,
+    (formalization) => {
+        form.term_number = formalization?.term_number ?? null;
+    },
+    { deep: true, immediate: true }
+);
 
 onMounted(() => {
     const formalization = props.project.formalizations || {};
@@ -291,12 +299,6 @@ const tramit = async () => {
                     alertTitle: 'Tramitação realizada',
                     alertMessage: 'O processo seguirá com outro setor a partir de agora.',
                     confirmText: 'Entendi',
-                    action: () => {
-                        router.visit(window.location.pathname, {
-                            preserveState: false,
-                            preserveScroll: true,
-                        });
-                    },
                 });
             },
             onError: (errors) => {
@@ -453,13 +455,19 @@ const permissionMessage = computed(() => {
                                         />
                                     </FormField>
 
-                                    <FormField label="Número do termo" required :error="errors.term_number">
+                                    <FormField label="Número do termo" :error="errors.term_number">
                                         <TextField
                                             v-model="form.term_number"
-                                            label="Insira aqui o número do termo"
+                                            label="Gerado automaticamente"
+                                            disabled
+                                            readonly
                                             :error="errors.term_number"
                                             data-cy="term-number-input"
                                         />
+                                        <p class="text-xs text-gray-500 mt-n3">
+                                            * O número do termo é gerado automaticamente pelo sistema após a criação do
+                                            Termo de Execução Cultural.
+                                        </p>
                                     </FormField>
                                 </div>
                             </template>

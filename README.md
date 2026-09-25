@@ -99,6 +99,16 @@ Isso inicia automaticamente:
 
 Acesse: **http://localhost:8080**
 
+### Idioma das mensagens
+
+O idioma padrão é português brasileiro (`pt_BR`). Em ambientes já instalados,
+configure `APP_LOCALE=pt_BR` e `APP_FALLBACK_LOCALE=pt_BR` no `.env` e execute
+`php artisan config:clear` (ou `php artisan config:cache` no deploy) para aplicar
+a alteração. Reinicie os workers de fila para que também usem o novo idioma.
+
+Os nomes dos campos nas mensagens de validação ficam em
+`lang/pt_BR/validation.php`, na chave `attributes`, incluindo os campos aninhados.
+
 ### Comandos úteis
 
 ```bash
@@ -124,6 +134,11 @@ docker exec efomento-app php artisan db:seed --class=PermissionSeeder
 
 # Forcar Sincronismo dos editais
 docker compose exec app php artisan tinker  --execute="SyncNoticesJob::dispatch()"
+
+# Importação de dados via Google Sheets (Abertura, Formalização, Orçamento, Pagamento)
+docker compose exec app php artisan app:import-google-sheets <spreadsheet-id> --user-id=<user_id>
+# Importar apenas a aba de Orçamento
+docker compose exec app php artisan app:import-google-sheets <spreadsheet-id> --aba=Orçamento --user-id=<user_id>
 ```
 
 O comando `php artisan db:seed` (inclusive via `migrate:fresh --seed`) respeita
@@ -147,6 +162,20 @@ Depois de alterar `SEED_MODE` em um ambiente com configuracao em cache, execute
 | Vite HMR      | http://localhost:5173  |
 | PostgreSQL    | localhost:5433         |
 | Webmail       | http://localhost:8025  |
+
+### Verificação de acesso por email
+
+O login exige senha e um código de 6 dígitos enviado ao email da conta. O código expira em 5 minutos, é de uso único e fica armazenado como hash no cache. Há limite de 5 tentativas por conta em 10 minutos e intervalo de 60 segundos entre envios. Reenviar invalida o código anterior daquela sessão; alterar email ou senha também invalida a solicitação.
+
+O envio reutiliza `config/mail.php` e as variáveis `MAIL_*` existentes, com jobs criptografados na fila `high`. Mantenha um worker consumindo essa fila (por exemplo, `php artisan queue:work --queue=high,medium,details,default`). O prazo começa na solicitação, não na entrega; monitore atrasos e falhas de envio. Configure um mailer que entregue emails no ambiente de produção; `log` e `array` não entregam mensagens. Localmente, a estrutura Greenmail/Roundcube existente pode receber os códigos.
+
+Use cache persistente com suporte a locks (por exemplo, `database` ou `redis`), compartilhado entre instâncias, e sessões persistentes. Execute as migrations para criar a tabela `trusted_devices`. Não use sessões em cookies: as rotas de login usam bloqueio de sessão para serializar verificação, reenvio e cancelamento. Ao publicar, atualize o build do frontend e o cache de rotas com o fluxo habitual de deploy. Sessões já abertas continuam válidas; novos logins exigem o código e cookies antigos de “lembrar de mim” não permitem entrar pela interface web.
+
+A opção “Confiar neste dispositivo” dispensa o código por 30 dias após uma verificação bem-sucedida, mas sempre exige a senha. A validade não se estende com o uso. O cookie é criptografado, HttpOnly, SameSite=Lax e Secure em produção; use HTTPS. Os tokens são vinculados ao email e à senha atuais. Trocas e redefinições de senha removem os dispositivos e registram a revogação na auditoria sem armazenar tokens ou senhas. Alterar a senha pelo perfil exige a senha atual.
+
+Os parâmetros ficam em `config/two_factor.php`. Ao atualizar esta implementação, desafios pendentes antigos e cookies de confiança emitidos antes da vinculação às credenciais deixam de funcionar; o usuário deve entrar novamente e confirmar um novo código.
+
+Validação automatizada: `php artisan test tests/Feature/Auth`.
 
 ## Arquitetura
 

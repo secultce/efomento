@@ -3,9 +3,11 @@
 namespace App\Services;
 
 use App\Exceptions\Domain\BusinessRuleException;
+use App\Models\Formalization;
 use App\Models\Notice;
 use App\Models\Project;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\DB;
 
 class NoticeService
 {
@@ -84,5 +86,45 @@ class NoticeService
                 'notice_url' => data_get($notice, 'singleUrl'),
             ]
         );
+    }
+
+    public function update(Notice $notice, array $data): Notice
+    {
+        return DB::transaction(function () use ($notice, $data) {
+            if (array_key_exists('instrument_type', $data)) {
+                if (is_null($data['instrument_type'])) {
+                    unset($data['instrument_type']);
+                } else {
+                    $projectIds = Project::where('notice_id', $notice->id)
+                        ->orderBy('id')
+                        ->lockForUpdate()
+                        ->pluck('id');
+
+                    $lockedNotice = Notice::where('id', $notice->id)
+                        ->lockForUpdate()
+                        ->first();
+
+                    $currentType = $lockedNotice->instrument_type instanceof \BackedEnum
+                        ? $lockedNotice->instrument_type->value
+                        : $lockedNotice->instrument_type;
+
+                    $instrumentTypeChanged = $data['instrument_type'] !== $currentType;
+
+                    $lockedNotice->update($data);
+
+                    if ($instrumentTypeChanged) {
+                        Formalization::whereIn('project_id', $projectIds)
+                            ->lockForUpdate()
+                            ->update(['term_number' => null]);
+                    }
+
+                    return $lockedNotice;
+                }
+            }
+
+            $notice->update($data);
+
+            return $notice;
+        });
     }
 }

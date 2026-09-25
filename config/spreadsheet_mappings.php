@@ -42,6 +42,22 @@ return [
             'DATA TRAMITAÇÃO CODIP > COAFI' => 'processing_date_for_coafi',
             'DATA RECEBIMENTO CODIP' => 'processing_date_for_codip',
         ],
+
+        'budget_allocation_columns' => [
+            'allocation_code' => 'CÓDIGO DA DOTAÇÃO',
+            'allocation_number' => 'DOTAÇÃO ORÇAMENTÁRIA',
+            'finalistic_project' => 'PROJETO FINALISTICO',
+        ],
+
+        'installment_columns' => [
+            'single_amount' => 'VALOR DE REPASSE (PARCELA ÚNICA)',
+            'amount_1' => 'VALOR DE REPASSE (1ª PARCELA)',
+            'amount_2' => 'VALOR DE REPASSE (2ª PARCELA)',
+            'amount_3' => 'VALOR DE REPASSE (3ª PARCELA)',
+            'notice_installment_number' => 'Nº PARCELA',
+            'request_date' => 'DATA DE SOLICITAÇÃO DA PARCELA',
+            'observations' => 'OBSERVAÇÃO',
+        ],
     ],
 
     'pagamento' => [

@@ -3,12 +3,16 @@ import Notice from '../../../pages/notice/NoticePage';
 
 describe('Notice Page - E2E Tests', () => {
     beforeEach(function () {
+        cy.resetCypressData();
+
         cy.fixture('users').as('user');
 
         cy.fixture('notices').then((notices) => {
             this.notice = notices.notice;
             this.noticeIdentificationForm = notices.noticeIdentificationForm;
         });
+
+        cy.fixture('noticeUpdate').as('noticeUdate');
     });
 
     describe('Dashboard', () => {
@@ -48,11 +52,9 @@ describe('Notice Page - E2E Tests', () => {
             NoticeWorkflow.validateIdentificationDataFormIsVisible();
         });
 
-        it.only('should fill and submit the identification data form', function () {
+        it('should fill and submit the identification data form', function () {
             // Arrange
             const notice = this.noticeIdentificationForm;
-
-            cy.resetCypressData();
 
             cy.loginByRole('fomentation');
 
@@ -110,7 +112,7 @@ describe('Notice Page - E2E Tests', () => {
                 Notice.clearNoticeSearch();
 
                 // Assert
-                Notice.validateAllNoticesAreDisplayed(initialTotal);
+                Notice.validateNoticeListAfterClearingSearch(initialTotal);
             });
         });
     });
@@ -181,7 +183,7 @@ describe('Notice Page - E2E Tests', () => {
     describe('Pagination', () => {
         it('should change the number of items displayed per page', function () {
             // Arrange
-            const noticesPerPage = this.notice.quantityPerPage;
+            const noticesPerPage = this.notice.noticesPerPage;
             cy.loginByRole('fomentation');
             NoticeWorkflow.gotToNoticePage();
 
@@ -228,7 +230,7 @@ describe('Notice Page - E2E Tests', () => {
         it('should update data about notice and save', function () {
             // Arrange
             const currentNotice = this.notice;
-            const updateData = this.notice;
+            const noticeUpdate = this.noticeUdate;
 
             cy.loginByRole('fomentation');
 
@@ -236,13 +238,14 @@ describe('Notice Page - E2E Tests', () => {
 
             Notice.searchNoticeByNup(currentNotice.noticeNup);
             Notice.goToNoticeDetailsPage(currentNotice.noticeNup);
+            Notice.clickShowAllInformationButton();
 
             // Act
-            Notice.updateDataAboutProcess(updateData.noticeInstrumentType, updateData.noticeManagerEmail);
+            Notice.updateDataAboutProcess(noticeUpdate.accompanimentManager, noticeUpdate.managerEmail);
 
             // Assert
             Notice.verifySuccessMessageUpdateNoticeData();
-            Notice.verifyUpdatedDataAboutProcess(updateData.noticeInstrumentType, updateData.noticeManagerEmail);
+            Notice.verifyUpdatedDataAboutProcess(noticeUpdate.accompanimentManager, noticeUpdate.managerEmail);
         });
     });
 

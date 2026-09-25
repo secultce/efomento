@@ -2,7 +2,6 @@
 
 namespace App\Console\Commands;
 
-use App\Models\Notice;
 use Illuminate\Console\Command;
 
 class CypressResetCommand extends Command
@@ -14,8 +13,6 @@ class CypressResetCommand extends Command
     public function handle(): int
     {
         $this->info('Resetting Cypress test data...');
-
-        Notice::where('external_id', 'cypress-notice-identification-form')->delete();
 
         $this->call('db:seed', [
             '--class' => 'Database\\Seeders\\CypressSeeder',

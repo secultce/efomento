@@ -25,6 +25,9 @@ const props = defineProps({
 
 const emit = defineEmits(['saved']);
 
+const { canManageBudget, canManageLegalAnalysis } = usePermissions();
+const { showSnackbar } = useSnackbar();
+
 const viewHistory = ref(false);
 const budgetAllocationDialog = ref(false);
 const budgetAllocationInput = ref(null);
@@ -38,16 +41,26 @@ const documentType = ref(null);
 const documentListDialog = ref(false);
 const downloadingType = ref(null);
 
+const noticeId = computed(() => props.notice?.id ?? null);
+
 const selectedProjectsList = computed(() =>
     props.projects.filter((project) => props.selectedProjects.includes(project.id))
 );
 
 function isNoticeLevelDocument(type) {
-    return type === DOCUMENT_TYPES.PI;
+    return [DOCUMENT_TYPES.PI, DOCUMENT_TYPES.JR].includes(type);
 }
 
 function noticeDocument(type) {
     return props.noticeDocuments.find((document) => document.type === type) ?? null;
+}
+
+function canManageDocument(type) {
+    if (type === DOCUMENT_TYPES.JR) {
+        return canManageLegalAnalysis.value;
+    }
+
+    return canManageBudget.value;
 }
 
 const selectedDocument = computed(() => {
@@ -98,12 +111,13 @@ const selectedDocuments = computed(() => {
     );
 });
 
-const budgetOpinionDocuments = computed(() =>
-    [DOCUMENT_TYPES.PI, DOCUMENT_TYPES.PF].map((type) => ({
+const noticeOpinionDocuments = computed(() =>
+    [DOCUMENT_TYPES.JR, DOCUMENT_TYPES.PI, DOCUMENT_TYPES.PF].map((type) => ({
         type,
         name: documentConfigs[type].name,
         createLabel: documentConfigs[type].titleCreate,
         editLabel: documentConfigs[type].titleEdit,
+        canManage: canManageDocument(type),
     }))
 );
 
@@ -116,7 +130,7 @@ function hasDocument(type) {
 }
 
 function openDocumentDialog(type) {
-    if (!canManageBudget.value || (!isNoticeLevelDocument(type) && !props.selectedProjects.length)) {
+    if (!canManageDocument(type) || (!isNoticeLevelDocument(type) && !props.selectedProjects.length)) {
         return;
     }
 
@@ -133,7 +147,10 @@ async function downloadDocuments(type, format) {
         const document = noticeDocument(type);
 
         if (!document) {
-            showSnackbar('Crie o parecer orçamentário inicial antes de baixá-lo.', 'warning');
+            showSnackbar(
+                `Crie o ${documentConfigs[type]?.name?.toLowerCase() ?? 'documento'} antes de baixá-lo.`,
+                'warning'
+            );
 
             return;
         }
@@ -165,10 +182,6 @@ function openDocumentList(type) {
     documentListDialog.value = true;
 }
 
-const noticeId = computed(() => props.notice?.id ?? null);
-const { canManageBudget } = usePermissions();
-const { showSnackbar } = useSnackbar();
-
 watch(
     () => props.hasBudgetAllocations,
     (hasAllocations) => {
@@ -199,6 +212,13 @@ async function handleBudgetAllocationUpload(event) {
     const file = event.target.files?.[0];
 
     if (!file || !noticeId.value || !canManageBudget.value) {
+        event.target.value = '';
+
+        return;
+    }
+
+    if (file.size > 10 * 1024 * 1024) {
+        showSnackbar('O arquivo selecionado excede o limite máximo permitido de 10MB.', 'error');
         event.target.value = '';
 
         return;
@@ -343,12 +363,12 @@ function openNoticeHistory() {
                     </template>
                 </div>
 
-                <div v-for="document in budgetOpinionDocuments" :key="document.type" class="flex flex-col gap-2">
+                <div v-for="document in noticeOpinionDocuments" :key="document.type" class="flex flex-col gap-2">
                     <p>{{ document.name }} ({{ document.type.toUpperCase() }})</p>
 
                     <div
                         v-permission="{
-                            condition: canManageBudget,
+                            condition: document.canManage,
                             message:
                                 'Você não tem permissão para criar ou editar este documento, contate o administrador do sistema.',
                         }"
@@ -358,7 +378,8 @@ function openNoticeHistory() {
                             variant="outlined"
                             class="w-full !shadow-none !font-bold !border-gray-300 !bg-white !text-[#2d353fFF] rounded-lg text-xs gap-6"
                             :disabled="
-                                (!isNoticeLevelDocument(document.type) && !selectedProjects.length) || !canManageBudget
+                                (!isNoticeLevelDocument(document.type) && !selectedProjects.length) ||
+                                !document.canManage
                             "
                             @click="openDocumentDialog(document.type)"
                         >
@@ -373,7 +394,8 @@ function openNoticeHistory() {
                             v-else
                             class="w-full rounded-lg px-4 py-2 text-xs !bg-[#ffcc05FF] !font-bold !text-[#2d353fFF] !shadow-none"
                             :disabled="
-                                (!isNoticeLevelDocument(document.type) && !selectedProjects.length) || !canManageBudget
+                                (!isNoticeLevelDocument(document.type) && !selectedProjects.length) ||
+                                !document.canManage
                             "
                             @click="openDocumentDialog(document.type)"
                         >
@@ -381,7 +403,7 @@ function openNoticeHistory() {
                         </v-btn>
                     </div>
 
-                    <div class="flex w-full flex-col gap-2 sm:flex-row">
+                    <div class="grid w-full grid-cols-[repeat(auto-fit,minmax(min(100%,9rem),1fr))] gap-2">
                         <DocumentDownloadMenu
                             :label="isNoticeLevelDocument(document.type) ? 'Baixar' : 'Baixar todos'"
                             button-class="flex-1 !shadow-none !border-primary !text-primary rounded-lg text-xs"

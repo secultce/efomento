@@ -33,7 +33,7 @@ const form = useForm({
     budget_allocation_request_date: '',
     creditor_registration_nup: '',
     creditor_registration_request_date: '',
-    monitoring_report_request_deadline: 'PNAB',
+    monitoring_report_request_deadline: null,
 });
 
 watch(
@@ -41,7 +41,13 @@ watch(
     (notice) => {
         if (!notice) return;
         form.nup = notice.mae ?? '';
-        form.monitoring_report_request_deadline = notice.monitoring_report_request_deadline ?? 'PNAB';
+    }
+);
+
+watch(
+    () => props.modelValue,
+    (isOpen) => {
+        if (isOpen) form.monitoring_report_request_deadline = null;
     }
 );
 
@@ -98,16 +104,14 @@ const valorExtenso = computed(() => {
                                     mask="#####.######/####-##"
                                     data-cy="notice-nup-identification-data-form"
                                 />
+                                <p class="text-xs text-gray-500 mt-n3">
+                                    * O NUP não pode ser editado após completar a adição dos dados. Fique atento.
+                                </p>
                             </FormField>
                         </v-col>
 
                         <v-col cols="12" md="6">
-                            <FormField
-                                label="Tipo de instrumento"
-                                :error="form.errors.instrument_type"
-                                required
-                                clearable
-                            >
+                            <FormField label="Tipo de instrumento" :error="form.errors.instrument_type" required>
                                 <SelectField
                                     v-model="form.instrument_type"
                                     :items="instrumentTypes"
@@ -179,7 +183,7 @@ const valorExtenso = computed(() => {
 
                         <v-col cols="12" md="6">
                             <FormField
-                                label="Prazo para solicitação do relatório de monitoramento"
+                                label="Política Pública"
                                 :error="form.errors.monitoring_report_request_deadline"
                                 required
                             >
@@ -188,7 +192,7 @@ const valorExtenso = computed(() => {
                                     :items="monitoringReportRequestDeadlines"
                                     item-title="label"
                                     item-value="value"
-                                    placeholder="Selecione o prazo"
+                                    placeholder="Selecione uma Política Pública"
                                     required
                                     data-cy="public-policy-identification-data-form-select"
                                 />

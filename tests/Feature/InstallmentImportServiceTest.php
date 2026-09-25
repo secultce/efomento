@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Events\InstallmentPaidEvent;
 use App\Exceptions\Domain\BusinessRuleException;
 use App\Models\Budget;
 use App\Models\Installment;
@@ -10,6 +11,7 @@ use App\Models\Project;
 use App\Services\InstallmentImportService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Str;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
@@ -706,6 +708,29 @@ class InstallmentImportServiceTest extends TestCase
             $file,
             [$project->id],
         );
+    }
+
+    public function test_paid_transition_dispatches_once_on_reimport(): void
+    {
+        Event::fake([InstallmentPaidEvent::class]);
+        $project = Project::factory()->create();
+        $project->opening->update(['opening_nup' => '23000.000001/2024-10']);
+        $budget = Budget::factory()->create(['project_id' => $project->id]);
+        $installment = Installment::factory()->create([
+            'budget_id' => $budget->id, 'installment_number' => 1, 'amount' => 1000.50,
+            'committed_amount' => null, 'settlement_amount' => null, 'payment_amount' => null,
+        ]);
+        $irregularFile = $this->makeSpreadsheet([$this->paymentRow()]);
+        $this->importSpreadsheet($irregularFile, [$project->id]);
+        Event::assertNotDispatched(InstallmentPaidEvent::class);
+        $file = $this->makeSpreadsheet([$this->paymentRow([
+            'Empenhado' => '1.000,50', 'Liquidado' => '1.000,50', 'Pago' => '1.000,50',
+        ])]);
+        $this->importSpreadsheet($file, [$project->id]);
+        $this->importSpreadsheet($file, [$project->id]);
+        Event::assertDispatchedTimes(InstallmentPaidEvent::class, 1);
+        Event::assertDispatched(InstallmentPaidEvent::class,
+            fn ($event) => $event->installmentId === $installment->id);
     }
 
     private function importSpreadsheet(

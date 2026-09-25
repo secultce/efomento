@@ -53,15 +53,6 @@ class Notice {
         cy.get(el.identificationDataFormButton).should('be.visible').first().click();
     }
 
-    fillRequiredIdentificationDataFields(formData) {
-        const { noticeNup, instrumentType, totalAmount, quotaNumber } = formData;
-
-        cy.get(el.noticeNupInput).should('be.visible').type(noticeNup);
-        this.selectDropdownOption(el.instrumentTypeSelect, instrumentType);
-        cy.get(el.totalAmountInput).should('be.visible').type(totalAmount);
-        cy.get(el.quotaNumberInput).should('be.visible').type(quotaNumber);
-    }
-
     fillIdentificationDataForm(formData) {
         const { noticeNup, instrumentType, totalAmount, accompanimentManager, managerEmail, quotaNumber } = formData;
 
@@ -146,11 +137,12 @@ class Notice {
             .then((text) => Number(text.trim()));
     }
 
-    validateAllNoticesAreDisplayed(expectedQuantity) {
-        this.getTotalNotices().should('eq', expectedQuantity);
+    validateNoticeListAfterClearingSearch(expectedTotal, expectedRows = 10) {
+        this.getTotalNotices().should('eq', expectedTotal);
 
-        cy.get(`${el.noticeListTable} tbody tr`).should('have.length', expectedQuantity);
+        cy.get(`${el.noticeListTable} tbody tr`).should('have.length', expectedRows);
     }
+
     filterByProcessStatus(status) {
         this.selectDropdownOption(el.filterProcessStatusSelect, status);
     }
@@ -190,7 +182,7 @@ class Notice {
             el.noticeTitleDetail,
             el.noticeNupDetail,
             el.instrumentTypeDetail,
-            el.noticeManagerDetail,
+            el.accompanimentManagerDetail,
             el.budgetAllocationRequestDateDetail,
             el.totalAmountDetail,
             el.valueInFullDetail,
@@ -251,14 +243,19 @@ class Notice {
         return String(value).replace(/\D/g, '');
     }
 
-    updateDataAboutProcess(newInstrumentType, newManagerEmail) {
-        const instrumentType = newInstrumentType.toString();
+    updateDataAboutProcess(newAccompanimentManager, newManagerEmail) {
+        const newNoticeManager = String(newAccompanimentManager);
 
-        cy.get(el.instrumentTypeDetail).children().eq(1).click();
-        this.selectDropdownOption(el.instrumentTypeDetail, instrumentType);
+        cy.get(el.accompanimentManagerDetail).should('be.visible').children().eq(1).click();
+
+        cy.get(el.noticeEditTextField).find('input').should('be.visible').clear();
+
+        cy.get(el.noticeEditTextField).find('input').should('be.visible').type(newNoticeManager);
 
         cy.get(el.managerEmailDetail).children().eq(1).click();
+
         cy.get(el.noticeEditTextField).find('input').should('be.visible').clear();
+
         cy.get(el.noticeEditTextField).find('input').should('be.visible').type(newManagerEmail);
 
         cy.get(el.updateDataButton).click({ force: true });
@@ -268,17 +265,17 @@ class Notice {
         cy.get(el.successAlert, { timeout: 20000 }).contains('Dados atualizados com sucesso').should('be.visible');
     }
 
-    verifyUpdatedDataAboutProcess(newInstrumentType, newManagerEmail) {
+    verifyUpdatedDataAboutProcess(newaccompanimentManager, newManagerEmail) {
         cy.reload();
 
         this.clickShowAllInformationButton();
 
-        cy.get(el.instrumentTypeDetail)
+        cy.get(el.accompanimentManagerDetail)
             .children()
             .eq(1)
             .invoke('text')
             .then((text) => {
-                expect(text.trim()).to.eq(newInstrumentType);
+                expect(text.trim()).to.eq(newaccompanimentManager);
             });
 
         cy.get(el.managerEmailDetail)

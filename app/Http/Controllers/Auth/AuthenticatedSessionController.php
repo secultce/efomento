@@ -4,6 +4,8 @@ namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Auth\LoginRequest;
+use App\Services\LoginCodeService;
+use App\Services\TrustedDeviceService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -27,13 +29,23 @@ class AuthenticatedSessionController extends Controller
     /**
      * Handle an incoming authentication request.
      */
-    public function store(LoginRequest $request): RedirectResponse
+    public function store(LoginRequest $request, LoginCodeService $codes, TrustedDeviceService $devices): RedirectResponse
     {
-        $request->authenticate();
+        $user = $request->authenticate();
 
         $request->session()->regenerate();
 
-        return redirect()->intended(route('notices.index', absolute: false));
+        if ($devices->findTrustedDevice($request, $user)) {
+            $codes->cancel($request);
+            Auth::guard('web')->login($user);
+            $request->session()->regenerate();
+
+            return redirect()->intended(route('notices.index', absolute: false));
+        }
+
+        $codes->send($request, $user);
+
+        return redirect()->route('two-factor.show');
     }
 
     /**

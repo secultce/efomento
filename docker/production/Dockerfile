@@ -9,6 +9,7 @@ RUN apk add --no-cache \
     curl \
     libpng-dev \
     libjpeg-turbo-dev \
+    libwebp-dev \
     freetype-dev \
     oniguruma-dev \
     libxml2-dev \
@@ -16,7 +17,7 @@ RUN apk add --no-cache \
     postgresql-dev \
     zip \
     unzip \
-    && docker-php-ext-configure gd --with-freetype --with-jpeg \
+    && docker-php-ext-configure gd --with-freetype --with-jpeg --with-webp \
     && docker-php-ext-install -j$(nproc) \
         pdo_pgsql \
         pgsql \
@@ -53,6 +54,16 @@ RUN composer install \
 # Stage 3: Build dos assets      #
 ##################################
 FROM node:22-alpine AS frontend
+
+ARG VITE_REVERB_APP_KEY
+ARG VITE_REVERB_HOST
+ARG VITE_REVERB_PORT
+ARG VITE_REVERB_SCHEME
+
+ENV VITE_REVERB_APP_KEY=$VITE_REVERB_APP_KEY \
+    VITE_REVERB_HOST=$VITE_REVERB_HOST \
+    VITE_REVERB_PORT=$VITE_REVERB_PORT \
+    VITE_REVERB_SCHEME=$VITE_REVERB_SCHEME
 
 ENV CI=true
 
@@ -91,3 +102,12 @@ USER www-data
 EXPOSE 9000
 
 CMD ["php-fpm"]
+
+##################################
+# Stage 5: Nginx                 #
+##################################
+FROM nginx:alpine AS nginx
+
+COPY docker/production/nginx.conf /etc/nginx/conf.d/default.conf
+
+COPY --from=php-prod /var/www/public /var/www/public

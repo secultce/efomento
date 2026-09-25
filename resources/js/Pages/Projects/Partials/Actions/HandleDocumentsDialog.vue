@@ -71,7 +71,7 @@ const footerLayout = ref(IMAGE_LAYOUTS.NONE);
 
 const layoutOptions = [
     {
-        title: 'Sem cabeçalho',
+        title: 'Sem imagens',
         value: IMAGE_LAYOUTS.NONE,
     },
     {

@@ -18,7 +18,7 @@ const form = useForm({
 });
 
 const { showSnackbar } = useSnackbar();
-const { canManageNotices } = usePermissions();
+const { canManageNotices, isSuperAdmin } = usePermissions();
 const { maskProcessNumber } = useMask();
 
 const showAll = ref(false);
@@ -69,18 +69,19 @@ const saveAll = () => {
             <div v-show="showAll" class="mt-2 space-y-1 transition-all duration-200 ease-in-out">
                 <EditableField
                     v-model="form.instrument_type"
-                    :disabled="!canManageNotices"
+                    :disabled="!isSuperAdmin"
                     label="Tipo de Instrumento:"
                     type="select"
                     :items="instrumentTypes"
                     :error="form.errors.instrument_type"
                     data-cy="instrument-type-show-all-information"
+                    required
                 />
                 <EditableField
                     v-model="form.process_manager"
                     :disabled="!canManageNotices"
                     label="Gestor do processo do sistema:"
-                    data-cy="notice-manager-show-all-information"
+                    data-cy="accompaniment-manager-show-all-information"
                 />
                 <EditableField
                     v-model="form.budget_allocation_request_date"
@@ -152,7 +153,7 @@ const saveAll = () => {
                 <EditableField
                     v-model="form.monitoring_report_request_deadline"
                     :disabled="!canManageNotices"
-                    label="Prazo para solicitação do relatório de monitoramento:"
+                    label="Política Pública:"
                     type="select"
                     :items="monitoringReportRequestDeadlines"
                     item-title="label"

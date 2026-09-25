@@ -70,4 +70,26 @@ class PasswordResetTest extends TestCase
             return true;
         });
     }
+
+    public function test_unknown_email_returns_a_portuguese_reset_error(): void
+    {
+        $this->post('/forgot-password', ['email' => 'unknown@example.com'])
+            ->assertSessionHasErrors([
+                'email' => 'Não existe nenhum usuário com o e-mail indicado.',
+            ]);
+    }
+
+    public function test_invalid_token_returns_a_portuguese_reset_error(): void
+    {
+        $user = User::factory()->create();
+
+        $this->post('/reset-password', [
+            'token' => 'invalid-token',
+            'email' => $user->email,
+            'password' => 'new-password',
+            'password_confirmation' => 'new-password',
+        ])->assertSessionHasErrors([
+            'email' => 'Este código de recuperação de senha é inválido.',
+        ]);
+    }
 }

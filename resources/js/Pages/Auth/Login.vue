@@ -6,6 +6,7 @@ import PrimaryButton from '@/Components/PrimaryButton.vue';
 import SecondaryButton from '@/Components/SecondaryButton.vue';
 import TextInput from '@/Components/TextInput.vue';
 import { Head, Link, useForm } from '@inertiajs/vue3';
+import { ref } from 'vue';
 
 defineProps({
     canResetPassword: {
@@ -21,8 +22,8 @@ defineProps({
 const form = useForm({
     email: '',
     password: '',
-    remember: false,
 });
+const showPassword = ref(false);
 
 const submit = () => {
     form.post(route('login'), {
@@ -93,15 +94,29 @@ const openSupport = () => {
                     <div class="mt-8">
                         <InputLabel for="password" value="Insira sua senha" />
 
-                        <TextInput
-                            id="password"
-                            v-model="form.password"
-                            type="password"
-                            placeholder="Aqui vai a senha de acesso que você solicitou"
-                            class="border border-gray-300 mt-1 h-[3.5em] block w-full border-radius-[0.5em] px-[0.8em] text-[0.8em]"
-                            required
-                            autocomplete="current-password"
-                        />
+                        <div class="relative mt-1">
+                            <TextInput
+                                id="password"
+                                v-model="form.password"
+                                :type="showPassword ? 'text' : 'password'"
+                                placeholder="Aqui vai a senha de acesso que você solicitou"
+                                class="border border-gray-300 h-[3.5em] block w-full border-radius-[0.5em] pl-[0.8em] pr-10 text-[0.8em]"
+                                required
+                                autocomplete="current-password"
+                            />
+                            <button
+                                type="button"
+                                class="absolute inset-y-0 right-0 flex w-10 items-center justify-center rounded-r-md text-gray-600 hover:text-gray-900 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-500"
+                                :aria-label="showPassword ? 'Ocultar senha' : 'Mostrar senha'"
+                                :aria-pressed="showPassword"
+                                @click="showPassword = !showPassword"
+                            >
+                                <span
+                                    aria-hidden="true"
+                                    :class="showPassword ? 'mdi mdi-eye-off-outline' : 'mdi mdi-eye-outline'"
+                                ></span>
+                            </button>
+                        </div>
 
                         <InputError class="mt-2" :message="form.errors.password" />
                     </div>

@@ -7,6 +7,7 @@ export const DOCUMENT_TYPES = {
     ET: 'et',
     DO: 'do',
     DP: 'dp',
+    JR: 'jr',
 };
 
 export const DOCUMENT_DOWNLOAD_FORMATS = {
@@ -63,6 +64,7 @@ const placeHoldersDocsSchema = [
     { label: 'N. Dotação Orçamentária', value: 'budget_allocation_nup' },
     { label: 'N. Cad. Credor', value: 'creditor_registration_nup' },
     { label: 'Categ. do Projeto', value: 'project_category' },
+    { label: 'Número do Termo', value: 'term_number' },
 ];
 
 const installmentPlaceHoldersDocsSchema = [
@@ -153,5 +155,13 @@ export const documentConfigs = {
         titleEdit: 'Editar Despacho de Pagamento (DP)',
         save: 'dp',
         placeholders: installmentPlaceHoldersDocsSchema,
+    },
+
+    [DOCUMENT_TYPES.JR]: {
+        name: 'Parecer Jurídico Referencial',
+        titleCreate: 'Criar parecer jurídico referencial (JR)',
+        titleEdit: 'Editar parecer jurídico referencial (JR)',
+        save: 'jr',
+        placeholders: initialBudgetOpinionPlaceHoldersDocsSchema,
     },
 };
