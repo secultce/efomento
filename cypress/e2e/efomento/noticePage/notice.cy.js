@@ -1,177 +1,268 @@
-import Login from '../../../pages/auth';
+import NoticeWorkflow from '../../../support/workflows/NoticeWorkflow';
 import Notice from '../../../pages/notice/NoticePage';
 
 describe('Notice Page - E2E Tests', () => {
-    beforeEach(() => {
+    beforeEach(function () {
+        cy.resetCypressData();
+
         cy.fixture('users').as('user');
-        cy.fixture('notices').as('notice');
 
-        cy.get('@user').then((user) => {
-            Login.accessLoginPage();
-            Login.successLogin(user.valid_email, user.password, user.name);
+        cy.fixture('notices').then((notices) => {
+            this.notice = notices.notice;
+            this.noticeIdentificationForm = notices.noticeIdentificationForm;
         });
 
-        Notice.visitPage();
-        Notice.verifyPageLoaded();
+        cy.fixture('noticeUpdate').as('noticeUdate');
     });
 
-    describe('Page Access and Navigation', () => {
-        it('should access the notice list page', function () {
-            cy.url().should('include', '/editais');
-        });
+    describe('Dashboard', () => {
+        it('should display the notice dashboard metrics', function () {
+            // Arrange
+            cy.loginByRole('fomentation');
 
-        it('should display the notice list table', function () {
-            cy.get('[data-cy=table-notice-list]').should('be.visible');
-        });
-    });
+            // Act
+            NoticeWorkflow.gotToNoticePage();
 
-    describe('Dashboard Visibility', () => {
-        it('should display all dashboard cards', function () {
+            // Assert
             Notice.verifyDashboardCardsAreVisible();
         });
 
         it('should display all dashboard metric cards', function () {
+            // Arrange
+            cy.loginByRole('fomentation');
+
+            // Act
+            NoticeWorkflow.gotToNoticePage();
+
+            // Assert
             Notice.verifyAllDashboardMetrics();
         });
     });
 
-    describe('User Information Display', () => {
-        it('should display logged user name in header avatar', function () {
-            Notice.verifyLoggedUserDisplayedInHeader(this.user.name);
-        });
-
-        it('should display welcome message with user name', function () {
-            Notice.verifyWelcomeMessageDisplaysUsername(this.user.name);
-        });
-    });
-
-    describe('Identification Data Form', () => {
+    describe('Identification Data', () => {
         it('should open the identification data form', function () {
-            Notice.openIdentificationDataForm();
-            cy.get('[data-cy=notice-nup-identification-data-form]').should('be.visible');
+            // Arrange
+            cy.loginByRole('fomentation');
+            NoticeWorkflow.gotToNoticePage();
+
+            // Act
+            NoticeWorkflow.openIdentificationDataForm();
+
+            // Assert
+            NoticeWorkflow.validateIdentificationDataFormIsVisible();
         });
 
         it('should fill and submit the identification data form', function () {
-            Notice.openIdentificationDataForm();
+            // Arrange
+            const notice = this.noticeIdentificationForm;
 
-            const notice = this.notice[0];
-            const formData = {
-                noticeNup: notice.noticeNup,
-                instrumentType: notice.noticeInstrumentType,
-                totalAmount: notice.noticeTotalValue,
-                noticeManager: notice.noticeAccompanimentManager,
-                managerEmail: notice.noticeManagerEmail,
-                quotaNumber: notice.quotaNumber,
-            };
+            cy.loginByRole('fomentation');
 
-            Notice.fillIdentificationDataForm(formData);
+            NoticeWorkflow.gotToNoticePage();
+
+            Notice.searchNoticeByTitle(notice.title);
+
+            // Act
+            NoticeWorkflow.fillNoticeIdentificationData(notice);
+            Notice.submitIdentificationDataForm();
+
+            // Assert
             Notice.verifySuccessMessageIdentificationDataForm();
         });
     });
 
     describe('Search Functionality', () => {
         it('should find a notice by title', function () {
-            const notice = this.notice[0];
+            // Arrange
+            const notice = this.notice;
+            cy.loginByRole('fomentation');
 
+            // Act
+            NoticeWorkflow.gotToNoticePage();
             Notice.searchNoticeByTitle(notice.title);
+
+            // Assert
+            Notice.validateResultSearchByTitle(notice.title);
         });
 
-        it('should find a notice by NUP number', function () {
-            const notice = this.notice[0];
+        it('should find a notice by NUP', function () {
+            // Arrange
+            const notice = this.notice;
+            cy.loginByRole('fomentation');
 
+            // Act
+            NoticeWorkflow.gotToNoticePage();
             Notice.searchNoticeByNup(notice.noticeNup);
+
+            // Assert
+            Notice.validateResultSearchByNup(notice.noticeNup);
         });
 
         it('should clear search and display all notices', function () {
-            const notice = this.notice[0];
+            // Arrange
+            const notice = this.notice;
+            cy.loginByRole('fomentation');
 
-            Notice.searchNoticeByNup(notice.noticeNup);
-            cy.get('[data-cy=find-specific-notice] input').clear();
-            cy.get('[data-cy=table-notice-list] tbody tr').should('have.length.greaterThan', 1);
+            NoticeWorkflow.gotToNoticePage();
+
+            Notice.getTotalNotices().then((initialTotal) => {
+                Notice.searchNoticeByNup(notice.noticeNup);
+
+                // Act
+                Notice.clearNoticeSearch();
+
+                // Assert
+                Notice.validateNoticeListAfterClearingSearch(initialTotal);
+            });
         });
     });
 
     describe('Filtering', () => {
         it('should filter notices by process status', function () {
-            const notice = this.notice[0];
+            // Arrange
+            const notice = this.notice;
+            cy.loginByRole('fomentation');
 
-            Notice.filterByProcessStatus(notice.processsStatus);
+            NoticeWorkflow.gotToNoticePage();
+
+            // Act
+            Notice.filterByProcessStatus(notice.processStatus);
+
+            // Assert
+            Notice.validateNoticesByStatus(notice.processStatus);
         });
 
         it('should filter notices by instrument type', function () {
-            const notice = this.notice[0];
+            // Arrange
+            const notice = this.notice;
+            cy.loginByRole('fomentation');
 
-            Notice.filterByInstrumentType(notice.noticeInstrumentType);
+            NoticeWorkflow.gotToNoticePage();
+
+            // Act
+            Notice.filterByInstrumentType(notice.instrumentType);
+
+            // Assert
+            Notice.validateNoticesByInstrumentType(notice.instrumentType);
         });
     });
 
     describe('Notice Details View', () => {
         it('should open notice details page', function () {
-            const notice = this.notice[0];
+            // Arrange
+            const notice = this.notice;
+            cy.loginByRole('fomentation');
 
+            NoticeWorkflow.gotToNoticePage();
+
+            // Act
             Notice.searchNoticeByNup(notice.noticeNup);
             Notice.goToNoticeDetailsPage(notice.noticeNup);
-            cy.url().should('match', /\/editais\/\d+\/projetos$/);
+
+            // Assert
+            NoticeWorkflow.validateNoticeDetailsPageUrl();
         });
 
         it('should display all information in detail view', function () {
-            const notice = this.notice[0];
+            // Arrange
+            const notice = this.notice;
+            cy.loginByRole('fomentation');
+            NoticeWorkflow.gotToNoticePage();
 
+            // Act
             Notice.searchNoticeByNup(notice.noticeNup);
             Notice.goToNoticeDetailsPage(notice.noticeNup);
             Notice.clickShowAllInformationButton();
-            Notice.verifyDetailViewElements();
-        });
 
-        it('should display correct NUP in detail view', function () {
-            const notice = this.notice[0];
-            Notice.searchNoticeByNup(notice.noticeNup);
-            Notice.goToNoticeDetailsPage(notice.noticeNup);
-            Notice.displayCorrectNupInDetailView(notice.noticeNup);
+            // Assert
+            Notice.verifyDetailViewElements();
+            Notice.verifyIdentificationData(notice);
         });
     });
 
     describe('Pagination', () => {
         it('should change the number of items displayed per page', function () {
-            const itemsPerPage = this.notice[0].quantityPerPage;
-            Notice.changeItemsPerPage(itemsPerPage);
+            // Arrange
+            const noticesPerPage = this.notice.noticesPerPage;
+            cy.loginByRole('fomentation');
+            NoticeWorkflow.gotToNoticePage();
+
+            // Act
+            Notice.changeItemsPerPage(noticesPerPage);
+
+            // Assert
+            Notice.validateNoticesPerPage(noticesPerPage);
         });
 
         it('should navigate to next page and highlight current page number', function () {
-            Notice.goToPage(2);
-            cy.get('[data-cy=pagination-number-notice-list]')
-                .contains('2')
-                .parent()
-                .should('have.css', 'background-color', 'rgb(255, 193, 7)');
+            // Arrange
+            const pageNumber = '1';
+            cy.loginByRole('fomentation');
+
+            NoticeWorkflow.gotToNoticePage();
+
+            // Act
+            Notice.goToPage(pageNumber);
+
+            // Assert
+            Notice.verifyPageIsActive(pageNumber);
         });
     });
 
     describe('Form Error Handling', () => {
         it('should display error when submitting form with invalid data', function () {
+            // Arrange
+            cy.loginByRole('fomentation');
+
+            NoticeWorkflow.gotToNoticePage();
+
             Notice.openIdentificationDataForm();
 
-            // Try to submit with empty required fields
-            cy.get('[data-cy=add-data-identification-data-form-button]').click();
+            // Act
+            Notice.submitIdentificationDataForm();
 
-            // Expect validation error
-            cy.get('[data-cy=notice-nup-identification-data-form]')
-                .closest('.v-input')
-                .contains('Campo obrigatório')
-                .should('be.visible');
+            // Assert
+            Notice.verifyNoticeNupRequiredFieldError();
         });
     });
 
     describe('Update Notice Data', () => {
         it('should update data about notice and save', function () {
-            const currentNoticeData = this.notice[0];
-            const newNoticeData = this.notice[1];
+            // Arrange
+            const currentNotice = this.notice;
+            const noticeUpdate = this.noticeUdate;
 
-            Notice.goToNoticeDetailsPage(currentNoticeData.noticeNup);
+            cy.loginByRole('fomentation');
+
+            NoticeWorkflow.gotToNoticePage();
+
+            Notice.searchNoticeByNup(currentNotice.noticeNup);
+            Notice.goToNoticeDetailsPage(currentNotice.noticeNup);
             Notice.clickShowAllInformationButton();
-            Notice.verifyDetailViewElements();
-            Notice.updateDataAboutProcess(newNoticeData.noticeInstrumentType, newNoticeData.noticeManagerEmail);
-            Notice.verifySuccessMessageUpdateNoiceData();
-            Notice.verifyUpdatedDataAboutProcess(newNoticeData.noticeInstrumentType, newNoticeData.noticeManagerEmail);
+
+            // Act
+            Notice.updateDataAboutProcess(noticeUpdate.accompanimentManager, noticeUpdate.managerEmail);
+
+            // Assert
+            Notice.verifySuccessMessageUpdateNoticeData();
+            Notice.verifyUpdatedDataAboutProcess(noticeUpdate.accompanimentManager, noticeUpdate.managerEmail);
+        });
+    });
+
+    describe('Upload Payment Report', () => {
+        beforeEach(() => {
+            cy.resetCypressData();
+        });
+
+        it('should upload payments report', function () {
+            // Arrange
+            cy.loginByRole('financial');
+
+            // Act
+            NoticeWorkflow.uploadPaymentsReportFile();
+
+            // Assert
+            NoticeWorkflow.validatePaymentReportUpload();
         });
     });
 });

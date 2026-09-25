@@ -81,7 +81,7 @@ const saveAll = () => {
                     v-model="form.process_manager"
                     :disabled="!canManageNotices"
                     label="Gestor do processo do sistema:"
-                    data-cy="notice-manager-show-all-information"
+                    data-cy="accompaniment-manager-show-all-information"
                 />
                 <EditableField
                     v-model="form.budget_allocation_request_date"
