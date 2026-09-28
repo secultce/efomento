@@ -77,6 +77,8 @@ class CypressNoticeSeeder extends Seeder
                 'process_manager' => null,
                 'process_manager_email' => null,
                 'installments' => null,
+                'creditor_registration_nup' => null,
+                'creditor_registration_request_date' => null,
             ]);
         } else {
             Notice::create([
@@ -88,6 +90,8 @@ class CypressNoticeSeeder extends Seeder
                 'process_manager' => null,
                 'process_manager_email' => null,
                 'installments' => null,
+                'creditor_registration_nup' => null,
+                'creditor_registration_request_date' => null,
             ]);
         }
     }

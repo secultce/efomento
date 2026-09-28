@@ -17,7 +17,6 @@ class NoticeWorkflow {
 
     accessNoticeDetails(nup) {
         Notice.searchNoticeByNup(nup);
-        Notice.findNoticeByNup(nup);
 
         cy.url().should('match', /\/editais\/\d+\/projetos$/);
     }
