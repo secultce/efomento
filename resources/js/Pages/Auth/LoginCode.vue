@@ -145,6 +145,7 @@ const cancel = () => {
                         class="verification-code"
                         required
                         autofocus
+                        data-cy="verification-code"
                     />
 
                     <div class="mt-5 rounded-lg border border-gray-200 bg-gray-50 px-3 py-2">
@@ -157,6 +158,7 @@ const cancel = () => {
                             :error-messages="form.errors.trust_device"
                             aria-describedby="trust-help"
                             hide-details="auto"
+                            data-cy="trust-device-checkbox"
                         >
                             <template #label>
                                 <span class="text-sm text-[#1A1A1A]">
@@ -180,6 +182,7 @@ const cancel = () => {
                         class="mt-6 font-weight-bold text-black"
                         :loading="form.processing"
                         :disabled="busy"
+                        data-cy="confirm-and-enter-button"
                     >
                         Confirmar e entrar
                         <v-icon icon="mdi-arrow-right" end aria-hidden="true" />
@@ -213,6 +216,7 @@ const cancel = () => {
                     prepend-icon="mdi-arrow-left"
                     :loading="cancelForm.processing"
                     :disabled="busy"
+                    data-cy="back-to-login-button"
                     @click="cancel"
                 >
                     Voltar ao login

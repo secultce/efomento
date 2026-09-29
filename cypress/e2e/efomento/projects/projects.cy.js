@@ -1,4 +1,4 @@
-import Login from '../../../pages/auth';
+import Login from '../../../pages/auth/Login';
 import Notice from '../../../pages/notice/NoticePage';
 import Project from '../../../pages/project/ProjectPage';
 

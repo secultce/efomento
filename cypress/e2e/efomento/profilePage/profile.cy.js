@@ -1,5 +1,5 @@
 import Profile from '../../../pages/profile';
-import Login from '../../../pages/auth';
+import Login from '../../../pages/auth/Login';
 import CredentialsReset from '../../../pages/auth/credentialsReset.js';
 
 describe('Página de Perfil', () => {

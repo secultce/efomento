@@ -23,7 +23,7 @@
 //
 // -- This will overwrite an existing command --
 // Cypress.Commands.overwrite('visit', (originalFn, url, options) => { ... })
-import LoginPage from '../pages/auth';
+import LoginPage from '../pages/auth/Login';
 
 Cypress.Commands.add('setRoles', () => {
     cy.visit('/grupos');
@@ -54,7 +54,7 @@ Cypress.Commands.add('loginByRole', (role) => {
             () => {
                 LoginPage.accessLoginPage();
 
-                LoginPage.successLogin(user.valid_email, user.password, user.name);
+                LoginPage.successLogin(user.email, user.password, user.name);
             },
             {
                 validate() {
