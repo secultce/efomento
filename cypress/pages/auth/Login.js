@@ -52,10 +52,14 @@ class Login {
         cy.contains('Verificação de acesso').should('be.visible');
 
         cy.get(el.verificationCode).should('be.visible');
+        cy.get(el.confirmAndEnterButton).should('be.visible');
+        cy.get(el.trustDeviceChekbox).should('be.visible');
+        cy.get(el.resentCodeButton).should('be.visible');
+        cy.get(el.backToLoginButton).should('be.visible');
     }
 
     verifyInvalidVerificationCodeMessage() {
-        cy.get('p').contains(el.invalidVerificationCodeMessage).should('be.visible');
+        cy.contains(el.invalidVerificationCodeMessage).should('be.visible');
     }
 
     verifyRedirectedToNoticesPage() {

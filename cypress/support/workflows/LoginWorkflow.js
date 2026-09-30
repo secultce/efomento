@@ -5,10 +5,9 @@ class LoginWorflow {
         cy.visit('/login');
     }
 
-    login(email, password, code) {
+    login(email, password) {
         Login.fillEmailField(email);
         Login.fillPasswordField(password);
-        Login.fillVerificationCode(code);
         Login.clickLoginButton();
     }
 
@@ -21,6 +20,8 @@ class LoginWorflow {
 
         Login.clickConfirmAndEnter();
     }
+
+    dis;
 
     logout() {
         Login.clickUserAvatar();

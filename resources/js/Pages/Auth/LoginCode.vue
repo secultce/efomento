@@ -197,6 +197,7 @@ const cancel = () => {
                         class="mt-1"
                         :loading="resendForm.processing"
                         :disabled="resendSeconds > 0 || busy"
+                        data-cy="resent-code-button"
                         @click="resend"
                     >
                         {{ resendSeconds > 0 ? `Reenviar código em ${resendCountdown}` : 'Reenviar código' }}

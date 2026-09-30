@@ -67,9 +67,32 @@ describe('Login', () => {
     });
 
     describe('Two-factor authentication', () => {
-        it('should display the verification code screen after valid credentials', function () {});
+        it('should display the verification code screen after valid credentials', function () {
+            // Arrange
+            const user = this.user.fomentation;
+            LoginWorkflow.goToLoginPage();
 
-        it('should not authenticate with an invalid verification code', function () {});
+            // Act
+            LoginWorkflow.login(user.email, user.password);
+
+            // Assert
+            Login.verifyVerificationCodePage();
+        });
+
+        it('should not authenticate with an invalid verification code', function () {
+            // Arrange
+            const user = this.user.fomentation;
+            const invalidCode = '000000';
+
+            LoginWorkflow.goToLoginPage();
+            LoginWorkflow.login(user.email, user.password);
+
+            // Act
+            LoginWorkflow.completeTwoFactorAuthentication(invalidCode);
+
+            // Assert
+            Login.verifyInvalidVerificationCodeMessage();
+        });
 
         it('should not authenticate with an expired verification code', function () {});
 

@@ -6,6 +6,8 @@ export const elements = {
     verificationCode: '[data-cy=verification-code]',
     trustDeviceChekbox: '[data-cy=verification-code]',
     confirmAndEnterButton: '[data-cy=confirm-and-enter-button]',
+    resentCodeButton: '[data-cy=resent-code-button]',
+    invalidVerificationCodeMessage: 'Código inválido. Confira o código recebido por email.',
     passwordErrorMessage: 'As credenciais indicadas não coincidem com as registradas no sistema.',
     backToLoginButton: '[data-cy=back-to-login-button]',
     btnUserAvatar: '[data-cy=btnUserAvatar]',
