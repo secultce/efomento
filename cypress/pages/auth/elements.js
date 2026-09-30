@@ -1,9 +1,15 @@
 export const elements = {
-    email: '#email',
-    password: '#password',
-    btnLogin: 'button:contains(Entrar)',
+    emailFielInput: '[ data-cy=email-field-input]',
+    passwordFieldInput: '[data-cy=password-field-input]',
+    enterLoginButton: 'button:contains(Entrar)',
     welcomeMessage: 'Bem-vindo ao seu espaço, ',
+    verificationCode: '[data-cy=verification-code]',
+    trustDeviceChekbox: '[data-cy=verification-code]',
+    confirmAndEnterButton: '[data-cy=confirm-and-enter-button]',
+    resentCodeButton: '[data-cy=resent-code-button]',
+    invalidVerificationCodeMessage: 'Código inválido. Confira o código recebido por email.',
     passwordErrorMessage: 'As credenciais indicadas não coincidem com as registradas no sistema.',
+    backToLoginButton: '[data-cy=back-to-login-button]',
     btnUserAvatar: '[data-cy=btnUserAvatar]',
     btnLogout: '[data-cy=btnLogout]',
 };

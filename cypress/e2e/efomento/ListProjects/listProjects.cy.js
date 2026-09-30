@@ -1,4 +1,4 @@
-import Login from '../../../pages/auth';
+import Login from '../../../pages/auth/Login';
 import ListProjects from '../../../pages/ListProjects';
 
 let data;
