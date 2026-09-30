@@ -8,3 +8,9 @@ docker compose up -d
 
 ## Rodar migrations e seeders
 docker compose exec app php artisan migrate:fresh --seed
+
+## Rodar migrations do Cypress
+docker compose exec app php artisan db:seed --class="Database\Seeders\CypressSeeder"
+
+## Rodar sincronismo do Edital do Mapa Cultural
+docker compose exec app php artisan tinker  --execute="SyncNoticesJob::dispatch()"

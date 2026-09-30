@@ -65,3 +65,7 @@ Cypress.Commands.add('loginByRole', (role) => {
         );
     });
 });
+
+Cypress.Commands.add('resetCypressData', () => {
+    return cy.exec('docker compose exec -T app php artisan cypress:reset');
+});
