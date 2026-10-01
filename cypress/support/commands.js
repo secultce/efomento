@@ -54,7 +54,7 @@ Cypress.Commands.add('loginByRole', (role) => {
             () => {
                 LoginPage.accessLoginPage();
 
-                LoginPage.successLogin(user.valid_email, user.password, user.name);
+                LoginPage.successLogin(user.email, user.password, user.name);
             },
             {
                 validate() {
