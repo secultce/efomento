@@ -13,6 +13,7 @@ export function usePermissions() {
         canManageBudget: computed(() => hasRole(['budgetary', 'coord_budgetary', 'super_admin'])),
         canManagePayment: computed(() => hasRole(['financial', 'coord_financial', 'super_admin'])),
         canManageMonitoring: computed(() => hasRole(['monitoring', 'coord_monitoring', 'super_admin'])),
+        canAssignSupervisor: computed(() => hasRole(['fomentation', 'coord_fomentation', 'super_admin'])),
         isSuperAdmin: computed(() => hasRole('super_admin')),
     };
 }
