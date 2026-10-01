@@ -61,11 +61,11 @@ const syncNotices = () => {
         </v-app-bar-title>
 
         <template #append>
-            <v-btn variant="text" color="white" href="/editais"> Editais </v-btn>
-            <v-btn variant="text" color="white"> Indicadores </v-btn>
-            <v-btn variant="text" color="white" :loading="syncing" :disabled="syncing" @click="syncNotices">
+            <v-btn variant="text" color="primary" :loading="syncing" :disabled="syncing" @click="syncNotices">
                 Sincronismo
             </v-btn>
+            <v-btn variant="text" color="white" href="/editais"> Editais </v-btn>
+            <v-btn variant="text" color="white"> Indicadores </v-btn>
             <app-notification-menu :notifications-count="notificationsCount" />
             <v-menu location="bottom end">
                 <template #activator="{ props: menuProps }">
