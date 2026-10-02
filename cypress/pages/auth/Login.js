@@ -18,7 +18,7 @@ class Login {
     }
 
     fillVerificationCode(code) {
-        cy.get(el.verificationCode).should('be.visible').type(code);
+        cy.get(el.verificationCode).should('be.visible').find('input').type(code);
     }
 
     checkTrustDevice() {

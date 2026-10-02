@@ -13,10 +13,8 @@ class LoginWorkflow {
         cy.location('pathname', { timeout: 10000 }).should('eq', '/two-factor-challenge');
     }
 
-    completeTwoFactorAuthentication({ trustDevice = false } = {}) {
-        const code = Cypress.env('TWO_FACTOR_UNIVERSAL_CODE');
-
-        expect(code, 'TWO_FACTOR_UNIVERSAL_CODE').to.be.a('string').and.not.be.empty;
+    completeTwoFactorAuthentication({ code = Cypress.env('TWO_FACTOR_UNIVERSAL_CODE'), trustDevice = false } = {}) {
+        expect(code, 'verification code').to.be.a('string').and.not.be.empty;
 
         Login.fillVerificationCode(code);
 
@@ -29,7 +27,7 @@ class LoginWorkflow {
 
     loginWithTwoFactorAndTrustDevice(email, password) {
         this.login(email, password);
-        this.completeTwoFactorAuthentication();
+        this.completeTwoFactorAuthentication({ trustDevice: true });
     }
 
     logout() {

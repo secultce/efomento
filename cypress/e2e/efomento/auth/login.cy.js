@@ -91,6 +91,7 @@ describe('Login', () => {
 
             // Assert
             Login.verifyInvalidVerificationCodeMessage();
+            ('');
         });
 
         it('should authenticate with a valid verification code', function () {

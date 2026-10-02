@@ -259,10 +259,10 @@ describe('Notice Page - E2E Tests', () => {
             cy.loginByRole('financial');
 
             // Act
-            // NoticeWorkflow.uploadPaymentsReportFile();
+            NoticeWorkflow.uploadPaymentsReportFile();
 
-            // // Assert
-            // NoticeWorkflow.validatePaymentReportUpload();
+            // Assert
+            NoticeWorkflow.validatePaymentReportUpload();
         });
     });
 });
