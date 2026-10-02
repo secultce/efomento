@@ -9,8 +9,8 @@ import NoticeHistoryDialog from '@/Pages/Projects/Partials/Actions/NoticeHistory
 import HandleDocumentsDialog from '../HandleDocumentsDialog.vue';
 import DocumentListDialog from '../DocumentListDialog.vue';
 
-const { canPerform } = useAuth();
-const { isSuperAdmin, canManageNotices } = usePermissions();
+const { can } = useAuth();
+const { canAssignSupervisor: hasSupervisorRole, canManageNotices } = usePermissions();
 
 const props = defineProps({
     selectedProjects: { type: Array, default: () => [] },
@@ -42,7 +42,7 @@ const hasProjectsWithSupervisor = computed(() => {
 });
 
 const canAssignSupervisor = computed(() => {
-    return isSuperAdmin.value || canPerform('opening.assign_supervisor');
+    return hasSupervisorRole.value || can('opening.assign_supervisor');
 });
 
 const canCreateCI = computed(() => {

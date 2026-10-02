@@ -23,7 +23,8 @@
 //
 // -- This will overwrite an existing command --
 // Cypress.Commands.overwrite('visit', (originalFn, url, options) => { ... })
-import LoginPage from '../pages/auth/Login';
+
+import LoginWorkflow from './workflows/LoginWorkflow';
 
 Cypress.Commands.add('setRoles', () => {
     cy.visit('/grupos');
@@ -52,9 +53,9 @@ Cypress.Commands.add('loginByRole', (role) => {
         cy.session(
             role,
             () => {
-                LoginPage.accessLoginPage();
+                LoginWorkflow.goToLoginPage();
 
-                LoginPage.successLogin(user.email, user.password, user.name);
+                LoginWorkflow.loginWithTwoFactorAndTrustDevice(user.email, user.password);
             },
             {
                 validate() {
@@ -64,4 +65,8 @@ Cypress.Commands.add('loginByRole', (role) => {
             }
         );
     });
+});
+
+Cypress.Commands.add('resetCypressData', () => {
+    return cy.exec('docker compose exec -T app php artisan cypress:reset');
 });

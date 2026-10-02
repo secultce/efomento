@@ -4,7 +4,7 @@
         "email": "test@example.com",
         "password": "password",
         "invalidEmail": "test.com",
-        "invalid_password": "123456",
+        "invalidPassword": "123456",
         "updatedName": "User Updated",
         "updatedEmail": "user.updated@example.com",
         "newPassword": "newpassword"
@@ -43,8 +43,18 @@
         "name": "João Ferreira De Almeida Júnior",
         "email": "jferreira@secult.ce.gov.br",
         "password": "password",
-        "invalidEmail": "test.com",
-        "invalidPassword": "123456",
+        "invalidEmail": "test",
+        "incorrectPassword": "123456",
+        "updatedName": "User Updated",
+        "updatedEmail": "user.updated@example.com",
+        "newPassword": "newpassword"
+    },
+    "financial": {
+        "name": "Claudia Moreira",
+        "email": "claudia.moreira@secult.ce.gov.br",
+        "password": "password",
+        "invalidEmail": "test",
+        "incorrectPassword": "123456",
         "updatedName": "User Updated",
         "updatedEmail": "user.updated@example.com",
         "newPassword": "newpassword"

@@ -38,30 +38,6 @@ class Login {
         this.clickConfirmAndEnter();
     }
 
-    successLogin(
-        email,
-        password,
-        name,
-        { trustDevice = true, code = Cypress.env('TWO_FACTOR_UNIVERSAL_CODE') || '123456' } = {}
-    ) {
-        this.fillEmailField(email);
-        this.fillPasswordField(password);
-        this.clickLoginButton();
-
-        cy.location('pathname', { timeout: 10000 })
-            .should((pathname) => {
-                expect(pathname).to.be.oneOf(['/login-code', '/editais']);
-            })
-            .then((pathname) => {
-                if (pathname === '/login-code') {
-                    this.fillTwoFactorCode(code, trustDevice);
-                }
-            });
-
-        cy.url().should('be.equal', `${Cypress.config('baseUrl')}/editais`);
-        cy.contains(el.welcomeMessage + name).should('be.visible');
-    }
-
     loginWithInvalidPassword(email, password) {
         this.fillEmailField(email);
         this.fillPasswordField(password);

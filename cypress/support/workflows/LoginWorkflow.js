@@ -27,6 +27,11 @@ class LoginWorkflow {
         Login.clickConfirmAndEnter();
     }
 
+    loginWithTwoFactorAndTrustDevice(email, password) {
+        this.login(email, password);
+        this.completeTwoFactorAuthentication();
+    }
+
     logout() {
         Login.clickUserAvatar();
         Login.clickLogout();
