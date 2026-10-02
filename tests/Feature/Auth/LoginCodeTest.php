@@ -279,4 +279,17 @@ class LoginCodeTest extends TestCase
             ->get('/api/documents')->assertRedirect(route('login'))->assertCookieExpired($cookie);
         $this->assertGuest('web');
     }
+
+    public function test_universal_code_authenticates_in_non_production(): void
+    {
+        config(['two_factor.universal_code' => '123456']);
+        $user = User::factory()->create();
+        $this->startLogin($user);
+
+        $this->post(route('two-factor.verify'), ['code' => '123456'])
+            ->assertSessionHasNoErrors()
+            ->assertRedirect('/editais');
+
+        $this->assertAuthenticatedAs($user);
+    }
 }

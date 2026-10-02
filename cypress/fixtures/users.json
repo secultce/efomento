@@ -1,62 +1,62 @@
 {
     "administrator": {
         "name": "Test User",
-        "valid_email": "test@example.com",
+        "email": "test@example.com",
         "password": "password",
-        "invalid_email": "test",
-        "incorrect_password": "123456",
-        "updated_name": "User Updated",
-        "updated_email": "user.updated@example.com",
-        "new_password": "newpassword"
+        "invalidEmail": "test.com",
+        "invalidPassword": "123456",
+        "updatedName": "User Updated",
+        "updatedEmail": "user.updated@example.com",
+        "newPassword": "newpassword"
     },
     "fomentation": {
         "name": "Lara Pimentel",
-        "valid_email": "lara.pimentel@secult.ce.gov.br",
+        "email": "lara.pimentel@secult.ce.gov.br",
         "password": "password",
-        "invalid_email": "test",
-        "incorrect_password": "123456",
-        "updated_name": "User Updated",
-        "updated_email": "user.updated@example.com",
-        "new_password": "newpassword"
+        "invalidEmail": "test.com",
+        "invalidPassword": "123456",
+        "updatedName": "User Updated",
+        "updatedEmail": "user.updated@example.com",
+        "newPassword": "newpassword"
     },
     "legal_analisys": {
         "name": "Glaucivane Silveira Barbosa Portel",
-        "valid_email": "glaucivane.portela@secult.ce.gov.br",
+        "email": "glaucivane.portela@secult.ce.gov.br",
         "password": "password",
-        "invalid_email": "test",
-        "incorrect_password": "123456",
-        "updated_name": "User Updated",
-        "updated_email": "user.updated@example.com",
-        "new_password": "newpassword"
+        "invalidEmail": "test.com",
+        "invalidPassword": "123456",
+        "updatedName": "User Updated",
+        "updatedEmail": "user.updated@example.com",
+        "newPassword": "newpassword"
     },
     "formalization": {
         "name": "Glaucivane Silveira Barbosa Portel",
-        "valid_email": "glaucivane.portela@secult.ce.gov.br",
+        "email": "glaucivane.portela@secult.ce.gov.br",
         "password": "password",
-        "invalid_email": "test",
-        "incorrect_password": "123456",
-        "updated_name": "User Updated",
-        "updated_email": "user.updated@example.com",
-        "new_password": "newpassword"
+        "invalidEmail": "test.com",
+        "invalidPassword": "123456",
+        "updatedName": "User Updated",
+        "updatedEmail": "user.updated@example.com",
+        "newPassword": "newpassword"
     },
     "budgetary": {
         "name": "João Ferreira De Almeida Júnior",
-        "valid_email": "jferreira@secult.ce.gov.br",
+        "email": "jferreira@secult.ce.gov.br",
         "password": "password",
-        "invalid_email": "test",
-        "incorrect_password": "123456",
-        "updated_name": "User Updated",
-        "updated_email": "user.updated@example.com",
-        "new_password": "newpassword"
+        "invalidEmail": "test",
+        "incorrectPassword": "123456",
+        "updatedName": "User Updated",
+        "updatedEmail": "user.updated@example.com",
+        "newPassword": "newpassword"
     },
     "financial": {
         "name": "Claudia Moreira",
-        "valid_email": "claudia.moreira@secult.ce.gov.br",
+        "email": "claudia.moreira@secult.ce.gov.br",
         "password": "password",
-        "invalid_email": "test",
-        "incorrect_password": "123456",
-        "updated_name": "User Updated",
-        "updated_email": "user.updated@example.com",
-        "new_password": "newpassword"
+        "invalidEmail": "test",
+        "incorrectPassword": "123456",
+        "updatedName": "User Updated",
+        "updatedEmail": "user.updated@example.com",
+        "newPassword": "newpassword"
     }
 }

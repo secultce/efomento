@@ -45,6 +45,7 @@ class NoticeWorkflow {
             accompanimentManager: notice.accompanimentManager,
             managerEmail: notice.managerEmail,
             quotaNumber: notice.quotaNumber,
+            publicPolicy: notice.publicPolicy,
         });
     }
 

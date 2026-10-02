@@ -20,6 +20,7 @@
         "accompanimentManager": "Cypress Notice Manager",
         "managerEmail": "cypress.manager@example.com",
         "quotaNumber": 3,
+        "publicPolicy": "Ciclos calendarizados",
         "installmentAmount": 780000,
         "noticesPerPage": 50
     }

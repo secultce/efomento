@@ -47,17 +47,20 @@ class TwoFactorAuthenticationTest extends TestCase
 
     public function test_unknown_device_queues_code_on_high_and_exposes_challenge_settings(): void
     {
+        $this->freezeTime();
+
         $user = User::factory()->create();
         $this->startLogin($user);
         Mail::assertQueued(LoginCodeMail::class, fn ($mail) => $mail->hasTo($user->email)
             && $mail->queue === 'high' && $mail->ttlMinutes === 5);
 
-        $this->get('/two-factor-challenge')->assertInertia(fn (Assert $page) => $page
-            ->component('Auth/LoginCode')
-            ->where('codeLength', 6)
-            ->where('codeTtlMinutes', 5)
-            ->where('trustedDeviceDays', 30)
-            ->where('resendAvailableAt', now()->addSeconds(60)->timestamp)
+        $this->get('/two-factor-challenge')->assertInertia(
+            fn (Assert $page) => $page
+                ->component('Auth/LoginCode')
+                ->where('codeLength', 6)
+                ->where('codeTtlMinutes', 5)
+                ->where('trustedDeviceDays', 30)
+                ->where('resendAvailableAt', now()->addSeconds(60)->timestamp)
         );
     }
 
@@ -177,7 +180,8 @@ class TwoFactorAuthenticationTest extends TestCase
 
         $this->actingAs($user)->put('/password', [
             'current_password' => 'password',
-            'password' => 'new-password', 'password_confirmation' => 'new-password',
+            'password' => 'new-password',
+            'password_confirmation' => 'new-password',
         ])->assertSessionHasNoErrors()->assertCookieExpired('trusted_device');
         $this->assertDatabaseCount('trusted_devices', 0);
         $this->assertRevocationAudit($user, 2, $user->id);
@@ -195,8 +199,10 @@ class TwoFactorAuthenticationTest extends TestCase
         $this->trustCookie($user);
         $token = Password::createToken($user);
         $this->post('/reset-password', [
-            'token' => $token, 'email' => $user->email,
-            'password' => 'new-password', 'password_confirmation' => 'new-password',
+            'token' => $token,
+            'email' => $user->email,
+            'password' => 'new-password',
+            'password_confirmation' => 'new-password',
         ])->assertSessionHasNoErrors()->assertRedirect('/login');
         $this->assertDatabaseCount('trusted_devices', 0);
         $this->assertRevocationAudit($user, 1, null);
@@ -260,7 +266,8 @@ class TwoFactorAuthenticationTest extends TestCase
         Cookie::unqueue('trusted_device');
         $this->actingAs($user)->put('/password', [
             'current_password' => 'wrong-password',
-            'password' => 'new-password', 'password_confirmation' => 'new-password',
+            'password' => 'new-password',
+            'password_confirmation' => 'new-password',
         ])->assertSessionHasErrors('current_password')->assertCookieMissing('trusted_device');
         $this->assertDatabaseCount('trusted_devices', 1);
         $this->assertFalse($user->audits()->where('event', 'trusted_devices_revoked')->exists());

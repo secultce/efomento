@@ -54,7 +54,15 @@ class Notice {
     }
 
     fillIdentificationDataForm(formData) {
-        const { noticeNup, instrumentType, totalAmount, accompanimentManager, managerEmail, quotaNumber } = formData;
+        const {
+            noticeNup,
+            instrumentType,
+            totalAmount,
+            accompanimentManager,
+            managerEmail,
+            quotaNumber,
+            publicPolicy,
+        } = formData;
 
         cy.get(el.noticeNupInput).should('be.visible').type(noticeNup);
         this.selectDropdownOption(el.instrumentTypeSelect, instrumentType);
@@ -62,6 +70,7 @@ class Notice {
         cy.get(el.noticeManagerInput).should('be.visible').type(accompanimentManager);
         cy.get(el.managerEmailInput).should('be.visible').type(managerEmail);
         cy.get(el.quotaNumberInput).should('be.visible').type(quotaNumber);
+        this.selectDropdownOption(el.publicPolicySelect, publicPolicy);
     }
 
     submitIdentificationDataForm() {
