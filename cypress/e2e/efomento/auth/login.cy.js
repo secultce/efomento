@@ -93,22 +93,65 @@ describe('Login', () => {
             Login.verifyInvalidVerificationCodeMessage();
         });
 
-        it('should not authenticate with an expired verification code', function () {});
+        it('should authenticate with a valid verification code', function () {
+            // Arrange
+            const user = this.user.fomentation;
+            const validCode = '123456';
 
-        it('should authenticate with a valid verification code', function () {});
+            LoginWorkflow.goToLoginPage();
+            LoginWorkflow.login(user.email, user.password);
+
+            // Act
+            LoginWorkflow.completeTwoFactorAuthentication(validCode);
+
+            // Assert
+            Login.verifyRedirectedToNoticesPage();
+        });
     });
 
     describe('Trusted Device', () => {
-        it('should authenticate and trust the device when the option is selected', () => {});
-    });
+        it('should authenticate and trust the device when the option is selected', function () {
+            // Arrange
+            const user = this.user.fomentation;
 
-    describe('Successful authentication', () => {
-        it('should redirect to the notices page after successful authentication', () => {});
+            LoginWorkflow.goToLoginPage();
+
+            // Act
+            LoginWorkflow.login(user.email, user.password);
+            LoginWorkflow.completeTwoFactorAuthentication({
+                trustDevice: true,
+            });
+
+            // Assert
+            Login.verifyRedirectedToNoticesPage();
+        });
     });
 
     describe('Session', () => {
-        it('should redirect an unauthenticated user to the login page', () => {});
+        it('should redirect an unauthenticated user to the login page', () => {
+            // Arrange
+            // Não realizar login.
 
-        it('should redirect to the login page after logout', () => {});
+            // Act
+            cy.visit('/editais');
+
+            // Assert
+            cy.location('pathname').should('eq', '/login');
+        });
+
+        it('should redirect to the login page after logout', function () {
+            // Arrange
+            const user = this.user.fomentation;
+
+            LoginWorkflow.goToLoginPage();
+            LoginWorkflow.login(user.email, user.password);
+            LoginWorkflow.completeTwoFactorAuthentication();
+
+            // Act
+            LoginWorkflow.logout();
+
+            // Assert
+            cy.location('pathname').should('eq', '/login');
+        });
     });
 });

@@ -31,6 +31,7 @@ class Login {
 
     fillTwoFactorCode(code = Cypress.env('TWO_FACTOR_UNIVERSAL_CODE') || '123456', trustDevice = true) {
         cy.get(el.verificationCode).should('be.visible').type(code);
+
         if (trustDevice) {
             this.checkTrustDevice();
         }
