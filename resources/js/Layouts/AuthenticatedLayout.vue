@@ -50,7 +50,9 @@ onMounted(() => {
 
 onUnmounted(() => {
     echoConnection?.unbind('connected', syncUnreadCount);
-    window.Echo.leave(`App.Models.User.${user.value.id}`);
+    if (user.value?.id) {
+        window.Echo.leave(`App.Models.User.${user.value.id}`);
+    }
 });
 </script>
 

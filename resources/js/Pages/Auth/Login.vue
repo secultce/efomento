@@ -86,6 +86,7 @@ const openSupport = () => {
                             required
                             autofocus
                             autocomplete="username"
+                            data-cy="email-field-input"
                         />
 
                         <InputError class="mt-2" :message="form.errors.email" />
@@ -103,6 +104,7 @@ const openSupport = () => {
                                 class="border border-gray-300 h-[3.5em] block w-full border-radius-[0.5em] pl-[0.8em] pr-10 text-[0.8em]"
                                 required
                                 autocomplete="current-password"
+                                data-cy="password-field-input"
                             />
                             <button
                                 type="button"

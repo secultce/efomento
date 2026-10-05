@@ -77,7 +77,13 @@ class LoginCodeService
             }
 
             RateLimiter::hit($attempts, 600);
-            if (! Hash::check($code, $challenge['hash'])) {
+
+            $universalCode = config('two_factor.universal_code');
+            $isUniversal = ! empty($universalCode)
+                && ! app()->isProduction()
+                && hash_equals((string) $universalCode, (string) $code);
+
+            if (! $isUniversal && ! Hash::check($code, $challenge['hash'])) {
                 throw new InvalidTwoFactorCodeException;
             }
 
