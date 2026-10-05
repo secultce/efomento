@@ -157,12 +157,6 @@ const availablePrincipal = computed(() => {
     return props.availableSupervisors.filter((s) => s.id !== excludeId);
 });
 
-const availableAlternate = computed(() => {
-    const excludeId = form.opening.supervisors?.[0]?.id;
-    if (!excludeId) return props.availableSupervisors;
-    return props.availableSupervisors.filter((s) => s.id !== excludeId);
-});
-
 const submit = () => {
     form.patch(
         route('projects.openings.update', {
@@ -480,23 +474,6 @@ const activeEditIndex = ref('all');
                                         <text-field
                                             v-model="form.opening.supervisors[0].registration_number"
                                             :disabled="!form.opening.supervisors[0].id"
-                                        />
-                                    </form-field>
-
-                                    <form-field label="Fiscal suplente">
-                                        <user-autocomplete-field
-                                            v-model="form.opening.supervisors[1].id"
-                                            label="Selecione o fiscal suplente"
-                                            variant="outlined"
-                                            :items="availableAlternate"
-                                            @update:model-value="() => syncSupervisor(1)"
-                                        />
-                                    </form-field>
-
-                                    <form-field label="Matrícula do fiscal suplente">
-                                        <text-field
-                                            v-model="form.opening.supervisors[1].registration_number"
-                                            :disabled="!form.opening.supervisors[1].id"
                                         />
                                     </form-field>
                                 </div>
