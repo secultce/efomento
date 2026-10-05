@@ -3,6 +3,7 @@
 namespace App\Console\Commands;
 
 use Illuminate\Console\Command;
+use Illuminate\Support\Facades\Cache;
 
 class CypressResetCommand extends Command
 {
@@ -13,6 +14,8 @@ class CypressResetCommand extends Command
     public function handle(): int
     {
         $this->info('Resetting Cypress test data...');
+
+        Cache::flush();
 
         $this->call('db:seed', [
             '--class' => 'Database\\Seeders\\CypressSeeder',

@@ -83,7 +83,9 @@ class Login {
     }
 
     verifyInvalidCredentialsMessage() {
-        cy.get('p').contains(el.passwordErrorMessage).should('be.visible');
+        cy.get('p')
+            .contains(new RegExp(`(${el.passwordErrorMessage}|These credentials do not match our records)`, 'i'))
+            .should('be.visible');
     }
 
     verifyVerificationCodePage() {

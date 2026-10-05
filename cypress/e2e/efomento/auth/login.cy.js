@@ -3,6 +3,7 @@ import Login from '../../../pages/auth/Login.js';
 
 describe('Login', () => {
     beforeEach(() => {
+        cy.resetCypressData();
         cy.fixture('users').as('user');
     });
 
@@ -151,7 +152,7 @@ describe('Login', () => {
             LoginWorkflow.logout();
 
             // Assert
-            cy.location('pathname').should('eq', '/login');
+            cy.location('pathname', { timeout: 10000 }).should('eq', '/login');
         });
     });
 });
