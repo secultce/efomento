@@ -61,8 +61,8 @@ const placeHoldersDocsSchema = [
     { label: 'Tipo de Conta do Agente', value: 'account_type' },
     { label: 'Agência do Agente', value: 'branch' },
     { label: 'Conta do Agente', value: 'account' },
-    { label: 'N. Dotação Orçamentária', value: 'budget_allocation_nup' },
-    { label: 'N. Cad. Credor', value: 'creditor_registration_nup' },
+    { label: 'Nup da Dotação Orçamentária', value: 'budget_allocation_nup' },
+    { label: 'Nup do Cadastro do Credor', value: 'creditor_registration_nup' },
     { label: 'Categ. do Projeto', value: 'project_category' },
     { label: 'Número do Termo', value: 'term_number' },
 ];

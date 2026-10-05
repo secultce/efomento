@@ -323,6 +323,7 @@ watch(
                     item-title="label"
                     item-value="value"
                     label="Inserir campo de preenchimento automático no documento"
+                    autocomplete="off"
                     chips
                     closable-chips
                     multiple
