@@ -33,10 +33,6 @@ const availableTitulars = computed(() => {
     return props.supervisors.filter((s) => s.id !== form.suplenteSupervisor);
 });
 
-const availableSuplentes = computed(() => {
-    return props.supervisors.filter((s) => s.id !== form.titularSupervisor);
-});
-
 const saveSupervisors = () => {
     assignSupervisor(
         {
@@ -77,18 +73,6 @@ defineExpose({ isOpen });
                         placeholder="Selecione um usuário"
                         item-title="name"
                         item-value="id"
-                    />
-                </div>
-
-                <div>
-                    <label for="suplente" class="block text-sm font-medium mb-2">Fiscal Suplente</label>
-                    <v-autocomplete
-                        v-model="form.suplenteSupervisor"
-                        :items="availableSuplentes"
-                        item-title="name"
-                        item-value="id"
-                        placeholder="Selecione um usuário"
-                        class="w-full"
                     />
                 </div>
             </v-card-text>
