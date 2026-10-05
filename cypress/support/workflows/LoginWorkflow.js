@@ -13,7 +13,10 @@ class LoginWorkflow {
         cy.location('pathname', { timeout: 10000 }).should('eq', '/two-factor-challenge');
     }
 
-    completeTwoFactorAuthentication({ code = Cypress.env('TWO_FACTOR_UNIVERSAL_CODE'), trustDevice = false } = {}) {
+    completeTwoFactorAuthentication(options = {}) {
+        const { code = Cypress.env('TWO_FACTOR_UNIVERSAL_CODE'), trustDevice = false } =
+            typeof options === 'string' ? { code: options } : options;
+
         expect(code, 'verification code').to.be.a('string').and.not.be.empty;
 
         Login.fillVerificationCode(code);

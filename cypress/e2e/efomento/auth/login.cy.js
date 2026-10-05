@@ -87,11 +87,10 @@ describe('Login', () => {
             LoginWorkflow.login(user.email, user.password);
 
             // Act
-            LoginWorkflow.completeTwoFactorAuthentication(invalidCode);
+            LoginWorkflow.completeTwoFactorAuthentication({ code: invalidCode });
 
             // Assert
             Login.verifyInvalidVerificationCodeMessage();
-            ('');
         });
 
         it('should authenticate with a valid verification code', function () {
@@ -103,7 +102,7 @@ describe('Login', () => {
             LoginWorkflow.login(user.email, user.password);
 
             // Act
-            LoginWorkflow.completeTwoFactorAuthentication(validCode);
+            LoginWorkflow.completeTwoFactorAuthentication({ code: validCode });
 
             // Assert
             Login.verifyRedirectedToNoticesPage();

@@ -30,12 +30,30 @@ class Login {
     }
 
     fillTwoFactorCode(code = Cypress.env('TWO_FACTOR_UNIVERSAL_CODE') || '123456', trustDevice = true) {
-        cy.get(el.verificationCode).should('be.visible').type(code);
+        this.fillVerificationCode(code);
 
         if (trustDevice) {
             this.checkTrustDevice();
         }
         this.clickConfirmAndEnter();
+    }
+
+    successLogin(email, password, name) {
+        this.fillEmailField(email);
+        this.fillPasswordField(password);
+        this.clickLoginButton();
+        this.fillVerificationCode(Cypress.env('TWO_FACTOR_UNIVERSAL_CODE') || '123456');
+        this.checkTrustDevice();
+        this.clickConfirmAndEnter();
+        this.verifyRedirectedToNoticesPage();
+    }
+
+    loginComSucesso(email, password, name) {
+        this.successLogin(email, password, name);
+    }
+
+    acessarPaginaDeLogin() {
+        this.accessLoginPage();
     }
 
     loginWithInvalidPassword(email, password) {
