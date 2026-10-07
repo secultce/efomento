@@ -444,18 +444,9 @@ const permissionMessage = computed(() => {
                                 </div>
                             </template>
 
-                            <template v-else-if="section.key === 'signature_form'">
+                            <template v-else-if="section.key === 'signing_term'">
                                 <div class="grid grid-cols-2 gap-4">
-                                    <FormField label="Data de tramitação na ASJUR">
-                                        <TextField
-                                            v-model="form.asjur_processing_date"
-                                            type="date"
-                                            label="Insira a data de tramitação para a ASJUR"
-                                            data-cy="asjur-processing-date-input"
-                                        />
-                                    </FormField>
-
-                                    <FormField label="Número do termo" :error="errors.term_number">
+                                    <FormField label="Número do termo" required :error="errors.term_number">
                                         <TextField
                                             v-model="form.term_number"
                                             label="Gerado automaticamente"
@@ -469,12 +460,8 @@ const permissionMessage = computed(() => {
                                             Termo de Execução Cultural.
                                         </p>
                                     </FormField>
-                                </div>
-                            </template>
 
-                            <template v-else-if="section.key === 'signing_term'">
-                                <div class="grid grid-cols-2 gap-4">
-                                    <FormField label="Data da assinatura do termo">
+                                    <FormField label="Data de assinatura do termo pelo o proponente">
                                         <TextField
                                             v-model="form.term_signed_at"
                                             type="date"
@@ -483,7 +470,7 @@ const permissionMessage = computed(() => {
                                         />
                                     </FormField>
 
-                                    <FormField label="Data de envio para Gabinete">
+                                    <FormField label="Data de envio para o Gabinete">
                                         <TextField
                                             v-model="form.sent_to_office_at"
                                             type="date"
@@ -493,14 +480,14 @@ const permissionMessage = computed(() => {
                                     </FormField>
 
                                     <FormField
-                                        label="Data de assinatura do termo pelo Gabinete"
+                                        label="Data de assinatura pelo Gabinete"
                                         required
                                         :error="errors.signed_by_office_at"
                                     >
                                         <TextField
                                             v-model="form.signed_by_office_at"
                                             type="date"
-                                            label="Insira a data da assinatura pelo o gabinete"
+                                            label="Insira a data de assinatura pelo Gabinete"
                                             data-cy="signed-by-office-at-input"
                                             :error="errors.signed_by_office_at"
                                         />
@@ -519,17 +506,18 @@ const permissionMessage = computed(() => {
                                                 :error="errors.sacc_number"
                                             />
                                         </FormField>
-                                        <FormField label="Chamado CGE atende">
-                                            <SelectField
-                                                v-model="form.cge_atende_ticket"
-                                                :items="cgeAtendeStatus"
-                                                item-title="label"
-                                                item-value="value"
-                                                label="Selecione um status"
-                                                data-cy="cge-atende-ticket-select"
-                                            />
-                                        </FormField>
                                     </div>
+
+                                    <FormField label="Chamado CGE atende">
+                                        <SelectField
+                                            v-model="form.cge_atende_ticket"
+                                            :items="cgeAtendeStatus"
+                                            item-title="label"
+                                            item-value="value"
+                                            label="Selecione um status"
+                                            data-cy="cge-atende-ticket-select"
+                                        />
+                                    </FormField>
 
                                     <FormField label="Deliberação">
                                         <SelectField
@@ -576,14 +564,14 @@ const permissionMessage = computed(() => {
                             <template v-else-if="section.key === 'validity_instrument'">
                                 <div class="grid grid-cols-2 gap-4">
                                     <FormField
-                                        label="Data de início da vigência do instrumento"
+                                        label="Data de início de vigência do instrumento"
                                         required
                                         :error="errors.validity_start_at"
                                     >
                                         <TextField
                                             v-model="form.validity_start_at"
                                             type="date"
-                                            label="Insira a data"
+                                            label="Insira a data de vigência"
                                             data-cy="instrument-validity-start-at-input"
                                             :error="errors.validity_start_at"
                                         />
@@ -597,7 +585,7 @@ const permissionMessage = computed(() => {
                                         <TextField
                                             v-model="form.validity_end_at"
                                             type="date"
-                                            label="Insira a data"
+                                            label="Insira a data de término vigência"
                                             data-cy="instrument-validity-end-at-input"
                                             :error="errors.validity_end_at"
                                         />
