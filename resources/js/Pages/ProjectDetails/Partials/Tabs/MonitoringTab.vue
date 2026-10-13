@@ -8,7 +8,6 @@ import SectionForm from '@/Components/SectionForm.vue';
 import FormField from '@/Components/FormField.vue';
 import TextField from '@/Components/TextField.vue';
 import AuxLinks from '@/Components/AuxLinks.vue';
-import StepActions from '@/Components/StepActions.vue';
 import ReturnProcessAction from '@/Components/ReturnProcessAction.vue';
 import DiligenceChat from '@/Components/DiligenceChat.vue';
 import TramitButton from '@/Pages/ProjectDetails/Partials/Tabs/Actions/TramitButton.vue';
@@ -301,28 +300,33 @@ function submit() {
                     </template>
                 </section-form>
                 <!-- BOTÃO DE AÇÃO -->
-                <div v-if="monitoringStage?.status === 'em_andamento'" class="flex gap-2">
-                    <v-btn
-                        v-if="canRequestNextInstallment"
-                        variant="outlined"
-                        color="primary"
-                        class="rounded-lg mt-4"
-                        :loading="requestingNextInstallment"
-                        :disabled="requestingNextInstallment || !canUserHandleMonitoring"
-                        @click="requestNextInstallment"
-                    >
-                        Solicitar próxima parcela
-                    </v-btn>
-                    <step-actions>
-                        <template #save>
+                <div
+                    v-if="monitoringStage?.status === 'em_andamento'"
+                    class="flex flex-col gap-6 w-full max-w-[596px] mx-auto mt-4"
+                >
+                    <div class="flex gap-4">
+                        <div class="flex-1">
                             <save-button
                                 :loading="form.processing"
                                 :can-save="canUserHandleMonitoring"
                                 @click="submit"
                             />
-                        </template>
-                        <tramit-button :action="tramit" :loading="tramitLoading" :disabled="!canUserHandleMonitoring" />
-                    </step-actions>
+                        </div>
+                        <div v-if="canRequestNextInstallment" class="flex-1">
+                            <v-btn
+                                variant="outlined"
+                                color="outlineSecondary"
+                                class="w-full rounded-lg"
+                                height="40"
+                                :loading="requestingNextInstallment"
+                                :disabled="requestingNextInstallment || !canUserHandleMonitoring"
+                                @click="requestNextInstallment"
+                            >
+                                Solicitar próxima <strong class="ml-1">parcela</strong>
+                            </v-btn>
+                        </div>
+                    </div>
+                    <tramit-button :action="tramit" :loading="tramitLoading" :disabled="!canUserHandleMonitoring" />
                 </div>
             </div>
         </template>

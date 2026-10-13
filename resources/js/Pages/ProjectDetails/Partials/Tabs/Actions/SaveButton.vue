@@ -15,6 +15,6 @@ defineProps({
         :disabled="!canSave || loading"
         v-bind="$attrs"
     >
-        <slot>Salvar Alterações</slot>
+        <slot>Salvar alterações</slot>
     </v-btn>
 </template>
