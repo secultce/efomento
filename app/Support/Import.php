@@ -72,8 +72,21 @@ class Import
                 ->trim();
 
             $name = $normalize($value);
-            $bank = Bank::all()->first(fn (Bank $bank) => $normalize($bank->name) === $name
-                || $normalize($bank->short_name) === $name);
+            $matches = Bank::all()
+                ->filter(fn (Bank $bank) => $normalize($bank->name) === $name
+                    || $normalize($bank->short_name) === $name)
+                ->take(2);
+
+            if ($matches->count() > 1) {
+                Log::warning('spreadsheet.import.bank_ambiguous', [
+                    'bank' => $value,
+                    'candidate_ids' => $matches->pluck('id')->all(),
+                ]);
+
+                return null;
+            }
+
+            $bank = $matches->first();
         }
 
         if (! $bank) {

@@ -11,6 +11,7 @@ use App\Models\Opening;
 use App\Models\User;
 use App\Services\Documents\DocumentPlaceholderResolver;
 use App\Services\SpreadsheetImportService;
+use App\Support\Import;
 use Database\Seeders\BankSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Http;
@@ -159,6 +160,28 @@ class BankTest extends TestCase
         $this->assertSame('Banco: ', $resolver->resolve($document->fresh()));
     }
 
+    public function test_bank_lookup_rejects_names_matching_distinct_institutions(): void
+    {
+        $first = Bank::create([
+            'ispb' => '99999998',
+            'name' => 'Banco Teste Ambíguo S.A.',
+            'short_name' => 'Primeiro banco',
+        ]);
+        $second = Bank::create([
+            'ispb' => '99999999',
+            'name' => 'Segundo banco',
+            'short_name' => 'BCO TESTE AMBIGUO SA',
+        ]);
+        $value = 'banco teste ambiguo';
+
+        Log::shouldReceive('warning')->once()->with('spreadsheet.import.bank_ambiguous', [
+            'bank' => $value,
+            'candidate_ids' => [$first->id, $second->id],
+        ]);
+
+        $this->assertNull(Import::resolveBankId($value));
+    }
+
     #[DataProvider('importBanks')]
     public function test_spreadsheet_import_resolves_banks_from_the_catalog(string $value, ?string $code): void
     {
@@ -166,6 +189,14 @@ class BankTest extends TestCase
         $user = User::factory()->create();
         if ($value === 'Banco desconhecido') {
             Log::shouldReceive('warning')->once()->with('spreadsheet.import.bank_not_found', ['bank' => $value]);
+        }
+        if ($value === 'CIP S.A') {
+            $candidates = Bank::where('name', 'CIP S.A')->get();
+            $this->assertGreaterThan(1, $candidates->count());
+            Log::shouldReceive('warning')->once()->with('spreadsheet.import.bank_ambiguous', [
+                'bank' => $value,
+                'candidate_ids' => $candidates->take(2)->pluck('id')->all(),
+            ]);
         }
 
         $project = app(SpreadsheetImportService::class)->processRow([
@@ -193,6 +224,7 @@ class BankTest extends TestCase
             'spreadsheet name' => ['BANCO DO BRASIL', '001'],
             'accents' => ['itau unibanco sa', '341'],
             'unknown name' => ['Banco desconhecido', null],
+            'ambiguous name' => ['CIP S.A', null],
             'empty' => ['', null],
         ];
     }
