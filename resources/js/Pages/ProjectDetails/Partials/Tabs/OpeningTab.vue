@@ -439,6 +439,7 @@ const activeEditIndex = ref('all');
                                 <div class="grid grid-cols-2 gap-4">
                                     <form-field
                                         label="Banco"
+                                        class="min-w-0"
                                         required
                                         clearable
                                         :error="form.errors['opening.bank_id'] || errors.bank"
@@ -450,13 +451,24 @@ const activeEditIndex = ref('all');
                                             :item-title="bankTitle"
                                             item-value="id"
                                             :custom-filter="filterBank"
+                                            :menu-props="{ maxWidth: 0 }"
                                             label="Busque pelo nome ou código do banco"
                                             no-data-text="Nenhum banco encontrado"
                                             variant="outlined"
                                             class="mt-2"
                                             clearable
                                             :error="!!(form.errors['opening.bank_id'] || errors.bank)"
-                                        />
+                                        >
+                                            <template #item="{ props: itemProps }">
+                                                <v-list-item v-bind="itemProps">
+                                                    <template #title>
+                                                        <span class="whitespace-normal break-words">
+                                                            {{ itemProps.title }}
+                                                        </span>
+                                                    </template>
+                                                </v-list-item>
+                                            </template>
+                                        </v-autocomplete>
                                     </form-field>
                                     <form-field label="Tipo de conta" required :error="errors.accountType">
                                         <select-field
