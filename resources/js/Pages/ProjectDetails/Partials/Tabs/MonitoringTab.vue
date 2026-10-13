@@ -8,6 +8,7 @@ import SectionForm from '@/Components/SectionForm.vue';
 import FormField from '@/Components/FormField.vue';
 import TextField from '@/Components/TextField.vue';
 import AuxLinks from '@/Components/AuxLinks.vue';
+import StepActions from '@/Components/StepActions.vue';
 import ReturnProcessAction from '@/Components/ReturnProcessAction.vue';
 import DiligenceChat from '@/Components/DiligenceChat.vue';
 import TramitButton from '@/Pages/ProjectDetails/Partials/Tabs/Actions/TramitButton.vue';
@@ -235,14 +236,9 @@ function submit() {
 
         <template #right-content>
             <div class="space-y-6">
-                <div class="flex items-center justify-between">
-                    <div>
-                        <p class="font-bold text-lg">Campos para você inserir ou editar dados</p>
-                        <p class="font-bold text-md mt-2 text-black">Links auxiliares</p>
-                    </div>
-                    <div class="flex gap-2">
-                        <SaveButton :loading="form.processing" :can-save="canUserHandleMonitoring" @click="submit" />
-                    </div>
+                <div>
+                    <p class="font-bold text-lg">Campos para você inserir ou editar dados</p>
+                    <p class="font-bold text-md mt-2 text-black">Links auxiliares</p>
                 </div>
                 <aux-links />
                 <div class="flex items-center justify-between">
@@ -317,7 +313,16 @@ function submit() {
                     >
                         Solicitar próxima parcela
                     </v-btn>
-                    <tramit-button :action="tramit" :loading="tramitLoading" :disabled="!canUserHandleMonitoring" />
+                    <step-actions>
+                        <template #save>
+                            <save-button
+                                :loading="form.processing"
+                                :can-save="canUserHandleMonitoring"
+                                @click="submit"
+                            />
+                        </template>
+                        <tramit-button :action="tramit" :loading="tramitLoading" :disabled="!canUserHandleMonitoring" />
+                    </step-actions>
                 </div>
             </div>
         </template>
