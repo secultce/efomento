@@ -10,7 +10,6 @@ use App\Enums\ReportStatus;
 use App\Enums\Role;
 use App\Jobs\LoadSpreadsheetProjectFilesJob;
 use App\Jobs\SyncOpeningRegistrationDataJob;
-use App\Models\Bank;
 use App\Models\Formalization;
 use App\Models\Notice;
 use App\Models\Opening;
@@ -161,7 +160,7 @@ class SpreadsheetImportService
             'opening_date' => $this->parseDate(trim((string) ($row['DATA ABERTURA DE PROCESSO'] ?? ''))),
             'agent_status' => $this->mapAgentStatus(trim((string) ($row['STATUS'] ?? ''))),
             'opened_by' => trim((string) ($row['RESPONSÁVEL POR ABRIR PROCESSO'] ?? '')),
-            'bank_id' => $this->resolveBankId(trim((string) ($row['BANCO'] ?? ''))),
+            'bank_id' => Import::resolveBankId(trim((string) ($row['BANCO'] ?? ''))),
             'account_type' => $this->mapAccountType(trim((string) ($row['TIPO DE CONTA'] ?? ''))),
             'branch' => trim((string) ($row['AGÊNCIA'] ?? '')),
             'account' => trim((string) ($row['CONTA'] ?? '')),
@@ -185,34 +184,6 @@ class SpreadsheetImportService
         }
 
         return $opening;
-    }
-
-    private function resolveBankId(string $value): ?int
-    {
-        if ($value === '') {
-            return null;
-        }
-
-        if (ctype_digit($value)) {
-            $bank = Bank::where('code', str_pad($value, 3, '0', STR_PAD_LEFT))->first();
-        } else {
-            $normalize = fn (string $name) => (string) Str::of($name)
-                ->ascii()->lower()
-                ->replaceMatches('/[^a-z0-9]+/', ' ')
-                ->replaceMatches('/\bbco\b/', 'banco')
-                ->replaceMatches('/\s+s\s*a\s*$/', '')
-                ->trim();
-
-            $name = $normalize($value);
-            $bank = Bank::all()->first(fn (Bank $bank) => $normalize($bank->name) === $name
-                || $normalize($bank->short_name) === $name);
-        }
-
-        if (! $bank) {
-            Log::warning('spreadsheet.import.bank_not_found', ['bank' => $value]);
-        }
-
-        return $bank?->id;
     }
 
     /**
