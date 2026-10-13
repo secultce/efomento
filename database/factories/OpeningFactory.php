@@ -5,6 +5,7 @@ namespace Database\Factories;
 use App\Enums\AccountType;
 use App\Enums\AgentStatus;
 use App\Enums\OpeningStatus;
+use App\Models\Bank;
 use App\Models\Opening;
 use App\Models\Project;
 use App\Models\User;
@@ -38,14 +39,8 @@ class OpeningFactory extends Factory
 
             'creditor_number' => $this->faker->numerify(),
 
-            'bank' => $this->faker->randomElement([
-                '001',
-                '237',
-                '341',
-                '104',
-                '033',
-                '745',
-            ]),
+            'bank_id' => Bank::whereIn('code', ['001', '237', '341', '104', '033', '745'])
+                ->inRandomOrder()->value('id'),
 
             'account_type' => $this->faker->randomElement(AccountType::cases())->value,
 

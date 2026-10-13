@@ -47,6 +47,10 @@ const props = defineProps({
         type: Array,
         default: () => [],
     },
+    banks: {
+        type: Array,
+        default: () => [],
+    },
     currentStage: {
         type: Object,
         default: null,
@@ -72,7 +76,7 @@ const form = useForm({
         agent_status: null,
         opened_by: null,
         creditor_number: null,
-        bank: null,
+        bank_id: null,
         account_type: null,
         branch: null,
         account: null,
@@ -111,7 +115,7 @@ onMounted(() => {
         agent_status: opening.agent_status ?? null,
         opened_by: opening.opened_by ?? null,
         creditor_number: opening.creditor_number ?? null,
-        bank: opening.bank ?? null,
+        bank_id: opening.bank_id ?? null,
         account_type: opening.account_type ?? null,
         branch: opening.branch ?? null,
         account: opening.account ?? null,
@@ -243,13 +247,22 @@ const hasPrincipalSupervisor = computed(() =>
 
 const hasText = (value) => String(value ?? '').trim().length > 0;
 
+const bankTitle = (bank) => (bank.code ? `${bank.code} - ${bank.name}` : bank.name);
+const normalizeBankSearch = (value) =>
+    String(value ?? '')
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '')
+        .toLowerCase();
+const filterBank = (title, query, item) =>
+    normalizeBankSearch(`${title} ${item.raw.short_name}`).includes(normalizeBankSearch(query).trim());
+
 const allRequiredFilled = computed(() => {
     const opening = form.opening ?? {};
 
     return !!(
         isNupValid.value &&
         hasText(opening.creditor_number) &&
-        hasText(opening.bank) &&
+        opening.bank_id &&
         opening.account_type &&
         hasText(opening.branch) &&
         hasText(opening.account) &&
@@ -265,7 +278,7 @@ const errors = computed(() => {
     return {
         nup: !isNupValid.value ? 'Preencha o número do processo (17 dígitos)' : null,
         creditorNumber: !hasText(form.opening.creditor_number) ? standardMessage : null,
-        bank: !hasText(form.opening.bank) ? standardMessage : null,
+        bank: !form.opening.bank_id ? standardMessage : null,
         accountType: !form.opening.account_type ? standardMessage : null,
         branch: !hasText(form.opening.branch) ? standardMessage : null,
         account: !hasText(form.opening.account) ? standardMessage : null,
@@ -424,11 +437,25 @@ const activeEditIndex = ref('all');
                             </template>
                             <template v-else-if="section.key === 'bank'">
                                 <div class="grid grid-cols-2 gap-4">
-                                    <form-field label="Banco" required :error="errors.bank">
-                                        <text-field
-                                            v-model="form.opening.bank"
-                                            label="Nome do banco"
-                                            :error="errors.bank"
+                                    <form-field
+                                        label="Banco"
+                                        required
+                                        clearable
+                                        :error="form.errors['opening.bank_id'] || errors.bank"
+                                    >
+                                        <v-autocomplete
+                                            v-model="form.opening.bank_id"
+                                            data-cy="bank-select"
+                                            :items="props.banks"
+                                            :item-title="bankTitle"
+                                            item-value="id"
+                                            :custom-filter="filterBank"
+                                            label="Busque pelo nome ou código do banco"
+                                            no-data-text="Nenhum banco encontrado"
+                                            variant="outlined"
+                                            class="mt-2"
+                                            clearable
+                                            :error="!!(form.errors['opening.bank_id'] || errors.bank)"
                                         />
                                     </form-field>
                                     <form-field label="Tipo de conta" required :error="errors.accountType">

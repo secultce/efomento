@@ -38,6 +38,7 @@ class AgentController extends Controller
                 'notice',
                 'category',
                 'opening',
+                'opening.bank',
                 'currentStage',
                 'budgets.installments',
             ])

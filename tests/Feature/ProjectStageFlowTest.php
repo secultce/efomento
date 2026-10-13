@@ -64,7 +64,6 @@ class ProjectStageFlowTest extends TestCase
         $opening = Opening::factory()->create([
             'project_id' => $project->id,
             'creditor_number' => '123456',
-            'bank' => 'Banco do Brasil',
             'account_type' => AccountType::cases()[0]->value,
             'branch' => '1234',
             'account' => '12345-6',

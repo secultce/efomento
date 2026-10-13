@@ -63,7 +63,7 @@ class OpeningUpdateRequest extends FormRequest
             'opening.creditor_number' => ['nullable', 'string', 'max:255'],
 
             // Dados Bancários
-            'opening.bank' => ['nullable', 'string', 'max:255'],
+            'opening.bank_id' => ['nullable', 'integer', 'exists:banks,id'],
             'opening.account_type' => ['nullable', 'string', 'max:255'],
             'opening.branch' => ['nullable', 'string', 'max:255'],
             'opening.account' => ['nullable', 'string', 'max:255'],
@@ -117,7 +117,7 @@ class OpeningUpdateRequest extends FormRequest
             'opening.agent_status' => 'status do agente cultural',
             'opening.opened_by' => 'responsável por abrir o processo',
             'opening.creditor_number' => 'número do cadastro do credor',
-            'opening.bank' => 'banco',
+            'opening.bank_id' => 'banco',
             'opening.account_type' => 'tipo de conta',
             'opening.branch' => 'agência',
             'opening.account' => 'conta',

@@ -15,6 +15,7 @@ defineProps({
     deliberation: { type: Array, default: () => [] },
     cgeAtendeStatus: { type: Array, default: () => [] },
     accountType: { type: Array, default: () => [] },
+    banks: { type: Array, default: () => [] },
     openingStatus: { type: Array, default: () => [] },
     currentStage: { type: Object, default: null },
     canReturn: { type: Boolean, default: false },
@@ -50,6 +51,7 @@ defineProps({
                     :deliberation="deliberation"
                     :cge-atende-status="cgeAtendeStatus"
                     :account-type="accountType"
+                    :banks="banks"
                     :current-stage="currentStage"
                     :can-return="canReturn"
                     :can-advance="canAdvance"

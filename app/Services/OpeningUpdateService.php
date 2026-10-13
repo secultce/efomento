@@ -90,7 +90,7 @@ class OpeningUpdateService implements StageValidatorInterface
 
         $requiredOpeningFields = [
             'creditor_number' => 'Número do cadastro do credor',
-            'bank' => 'Banco',
+            'bank_id' => 'Banco',
             'account_type' => 'Tipo de conta',
             'branch' => 'Agência',
             'account' => 'Conta',

@@ -24,7 +24,7 @@ class OpeningStoreRequest extends FormRequest
 
             'creditor_number' => ['nullable', 'string', 'max:255'],
 
-            'bank' => ['nullable', 'string', 'max:255'],
+            'bank_id' => ['nullable', 'integer', 'exists:banks,id'],
             'account_type' => ['nullable', 'string', 'max:100'],
             'branch' => ['nullable', 'string', 'max:50'],
             'account' => ['nullable', 'string', 'max:50'],

@@ -28,7 +28,8 @@ class OpeningResource extends JsonResource
 
             'creditor_number' => $this->creditor_number,
 
-            'bank' => $this->bank,
+            'bank_id' => $this->bank_id,
+            'bank' => $this->whenLoaded('bank'),
             'account_type' => $this->account_type?->value,
             'branch' => $this->branch,
             'account' => $this->account,
