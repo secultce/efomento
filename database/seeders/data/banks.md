@@ -4,7 +4,7 @@
 
 Cada instituição tem ISPB, código COMPE (quando disponível), nome completo (`name`) e nome abreviado (`short_name`). Os códigos COMPE são strings com três dígitos para preservar zeros à esquerda. Códigos ausentes ou iguais a zero na fonte são armazenados como `null`; o ISPB identifica a instituição de forma única.
 
-A migration cria e preenche a tabela `banks`, independentemente de `SEED_MODE`, e substitui `openings.bank` por `openings.bank_id`, sem converter nomes antigos. Para atualizar o catálogo, revise o JSON e execute:
+A migration cria a tabela `banks` e substitui `openings.bank` por `openings.bank_id`, sem converter nomes antigos. O catálogo é preenchido pelo `BankSeeder` pela lista `common` de `config/seeding.php`, nos modos `SEED_MODE=users` e `SEED_MODE=all`. Para carregar ou atualizar o catálogo separadamente, revise o JSON e execute:
 
 ```sh
 php artisan db:seed --class=BankSeeder

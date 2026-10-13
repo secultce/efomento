@@ -147,8 +147,10 @@ O comando `php artisan db:seed` (inclusive via `migrate:fresh --seed`) respeita
 | Valor | Dados criados |
 |-------|---------------|
 | `none` | Nenhum (padrao) |
-| `users` | Permissoes, perfis e usuarios |
-| `all` | Todos os dados de desenvolvimento |
+| `users` | Seeders comuns, permissoes, perfis e usuarios |
+| `all` | Seeders comuns e todos os dados de desenvolvimento |
+
+Os seeders comuns sao definidos em `config/seeding.php` (`common`) e incluem o catalogo de bancos. O modo `none` nao executa esses seeders.
 
 Depois de alterar `SEED_MODE` em um ambiente com configuracao em cache, execute
 `php artisan config:clear` antes de rodar o seeder.

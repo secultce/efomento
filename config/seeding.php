@@ -1,5 +1,7 @@
 <?php
 
+use Database\Seeders\BankSeeder;
+
 return [
 
     /*
@@ -12,5 +14,10 @@ return [
     */
 
     'mode' => env('SEED_MODE', 'none'),
+
+    // Shared seeders for config tables
+    'common' => [
+        BankSeeder::class,
+    ],
 
 ];

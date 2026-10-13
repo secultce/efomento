@@ -15,7 +15,9 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        $seeders = match (config('seeding.mode')) {
+        $mode = config('seeding.mode');
+
+        $seeders = match ($mode) {
             'none' => [],
             'users' => [
                 PermissionSeeder::class,
@@ -35,6 +37,10 @@ class DatabaseSeeder extends Seeder
                 'Invalid SEED_MODE. Supported values: none, users, all.'
             ),
         };
+
+        if ($mode !== 'none') {
+            $seeders = array_values(array_unique(array_merge(config('seeding.common', []), $seeders)));
+        }
 
         if ($seeders !== []) {
             $this->call($seeders);

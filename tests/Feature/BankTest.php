@@ -25,6 +25,13 @@ class BankTest extends TestCase
 {
     use RefreshDatabase;
 
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        $this->seed(BankSeeder::class);
+    }
+
     public function test_bank_migration_can_be_rolled_back_and_reapplied(): void
     {
         $migration = require database_path('migrations/2026_10_13_000001_create_banks_table.php');
@@ -38,7 +45,7 @@ class BankTest extends TestCase
 
         $this->assertTrue(Schema::hasColumn('openings', 'bank_id'));
         $this->assertFalse(Schema::hasColumn('openings', 'bank'));
-        $this->assertNotNull(Bank::where('code', '001')->first());
+        $this->assertDatabaseCount('banks', 0);
     }
 
     public function test_catalog_is_loaded_locally_and_reseeding_preserves_referenced_ids(): void
