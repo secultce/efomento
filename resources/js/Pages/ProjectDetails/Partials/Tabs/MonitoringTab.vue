@@ -12,12 +12,15 @@ import ReturnProcessAction from '@/Components/ReturnProcessAction.vue';
 import DiligenceChat from '@/Components/DiligenceChat.vue';
 import TramitButton from '@/Pages/ProjectDetails/Partials/Tabs/Actions/TramitButton.vue';
 import SaveButton from '@/Pages/ProjectDetails/Partials/Tabs/Actions/SaveButton.vue';
-import { viewSections, formSections } from '@/Schemas/Monitoring';
+import { getViewSections } from '@/Schemas/viewSections';
+import { monitoringFormSections as formSections } from '@/Schemas/formSections';
 import { useSnackbar } from '@/Composables/useSnackbar';
 import { useAlert } from '@/Composables/useAlert';
 import { sanitizeExternalUrl } from '@/Composables/useExternalLink';
 import { useAuth } from '@/Composables/useAuth';
 import { useStageAdvance } from '@/Composables/useStageAdvance';
+
+const viewSections = getViewSections('monitoring');
 
 const props = defineProps({
     project: { type: Object, required: true },

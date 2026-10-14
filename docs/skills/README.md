@@ -19,7 +19,7 @@ As skills ficam em `.claude/skills/` na raiz do projeto:
 
 | Skill | Quando usar | O que faz |
 |---|---|---|
-| `/nova-tab` | Criar a tela de uma nova etapa do fluxo do Project (ex.: PaymentTab) | Cria `Schemas/<Etapa>/` (viewSections, formSections, index), a `<Etapa>Tab.vue` no padrão SplitScreenTab e registra no `ProcessTabs.vue`. Se o backend da etapa não existir, oferece o fluxo guiado do `checklist-backend.md` |
+| `/nova-tab` | Criar a tela de uma nova etapa do fluxo do Project (ex.: PaymentTab) | Configura a visibilidade da etapa no catálogo `Schemas/viewSections.js` e adiciona seu export em `Schemas/formSections.js`, a `<Etapa>Tab.vue` no padrão SplitScreenTab e registra no `ProcessTabs.vue`. Se o backend da etapa não existir, oferece o fluxo guiado do `checklist-backend.md` |
 | `/novo-componente` | Criar componente Vue reutilizável em `resources/js/Components/` | Verifica se já existe componente similar (prefere estender/compor), usa `TextField.vue`/`FormField.vue` como referência e aplica o checklist (props tipadas, v-model, Vuetify outlined + Tailwind) |
 | `/novo-composable` | Extrair lógica reutilizável para `resources/js/Composables/` | Confere os 12 composables existentes para não duplicar (ex.: nova função de data vai no `useDate`, não num composable novo), segue o padrão `export function useXxx()` |
 | `/tratamento-erros` | Lançar/capturar erros, criar Service/Controller novo, tratar erro de API no Vue | Aplica a hierarquia `AppException` (backend) e o padrão `useErrorHandler` (frontend) descritos em `docs/error_handling.md` |

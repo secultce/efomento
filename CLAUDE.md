@@ -105,11 +105,11 @@ Dois workers separados por responsabilidade:
 
 ### Tabs de etapa e Schemas
 
-As telas de cada etapa do Project são Tabs em `resources/js/Pages/ProjectDetails/Partials/Tabs/` (registradas em `ProcessTabs.vue`), construídas sobre `SplitScreenTab` + `SectionChips` + `SectionContent` (visualização) + `SectionForm` (edição). Os campos exibidos/editados são declarados em Schemas (`resources/js/Schemas/<Etapa>/`):
+As telas de cada etapa do Project são Tabs em `resources/js/Pages/ProjectDetails/Partials/Tabs/` (registradas em `ProcessTabs.vue`), construídas sobre `SplitScreenTab` + `SectionChips` + `SectionContent` (visualização) + `SectionForm` (edição). Os campos exibidos/editados são declarados em Schemas (`resources/js/Schemas/`):
 
 - `viewSections.js` — seções `{ title, fields }`; cada field usa `{ label, key }` (dot notation) ou `{ label, compute }` para valores calculados.
 - `formSections.js` — `{ title, key }`; o `SectionForm` renderiza um slot por `section.key`.
-- `index.js` — barrel export.
+Cada arquivo é único no projeto. `viewSections.js` exporta um catálogo de seções com `key` e `tabs`; cada Tab usa `getViewSections('opening')` (ou sua etapa) para selecionar as seções pertinentes na ordem do catálogo. Reutilizar as seções compartilhadas e preservar variantes quando os campos diferirem. `formSections.js` exporta arrays por etapa (ex.: `openingFormSections`), importados com o alias `formSections`. Não criar cópias em pastas por etapa.
 
 Para datas nos Schemas, usar o composable `useDate`: `getDate(key)` formata, `addDaysTo(key, dias)` soma dias, `daysBetween(startKey, endKey)` retorna o intervalo em dias.
 

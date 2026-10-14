@@ -5,7 +5,8 @@ import SectionChips from '@/Components/SectionChips.vue';
 import SectionContent from '@/Components/SectionContent.vue';
 import SectionForm from '@/Components/SectionForm.vue';
 import AuxLinks from '@/Components/AuxLinks.vue';
-import { viewSections, formSections } from '@/Schemas/Opening';
+import { getViewSections } from '@/Schemas/viewSections';
+import { openingFormSections as formSections } from '@/Schemas/formSections';
 import { router, useForm } from '@inertiajs/vue3';
 import { onMounted } from 'vue';
 import { useSnackbar } from '@/Composables/useSnackbar';
@@ -20,6 +21,8 @@ import { useAlert } from '@/Composables/useAlert';
 import { useSaveShortcut } from '@/Composables/useSaveShortcut';
 import { useMask } from '@/Composables/useMask';
 import { useStageAdvance } from '@/Composables/useStageAdvance';
+
+const viewSections = getViewSections('opening');
 
 const { showSnackbar } = useSnackbar();
 const { normalizeDate } = useDate();

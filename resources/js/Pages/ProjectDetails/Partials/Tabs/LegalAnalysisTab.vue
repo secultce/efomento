@@ -7,9 +7,11 @@ import AuxLinks from '@/Components/AuxLinks.vue';
 import DocumentEvaluationList from '@/Components/DocumentEvaluationList.vue';
 import ReturnProcessAction from '@/Components/ReturnProcessAction.vue';
 import TramitButton from '@/Pages/ProjectDetails/Partials/Tabs/Actions/TramitButton.vue';
-import { viewSections } from '@/Schemas/Opening';
+import { getViewSections } from '@/Schemas/viewSections';
 import { useLegalAnalysis } from '@/Composables/useLegalAnalysis';
 import { useStageAdvance } from '@/Composables/useStageAdvance';
+
+const viewSections = getViewSections('legalAnalysis');
 
 const props = defineProps({
     project: { type: Object, required: true },
