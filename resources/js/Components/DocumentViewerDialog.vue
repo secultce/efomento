@@ -47,6 +47,7 @@ const resolvedBody = computed(() => {
         '[project_name]': project.title_project ?? 'sem projeto',
         '[allocation_code]': budgetAllocation?.allocation_code ?? 'sem dotação orçamentária',
         '[allocation_number]': budgetAllocation?.allocation_number ?? 'sem dotação orçamentária',
+        '[finalistic_project]': budgetAllocation?.finalistic_project ?? 'sem projeto finalístico',
     };
 
     return Object.entries(replacements).reduce(
