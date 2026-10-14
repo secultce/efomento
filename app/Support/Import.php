@@ -3,10 +3,8 @@
 namespace App\Support;
 
 use App\Exceptions\Domain\BusinessRuleException;
-use App\Models\Bank;
 use Carbon\Carbon;
 use DateTimeInterface;
-use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 use PhpOffice\PhpSpreadsheet\Shared\Date as ExcelDate;
 
@@ -53,47 +51,6 @@ class Import
                     $missing->implode(', ')
             );
         }
-    }
-
-    public static function resolveBankId(string $value): ?int
-    {
-        if ($value === '') {
-            return null;
-        }
-
-        if (ctype_digit($value)) {
-            $bank = Bank::where('code', str_pad($value, 3, '0', STR_PAD_LEFT))->first();
-        } else {
-            $normalize = fn (string $name) => (string) Str::of($name)
-                ->ascii()->lower()
-                ->replaceMatches('/[^a-z0-9]+/', ' ')
-                ->replaceMatches('/\bbco\b/', 'banco')
-                ->replaceMatches('/\s+s\s*a\s*$/', '')
-                ->trim();
-
-            $name = $normalize($value);
-            $matches = Bank::all()
-                ->filter(fn (Bank $bank) => $normalize($bank->name) === $name
-                    || $normalize($bank->short_name) === $name)
-                ->take(2);
-
-            if ($matches->count() > 1) {
-                Log::warning('spreadsheet.import.bank_ambiguous', [
-                    'bank' => $value,
-                    'candidate_ids' => $matches->pluck('id')->all(),
-                ]);
-
-                return null;
-            }
-
-            $bank = $matches->first();
-        }
-
-        if (! $bank) {
-            Log::warning('spreadsheet.import.bank_not_found', ['bank' => $value]);
-        }
-
-        return $bank?->id;
     }
 
     public static function normalizeNup(mixed $value): ?string
