@@ -9,11 +9,12 @@ use App\Models\Document;
 use App\Models\Notice;
 use App\Models\Opening;
 use App\Models\User;
+use App\Services\BankResolver;
 use App\Services\Documents\DocumentPlaceholderResolver;
 use App\Services\SpreadsheetImportService;
-use App\Support\Import;
 use Database\Seeders\BankSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Schema;
@@ -179,7 +180,51 @@ class BankTest extends TestCase
             'candidate_ids' => [$first->id, $second->id],
         ]);
 
-        $this->assertNull(Import::resolveBankId($value));
+        $this->assertNull(app(BankResolver::class)->resolveBankId($value));
+    }
+
+    public function test_bank_lookup_loads_catalog_only_once_for_repeated_names_and_codes(): void
+    {
+        $bank = Bank::where('code', '001')->firstOrFail();
+        $resolver = app(BankResolver::class);
+        DB::enableQueryLog();
+        DB::flushQueryLog();
+
+        try {
+            $this->assertNull($resolver->resolveBankId(''));
+            $this->assertCount(0, DB::getQueryLog());
+
+            for ($row = 0; $row < 500; $row++) {
+                $value = ['001', '1', 'Banco do Brasil S.A.', 'BCO DO BRASIL S.A.'][$row % 4];
+                $this->assertSame($bank->id, $resolver->resolveBankId($value));
+            }
+
+            $this->assertCount(1, DB::getQueryLog());
+        } finally {
+            DB::disableQueryLog();
+            DB::flushQueryLog();
+        }
+    }
+
+    public function test_bank_lookup_cache_is_isolated_between_resolver_instances(): void
+    {
+        $resolver = app(BankResolver::class);
+        $resolver->resolveBankId('001');
+        $bank = Bank::where('code', '001')->firstOrFail();
+        $bank->update(['name' => 'Banco Renomeado', 'short_name' => 'Banco Renomeado']);
+
+        $this->assertSame($bank->id, app(BankResolver::class)->resolveBankId('Banco Renomeado'));
+    }
+
+    public function test_bank_validation_uses_portuguese_attribute_labels(): void
+    {
+        app()->setLocale('pt_BR');
+
+        foreach (['bank_id', 'opening.bank_id'] as $attribute) {
+            $validator = Validator::make([], [$attribute => ['required']]);
+
+            $this->assertSame('É obrigatória a indicação de um valor para o campo banco.', $validator->errors()->first($attribute));
+        }
     }
 
     #[DataProvider('importBanks')]
