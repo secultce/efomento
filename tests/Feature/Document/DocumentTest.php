@@ -557,19 +557,20 @@ class DocumentTest extends TestCase
             'planning_macroregion' => '01 – CARIRI',
             'allocation_code' => '1001789',
             'allocation_number' => '27200004.13.392.131.11687.01.339048.2.7199200000.1',
+            'finalistic_project' => '272040102920251 - CAPITAL',
         ]);
         $document = Document::factory()->create([
             'project_id' => $project->id,
             'notice_id' => $notice->id,
             'type' => DocumentType::DO,
             'phase' => DocumentPhase::BUDGET,
-            'body' => '[allocation_code] / [allocation_number]',
+            'body' => '[allocation_code] / [allocation_number] / [finalistic_project]',
         ]);
 
         $resolvedBody = app(DocumentPlaceholderResolver::class)->resolve($document);
 
         $this->assertSame(
-            $allocation->allocation_code.' / '.$allocation->allocation_number,
+            $allocation->allocation_code.' / '.$allocation->allocation_number.' / '.$allocation->finalistic_project,
             $resolvedBody
         );
     }
@@ -591,6 +592,7 @@ class DocumentTest extends TestCase
             'notice_id' => $notice->id,
             'allocation_code' => 'CURRENT-CODE',
             'allocation_number' => 'CURRENT-NUMBER',
+            'finalistic_project' => 'CURRENT-FINALISTIC-PROJECT',
         ]);
         Installment::factory()->create([
             'budget_id' => $budget->id,
@@ -607,12 +609,12 @@ class DocumentTest extends TestCase
             'notice_id' => $notice->id,
             'type' => DocumentType::DO,
             'phase' => DocumentPhase::BUDGET,
-            'body' => '[allocation_code] / [allocation_number]',
+            'body' => '[allocation_code] / [allocation_number] / [finalistic_project]',
         ]);
 
         $resolvedBody = app(DocumentPlaceholderResolver::class)->resolve($document);
 
-        $this->assertSame('CURRENT-CODE / CURRENT-NUMBER', $resolvedBody);
+        $this->assertSame('CURRENT-CODE / CURRENT-NUMBER / CURRENT-FINALISTIC-PROJECT', $resolvedBody);
     }
 
     public function test_resolver_does_not_guess_between_multiple_unmatched_allocations(): void
