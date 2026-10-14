@@ -1,6 +1,6 @@
 # Catálogo de bancos
 
-`banks.json` é uma cópia local da [listagem de bancos da BrasilAPI](https://brasilapi.com.br/api/banks/v1), obtida em 13/10/2026. A aplicação não consulta esse serviço para carregar ou pesquisar bancos.
+[`banks.json`](../database/seeders/data/banks.json) é uma cópia local da [listagem de bancos da BrasilAPI](https://brasilapi.com.br/api/banks/v1), obtida em 13/10/2026. A aplicação não consulta esse serviço para carregar ou pesquisar bancos.
 
 Cada instituição tem ISPB, código COMPE (quando disponível), nome completo (`name`) e nome abreviado (`short_name`). Os códigos COMPE são strings com três dígitos para preservar zeros à esquerda. Códigos ausentes ou iguais a zero na fonte são armazenados como `null`; o ISPB identifica a instituição de forma única.
 
