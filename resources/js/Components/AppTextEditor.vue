@@ -50,7 +50,14 @@ const props = defineProps({
     },
 });
 
-const emit = defineEmits(['update:modelValue']);
+const emit = defineEmits(['update:modelValue', 'escape']);
+
+// Keyboard events inside TinyMCE's iframe do not reach the parent dialog.
+function handleKeyDown(event) {
+    if (event.key === 'Escape' && !event.defaultPrevented) {
+        emit('escape');
+    }
+}
 
 const editorValue = computed({
     get: () => props.modelValue,
@@ -80,7 +87,7 @@ const editorInit = computed(() => ({
             {{ label }}
         </label>
 
-        <Editor v-model="editorValue" :init="editorInit" />
+        <Editor v-model="editorValue" :init="editorInit" @keydown="handleKeyDown" />
 
         <div v-if="error" class="text-red-600 text-caption mt-1">
             {{ error }}

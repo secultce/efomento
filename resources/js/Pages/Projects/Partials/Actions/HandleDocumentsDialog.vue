@@ -59,7 +59,14 @@ const dialogTitle = computed(() => {
 
 const isOpen = computed({
     get: () => props.modelValue,
-    set: (val) => emit('update:modelValue', val),
+    set: (val) => {
+        if (!val) {
+            closeDialog();
+            return;
+        }
+
+        emit('update:modelValue', val);
+    },
 });
 
 const form = useForm({
@@ -282,7 +289,7 @@ watch(
 </script>
 
 <template>
-    <v-dialog v-model="isOpen" max-width="900" :retain-focus="false" persistent>
+    <v-dialog v-model="isOpen" max-width="900" :retain-focus="false">
         <v-card class="rounded-lg flex flex-col" :height="dialogHeight">
             <v-card-title class="font-weight-bold shrink-0">
                 {{ dialogTitle }}
@@ -339,6 +346,7 @@ watch(
                     :error="form.errors.content"
                     class="flex-grow"
                     data-cy="document-text-area"
+                    @escape="closeDialog"
                 />
 
                 <!-- FOOTER TYPE -->
