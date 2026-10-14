@@ -52,7 +52,6 @@ const props = defineProps({
 
 const emit = defineEmits(['update:modelValue', 'escape']);
 
-// Keyboard events inside TinyMCE's iframe do not reach the parent dialog.
 function handleKeyDown(event) {
     if (event.key === 'Escape' && !event.defaultPrevented) {
         emit('escape');
