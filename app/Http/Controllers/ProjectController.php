@@ -17,6 +17,7 @@ use App\Enums\Role;
 use App\Http\Requests\Project\CreateProjectDocumentRequest;
 use App\Http\Resources\DocumentResource;
 use App\Http\Resources\ProjectResource;
+use App\Models\Bank;
 use App\Models\Notice;
 use App\Models\Project;
 use App\Models\ProjectStage;
@@ -41,6 +42,7 @@ class ProjectController extends Controller
                 'agent.latestSnapshot',
                 'category',
                 'opening',
+                'opening.bank',
                 'opening.supervisors',
                 'opening.principalSupervisor.user',
                 'documents',
@@ -48,6 +50,7 @@ class ProjectController extends Controller
                 'documents.project.notice',
                 'documents.project.notice.budgetAllocations',
                 'documents.project.opening.principalSupervisor.user',
+                'documents.project.opening.bank',
                 'documents.project.budgets.installments.budgetAllocation',
                 'currentStage',
                 'monitoring',
@@ -131,6 +134,7 @@ class ProjectController extends Controller
             'agent',
             'category',
             'opening',
+            'opening.bank',
             'opening.supervisors' => function ($q) {
                 $q->whereNull('removed_at')
                     ->orderByRaw("CASE type WHEN 'principal' THEN 0 WHEN 'alternate' THEN 1 ELSE 2 END");
@@ -169,6 +173,10 @@ class ProjectController extends Controller
             'usersAvailableForFormalization' => $usersAvailableForFormalization,
             'agentStatus' => AgentStatus::options(),
             'accountType' => AccountType::options(),
+            'banks' => Bank::orderByRaw('code IS NULL')
+                ->orderBy('code')
+                ->orderBy('name')
+                ->get(['id', 'code', 'name', 'short_name']),
             'reportStatus' => ReportStatus::options(),
             'deliberation' => DeliberationType::options(),
             'cgeAtendeStatus' => CgeAtendeStatus::options(),

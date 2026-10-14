@@ -14,6 +14,7 @@ use App\Models\OpeningSupervisor;
 use App\Models\Project;
 use App\Models\ProjectStage;
 use App\Models\User;
+use Database\Seeders\BankSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Spatie\Permission\Models\Role;
 use Tests\TestCase;
@@ -21,6 +22,13 @@ use Tests\TestCase;
 class ProjectStageControllerTest extends TestCase
 {
     use RefreshDatabase;
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        $this->seed(BankSeeder::class);
+    }
 
     private function createUserWithRoles(string ...$roles): User
     {

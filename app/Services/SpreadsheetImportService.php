@@ -30,6 +30,7 @@ class SpreadsheetImportService
         private readonly CategoryService $categoryService,
         private readonly AgentService $agentService,
         private readonly UserService $userService,
+        private readonly BankResolver $bankResolver,
     ) {}
 
     /**
@@ -160,7 +161,7 @@ class SpreadsheetImportService
             'opening_date' => $this->parseDate(trim((string) ($row['DATA ABERTURA DE PROCESSO'] ?? ''))),
             'agent_status' => $this->mapAgentStatus(trim((string) ($row['STATUS'] ?? ''))),
             'opened_by' => trim((string) ($row['RESPONSÁVEL POR ABRIR PROCESSO'] ?? '')),
-            'bank' => trim((string) ($row['BANCO'] ?? '')),
+            'bank_id' => $this->bankResolver->resolveBankId(trim((string) ($row['BANCO'] ?? ''))),
             'account_type' => $this->mapAccountType(trim((string) ($row['TIPO DE CONTA'] ?? ''))),
             'branch' => trim((string) ($row['AGÊNCIA'] ?? '')),
             'account' => trim((string) ($row['CONTA'] ?? '')),

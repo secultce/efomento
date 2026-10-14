@@ -10,6 +10,7 @@ use App\Traits\HasCreatedBy;
 use App\Traits\HasFiles;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\SoftDeletes;
@@ -29,7 +30,7 @@ class Opening extends Model implements Auditable
         'opened_by',
         'created_by',
         'creditor_number',
-        'bank',
+        'bank_id',
         'account_type',
         'branch',
         'account',
@@ -69,6 +70,11 @@ class Opening extends Model implements Auditable
     public function project()
     {
         return $this->belongsTo(Project::class);
+    }
+
+    public function bank(): BelongsTo
+    {
+        return $this->belongsTo(Bank::class);
     }
 
     public function user()

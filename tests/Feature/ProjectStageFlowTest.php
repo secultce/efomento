@@ -19,6 +19,7 @@ use App\Models\Project;
 use App\Models\ProjectStage;
 use App\Models\User;
 use App\Services\ProjectStageService;
+use Database\Seeders\BankSeeder;
 use Illuminate\Database\QueryException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Spatie\Permission\Models\Role;
@@ -33,6 +34,8 @@ class ProjectStageFlowTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
+
+        $this->seed(BankSeeder::class);
         $this->service = app(ProjectStageService::class);
     }
 
@@ -64,7 +67,6 @@ class ProjectStageFlowTest extends TestCase
         $opening = Opening::factory()->create([
             'project_id' => $project->id,
             'creditor_number' => '123456',
-            'bank' => 'Banco do Brasil',
             'account_type' => AccountType::cases()[0]->value,
             'branch' => '1234',
             'account' => '12345-6',

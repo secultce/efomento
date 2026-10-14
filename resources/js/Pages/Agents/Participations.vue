@@ -137,7 +137,7 @@ function goBack() {
                         class="grid grid-cols-1 gap-x-6 gap-y-1 text-sm min-[641px]:grid-cols-[repeat(4,minmax(70px,max-content))]"
                     >
                         <p>
-                            <span class="block">Banco</span><strong>{{ latestOpening.bank ?? '-' }}</strong>
+                            <span class="block">Banco</span><strong>{{ latestOpening.bank?.name ?? '-' }}</strong>
                         </p>
                         <p>
                             <span class="block">Tipo de conta</span>

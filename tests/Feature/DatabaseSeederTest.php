@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use Database\Seeders\AgentSeeder;
+use Database\Seeders\BankSeeder;
 use Database\Seeders\BudgetSeeder;
 use Database\Seeders\DatabaseSeeder;
 use Database\Seeders\LegalAnalysisSeeder;
@@ -26,7 +27,7 @@ class DatabaseSeederTest extends TestCase
         $this->assertSame([], $seeder->calls);
     }
 
-    public function test_users_mode_runs_only_permissions_and_users(): void
+    public function test_users_mode_runs_common_seeders_permissions_and_users(): void
     {
         config(['seeding.mode' => 'users']);
 
@@ -34,6 +35,7 @@ class DatabaseSeederTest extends TestCase
         $seeder->run();
 
         $this->assertSame([
+            BankSeeder::class,
             PermissionSeeder::class,
             UserSeeder::class,
         ], $seeder->calls);
@@ -47,6 +49,7 @@ class DatabaseSeederTest extends TestCase
         $seeder->run();
 
         $this->assertSame([
+            BankSeeder::class,
             PermissionSeeder::class,
             NoticeSeeder::class,
             UserSeeder::class,
@@ -55,6 +58,23 @@ class DatabaseSeederTest extends TestCase
             BudgetSeeder::class,
             PaymentSeeder::class,
             MonitoringSeeder::class,
+        ], $seeder->calls);
+    }
+
+    public function test_configured_common_seeders_are_merged_without_duplicates(): void
+    {
+        config([
+            'seeding.mode' => 'users',
+            'seeding.common' => [BankSeeder::class, PermissionSeeder::class],
+        ]);
+
+        $seeder = $this->recordingSeeder();
+        $seeder->run();
+
+        $this->assertSame([
+            BankSeeder::class,
+            PermissionSeeder::class,
+            UserSeeder::class,
         ], $seeder->calls);
     }
 
