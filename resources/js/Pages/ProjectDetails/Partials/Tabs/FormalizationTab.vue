@@ -7,6 +7,7 @@ import SectionChips from '@/Components/SectionChips.vue';
 import SectionContent from '@/Components/SectionContent.vue';
 import SectionForm from '@/Components/SectionForm.vue';
 import AuxLinks from '@/Components/AuxLinks.vue';
+import StepActions from '@/Components/StepActions.vue';
 import ReturnProcessAction from '@/Components/ReturnProcessAction.vue';
 import FormField from '@/Components/FormField.vue';
 import TextField from '@/Components/TextField.vue';
@@ -365,14 +366,10 @@ const permissionMessage = computed(() => {
 
         <template #right-content>
             <div class="space-y-6" data-cy="right-panel">
-                <div class="flex items-center justify-between">
-                    <div>
-                        <p class="font-bold text-lg">Campos para você inserir ou editar dados</p>
+                <div>
+                    <p class="font-bold text-lg">Campos para você inserir ou editar dados</p>
 
-                        <p class="font-bold text-md mt-2 text-black">Links auxiliares</p>
-                    </div>
-
-                    <SaveButton :loading="form.processing" :can-save="canEditFormalization" @click="submit" />
+                    <p class="font-bold text-md mt-2 text-black">Links auxiliares</p>
                 </div>
 
                 <AuxLinks />
@@ -595,12 +592,17 @@ const permissionMessage = computed(() => {
                         </template>
                     </SectionForm>
 
-                    <TramitButton
-                        :action="tramit"
-                        :disabled="!canEditFormalization"
-                        :loading="tramitLoading"
-                        data-cy="tramit-button"
-                    />
+                    <StepActions>
+                        <template #save>
+                            <SaveButton :loading="form.processing" :can-save="canEditFormalization" @click="submit" />
+                        </template>
+                        <TramitButton
+                            :action="tramit"
+                            :disabled="!canEditFormalization"
+                            :loading="tramitLoading"
+                            data-cy="tramit-button"
+                        />
+                    </StepActions>
                 </div>
             </div>
         </template>

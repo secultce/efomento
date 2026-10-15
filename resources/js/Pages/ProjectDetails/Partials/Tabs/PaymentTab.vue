@@ -10,6 +10,7 @@ import ReturnProcessAction from '@/Components/ReturnProcessAction.vue';
 import FormField from '@/Components/FormField.vue';
 import TextField from '@/Components/TextField.vue';
 import AuxLinks from '@/Components/AuxLinks.vue';
+import StepActions from '@/Components/StepActions.vue';
 
 import TramitButton from '@/Pages/ProjectDetails/Partials/Tabs/Actions/TramitButton.vue';
 import SaveButton from '@/Pages/ProjectDetails/Partials/Tabs/Actions/SaveButton.vue';
@@ -408,18 +409,10 @@ const tramit = async () => {
 
         <template #right-content>
             <div class="space-y-6">
-                <div class="flex items-center justify-between">
-                    <div>
-                        <p class="font-bold text-lg">Campos para você inserir ou editar dados</p>
+                <div>
+                    <p class="font-bold text-lg">Campos para você inserir ou editar dados</p>
 
-                        <p class="font-bold text-md mt-2 text-black">Links auxiliares</p>
-                    </div>
-
-                    <SaveButton
-                        :loading="remarksForm.processing || tramitLoading"
-                        :can-save="canUserHandlePayment && !!selectedInstallment"
-                        @click="saveRemarks"
-                    />
+                    <p class="font-bold text-md mt-2 text-black">Links auxiliares</p>
                 </div>
 
                 <AuxLinks />
@@ -597,21 +590,30 @@ const tramit = async () => {
                     </template>
                 </SectionForm>
 
-                <div
-                    :class="{
-                        'cursor-not-allowed': !canTramitPayment,
-                    }"
-                    @click="showTramitBlockedMessage"
-                >
-                    <TramitButton
-                        :action="tramit"
-                        :disabled="!canTramitPayment"
-                        :loading="tramitLoading"
+                <StepActions>
+                    <template #save>
+                        <SaveButton
+                            :loading="remarksForm.processing || tramitLoading"
+                            :can-save="canUserHandlePayment && !!selectedInstallment"
+                            @click="saveRemarks"
+                        />
+                    </template>
+                    <div
                         :class="{
-                            'pointer-events-none': !canTramitPayment,
+                            'cursor-not-allowed': !canTramitPayment,
                         }"
-                    />
-                </div>
+                        @click="showTramitBlockedMessage"
+                    >
+                        <TramitButton
+                            :action="tramit"
+                            :disabled="!canTramitPayment"
+                            :loading="tramitLoading"
+                            :class="{
+                                'pointer-events-none': !canTramitPayment,
+                            }"
+                        />
+                    </div>
+                </StepActions>
             </div>
         </template>
     </SplitScreenTab>

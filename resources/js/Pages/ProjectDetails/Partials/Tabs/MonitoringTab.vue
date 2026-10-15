@@ -235,14 +235,9 @@ function submit() {
 
         <template #right-content>
             <div class="space-y-6">
-                <div class="flex items-center justify-between">
-                    <div>
-                        <p class="font-bold text-lg">Campos para você inserir ou editar dados</p>
-                        <p class="font-bold text-md mt-2 text-black">Links auxiliares</p>
-                    </div>
-                    <div class="flex gap-2">
-                        <SaveButton :loading="form.processing" :can-save="canUserHandleMonitoring" @click="submit" />
-                    </div>
+                <div>
+                    <p class="font-bold text-lg">Campos para você inserir ou editar dados</p>
+                    <p class="font-bold text-md mt-2 text-black">Links auxiliares</p>
                 </div>
                 <aux-links />
                 <div class="flex items-center justify-between">
@@ -305,18 +300,32 @@ function submit() {
                     </template>
                 </section-form>
                 <!-- BOTÃO DE AÇÃO -->
-                <div v-if="monitoringStage?.status === 'em_andamento'" class="flex gap-2">
-                    <v-btn
-                        v-if="canRequestNextInstallment"
-                        variant="outlined"
-                        color="primary"
-                        class="rounded-lg mt-4"
-                        :loading="requestingNextInstallment"
-                        :disabled="requestingNextInstallment || !canUserHandleMonitoring"
-                        @click="requestNextInstallment"
-                    >
-                        Solicitar próxima parcela
-                    </v-btn>
+                <div
+                    v-if="monitoringStage?.status === 'em_andamento'"
+                    class="flex flex-col gap-6 w-full max-w-[596px] mx-auto mt-4"
+                >
+                    <div class="flex gap-4">
+                        <div class="flex-1">
+                            <save-button
+                                :loading="form.processing"
+                                :can-save="canUserHandleMonitoring"
+                                @click="submit"
+                            />
+                        </div>
+                        <div v-if="canRequestNextInstallment" class="flex-1">
+                            <v-btn
+                                variant="outlined"
+                                color="outlineSecondary"
+                                class="w-full rounded-lg"
+                                height="40"
+                                :loading="requestingNextInstallment"
+                                :disabled="requestingNextInstallment || !canUserHandleMonitoring"
+                                @click="requestNextInstallment"
+                            >
+                                Solicitar próxima <strong class="ml-1">parcela</strong>
+                            </v-btn>
+                        </div>
+                    </div>
                     <tramit-button :action="tramit" :loading="tramitLoading" :disabled="!canUserHandleMonitoring" />
                 </div>
             </div>
