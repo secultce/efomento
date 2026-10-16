@@ -3,7 +3,7 @@ default = "homolog"
 }
 
 variable "SHA_SHORT" {
-default = "latest"
+default = "homolog"
 }
 
 variable "VITE_REVERB_APP_KEY" {

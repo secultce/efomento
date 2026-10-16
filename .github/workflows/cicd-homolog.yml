@@ -12,12 +12,11 @@ jobs:
     outputs:
       sha_short: ${{ steps.vars.outputs.sha_short }}
     steps: 
-
       - uses: actions/checkout@v7
 
       - name: Define SHA curto
         id: vars
-        run: echo "sha_short=$(git rev-parse --short HEAD)" >> "$GITHUB_OUTPUT"
+        run: echo "sha_short=$(git rev-parse --short=7 HEAD)" >> "$GITHUB_OUTPUT"
 
       - name: Docker Login
         uses: docker/login-action@v4
@@ -27,15 +26,15 @@ jobs:
 
       - name: Criação da Imagem docker
         uses: docker/bake-action@v6
+        env:
+          SHA_SHORT: ${{ steps.vars.outputs.sha_short }}
+          VITE_REVERB_APP_KEY: ${{ secrets.VITE_REVERB_APP_KEY }}
+          VITE_REVERB_HOST: ${{ secrets.VITE_REVERB_HOST }}
+          VITE_REVERB_PORT: ${{ secrets.VITE_REVERB_PORT }}
+          VITE_REVERB_SCHEME: ${{ secrets.VITE_REVERB_SCHEME }}
         with:
           files: ./docker/production/docker-bake-homolog.hcl
           push: true
-          set: |
-            *.args.VITE_REVERB_APP_KEY=${{ secrets.VITE_REVERB_APP_KEY }}
-            *.args.VITE_REVERB_HOST=${{ secrets.VITE_REVERB_HOST }}
-            *.args.VITE_REVERB_PORT=${{ secrets.VITE_REVERB_PORT }}
-            *.args.VITE_REVERB_SCHEME=${{ secrets.VITE_REVERB_SCHEME }}
-            *.args.SHA_SHORT=${{ steps.vars.outputs.sha_short }}
 
   DEPLOY:
     needs: BUILD
