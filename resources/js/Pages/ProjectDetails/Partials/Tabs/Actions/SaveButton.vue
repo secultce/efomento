@@ -9,11 +9,12 @@ defineProps({
     <v-btn
         variant="outlined"
         color="outlineSecondary"
-        class="rounded-lg"
+        class="w-full rounded-lg"
+        height="40"
         :loading="loading"
         :disabled="!canSave || loading"
         v-bind="$attrs"
     >
-        <slot>Salvar Alterações</slot>
+        <slot>Salvar alterações</slot>
     </v-btn>
 </template>

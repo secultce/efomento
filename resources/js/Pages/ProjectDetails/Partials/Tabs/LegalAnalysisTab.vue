@@ -4,6 +4,7 @@ import SplitScreenTab from '@/Components/SplitScreenTab.vue';
 import SectionChips from '@/Components/SectionChips.vue';
 import SectionContent from '@/Components/SectionContent.vue';
 import AuxLinks from '@/Components/AuxLinks.vue';
+import StepActions from '@/Components/StepActions.vue';
 import DocumentEvaluationList from '@/Components/DocumentEvaluationList.vue';
 import ReturnProcessAction from '@/Components/ReturnProcessAction.vue';
 import TramitButton from '@/Pages/ProjectDetails/Partials/Tabs/Actions/TramitButton.vue';
@@ -119,15 +120,17 @@ const permissionMessage = computed(() => {
                         <p v-else class="text-sm text-gray-400">Nenhum documento encontrado para avaliação.</p>
                     </div>
 
-                    <TramitButton
-                        v-permission="{
-                            condition: canEditLegalAnalysis,
-                            message: permissionMessage,
-                        }"
-                        :action="process"
-                        :disabled="!canEditLegalAnalysis || !allFilesValid"
-                        :loading="in_progress"
-                    />
+                    <StepActions>
+                        <TramitButton
+                            v-permission="{
+                                condition: canEditLegalAnalysis,
+                                message: permissionMessage,
+                            }"
+                            :action="process"
+                            :disabled="!canEditLegalAnalysis || !allFilesValid"
+                            :loading="in_progress"
+                        />
+                    </StepActions>
                 </div>
             </div>
         </template>

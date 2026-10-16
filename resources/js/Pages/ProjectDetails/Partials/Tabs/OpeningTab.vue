@@ -7,6 +7,7 @@ import SectionForm from '@/Components/SectionForm.vue';
 import AuxLinks from '@/Components/AuxLinks.vue';
 import { getViewSections } from '@/Schemas/viewSections';
 import { openingFormSections as formSections } from '@/Schemas/formSections';
+import StepActions from '@/Components/StepActions.vue';
 import { router, useForm } from '@inertiajs/vue3';
 import { onMounted } from 'vue';
 import { useSnackbar } from '@/Composables/useSnackbar';
@@ -345,13 +346,8 @@ const activeEditIndex = ref('all');
         <template #right-content>
             <div class="space-y-6">
                 <div>
-                    <div class="flex items-center justify-between">
-                        <div>
-                            <p class="font-bold text-lg">Campos para você inserir ou editar dados</p>
-                            <p class="font-bold text-md mt-2 text-black">Links auxiliares</p>
-                        </div>
-                        <SaveButton :loading="form.processing" :can-save="canEditOpening" @click="submit" />
-                    </div>
+                    <p class="font-bold text-lg">Campos para você inserir ou editar dados</p>
+                    <p class="font-bold text-md mt-2 text-black">Links auxiliares</p>
                 </div>
                 <aux-links />
                 <section-chips v-model="activeEditIndex" :sections="formSections" />
@@ -541,7 +537,12 @@ const activeEditIndex = ref('all');
                             </template>
                         </template>
                     </section-form>
-                    <tramit-button :action="tramit" :disabled="!canUserHandleOpening" :loading="tramitLoading" />
+                    <step-actions>
+                        <template #save>
+                            <save-button :loading="form.processing" :can-save="canEditOpening" @click="submit" />
+                        </template>
+                        <tramit-button :action="tramit" :disabled="!canUserHandleOpening" :loading="tramitLoading" />
+                    </step-actions>
                 </div>
             </div>
         </template>

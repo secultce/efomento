@@ -76,6 +76,7 @@ class DocumentPlaceholderResolver
             '[project_name]' => $document->project?->title_project ?? '',
             '[allocation_code]' => $budgetAllocation?->allocation_code ?? '',
             '[allocation_number]' => $budgetAllocation?->allocation_number ?? '',
+            '[finalistic_project]' => $budgetAllocation?->finalistic_project ?? '',
             '[notice_installment_number]' => $currentInstallment?->notice_installment_number ?? '',
             '[bank]' => $opening?->bank?->name ?? '',
             '[account_type]' => $opening?->account_type?->label() ?? '',
