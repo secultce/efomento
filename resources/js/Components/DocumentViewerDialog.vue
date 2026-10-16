@@ -2,7 +2,7 @@
 import { computed } from 'vue';
 import DocumentDownloadMenu from '@/Components/DocumentDownloadMenu.vue';
 import SanitizedHtml from '@/Components/SanitizedHtml.vue';
-import { getBudgetAllocation } from '@/Schemas/getBudgetAllocation';
+import { getBudgetAllocation } from '@/Schemas/schemaUtils';
 
 const props = defineProps({
     modelValue: { type: Boolean, default: false },

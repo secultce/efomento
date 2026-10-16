@@ -11,7 +11,7 @@ Cria a interface completa de uma etapa do fluxo do `Project` (Tab + Schemas), no
 
 Pergunte ao usuário (ou infira do pedido):
 
-- **Nome da etapa em inglês, PascalCase** — ex. `Payment`, `Inspection`. Define os nomes de arquivos (`<Etapa>Tab.vue`, `Schemas/<Etapa>/`).
+- **Nome da etapa em inglês, PascalCase** — ex. `Payment`, `Inspection`. Define os nomes de arquivos (`<Etapa>Tab.vue`, identificador da tab no catálogo de visualização e export `<etapa>FormSections`).
 - **Nome da relação no model `Project`** — ex. `payment`. Define `props.project.<relacao>` e os nomes de rotas (`projects.<relacao>.store|update`).
 
 Depois confira se o backend já existe:
@@ -30,13 +30,13 @@ Estes arquivos do repo são a fonte de verdade do padrão. Leia todos:
 |---|---|
 | `resources/js/Pages/ProjectDetails/Partials/Tabs/FormalizationTab.vue` | Tab completa: useForm, init no onMounted, validação, upload, submit, tramitação |
 | `resources/js/Pages/ProjectDetails/Partials/Tabs/MonitoringTab.vue` | Tab que consome viewSections via SectionContent |
-| `resources/js/Schemas/Monitoring/viewSections.js` | Estrutura de campos `{label, key|compute, format}` e uso do useDate |
-| `resources/js/Schemas/Monitoring/formSections.js` e `index.js` | formSections `{title, key}` e barrel export |
+| `resources/js/Schemas/viewSections.js` | Estrutura de campos `{label, key|compute, format}` e uso do useDate |
+| `resources/js/Schemas/formSections.js` | formSections `{title, key}` com exports por etapa |
 | `resources/js/Components/SplitScreenTab.vue`, `SectionContent.vue`, `SectionForm.vue`, `SectionChips.vue` | Contrato de props e slots |
 
 ## Passo 3 — Criar os Schemas
 
-Criar `resources/js/Schemas/<Etapa>/`:
+Editar os dois arquivos únicos em `resources/js/Schemas/`; não criar cópias por etapa:
 
 1. **`viewSections.js`** — array de seções `{ title, fields: [...] }`. Cada field:
    - `{ label: 'Texto em português', key: 'relacao.campo' }` — acesso por dot notation
@@ -45,8 +45,8 @@ Criar `resources/js/Schemas/<Etapa>/`:
      - `addDaysTo('campo', dias)` — data + N dias (combine com `format: 'datetime'`)
      - `daysBetween('relacao.inicio', 'relacao.fim')` — dias entre duas datas
    - Exceção conhecida: a relação de **Formalization** chama-se **`formalizations`** (plural, mesmo sendo `HasOne`) no JSON — use esse nome só para essa etapa. Para todas as outras etapas, use o nome de relação definido com o usuário no Passo 1 (`props.project.<relacao>`), nunca `formalizations`.
-2. **`formSections.js`** — `export const formSections = [{ title: '...', key: 'slug-da-secao' }]`
-3. **`index.js`** — barrel export: `export { viewSections } from './viewSections'; export { formSections } from './formSections';`
+2. **`formSections.js`** — `export const <etapa>FormSections = [{ title: '...', key: 'slug-da-secao' }]`
+3. No catálogo `viewSections`, cada seção tem `key` único e `tabs` com as etapas pertinentes. Reutilizar seções existentes adicionando a etapa a `tabs`. Na Tab, usar `import { getViewSections } from '@/Schemas/viewSections';` e `const viewSections = getViewSections('<etapa>');`. A ordem segue o catálogo. Importar o array de formulário com alias `formSections`.
 
 ## Passo 4 — Criar a Tab
 

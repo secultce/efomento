@@ -15,8 +15,8 @@ import SelectField from '@/Components/SelectField.vue';
 import TramitButton from '@/Pages/ProjectDetails/Partials/Tabs/Actions/TramitButton.vue';
 import SaveButton from '@/Pages/ProjectDetails/Partials/Tabs/Actions/SaveButton.vue';
 
-import { viewSections } from '@/Schemas/Opening';
-import { formSections } from '@/Schemas/Formalization';
+import { getViewSections } from '@/Schemas/viewSections';
+import { formalizationFormSections as formSections } from '@/Schemas/formSections';
 
 import { useDate } from '@/Composables/useDate';
 import { useSnackbar } from '@/Composables/useSnackbar';
@@ -24,6 +24,8 @@ import { useAlert } from '@/Composables/useAlert';
 import { useSaveShortcut } from '@/Composables/useSaveShortcut';
 import { useStageAdvance } from '@/Composables/useStageAdvance';
 import { useAuth } from '@/Composables/useAuth';
+
+const viewSections = getViewSections('formalization');
 
 const props = defineProps({
     project: { type: Object, required: true },
