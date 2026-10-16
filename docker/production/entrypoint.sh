@@ -3,7 +3,7 @@ set -e
 
 cd /var/www/
 
-if [ "${RUN_MIGRATIONS:-true}" = "true" ]; then
+if [ "${RUN_MIGRATIONS:-false}" = "true" ]; then
   echo "Rodando migrations..."
   php artisan migrate --force --isolated
 
