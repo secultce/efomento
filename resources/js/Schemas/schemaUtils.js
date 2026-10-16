@@ -2,6 +2,23 @@ import { useMask } from '@/Composables/useMask';
 
 const { maskProcessNumber } = useMask();
 
+export function getFullAddress(project) {
+    const s = project?.agent?.latest_snapshot;
+    if (!s) return null;
+
+    const hasDetailedAddress = [s.number, s.complement, s.postal_code, s.neighborhood].some((val) =>
+        Boolean(val && String(val).trim())
+    );
+
+    if (!hasDetailedAddress) {
+        return s.street || null;
+    }
+
+    return [s.street, s.number, s.complement, s.neighborhood, s.city, s.state, s.postal_code]
+        .filter(Boolean)
+        .join(', ');
+}
+
 export function getInstallmentJustification(project) {
     const agentName = project?.agent?.name;
     const noticeName = project?.notice?.name;

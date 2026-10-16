@@ -6,6 +6,7 @@ import {
     parseRegistrationFieldValue,
     getLegalType,
     getBudgetAllocation,
+    getFullAddress,
 } from './schemaUtils';
 
 const { addDaysTo, getDate, daysBetween, daysBetweenDates, formatDate } = useDate();
@@ -129,22 +130,7 @@ export const viewSections = [
         fields: [
             {
                 label: 'Endereço completo',
-                compute: (project) => {
-                    const s = project?.agent?.latest_snapshot;
-                    if (!s) return null;
-
-                    const hasDetailedAddress = [s.number, s.complement, s.postal_code, s.neighborhood].some((val) =>
-                        Boolean(val && String(val).trim())
-                    );
-
-                    if (!hasDetailedAddress) {
-                        return s.street || null;
-                    }
-
-                    return [s.street, s.number, s.complement, s.neighborhood, s.city, s.state, s.postal_code]
-                        .filter(Boolean)
-                        .join(', ');
-                },
+                compute: getFullAddress,
             },
             { label: 'Macrorregião', key: 'agent.latest_snapshot.macroregion' },
             { label: 'CEP', key: 'agent.latest_snapshot.postal_code' },
@@ -220,21 +206,15 @@ export const viewSections = [
         title: 'Dados do agente e do projeto',
         fields: [
             { label: 'Nome social / Nome fantasia', key: 'agent.name' },
-            { label: 'Personalidade jurídica', compute: (project) => getLegalType(project) },
-            { label: 'CPF / CNPJ do agente cultural', key: 'agent.latest_snapshot.cpf_cnpj' },
+            { label: 'Personalidade jurídica', compute: getLegalType },
+            { label: 'CPF / CNPJ do agente cultural', compute: getCpfCnpj('agent.latest_snapshot.cpf_cnpj') },
             { label: 'Área / linguagem / ciclo', key: 'notice.name' },
             { label: 'Categoria de inscrição', key: 'category.name' },
             { label: 'Título do projeto', key: 'title_project' },
             { label: 'N° da inscrição', key: 'number' },
             {
                 label: 'Endereço completo',
-                compute: (project) => {
-                    const s = project?.agent?.latest_snapshot;
-                    if (!s) return null;
-                    return [s.street, s.number, s.neighborhood, s.city, s.state, s.postal_code]
-                        .filter(Boolean)
-                        .join(', ');
-                },
+                compute: getFullAddress,
             },
         ],
     },
