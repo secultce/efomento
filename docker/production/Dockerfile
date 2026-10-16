@@ -94,6 +94,8 @@ COPY . .
 COPY --from=php-deps /var/www/vendor ./vendor
 COPY --from=frontend /app/public/build ./public/build
 COPY docker/production/opcache.ini /usr/local/etc/php/conf.d/opcache.ini
+COPY docker/production/entrypoint.sh /usr/local/bin/entrypoint.sh
+RUN chmod +x /usr/local/bin/entrypoint.sh
 
 RUN chown -R www-data:www-data /var/www
 
@@ -101,6 +103,7 @@ USER www-data
 
 EXPOSE 9000
 
+ENTRYPOINT ["entrypoint.sh"]
 CMD ["php-fpm"]
 
 ##################################
