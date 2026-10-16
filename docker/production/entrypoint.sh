@@ -8,7 +8,7 @@ if [ "${RUN_MIGRATIONS:-true}" = "true" ]; then
   php artisan migrate --force --isolated
 
   echo "Criando link simbólico do storage..."
-  php artisan storage:link --force || true
+  php artisan storage:link --force
 
   echo "Gerando caches..."
   php artisan config:cache
