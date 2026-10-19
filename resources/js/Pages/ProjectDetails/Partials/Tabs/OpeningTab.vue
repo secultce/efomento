@@ -214,10 +214,61 @@ const advanceStage = () => {
     );
 };
 
+const requiredOpeningDocuments = {
+    ci: 'Comunicação interna',
+    tc: 'Termo de execução cultural',
+};
+
+const projectDocuments = computed(() => {
+    const documents = props.project.documents ?? [];
+
+    if (Array.isArray(documents)) {
+        return documents;
+    }
+
+    if (Array.isArray(documents?.data)) {
+        return documents.data;
+    }
+
+    return [];
+});
+
+const getValue = (value) => {
+    if (value && typeof value === 'object') {
+        return value.value ?? value.id ?? value.name ?? null;
+    }
+
+    return value;
+};
+
+const generatedOpeningDocumentTypes = computed(() => {
+    return new Set(
+        projectDocuments.value
+            .filter((document) => !document.deleted_at)
+            .map((document) => String(getValue(document.type)).toLowerCase())
+    );
+});
+
+const missingGeneratedDocuments = computed(() => {
+    return Object.entries(requiredOpeningDocuments)
+        .filter(([type]) => !generatedOpeningDocumentTypes.value.has(type))
+        .map(([, label]) => label);
+});
+
+const hasGeneratedRequiredDocuments = computed(() => missingGeneratedDocuments.value.length === 0);
+
 const tramit = () => {
     if (!allRequiredFilled.value) {
         showValidationErrors.value = true;
         showSnackbar('Preencha e salve todos os campos obrigatórios em destaque antes de tramitar.', 'error');
+        return;
+    }
+
+    if (!hasGeneratedRequiredDocuments.value) {
+        showSnackbar(
+            `Gere os documentos obrigatórios antes de tramitar: ${missingGeneratedDocuments.value.join(', ')}.`,
+            'error'
+        );
         return;
     }
 
