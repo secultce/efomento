@@ -210,6 +210,50 @@ function restoreEditablePlaceholders(content) {
         );
 }
 
+function prepareDocumentForEditing(content) {
+    const document = new DOMParser().parseFromString(restoreEditablePlaceholders(content), 'text/html');
+    const placeholders = new Map(
+        (config.value.placeholders ?? []).map((placeholder) => [placeholder.value, placeholder])
+    );
+
+    document.querySelectorAll('[data-placeholder-insertion]').forEach((node) => {
+        node.replaceWith(...node.childNodes);
+    });
+
+    const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
+    const textNodes = [];
+    while (walker.nextNode()) textNodes.push(walker.currentNode);
+
+    for (const node of textNodes) {
+        if (node.parentElement.closest('script, style, textarea')) continue;
+
+        const fragment = document.createDocumentFragment();
+        let offset = 0;
+
+        for (const match of node.textContent.matchAll(/\[([a-z_]+)\]/g)) {
+            const placeholder = placeholders.get(match[1]);
+            if (!placeholder) continue;
+
+            fragment.append(document.createTextNode(node.textContent.slice(offset, match.index)));
+            const span = document.createElement('span');
+            const insertionId = `${placeholderInsertionId.value++}:${placeholder.value}`;
+            span.setAttribute('contenteditable', 'false');
+            span.setAttribute('data-placeholder-insertion', insertionId);
+            span.textContent = match[0];
+            fragment.append(span);
+            selectedPlaceholders.value.push({ ...placeholder, insertionId });
+            offset = match.index + match[0].length;
+        }
+
+        if (offset) {
+            fragment.append(document.createTextNode(node.textContent.slice(offset)));
+            node.replaceWith(fragment);
+        }
+    }
+
+    return document.body.innerHTML;
+}
+
 function buildPayload() {
     const payload = new FormData();
 
@@ -295,8 +339,12 @@ watch(
     (open) => {
         if (!open) return;
 
+        selectedPlaceholders.value = [];
+        placeholderInsertionId.value = 0;
+        placeholderSearch.value = '';
+
         if (props.editData) {
-            form.content = restoreEditablePlaceholders(props.editData.content);
+            form.content = prepareDocumentForEditing(props.editData.content);
 
             const existingHeaderImages = props.editData.headerImages || [];
 
