@@ -91,6 +91,15 @@ class ProjectStageControllerTest extends TestCase
             'eparcerias_certificate_date' => now()->toDateString(),
         ]);
 
+        foreach (DocumentType::requiredForOpeningAdvance() as $type) {
+            Document::factory()->create([
+                'project_id' => $project->id,
+                'notice_id' => $project->notice_id,
+                'type' => $type,
+                'phase' => $type->phase(),
+            ]);
+        }
+
         return $opening;
     }
 
@@ -237,6 +246,14 @@ class ProjectStageControllerTest extends TestCase
             'report_status' => 'REGULAR E_ADIMPLENTE',
             'eparcerias_certificate_date' => now()->toDateString(),
         ]);
+        foreach (DocumentType::requiredForOpeningAdvance() as $type) {
+            Document::factory()->create([
+                'project_id' => $project->id,
+                'notice_id' => $project->notice_id,
+                'type' => $type,
+                'phase' => $type->phase(),
+            ]);
+        }
         $user = $this->createUserWithRoles('fomentation');
 
         $this->actingAs($user)
