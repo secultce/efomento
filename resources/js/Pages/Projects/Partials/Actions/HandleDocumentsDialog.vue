@@ -127,6 +127,25 @@ const placeholderOptions = computed(() => [
     })),
 ]);
 
+function syncPlaceholders(_event, editor) {
+    const placeholders = new Map(
+        (config.value.placeholders ?? []).map((placeholder) => [placeholder.value, placeholder])
+    );
+    const selected = new Map();
+
+    for (const node of editor.dom.select('[data-placeholder-insertion]')) {
+        const insertionId = node.getAttribute('data-placeholder-insertion');
+        const [sequence, value] = insertionId.split(':');
+        const placeholder = placeholders.get(value);
+        if (!placeholder || !/^\d+$/.test(sequence)) continue;
+
+        selected.set(insertionId, { ...placeholder, insertionId });
+        placeholderInsertionId.value = Math.max(placeholderInsertionId.value, Number(sequence) + 1);
+    }
+
+    selectedPlaceholders.value = [...selected.values()];
+}
+
 function updatePlaceholders(placeholders) {
     const editor = window.tinymce?.activeEditor;
     if (!editor) return;
@@ -144,7 +163,7 @@ function updatePlaceholders(placeholders) {
 
         for (const placeholder of added) {
             editor.insertContent(
-                `<span data-placeholder-insertion="${placeholder.insertionId}">[${placeholder.value}]</span>`
+                `<span contenteditable="false" data-placeholder-insertion="${placeholder.insertionId}">[${placeholder.value}]</span>`
             );
         }
     });
@@ -388,6 +407,10 @@ watch(
                     class="flex-grow"
                     data-cy="document-text-area"
                     @escape="closeDialog"
+                    @undo="syncPlaceholders"
+                    @redo="syncPlaceholders"
+                    @input="syncPlaceholders"
+                    @change="syncPlaceholders"
                 />
 
                 <!-- FOOTER TYPE -->
