@@ -332,9 +332,9 @@ async function handleFileUpload(event) {
             class="notices-table"
             data-cy="row-table-notice-list"
         >
-            <!-- Título truncado -->
+            <!-- Título completo com quebra de linha -->
             <template #item.titulo="{ item }">
-                <span class="titulo-truncado" data-cy="notice-title-notices-list">{{ item.titulo }}</span>
+                <span class="notice-title" data-cy="notice-title-notices-list">{{ item.titulo }}</span>
             </template>
 
             <!-- Badge de status -->
@@ -487,7 +487,17 @@ async function handleFileUpload(event) {
     border-bottom: 1px solid #f0f0f0 !important;
 }
 
-/* Título com truncamento */
+/* Mantém o título completo dentro da coluna, inclusive palavras sem espaços. */
+.notice-title {
+    display: block;
+    max-width: 280px;
+    padding-block: 12px;
+    white-space: normal;
+    overflow-wrap: anywhere;
+    line-height: 1.5;
+}
+
+/* Tipo de instrumento com truncamento */
 .titulo-truncado {
     display: inline-block;
     max-width: 280px;
