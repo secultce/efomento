@@ -497,16 +497,6 @@ async function handleFileUpload(event) {
     line-height: 1.5;
 }
 
-/* Tipo de instrumento com truncamento */
-.titulo-truncado {
-    display: inline-block;
-    max-width: 280px;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-    vertical-align: middle;
-}
-
 /* Badge de status */
 .status-badge {
     display: inline-flex;
