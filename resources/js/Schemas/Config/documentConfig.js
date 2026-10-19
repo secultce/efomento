@@ -50,9 +50,9 @@ const placeHoldersDocsSchema = [
     { label: 'Nome do Projeto', value: 'project_name' },
     { label: 'Nome do Agente', value: 'agent_name' },
     { label: 'CPF do Agente', value: 'agent_cpf' },
-    { label: 'End. do Agente', value: 'agent_address' },
+    { label: 'Endereço do agente', value: 'agent_address' },
     { label: 'E-mail do Agente', value: 'agent_email' },
-    { label: 'Fone do Agente', value: 'agent_phone' },
+    { label: 'Telefone do agente', value: 'agent_phone' },
     { label: 'Matricula do Fiscal', value: 'fiscal_matricula' },
     { label: 'Nome do Fiscal', value: 'fiscal_name' },
     { label: 'Código da dotação', value: 'allocation_code' },
@@ -64,7 +64,7 @@ const placeHoldersDocsSchema = [
     { label: 'Conta do Agente', value: 'account' },
     { label: 'Nup da Dotação Orçamentária', value: 'budget_allocation_nup' },
     { label: 'Nup do Cadastro do Credor', value: 'creditor_registration_nup' },
-    { label: 'Categ. do Projeto', value: 'project_category' },
+    { label: 'Categoria do Projeto', value: 'project_category' },
     { label: 'Número do Termo', value: 'term_number' },
 ];
 
