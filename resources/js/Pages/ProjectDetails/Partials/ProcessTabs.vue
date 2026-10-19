@@ -17,6 +17,7 @@ const props = defineProps({
     cgeAtendeStatus: { type: Array, default: () => [] },
     accountType: { type: Array, default: () => [] },
     banks: { type: Array, default: () => [] },
+    requiredOpeningDocuments: { type: Array, default: () => [] },
     currentStage: { type: Object, default: null },
     canReturn: { type: Boolean, default: false },
     canAdvance: { type: Boolean, default: false },
@@ -66,6 +67,7 @@ const tabs = [
                     :report-status="reportStatus"
                     :account-type="accountType"
                     :banks="banks"
+                    :required-documents="requiredOpeningDocuments"
                     :current-stage="currentStage"
                     :can-advance="canAdvance"
                 />

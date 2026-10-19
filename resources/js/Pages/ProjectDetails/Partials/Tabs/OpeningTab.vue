@@ -55,6 +55,10 @@ const props = defineProps({
         type: Array,
         default: () => [],
     },
+    requiredDocuments: {
+        type: Array,
+        default: () => [],
+    },
     currentStage: {
         type: Object,
         default: null,
@@ -214,11 +218,6 @@ const advanceStage = () => {
     );
 };
 
-const requiredOpeningDocuments = {
-    ci: 'Comunicação interna',
-    tc: 'Termo de execução cultural',
-};
-
 const projectDocuments = computed(() => {
     const documents = props.project.documents ?? [];
 
@@ -250,9 +249,9 @@ const generatedOpeningDocumentTypes = computed(() => {
 });
 
 const missingGeneratedDocuments = computed(() => {
-    return Object.entries(requiredOpeningDocuments)
-        .filter(([type]) => !generatedOpeningDocumentTypes.value.has(type))
-        .map(([, label]) => label);
+    return props.requiredDocuments
+        .filter(({ type }) => !generatedOpeningDocumentTypes.value.has(type))
+        .map(({ label }) => label);
 });
 
 const hasGeneratedRequiredDocuments = computed(() => missingGeneratedDocuments.value.length === 0);

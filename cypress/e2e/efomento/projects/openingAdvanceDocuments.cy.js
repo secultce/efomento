@@ -1,7 +1,7 @@
 import OpeningWorkflow from '../../../support/workflows/OpeningWorkflow.js';
 
-const CI = 'Comunicação interna';
-const TC = 'Termo de execução cultural';
+const CI = 'Comunicação Interna';
+const TC = 'Termo de Execução Cultural';
 
 describe('Opening - tramitação exige CI e TC', () => {
     before(() => {
