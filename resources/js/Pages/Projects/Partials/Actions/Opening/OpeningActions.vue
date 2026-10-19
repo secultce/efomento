@@ -1,14 +1,11 @@
 <script setup>
 import { computed, ref } from 'vue';
-import DocumentDownloadMenu from '@/Components/DocumentDownloadMenu.vue';
 import SupervisorDialog from '@/Pages/Projects/Partials/Actions/SupervisorDialog.vue';
 import { useAuth } from '@/Composables/useAuth';
 import { usePermissions } from '@/Composables/usePermissions';
-import { downloadDocumentsZip } from '@/Services/documentService';
 import NoticeHistoryDialog from '@/Pages/Projects/Partials/Actions/NoticeHistoryDialog.vue';
-import { DOCUMENT_TYPES, documentConfigs } from '@/Schemas/Config/documentConfig';
-import HandleDocumentsDialog from '../HandleDocumentsDialog.vue';
-import DocumentListDialog from '../DocumentListDialog.vue';
+import { DOCUMENT_TYPES } from '@/Schemas/Config/documentConfig';
+import DocumentActionsList from '../DocumentActionsList.vue';
 
 const { can } = useAuth();
 const { canAssignSupervisor: hasSupervisorRole, canManageNotices } = usePermissions();
@@ -22,19 +19,22 @@ const props = defineProps({
 
 defineEmits(['saved']);
 
+const documentTypes = [DOCUMENT_TYPES.CI, DOCUMENT_TYPES.TC];
+
+const documentTestIds = {
+    [DOCUMENT_TYPES.CI]: {
+        create: 'create-ci-button',
+        edit: 'edit-ci-button',
+        list: 'btnConferirDocumentos',
+    },
+    [DOCUMENT_TYPES.TC]: {
+        create: 'create-tc-button',
+        edit: 'edit-tc-button',
+        list: 'btnConferirDocumentosTC',
+    },
+};
+
 const supervisorDialog = ref(false);
-const ciDialog = ref(false);
-const tcDialog = ref(false);
-const docListDialog = ref(false);
-const docListType = ref('ci');
-
-const selectedDocuments = computed(() => {
-    const targetType = String(docListType.value).toLowerCase();
-
-    return selectedProjectsList.value.flatMap((p) =>
-        (p.documents ?? []).filter((d) => d.type?.toLowerCase() === targetType).map((d) => ({ ...d, project: p }))
-    );
-});
 
 function openSupervisorDialog() {
     supervisorDialog.value = true;
@@ -50,89 +50,6 @@ const canAssignSupervisor = computed(() => {
     return hasSupervisorRole.value || can('opening.assign_supervisor');
 });
 
-const canCreateCI = computed(() => {
-    return canManageNotices.value;
-});
-
-const canCreateTC = computed(() => {
-    return canManageNotices.value;
-});
-
-const selectedProjectsList = computed(() => {
-    return props.projects.filter((p) => props.selectedProjects.includes(p.id));
-});
-
-const anyProjectsHasCI = computed(() => {
-    return selectedProjectsList.value.some((p) => p.documents?.some((d) => d.type === 'ci'));
-});
-
-const anyProjectsHasTC = computed(() => {
-    return selectedProjectsList.value.some((p) => p.documents?.some((d) => d.type === 'tc'));
-});
-
-const selectedCI = computed(() => {
-    const projectWithCI = selectedProjectsList.value.find((p) => p.documents?.some((d) => d.type === 'ci'));
-
-    if (!projectWithCI) return null;
-
-    const ciDocument = projectWithCI.documents.find((d) => d.type === 'ci');
-
-    return {
-        content: ciDocument.body,
-        headerImages: (ciDocument.images ?? []).filter((i) => i.section === 'header' || i.section?.value === 'header'),
-        footerImages: (ciDocument.images ?? []).filter((i) => i.section === 'footer' || i.section?.value === 'footer'),
-    };
-});
-
-const selectedTC = computed(() => {
-    const projectWithTC = selectedProjectsList.value.find((p) => p.documents?.some((d) => d.type === 'tc'));
-
-    if (!projectWithTC) return null;
-
-    const tcDocument = projectWithTC.documents.find((d) => d.type === 'tc');
-
-    return {
-        content: tcDocument.body,
-        headerImages: (tcDocument.images ?? []).filter((i) => i.section === 'header' || i.section?.value === 'header'),
-        footerImages: (tcDocument.images ?? []).filter((i) => i.section === 'footer' || i.section?.value === 'footer'),
-    };
-});
-
-function openCIDialog() {
-    ciDialog.value = true;
-}
-
-function openTCDialog() {
-    tcDialog.value = true;
-}
-
-function openDocList(type = 'ci') {
-    docListType.value = type;
-    docListDialog.value = true;
-}
-
-const errorMessage = ref('');
-const showError = ref(false);
-const downloadingZip = ref(false);
-
-async function downloadZip(docType, format) {
-    if (!props.selectedProjects?.length) {
-        errorMessage.value = 'Selecione pelo menos 1 projeto para baixar os documentos.';
-        showError.value = true;
-        return;
-    }
-
-    downloadingZip.value = true;
-    try {
-        await downloadDocumentsZip(props.selectedProjects, docType, format);
-    } catch {
-        errorMessage.value = 'Erro ao baixar os documentos. Tente novamente.';
-        showError.value = true;
-    } finally {
-        downloadingZip.value = false;
-    }
-}
-
 const viewHistory = ref(false);
 
 function openNoticeHistory() {
@@ -140,152 +57,24 @@ function openNoticeHistory() {
 }
 </script>
 <template>
-    <v-snackbar v-model="showError" color="error" timeout="4000" location="top">
-        {{ errorMessage }}
-    </v-snackbar>
-
-    <HandleDocumentsDialog
-        v-model="ciDialog"
-        type="ci"
-        :project-ids="selectedProjects"
-        :edit-data="selectedCI"
-        @saved="$emit('saved')"
-    />
-    <HandleDocumentsDialog
-        v-model="tcDialog"
-        type="tc"
-        :project-ids="selectedProjects"
-        :edit-data="selectedTC"
-        @saved="$emit('saved')"
-    />
     <SupervisorDialog
         v-model="supervisorDialog"
         :project-ids="selectedProjects"
         :supervisors="supervisorsAvailable"
         @saved="$emit('saved')"
     />
-    <DocumentListDialog v-model="docListDialog" :documents="selectedDocuments" />
     <v-card class="w-full pb-4 pt-4 !shadow-none border border-gray-800 rounded-lg">
         <v-card-title class="font-weight-bold !text-lg">Ações disponíveis para você </v-card-title>
         <v-card-text class="flex flex-col gap-4">
-            <div
-                v-permission="{
-                    condition: canCreateCI,
-                    message:
-                        'Você não tem permissão para criar um documento de comunicação interna, contate o administrador do sistema.',
-                }"
-                class="w-full pt-2 flex flex-col gap-1"
-            >
-                <template v-if="anyProjectsHasCI">
-                    <p>Editar comunicação interna (CI)</p>
-                    <v-btn
-                        data-cy="edit-ci-button"
-                        class="w-full !shadow-none !font-bold !border-gray-300 !bg-white !text-[#2d353fFF] rounded-lg text-xs gap-6"
-                        :disabled="!(props.selectedProjects?.length > 0) || !canCreateCI"
-                        variant="outlined"
-                        @click="openCIDialog"
-                    >
-                        <span class="w-full text-left"> Editar Comunicação Interna </span>
-
-                        <template #append>
-                            <v-icon size="18"> mdi-pencil </v-icon>
-                        </template>
-                    </v-btn>
-                </template>
-
-                <template v-else>
-                    <p>Criar comunicação interna (CI)</p>
-                    <v-btn
-                        data-cy="create-ci-button"
-                        class="w-full !shadow-none !font-bold !bg-[#ffcc05FF] !text-[#2d353fFF] rounded-lg px-4 py-2 text-xs"
-                        :disabled="!(props.selectedProjects?.length > 0) || !canCreateCI"
-                        @click="openCIDialog"
-                    >
-                        Criar CI
-                    </v-btn>
-                </template>
-            </div>
-            <div class="grid w-full grid-cols-[repeat(auto-fit,minmax(min(100%,9rem),1fr))] gap-2">
-                <DocumentDownloadMenu
-                    label="Baixar todos"
-                    button-class="flex-1 !shadow-none !border-primary !text-primary rounded-lg text-xs"
-                    :loading="downloadingZip"
-                    :disabled="!selectedProjects?.length"
-                    @download="downloadZip('ci', $event)"
-                />
-                <v-btn
-                    data-cy="btnConferirDocumentos"
-                    class="flex-1 !shadow-none !font-bold !bg-[#ffcc05FF] !text-[#2d353fFF] rounded-lg text-xs"
-                    :disabled="!(selectedProjects?.length > 0)"
-                    @click="openDocList('ci')"
-                >
-                    Conferir documentos
-                </v-btn>
-            </div>
-
-            <div
-                v-permission="{
-                    condition: canCreateTC,
-                    message:
-                        'Você não tem permissão para criar um termo de execução cultural, contate o administrador do sistema.',
-                }"
-                class="w-full pt-2 flex flex-col gap-1"
-            >
-                <template v-if="anyProjectsHasTC">
-                    <p>
-                        {{ documentConfigs[DOCUMENT_TYPES.TC]?.titleEdit || 'Editar termo de execução cultural (TC)' }}
-                    </p>
-                    <v-btn
-                        data-cy="edit-tc-button"
-                        class="w-full !shadow-none !font-bold !border-gray-300 !bg-white !text-[#2d353fFF] rounded-lg text-xs gap-6"
-                        :disabled="!(props.selectedProjects?.length > 0) || !canCreateTC"
-                        variant="outlined"
-                        @click="openTCDialog"
-                    >
-                        <span class="w-full text-left">
-                            {{
-                                documentConfigs[DOCUMENT_TYPES.TC]?.titleEdit ||
-                                'Editar termo de execução cultural (TC)'
-                            }}
-                        </span>
-
-                        <template #append>
-                            <v-icon size="18"> mdi-pencil </v-icon>
-                        </template>
-                    </v-btn>
-                </template>
-
-                <template v-else>
-                    <p>
-                        {{ documentConfigs[DOCUMENT_TYPES.TC]?.titleCreate || 'Criar termo de execução cultural (TC)' }}
-                    </p>
-                    <v-btn
-                        data-cy="create-tc-button"
-                        class="w-full !shadow-none !font-bold !bg-[#ffcc05FF] !text-[#2d353fFF] rounded-lg px-4 py-2 text-xs"
-                        :disabled="!(props.selectedProjects?.length > 0) || !canCreateTC"
-                        @click="openTCDialog"
-                    >
-                        {{ documentConfigs[DOCUMENT_TYPES.TC]?.titleCreate || 'Criar termo de execução cultural (TC)' }}
-                    </v-btn>
-                </template>
-            </div>
-            <div class="grid w-full grid-cols-[repeat(auto-fit,minmax(min(100%,9rem),1fr))] gap-2">
-                <DocumentDownloadMenu
-                    label="Baixar todos"
-                    button-class="flex-1 !shadow-none !border-primary !text-primary rounded-lg text-xs"
-                    :loading="downloadingZip"
-                    :disabled="!selectedProjects?.length"
-                    @download="downloadZip('tc', $event)"
-                />
-                <v-btn
-                    data-cy="btnConferirDocumentosTC"
-                    class="flex-1 !shadow-none !font-bold !bg-[#ffcc05FF] !text-[#2d353fFF] rounded-lg text-xs"
-                    :disabled="!(selectedProjects?.length > 0)"
-                    @click="openDocList('tc')"
-                >
-                    Conferir documentos
-                </v-btn>
-            </div>
+            <DocumentActionsList
+                :document-types="documentTypes"
+                :selected-projects="selectedProjects"
+                :projects="projects"
+                :can-manage="canManageNotices"
+                :test-ids="documentTestIds"
+                permission-message="Você não tem permissão para criar ou editar documentos, contate o administrador do sistema."
+                @saved="$emit('saved')"
+            />
 
             <div
                 v-permission="{

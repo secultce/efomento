@@ -26,6 +26,8 @@ class LoginWorkflow {
         }
 
         Login.clickConfirmAndEnter();
+
+        cy.location('pathname', { timeout: 15000 }).should('not.eq', '/two-factor-challenge');
     }
 
     loginWithTwoFactorAndTrustDevice(email, password) {
