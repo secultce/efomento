@@ -116,16 +116,47 @@ const dialogHeight = computed(() => {
 });
 
 const selectedPlaceholders = ref([]);
+const placeholderSearch = ref('');
+const placeholderInsertionId = ref(0);
 
-function insertPlaceholder(value) {
-    window.tinymce?.activeEditor?.insertContent(`[${value}]`);
+const placeholderOptions = computed(() => [
+    ...selectedPlaceholders.value,
+    ...(config.value.placeholders ?? []).map((placeholder) => ({
+        ...placeholder,
+        insertionId: `${placeholderInsertionId.value}:${placeholder.value}`,
+    })),
+]);
+
+function updatePlaceholders(placeholders) {
+    const editor = window.tinymce?.activeEditor;
+    if (!editor) return;
+
+    const previousIds = new Set(selectedPlaceholders.value.map((placeholder) => placeholder.insertionId));
+    const nextIds = new Set(placeholders.map((placeholder) => placeholder.insertionId));
+    const added = placeholders.filter((placeholder) => !previousIds.has(placeholder.insertionId));
+    const removed = selectedPlaceholders.value.filter((placeholder) => !nextIds.has(placeholder.insertionId));
+
+    editor.undoManager.transact(() => {
+        for (const placeholder of removed) {
+            const nodes = editor.dom.select(`[data-placeholder-insertion="${placeholder.insertionId}"]`);
+            nodes.forEach((node) => editor.dom.remove(node));
+        }
+
+        for (const placeholder of added) {
+            editor.insertContent(
+                `<span data-placeholder-insertion="${placeholder.insertionId}">[${placeholder.value}]</span>`
+            );
+        }
+    });
+    editor.nodeChanged();
+    form.content = editor.getContent();
+    selectedPlaceholders.value = placeholders;
+
+    if (added.length) {
+        placeholderInsertionId.value += 1;
+        placeholderSearch.value = '';
+    }
 }
-
-watch(selectedPlaceholders, (newVal, oldVal) => {
-    if (newVal.length <= oldVal.length) return;
-    const added = newVal.find((v) => !oldVal.includes(v));
-    if (added) insertPlaceholder(typeof added === 'object' ? added.value : added);
-});
 
 function closeDialog() {
     form.reset();
@@ -135,6 +166,8 @@ function closeDialog() {
     resetImages();
 
     selectedPlaceholders.value = [];
+    placeholderInsertionId.value = 0;
+    placeholderSearch.value = '';
 
     headerLayout.value = IMAGE_LAYOUTS.NONE;
 
@@ -170,7 +203,11 @@ function buildPayload() {
     }
 
     payload.append('type', props.type);
-    payload.append('content', form.content);
+    const document = new DOMParser().parseFromString(form.content, 'text/html');
+    document.querySelectorAll('[data-placeholder-insertion]').forEach((node) => {
+        node.replaceWith(...node.childNodes);
+    });
+    payload.append('content', document.body.innerHTML);
 
     payload.append('header_layout', headerLayout.value);
     payload.append('footer_layout', footerLayout.value);
@@ -325,19 +362,23 @@ watch(
                 <!-- PLACEHOLDERS -->
                 <v-autocomplete
                     v-if="config.placeholders?.length"
-                    v-model="selectedPlaceholders"
-                    :items="config.placeholders"
+                    v-model:search="placeholderSearch"
+                    :model-value="selectedPlaceholders"
+                    :items="placeholderOptions"
                     item-title="label"
-                    item-value="value"
+                    item-value="insertionId"
                     label="Inserir campo de preenchimento automático no documento"
                     autocomplete="off"
+                    multiple
+                    return-object
                     chips
                     closable-chips
-                    multiple
+                    hide-selected
                     variant="outlined"
                     density="compact"
                     hide-details
                     class="mb-4"
+                    @update:model-value="updatePlaceholders"
                 />
 
                 <!-- EDITOR -->
