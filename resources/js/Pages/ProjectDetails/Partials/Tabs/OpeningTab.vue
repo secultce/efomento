@@ -218,35 +218,9 @@ const advanceStage = () => {
     );
 };
 
-const projectDocuments = computed(() => {
-    const documents = props.project.documents ?? [];
-
-    if (Array.isArray(documents)) {
-        return documents;
-    }
-
-    if (Array.isArray(documents?.data)) {
-        return documents.data;
-    }
-
-    return [];
-});
-
-const getValue = (value) => {
-    if (value && typeof value === 'object') {
-        return value.value ?? value.id ?? value.name ?? null;
-    }
-
-    return value;
-};
-
-const generatedOpeningDocumentTypes = computed(() => {
-    return new Set(
-        projectDocuments.value
-            .filter((document) => !document.deleted_at)
-            .map((document) => String(getValue(document.type)).toLowerCase())
-    );
-});
+const generatedOpeningDocumentTypes = computed(
+    () => new Set((props.project.documents ?? []).map((document) => document.type))
+);
 
 const missingGeneratedDocuments = computed(() => {
     return props.requiredDocuments
