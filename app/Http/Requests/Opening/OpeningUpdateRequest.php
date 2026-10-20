@@ -77,10 +77,6 @@ class OpeningUpdateRequest extends FormRequest
             // Formalização
             'formalization.report_status' => ['nullable', 'string', 'max:255'],
             'formalization.eparcerias_certificate_date' => ['nullable', 'date'],
-
-            // Agente
-            'agent.secondary_email' => ['nullable', 'email:rfc', 'max:255'],
-            'agent.secondary_phone' => ['nullable', 'string', 'max:20'],
         ];
     }
 
@@ -99,8 +95,6 @@ class OpeningUpdateRequest extends FormRequest
             'opening.supervisors.*.type.in' => 'O tipo de fiscal deve ser titular ou suplente.',
 
             'formalization.eparcerias_certificate_date.date' => 'A Data da certidão deve ser uma data válida.',
-
-            'agent.secondary_email.email' => 'Insira um endereço de e-mail secundário válido.',
         ];
     }
 
@@ -125,8 +119,6 @@ class OpeningUpdateRequest extends FormRequest
             'opening.supervisors.*.registration_number' => 'matrícula do fiscal',
             'formalization.report_status' => 'regularidade e inadimplência',
             'formalization.eparcerias_certificate_date' => 'data da certidão',
-            'agent.secondary_email' => 'e-mail secundário',
-            'agent.secondary_phone' => 'telefone secundário',
         ];
     }
 }
