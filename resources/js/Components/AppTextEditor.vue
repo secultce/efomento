@@ -50,7 +50,7 @@ const props = defineProps({
     },
 });
 
-const emit = defineEmits(['update:modelValue', 'escape']);
+const emit = defineEmits(['update:modelValue', 'escape', 'undo', 'redo', 'input', 'change']);
 
 function handleKeyDown(event) {
     if (event.key === 'Escape' && !event.defaultPrevented) {
@@ -86,7 +86,15 @@ const editorInit = computed(() => ({
             {{ label }}
         </label>
 
-        <Editor v-model="editorValue" :init="editorInit" @keydown="handleKeyDown" />
+        <Editor
+            v-model="editorValue"
+            :init="editorInit"
+            @keydown="handleKeyDown"
+            @undo="(event, editor) => emit('undo', event, editor)"
+            @redo="(event, editor) => emit('redo', event, editor)"
+            @input="(event, editor) => emit('input', event, editor)"
+            @change="(event, editor) => emit('change', event, editor)"
+        />
 
         <div v-if="error" class="text-red-600 text-caption mt-1">
             {{ error }}

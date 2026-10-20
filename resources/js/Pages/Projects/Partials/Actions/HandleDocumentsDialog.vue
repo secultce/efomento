@@ -116,16 +116,66 @@ const dialogHeight = computed(() => {
 });
 
 const selectedPlaceholders = ref([]);
+const placeholderSearch = ref('');
+const placeholderInsertionId = ref(0);
 
-function insertPlaceholder(value) {
-    window.tinymce?.activeEditor?.insertContent(`[${value}]`);
+const placeholderOptions = computed(() => [
+    ...selectedPlaceholders.value,
+    ...(config.value.placeholders ?? []).map((placeholder) => ({
+        ...placeholder,
+        insertionId: `${placeholderInsertionId.value}:${placeholder.value}`,
+    })),
+]);
+
+function syncPlaceholders(_event, editor) {
+    const placeholders = new Map(
+        (config.value.placeholders ?? []).map((placeholder) => [placeholder.value, placeholder])
+    );
+    const selected = new Map();
+
+    for (const node of editor.dom.select('[data-placeholder-insertion]')) {
+        const insertionId = node.getAttribute('data-placeholder-insertion');
+        const [sequence, value] = insertionId.split(':');
+        const placeholder = placeholders.get(value);
+        if (!placeholder || !/^\d+$/.test(sequence)) continue;
+
+        selected.set(insertionId, { ...placeholder, insertionId });
+        placeholderInsertionId.value = Math.max(placeholderInsertionId.value, Number(sequence) + 1);
+    }
+
+    selectedPlaceholders.value = [...selected.values()];
 }
 
-watch(selectedPlaceholders, (newVal, oldVal) => {
-    if (newVal.length <= oldVal.length) return;
-    const added = newVal.find((v) => !oldVal.includes(v));
-    if (added) insertPlaceholder(typeof added === 'object' ? added.value : added);
-});
+function updatePlaceholders(placeholders) {
+    const editor = window.tinymce?.activeEditor;
+    if (!editor) return;
+
+    const previousIds = new Set(selectedPlaceholders.value.map((placeholder) => placeholder.insertionId));
+    const nextIds = new Set(placeholders.map((placeholder) => placeholder.insertionId));
+    const added = placeholders.filter((placeholder) => !previousIds.has(placeholder.insertionId));
+    const removed = selectedPlaceholders.value.filter((placeholder) => !nextIds.has(placeholder.insertionId));
+
+    editor.undoManager.transact(() => {
+        for (const placeholder of removed) {
+            const nodes = editor.dom.select(`[data-placeholder-insertion="${placeholder.insertionId}"]`);
+            nodes.forEach((node) => editor.dom.remove(node));
+        }
+
+        for (const placeholder of added) {
+            editor.insertContent(
+                `<span contenteditable="false" data-placeholder-insertion="${placeholder.insertionId}">[${placeholder.value}]</span>`
+            );
+        }
+    });
+    editor.nodeChanged();
+    form.content = editor.getContent();
+    selectedPlaceholders.value = placeholders;
+
+    if (added.length) {
+        placeholderInsertionId.value += 1;
+        placeholderSearch.value = '';
+    }
+}
 
 function closeDialog() {
     form.reset();
@@ -135,6 +185,8 @@ function closeDialog() {
     resetImages();
 
     selectedPlaceholders.value = [];
+    placeholderInsertionId.value = 0;
+    placeholderSearch.value = '';
 
     headerLayout.value = IMAGE_LAYOUTS.NONE;
 
@@ -158,6 +210,50 @@ function restoreEditablePlaceholders(content) {
         );
 }
 
+function prepareDocumentForEditing(content) {
+    const document = new DOMParser().parseFromString(restoreEditablePlaceholders(content), 'text/html');
+    const placeholders = new Map(
+        (config.value.placeholders ?? []).map((placeholder) => [placeholder.value, placeholder])
+    );
+
+    document.querySelectorAll('[data-placeholder-insertion]').forEach((node) => {
+        node.replaceWith(...node.childNodes);
+    });
+
+    const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
+    const textNodes = [];
+    while (walker.nextNode()) textNodes.push(walker.currentNode);
+
+    for (const node of textNodes) {
+        if (node.parentElement.closest('script, style, textarea')) continue;
+
+        const fragment = document.createDocumentFragment();
+        let offset = 0;
+
+        for (const match of node.textContent.matchAll(/\[([a-z_]+)\]/g)) {
+            const placeholder = placeholders.get(match[1]);
+            if (!placeholder) continue;
+
+            fragment.append(document.createTextNode(node.textContent.slice(offset, match.index)));
+            const span = document.createElement('span');
+            const insertionId = `${placeholderInsertionId.value++}:${placeholder.value}`;
+            span.setAttribute('contenteditable', 'false');
+            span.setAttribute('data-placeholder-insertion', insertionId);
+            span.textContent = match[0];
+            fragment.append(span);
+            selectedPlaceholders.value.push({ ...placeholder, insertionId });
+            offset = match.index + match[0].length;
+        }
+
+        if (offset) {
+            fragment.append(document.createTextNode(node.textContent.slice(offset)));
+            node.replaceWith(fragment);
+        }
+    }
+
+    return document.body.innerHTML;
+}
+
 function buildPayload() {
     const payload = new FormData();
 
@@ -170,7 +266,11 @@ function buildPayload() {
     }
 
     payload.append('type', props.type);
-    payload.append('content', form.content);
+    const document = new DOMParser().parseFromString(form.content, 'text/html');
+    document.querySelectorAll('[data-placeholder-insertion]').forEach((node) => {
+        node.replaceWith(...node.childNodes);
+    });
+    payload.append('content', document.body.innerHTML);
 
     payload.append('header_layout', headerLayout.value);
     payload.append('footer_layout', footerLayout.value);
@@ -239,8 +339,12 @@ watch(
     (open) => {
         if (!open) return;
 
+        selectedPlaceholders.value = [];
+        placeholderInsertionId.value = 0;
+        placeholderSearch.value = '';
+
         if (props.editData) {
-            form.content = restoreEditablePlaceholders(props.editData.content);
+            form.content = prepareDocumentForEditing(props.editData.content);
 
             const existingHeaderImages = props.editData.headerImages || [];
 
@@ -325,19 +429,23 @@ watch(
                 <!-- PLACEHOLDERS -->
                 <v-autocomplete
                     v-if="config.placeholders?.length"
-                    v-model="selectedPlaceholders"
-                    :items="config.placeholders"
+                    v-model:search="placeholderSearch"
+                    :model-value="selectedPlaceholders"
+                    :items="placeholderOptions"
                     item-title="label"
-                    item-value="value"
+                    item-value="insertionId"
                     label="Inserir campo de preenchimento automático no documento"
                     autocomplete="off"
+                    multiple
+                    return-object
                     chips
                     closable-chips
-                    multiple
+                    hide-selected
                     variant="outlined"
                     density="compact"
                     hide-details
                     class="mb-4"
+                    @update:model-value="updatePlaceholders"
                 />
 
                 <!-- EDITOR -->
@@ -347,6 +455,10 @@ watch(
                     class="flex-grow"
                     data-cy="document-text-area"
                     @escape="closeDialog"
+                    @undo="syncPlaceholders"
+                    @redo="syncPlaceholders"
+                    @input="syncPlaceholders"
+                    @change="syncPlaceholders"
                 />
 
                 <!-- FOOTER TYPE -->
