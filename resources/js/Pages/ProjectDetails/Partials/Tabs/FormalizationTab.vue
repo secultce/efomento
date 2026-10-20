@@ -465,6 +465,8 @@ const permissionMessage = computed(() => {
                                             v-model="form.term_signed_at"
                                             type="date"
                                             label="Insira a data de assinatura do proponente"
+                                            disabled
+                                            readonly
                                             data-cy="term-signed-at-input"
                                         />
                                     </FormField>

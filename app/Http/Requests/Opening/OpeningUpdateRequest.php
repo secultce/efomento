@@ -77,6 +77,7 @@ class OpeningUpdateRequest extends FormRequest
             // Formalização
             'formalization.report_status' => ['nullable', 'string', 'max:255'],
             'formalization.eparcerias_certificate_date' => ['nullable', 'date'],
+            'formalization.term_signed_at' => ['nullable', 'date'],
         ];
     }
 
@@ -95,6 +96,7 @@ class OpeningUpdateRequest extends FormRequest
             'opening.supervisors.*.type.in' => 'O tipo de fiscal deve ser titular ou suplente.',
 
             'formalization.eparcerias_certificate_date.date' => 'A Data da certidão deve ser uma data válida.',
+            'formalization.term_signed_at.date' => 'A Data de assinatura do termo deve ser uma data válida.',
         ];
     }
 
@@ -119,6 +121,7 @@ class OpeningUpdateRequest extends FormRequest
             'opening.supervisors.*.registration_number' => 'matrícula do fiscal',
             'formalization.report_status' => 'regularidade e inadimplência',
             'formalization.eparcerias_certificate_date' => 'data da certidão',
+            'formalization.term_signed_at' => 'data de assinatura do termo pelo proponente',
         ];
     }
 }

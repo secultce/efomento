@@ -91,6 +91,7 @@ const form = useForm({
     formalization: {
         report_status: null,
         eparcerias_certificate_date: null,
+        term_signed_at: null,
     },
 });
 
@@ -135,6 +136,7 @@ onMounted(() => {
     form.formalization = {
         report_status: formalization.report_status ?? null,
         eparcerias_certificate_date: normalizeDate(formalization.eparcerias_certificate_date) ?? null,
+        term_signed_at: normalizeDate(formalization.term_signed_at) ?? null,
     };
 });
 
@@ -369,6 +371,17 @@ const activeEditIndex = ref('all');
                                             v-model="form.opening.creditor_number"
                                             label="Insira aqui o número"
                                             :error="errors.creditorNumber"
+                                        />
+                                    </form-field>
+                                </div>
+                            </template>
+                            <template v-else-if="section.key === 'term'">
+                                <div class="grid grid-cols-2 gap-4">
+                                    <form-field label="Data de assinatura do termo pelo proponente">
+                                        <text-field
+                                            v-model="form.formalization.term_signed_at"
+                                            type="date"
+                                            label="Insira a data de assinatura do proponente"
                                         />
                                     </form-field>
                                 </div>

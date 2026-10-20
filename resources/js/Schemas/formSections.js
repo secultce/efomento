@@ -4,6 +4,7 @@ export const openingFormSections = [
     { title: 'Dados bancários e outros', key: 'bank' },
     { title: 'Dados do fiscal', key: 'supervisors' },
     { title: 'Credor', key: 'creditor' },
+    { title: 'TERMO', key: 'term' },
     { title: 'NUP do projeto', key: 'project_nup' },
 ];
 
