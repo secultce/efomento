@@ -20,7 +20,6 @@ import TramitButton from '@/Pages/ProjectDetails/Partials/Tabs/Actions/TramitBut
 import SaveButton from '@/Pages/ProjectDetails/Partials/Tabs/Actions/SaveButton.vue';
 import { useAlert } from '@/Composables/useAlert';
 import { useSaveShortcut } from '@/Composables/useSaveShortcut';
-import { useMask } from '@/Composables/useMask';
 import { useStageAdvance } from '@/Composables/useStageAdvance';
 
 const viewSections = getViewSections('opening');
@@ -28,7 +27,6 @@ const viewSections = getViewSections('opening');
 const { showSnackbar } = useSnackbar();
 const { normalizeDate } = useDate();
 const { showAlert } = useAlert();
-const { maskPhone } = useMask();
 
 const props = defineProps({
     project: {
@@ -93,11 +91,7 @@ const form = useForm({
     formalization: {
         report_status: null,
         eparcerias_certificate_date: null,
-    },
-
-    agent: {
-        secondary_email: null,
-        secondary_phone: null,
+        term_signed_at: null,
     },
 });
 
@@ -111,7 +105,6 @@ useSaveShortcut(
 onMounted(() => {
     const opening = props.project.opening || {};
     const formalization = props.project.formalizations || {};
-    const agent = props.project.agent || {};
 
     form.opening = {
         opening_nup: (opening.opening_nup ?? '').replace(/\D/g, '') || null,
@@ -143,11 +136,7 @@ onMounted(() => {
     form.formalization = {
         report_status: formalization.report_status ?? null,
         eparcerias_certificate_date: normalizeDate(formalization.eparcerias_certificate_date) ?? null,
-    };
-
-    form.agent = {
-        secondary_email: agent.latest_snapshot?.secondary_email ?? null,
-        secondary_phone: agent.latest_snapshot?.secondary_phone ?? null,
+        term_signed_at: normalizeDate(formalization.term_signed_at) ?? null,
     };
 });
 
@@ -310,15 +299,6 @@ const permissionMessage = computed(() => {
     return '';
 });
 
-const secondaryPhoneModel = computed({
-    get: () => maskPhone(form.agent.secondary_phone),
-    set: (value) => {
-        form.agent.secondary_phone = String(value ?? '')
-            .replace(/\D/g, '')
-            .slice(0, 11);
-    },
-});
-
 const activeViewIndex = ref('all');
 const activeEditIndex = ref('all');
 </script>
@@ -362,24 +342,6 @@ const activeEditIndex = ref('all');
                         <template #default="{ section }">
                             <template v-if="section.key === 'opening'">
                                 <div class="grid grid-cols-2 gap-4">
-                                    <form-field label="Número do processo" required :error="errors.nup">
-                                        <text-field
-                                            v-model="form.opening.opening_nup"
-                                            mask="#####.######/####-##"
-                                            label="Insira aqui o número do processo"
-                                            data-cy="project-nup-opening-tab"
-                                            :error="errors.nup"
-                                        />
-                                    </form-field>
-
-                                    <form-field label="Data de abertura do processo">
-                                        <text-field
-                                            v-model="form.opening.opening_date"
-                                            type="date"
-                                            label="Insira a data de abertura"
-                                        />
-                                    </form-field>
-
                                     <form-field label="Status do agente cultural">
                                         <select-field
                                             v-model="form.opening.agent_status"
@@ -409,6 +371,38 @@ const activeEditIndex = ref('all');
                                             v-model="form.opening.creditor_number"
                                             label="Insira aqui o número"
                                             :error="errors.creditorNumber"
+                                        />
+                                    </form-field>
+                                </div>
+                            </template>
+                            <template v-else-if="section.key === 'term'">
+                                <div class="grid grid-cols-2 gap-4">
+                                    <form-field label="Data de assinatura do termo pelo proponente">
+                                        <text-field
+                                            v-model="form.formalization.term_signed_at"
+                                            type="date"
+                                            label="Insira a data de assinatura do proponente"
+                                        />
+                                    </form-field>
+                                </div>
+                            </template>
+                            <template v-else-if="section.key === 'project_nup'">
+                                <div class="grid grid-cols-2 gap-4">
+                                    <form-field label="Número do processo" required :error="errors.nup">
+                                        <text-field
+                                            v-model="form.opening.opening_nup"
+                                            mask="#####.######/####-##"
+                                            label="Insira aqui o número do processo"
+                                            data-cy="project-nup-opening-tab"
+                                            :error="errors.nup"
+                                        />
+                                    </form-field>
+
+                                    <form-field label="Data de abertura do processo">
+                                        <text-field
+                                            v-model="form.opening.opening_date"
+                                            type="date"
+                                            label="Insira a data de abertura"
                                         />
                                     </form-field>
                                 </div>
@@ -512,25 +506,6 @@ const activeEditIndex = ref('all');
                                         <text-field
                                             v-model="form.opening.supervisors[0].registration_number"
                                             :disabled="!form.opening.supervisors[0].id"
-                                        />
-                                    </form-field>
-                                </div>
-                            </template>
-                            <template v-else-if="section.key === 'agent'">
-                                <div class="grid grid-cols-2 gap-4">
-                                    <form-field label="Email secundário">
-                                        <text-field
-                                            v-model="form.agent.secondary_email"
-                                            type="email"
-                                            label="Insira o email secundário do agente"
-                                        />
-                                    </form-field>
-
-                                    <form-field label="Telefone secundário">
-                                        <text-field
-                                            v-model="secondaryPhoneModel"
-                                            maxlength="15"
-                                            label="Insira o telefone secundário do agente"
                                         />
                                     </form-field>
                                 </div>

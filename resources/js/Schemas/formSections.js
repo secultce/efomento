@@ -1,10 +1,11 @@
 export const openingFormSections = [
+    { title: 'Dados de abertura', key: 'opening' },
     { title: 'Certidão e-parcerias', key: 'certificate' },
-    { title: 'Dados bancários', key: 'bank' },
-    { title: 'Dados da Abertura', key: 'opening' },
+    { title: 'Dados bancários e outros', key: 'bank' },
     { title: 'Dados do fiscal', key: 'supervisors' },
-    { title: 'Dados do Agente', key: 'agent' },
     { title: 'Credor', key: 'creditor' },
+    { title: 'TERMO', key: 'term' },
+    { title: 'NUP do projeto', key: 'project_nup' },
 ];
 
 export const formalizationFormSections = [
