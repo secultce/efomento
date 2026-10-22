@@ -53,6 +53,10 @@ const props = defineProps({
         type: Array,
         default: () => [],
     },
+    requiredDocuments: {
+        type: Array,
+        default: () => [],
+    },
     currentStage: {
         type: Object,
         default: null,
@@ -203,10 +207,30 @@ const advanceStage = () => {
     );
 };
 
+const generatedOpeningDocumentTypes = computed(
+    () => new Set((props.project.documents ?? []).map((document) => document.type))
+);
+
+const missingGeneratedDocuments = computed(() => {
+    return props.requiredDocuments
+        .filter(({ type }) => !generatedOpeningDocumentTypes.value.has(type))
+        .map(({ label }) => label);
+});
+
+const hasGeneratedRequiredDocuments = computed(() => missingGeneratedDocuments.value.length === 0);
+
 const tramit = () => {
     if (!allRequiredFilled.value) {
         showValidationErrors.value = true;
         showSnackbar('Preencha e salve todos os campos obrigatórios em destaque antes de tramitar.', 'error');
+        return;
+    }
+
+    if (!hasGeneratedRequiredDocuments.value) {
+        showSnackbar(
+            `Gere os documentos obrigatórios antes de tramitar: ${missingGeneratedDocuments.value.join(', ')}.`,
+            'error'
+        );
         return;
     }
 

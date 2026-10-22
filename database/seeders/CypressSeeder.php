@@ -20,6 +20,7 @@ class CypressSeeder extends Seeder
             CypressRoleSeeder::class,
             CypressNoticeSeeder::class,
             CypressProjectSeeder::class,
+            CypressOpeningTramitSeeder::class,
         ]);
     }
 }

@@ -187,6 +187,21 @@ class ProjectControllerTest extends TestCase
         );
     }
 
+    public function test_project_detail_shares_required_opening_documents_from_backend(): void
+    {
+        $notice = Notice::factory()->create();
+        $project = Project::factory()->create(['notice_id' => $notice->id]);
+
+        $this->actingAs($this->user)
+            ->get(route('notices.projects.show', [$notice, $project]))
+            ->assertInertia(fn ($page) => $page
+                ->where('requiredOpeningDocuments', [
+                    ['type' => 'ci', 'label' => 'Comunicação Interna'],
+                    ['type' => 'tc', 'label' => 'Termo de Execução Cultural'],
+                ])
+            );
+    }
+
     public function test_project_detail_includes_budget_allocations_before_a_budget_exists(): void
     {
         $notice = Notice::factory()->create();

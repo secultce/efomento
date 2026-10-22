@@ -74,6 +74,14 @@ enum DocumentType: string
         return $this === self::JR;
     }
 
+    public static function requiredForOpeningAdvance(): array
+    {
+        return [
+            self::CI,
+            self::TC,
+        ];
+    }
+
     public static function requiredForFormalizationAdvance(): array
     {
         return [

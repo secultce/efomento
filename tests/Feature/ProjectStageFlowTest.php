@@ -11,6 +11,7 @@ use App\Exceptions\Domain\BusinessRuleException;
 use App\Exceptions\Domain\DomainAuthorizationException;
 use App\Exceptions\Domain\StageTransitionException;
 use App\Models\BudgetAllocation;
+use App\Models\Document;
 use App\Models\Notice;
 use App\Models\Opening;
 use App\Models\OpeningSupervisor;
@@ -88,6 +89,15 @@ class ProjectStageFlowTest extends TestCase
             'is_active' => true,
             'assigned_at' => now(),
         ]);
+
+        foreach (DocumentType::requiredForOpeningAdvance() as $type) {
+            Document::factory()->create([
+                'project_id' => $project->id,
+                'notice_id' => $project->notice_id,
+                'type' => $type,
+                'phase' => $type->phase(),
+            ]);
+        }
 
         return $opening;
     }

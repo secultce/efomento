@@ -23,6 +23,16 @@ class ProcessTramit {
         cy.contains('Entendi').should('be.visible').click();
     }
 
+    displayMissingDocumentsError(missingDocuments, presentDocuments = []) {
+        cy.get('[data-cy=snack-alert]', { timeout: 5000 })
+            .should('exist')
+            .and('contain.text', 'Gere os documentos obrigatórios antes de tramitar')
+            .and(($alert) => {
+                missingDocuments.forEach((label) => expect($alert.text()).to.contain(label));
+                presentDocuments.forEach((label) => expect($alert.text()).not.to.contain(label));
+            });
+    }
+
     tramit() {
         this.clickTramitButton();
         this.confirmTramit();

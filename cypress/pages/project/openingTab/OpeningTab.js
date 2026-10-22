@@ -7,7 +7,7 @@ class OpeningTab {
 
     validatePage() {
         cy.get(el.openingTab).should('have.attr', 'aria-selected', 'true');
-        cy.get(el.rightPanel).should('exist').and('be.visible');
+        cy.get(el.projecNupOpeningTab).should('be.visible');
     }
 }
 

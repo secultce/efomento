@@ -3,10 +3,12 @@
 namespace App\Services;
 
 use App\Contracts\StageValidatorInterface;
+use App\Enums\DocumentType;
 use App\Enums\ProfileSnapshotSource;
 use App\Models\Opening;
 use App\Models\Project;
 use App\Models\User;
+use BackedEnum;
 use Exception;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
@@ -114,6 +116,47 @@ class OpeningUpdateService implements StageValidatorInterface
                     .$missingFields->join(', ').'.',
             ]);
         }
+
+        $this->validateRequiredDocuments($project);
+    }
+
+    private function validateRequiredDocuments(Project $project): void
+    {
+        $requiredDocuments = collect(
+            DocumentType::requiredForOpeningAdvance()
+        );
+
+        $requiredDocumentTypes = $requiredDocuments
+            ->map(fn (DocumentType $type) => $type->value)
+            ->all();
+
+        $generatedDocumentTypes = $project->documents()
+            ->whereIn('type', $requiredDocumentTypes)
+            ->pluck('type')
+            ->map(
+                fn ($type) => $type instanceof BackedEnum
+                    ? $type->value
+                    : trim((string) $type)
+            )
+            ->unique();
+
+        $missingDocuments = $requiredDocuments
+            ->reject(
+                fn (DocumentType $type) => $generatedDocumentTypes
+                    ->containsStrict($type->value)
+            )
+            ->map(fn (DocumentType $type) => $type->fullLabel())
+            ->values();
+
+        if ($missingDocuments->isEmpty()) {
+            return;
+        }
+
+        throw ValidationException::withMessages([
+            'documents' => 'Gere os documentos obrigatórios antes de tramitar: '
+                .$missingDocuments->join(', ')
+                .'.',
+        ]);
     }
 
     protected function syncSupervisors(Project $project, array $supervisors): void

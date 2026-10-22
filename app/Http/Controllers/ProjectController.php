@@ -170,6 +170,9 @@ class ProjectController extends Controller
         return Inertia::render('ProjectDetails', [
             'project' => (new ProjectResource($project))->resolve(),
             'supervisorsAvailable' => $availableSupervisors,
+            'requiredOpeningDocuments' => collect(DocumentType::requiredForOpeningAdvance())
+                ->map(fn (DocumentType $type) => ['type' => $type->value, 'label' => $type->fullLabel()])
+                ->all(),
             'usersAvailableForFormalization' => $usersAvailableForFormalization,
             'agentStatus' => AgentStatus::options(),
             'accountType' => AccountType::options(),

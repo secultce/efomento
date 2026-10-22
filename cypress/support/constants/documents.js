@@ -18,8 +18,8 @@ export const DOCUMENTS = {
         text: 'Texto para o Parecer Jurídico',
     },
     ci: {
-        createButton: 'Criar CI',
-        editButton: 'Editar Comunicação Interna',
+        createButton: 'Criar comunicação interna (CI)',
+        editButton: 'Editar comunicação interna (CI)',
         chip: 'CI',
         text: 'Texto para o CI',
     },
