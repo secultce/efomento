@@ -112,7 +112,7 @@ const selectedDocuments = computed(() => {
 });
 
 const noticeOpinionDocuments = computed(() =>
-    [DOCUMENT_TYPES.JR, DOCUMENT_TYPES.PI, DOCUMENT_TYPES.PF].map((type) => ({
+    [DOCUMENT_TYPES.PR].map((type) => ({
         type,
         name: documentConfigs[type].name,
         createLabel: documentConfigs[type].titleCreate,

@@ -15,7 +15,7 @@ class DocumentTypeTest extends TestCase
             DocumentType::ET->value => 'ET',
             DocumentType::PJ->value => 'PJ',
             DocumentType::PI->value => 'PI',
-            DocumentType::PF->value => 'PF',
+            DocumentType::PR->value => 'PR',
             DocumentType::DP->value => 'DP',
             DocumentType::DO->value => 'DO',
             DocumentType::CI->value => 'CI',
@@ -34,7 +34,7 @@ class DocumentTypeTest extends TestCase
             DocumentType::ET->value => 'Extrato',
             DocumentType::PJ->value => 'Parecer Jurídico',
             DocumentType::PI->value => 'Parecer Orçamentário Inicial',
-            DocumentType::PF->value => 'Parecer Orçamentário Final',
+            DocumentType::PR->value => 'Parecer Orçamentário Resultado',
             DocumentType::DP->value => 'Despacho de Pagamento',
             DocumentType::DO->value => 'Despacho Orçamentário',
             DocumentType::CI->value => 'Comunicação Interna',
@@ -53,7 +53,7 @@ class DocumentTypeTest extends TestCase
         $this->assertSame(DocumentPhase::FORMALIZATION, DocumentType::ET->phase());
         $this->assertSame(DocumentPhase::FORMALIZATION, DocumentType::PJ->phase());
         $this->assertSame(DocumentPhase::BUDGET, DocumentType::PI->phase());
-        $this->assertSame(DocumentPhase::BUDGET, DocumentType::PF->phase());
+        $this->assertSame(DocumentPhase::BUDGET, DocumentType::PR->phase());
         $this->assertSame(DocumentPhase::BUDGET, DocumentType::DO->phase());
         $this->assertSame(DocumentPhase::PAYMENT, DocumentType::DP->phase());
         $this->assertSame(DocumentPhase::JURIDICAL, DocumentType::JR->phase());
@@ -63,7 +63,7 @@ class DocumentTypeTest extends TestCase
     {
         $this->assertTrue(DocumentType::PI->isNoticeLevel());
         $this->assertTrue(DocumentType::JR->isNoticeLevel());
-        $this->assertFalse(DocumentType::PF->isNoticeLevel());
+        $this->assertFalse(DocumentType::PR->isNoticeLevel());
         $this->assertFalse(DocumentType::PJ->isNoticeLevel());
     }
 

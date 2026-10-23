@@ -22,7 +22,7 @@ class DocumentFactory extends Factory
             [DocumentType::ET, DocumentPhase::FORMALIZATION],
             [DocumentType::PJ, DocumentPhase::JURIDICAL],
             [DocumentType::PI, DocumentPhase::BUDGET],
-            [DocumentType::PF, DocumentPhase::BUDGET],
+            [DocumentType::PR, DocumentPhase::BUDGET],
             [DocumentType::DO, DocumentPhase::BUDGET],
             [DocumentType::DP, DocumentPhase::PAYMENT],
         ];
