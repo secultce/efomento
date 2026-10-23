@@ -391,7 +391,7 @@ function openNoticeHistory() {
                         </v-btn>
 
                         <v-btn
-                            v-else
+                            v-else-if="![DOCUMENT_TYPES.PI, DOCUMENT_TYPES.PF].includes(document.type)"
                             class="w-full rounded-lg px-4 py-2 text-xs !bg-[#ffcc05FF] !font-bold !text-[#2d353fFF] !shadow-none"
                             :disabled="
                                 (!isNoticeLevelDocument(document.type) && !selectedProjects.length) ||
