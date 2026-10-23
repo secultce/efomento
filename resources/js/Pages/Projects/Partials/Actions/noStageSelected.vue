@@ -112,7 +112,7 @@ const selectedDocuments = computed(() => {
 });
 
 const noticeOpinionDocuments = computed(() =>
-    [DOCUMENT_TYPES.JR, DOCUMENT_TYPES.PI, DOCUMENT_TYPES.PF].map((type) => ({
+    [DOCUMENT_TYPES.JR].map((type) => ({
         type,
         name: documentConfigs[type].name,
         createLabel: documentConfigs[type].titleCreate,
@@ -391,7 +391,7 @@ function openNoticeHistory() {
                         </v-btn>
 
                         <v-btn
-                            v-else-if="![DOCUMENT_TYPES.PI, DOCUMENT_TYPES.PF].includes(document.type)"
+                            v-else
                             class="w-full rounded-lg px-4 py-2 text-xs !bg-[#ffcc05FF] !font-bold !text-[#2d353fFF] !shadow-none"
                             :disabled="
                                 (!isNoticeLevelDocument(document.type) && !selectedProjects.length) ||
