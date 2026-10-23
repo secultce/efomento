@@ -59,7 +59,7 @@ class DocumentTest extends TestCase
         $this->assertSame('et', DocumentType::ET->value);
         $this->assertSame('pj', DocumentType::PJ->value);
         $this->assertSame('pi', DocumentType::PI->value);
-        $this->assertSame('pf', DocumentType::PF->value);
+        $this->assertSame('pr', DocumentType::PR->value);
         $this->assertSame('do', DocumentType::DO->value);
         $this->assertSame('dp', DocumentType::DP->value);
         $this->assertSame('jr', DocumentType::JR->value);
@@ -162,7 +162,7 @@ class DocumentTest extends TestCase
 
         $this->assertSame('Parecer Orçamentário Inicial', $result['label']);
 
-        $result = $registry->resolve(DocumentType::PF, DocumentPhase::BUDGET);
+        $result = $registry->resolve(DocumentType::PR, DocumentPhase::BUDGET);
 
         $this->assertSame('Parecer Orçamentário Resultado', $result['label']);
 
@@ -475,7 +475,7 @@ class DocumentTest extends TestCase
         $document = Document::factory()->create([
             'project_id' => $project->id,
             'notice_id' => $project->notice_id,
-            'type' => DocumentType::PF,
+            'type' => DocumentType::PR,
             'phase' => DocumentPhase::BUDGET,
             'body' => '[budget_allocation_data]',
         ]);
@@ -502,7 +502,7 @@ class DocumentTest extends TestCase
         $document = Document::factory()->create([
             'project_id' => $project->id,
             'notice_id' => $project->notice_id,
-            'type' => DocumentType::PF,
+            'type' => DocumentType::PR,
             'phase' => DocumentPhase::BUDGET,
             'body' => '[allocation_code] | [budget_allocation_data]',
         ]);

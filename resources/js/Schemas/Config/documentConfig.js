@@ -3,7 +3,7 @@ export const DOCUMENT_TYPES = {
     TC: 'tc',
     PJ: 'pj',
     PI: 'pi',
-    PF: 'pf',
+    PR: 'pr',
     ET: 'et',
     DO: 'do',
     DP: 'dp',
@@ -134,12 +134,11 @@ export const documentConfigs = {
         placeholders: initialBudgetOpinionPlaceHoldersDocsSchema,
     },
 
-    [DOCUMENT_TYPES.PF]: {
+    [DOCUMENT_TYPES.PR]: {
         name: 'Parecer Orçamentário Resultado',
-        abbreviation: 'PR',
         titleCreate: 'Criar parecer orçamentário resultado (PR)',
         titleEdit: 'Editar parecer orçamentário resultado (PR)',
-        save: 'pf',
+        save: 'pr',
         placeholders: budgetOpinionPlaceHoldersDocsSchema,
     },
 

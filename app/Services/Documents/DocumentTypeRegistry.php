@@ -39,7 +39,7 @@ class DocumentTypeRegistry
             'requires_sign' => true,
             'requires_legal' => false,
         ],
-        'pf+budget' => [
+        'pr+budget' => [
             'label' => 'Parecer Orçamentário Resultado',
             'requires_sign' => true,
             'requires_legal' => false,
