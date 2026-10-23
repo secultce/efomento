@@ -2,6 +2,7 @@
 
 namespace App\Services\Documents;
 
+use App\Enums\DocumentType;
 use App\Models\Document;
 use App\Services\Documents\Docx\DocumentDocxPackageBuilder;
 use RuntimeException;
@@ -94,7 +95,7 @@ class DocumentDocxService
         $agentName = $document->project?->agent?->name ?? $document->notice?->name ?? 'documento';
         $profileSuffix = $profile === self::PROFILE_CASA_CIVIL ? '_CASA_CIVIL' : '';
 
-        return strtoupper($type).'_'.str($agentName)->slug('_').'_'.$document->created_at->format('Y-m-d').'_'.$document->created_at->timestamp.$profileSuffix.'.docx';
+        return (DocumentType::tryFrom($type)?->label() ?? strtoupper($type)).'_'.str($agentName)->slug('_').'_'.$document->created_at->format('Y-m-d').'_'.$document->created_at->timestamp.$profileSuffix.'.docx';
     }
 
     private function temporaryFile(string $prefix): string

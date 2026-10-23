@@ -164,7 +164,7 @@ class DocumentTest extends TestCase
 
         $result = $registry->resolve(DocumentType::PF, DocumentPhase::BUDGET);
 
-        $this->assertSame('Parecer Orçamentário Final', $result['label']);
+        $this->assertSame('Parecer Orçamentário Resultado', $result['label']);
 
         $result = $registry->resolve(DocumentType::DP, DocumentPhase::PAYMENT);
 

@@ -40,7 +40,7 @@ class DocumentTypeRegistry
             'requires_legal' => false,
         ],
         'pf+budget' => [
-            'label' => 'Parecer Orçamentário Final',
+            'label' => 'Parecer Orçamentário Resultado',
             'requires_sign' => true,
             'requires_legal' => false,
         ],

@@ -135,9 +135,10 @@ export const documentConfigs = {
     },
 
     [DOCUMENT_TYPES.PF]: {
-        name: 'Parecer Orçamentário Final',
-        titleCreate: 'Criar parecer orçamentário final (PF)',
-        titleEdit: 'Editar parecer orçamentário final (PF)',
+        name: 'Parecer Orçamentário Resultado',
+        abbreviation: 'PR',
+        titleCreate: 'Criar parecer orçamentário resultado (PR)',
+        titleEdit: 'Editar parecer orçamentário resultado (PR)',
         save: 'pf',
         placeholders: budgetOpinionPlaceHoldersDocsSchema,
     },

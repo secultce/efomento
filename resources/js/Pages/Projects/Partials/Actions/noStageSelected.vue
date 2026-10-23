@@ -112,9 +112,10 @@ const selectedDocuments = computed(() => {
 });
 
 const noticeOpinionDocuments = computed(() =>
-    [DOCUMENT_TYPES.JR].map((type) => ({
+    [DOCUMENT_TYPES.PF].map((type) => ({
         type,
         name: documentConfigs[type].name,
+        abbreviation: documentConfigs[type].abbreviation ?? type.toUpperCase(),
         createLabel: documentConfigs[type].titleCreate,
         editLabel: documentConfigs[type].titleEdit,
         canManage: canManageDocument(type),
@@ -364,7 +365,7 @@ function openNoticeHistory() {
                 </div>
 
                 <div v-for="document in noticeOpinionDocuments" :key="document.type" class="flex flex-col gap-2">
-                    <p>{{ document.name }} ({{ document.type.toUpperCase() }})</p>
+                    <p>{{ document.name }} ({{ document.abbreviation }})</p>
 
                     <div
                         v-permission="{

@@ -2,6 +2,7 @@
 
 namespace App\Services\Documents;
 
+use App\Enums\DocumentType;
 use App\Models\Document;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Response;
@@ -68,6 +69,6 @@ class DocumentPdfService
         $type = $type ?? $document->type->value;
         $agentName = $document->project?->agent?->name ?? 'documento';
 
-        return strtoupper($type).'_'.str($agentName)->slug('_').'_'.$document->created_at->format('Y-m-d').'_'.$document->created_at->timestamp.'.pdf';
+        return (DocumentType::tryFrom($type)?->label() ?? strtoupper($type)).'_'.str($agentName)->slug('_').'_'.$document->created_at->format('Y-m-d').'_'.$document->created_at->timestamp.'.pdf';
     }
 }
