@@ -202,8 +202,8 @@ class ProjectPhaseSyncService
 
     private function updateControl(Project $project, array $attributes): void
     {
-        // Query direta: não dispara auditoria nem observers a cada consulta diária.
-        Project::query()->whereKey($project->id)->update($attributes);
+        // Query base: não dispara auditoria nem observers nem altera updated_at a cada consulta diária.
+        Project::query()->whereKey($project->id)->toBase()->update($attributes);
 
         $project->forceFill($attributes)->syncOriginal();
     }

@@ -112,6 +112,20 @@ class ProjectPhaseSyncTest extends TestCase
         $this->assertTrue($project->fresh()->last_checked_at->gt($changedAt));
     }
 
+    public function test_unchanged_check_does_not_touch_updated_at(): void
+    {
+        $project = Project::factory()->create(['registration_id' => '100']);
+        $this->fakeMapas($this->summary([$this->phase(1, 100, 1)]));
+        $this->sync($project);
+
+        $updatedAt = $project->fresh()->updated_at;
+
+        $this->travel(1)->day();
+        $this->sync($project->fresh());
+
+        $this->assertEquals($updatedAt, $project->fresh()->updated_at);
+    }
+
     public function test_hash_is_stable_across_runs(): void
     {
         $project = Project::factory()->create(['registration_id' => '100']);
