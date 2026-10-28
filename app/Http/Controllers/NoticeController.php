@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Enums\InstrumentType;
 use App\Enums\MonitoringReportRequestDeadline;
+use App\Enums\Role;
 use App\Http\Requests\Notice\NoticeStoreRequest;
 use App\Http\Requests\Notice\NoticeUpdateRequest;
 use App\Http\Resources\AuditResource;
@@ -87,8 +88,10 @@ class NoticeController extends Controller
         return AuditResource::collection($audits);
     }
 
-    public function sync()
+    public function sync(Request $request)
     {
+        abort_unless(app()->isLocal() && $request->user()->hasRole(Role::SUPER_ADMIN), 403);
+
         SyncNoticesJob::dispatch();
 
         return back()->with('success', 'Sincronização de editais iniciada com sucesso.');

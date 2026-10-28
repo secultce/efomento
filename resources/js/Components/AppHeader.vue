@@ -1,10 +1,16 @@
 <script setup>
-import { ref } from 'vue';
-import { router } from '@inertiajs/vue3';
+import { computed, ref } from 'vue';
+import { router, usePage } from '@inertiajs/vue3';
 import AppNotificationMenu from '@/Components/AppNotificationMenu.vue';
+import GoogleSheetsImportDialog from '@/Components/GoogleSheetsImportDialog.vue';
+import { usePermissions } from '@/Composables/usePermissions';
 import { useSnackbar } from '@/Composables/useSnackbar';
 
 const { showSnackbar } = useSnackbar();
+const { isSuperAdmin } = usePermissions();
+const showSyncDialog = ref(false);
+const page = usePage();
+const canSyncNotices = computed(() => page.props.auth?.canSyncNotices === true);
 
 defineProps({
     user: {
@@ -30,6 +36,8 @@ const logout = () => router.post(route('logout'));
 const syncing = ref(false);
 
 const syncNotices = () => {
+    if (!canSyncNotices.value || syncing.value) return;
+
     router.post(
         route('notices.sync'),
         {},
@@ -61,9 +69,6 @@ const syncNotices = () => {
         </v-app-bar-title>
 
         <template #append>
-            <v-btn variant="text" color="primary" :loading="syncing" :disabled="syncing" @click="syncNotices">
-                Sincronismo
-            </v-btn>
             <v-btn variant="text" color="white" href="/editais"> Editais </v-btn>
             <v-btn variant="text" color="white"> Indicadores </v-btn>
             <app-notification-menu :notifications-count="notificationsCount" />
@@ -91,6 +96,23 @@ const syncNotices = () => {
                     >
                         Minha conta
                     </v-list-item>
+                    <v-list-item
+                        v-if="isSuperAdmin"
+                        prepend-icon="mdi-table-arrow-up"
+                        data-cy="btnSpreadsheetSync"
+                        @click="showSyncDialog = true"
+                    >
+                        Sincronizar Planilha
+                    </v-list-item>
+                    <v-list-item
+                        v-if="canSyncNotices"
+                        prepend-icon="mdi-sync"
+                        :disabled="syncing"
+                        data-cy="btnNoticesSync"
+                        @click="syncNotices"
+                    >
+                        {{ syncing ? 'Sincronizando...' : 'Sincronismo' }}
+                    </v-list-item>
                     <v-divider />
                     <v-list-item prepend-icon="mdi-logout" base-color="error" data-cy="btnLogout" @click="logout">
                         Sair
@@ -99,4 +121,5 @@ const syncNotices = () => {
             </v-menu>
         </template>
     </v-app-bar>
+    <GoogleSheetsImportDialog v-if="isSuperAdmin" v-model="showSyncDialog" />
 </template>

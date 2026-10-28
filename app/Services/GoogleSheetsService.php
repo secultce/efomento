@@ -29,6 +29,53 @@ class GoogleSheetsService
         private readonly BudgetAllocationResolver $budgetAllocationResolver,
     ) {}
 
+    public static function extractSpreadsheetId(string $urlOrId): ?string
+    {
+        $value = trim($urlOrId);
+
+        if (preg_match('/^[a-zA-Z0-9_-]+$/D', $value)) {
+            return $value;
+        }
+
+        $url = parse_url($value);
+        if ($url === false || ($url['scheme'] ?? '') !== 'https' || ($url['host'] ?? '') !== 'docs.google.com'
+            || isset($url['user']) || isset($url['pass']) || isset($url['port'])) {
+            return null;
+        }
+
+        return preg_match('~^/spreadsheets/d/(?!e/)([a-zA-Z0-9_-]+)(?:/|$)~', $url['path'] ?? '', $matches)
+            ? $matches[1]
+            : null;
+    }
+
+    /** @return array{counts: array<string, int>, errors: array<string, string>} */
+    public function importAll(
+        string $spreadsheetId,
+        int $userId,
+        ?int $fallbackNoticeId = null,
+        bool $withFiles = true,
+        bool $withRegistrationData = true,
+    ): array {
+        $counts = [];
+        $errors = [];
+
+        foreach (['Abertura', 'Formalização', 'Orçamento', 'Pagamento'] as $sheet) {
+            try {
+                $counts[$sheet] = match ($sheet) {
+                    'Abertura' => $this->importSheet($spreadsheetId, $sheet, $withFiles, $userId, $fallbackNoticeId, $withRegistrationData),
+                    'Formalização' => $this->syncFormalization($spreadsheetId, $sheet, $userId),
+                    'Orçamento' => $this->syncBudget($spreadsheetId, $sheet, $userId),
+                    'Pagamento' => $this->syncPagamento($spreadsheetId, $sheet, $userId),
+                };
+            } catch (Throwable $exception) {
+                $errors[$sheet] = $exception->getMessage();
+                report($exception);
+            }
+        }
+
+        return compact('counts', 'errors');
+    }
+
     /**
      * Fetches all rows from a public Google Sheet tab and returns a structured array.
      *
