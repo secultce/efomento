@@ -1,6 +1,7 @@
 <script setup>
 import { ref } from 'vue';
 import { router } from '@inertiajs/vue3';
+import AppBrand from '@/Components/AppBrand.vue';
 import AppNotificationMenu from '@/Components/AppNotificationMenu.vue';
 import { useSnackbar } from '@/Composables/useSnackbar';
 
@@ -55,8 +56,8 @@ const syncNotices = () => {
 <template>
     <v-app-bar color="primary" elevation="0" height="64">
         <v-app-bar-title>
-            <a :href="route('notices.index')" class="text-white font-weight-bold text-h6 text-decoration-none">
-                e-fomento
+            <a :href="route('notices.index')" class="text-white text-decoration-none">
+                <AppBrand />
             </a>
         </v-app-bar-title>
 

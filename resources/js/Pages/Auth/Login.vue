@@ -49,11 +49,11 @@ const openSupport = () => {
             >
                 <img
                     src="/images/logos/ceara.png"
-                    alt="Logo do e-fomento"
+                    alt="Governo do Ceará"
                     class="w-[20em] md:w-[20em] mb-6 lg:block hidden"
                 />
                 <div class="hidden lg:block">
-                    <h1 class="text-7xl font-bold text-[#2d353f]">e-fomento</h1>
+                    <h1 class="text-7xl font-bold text-[#2d353f]">SIPA</h1>
 
                     <p class="text-base md:text-[1.3em] text-left w-3/6 text-[#2d353f] mt-4 leading-relaxed">
                         o sistema para te ajudar a acompanhar os processos dos editais em andamento
@@ -63,11 +63,11 @@ const openSupport = () => {
 
             <!-- right side (FORM) -->
             <div class="w-full max-w-md bg-white px-6 py-8 shadow-md rounded-lg">
-                <h1 class="text-lg font-bold text-[#1A1A1A] leading-relaxed">Acesse sua conta do e-fomento</h1>
+                <h1 class="text-lg font-bold text-[#1A1A1A] leading-relaxed">Acesse sua conta do SIPA</h1>
 
                 <p class="text-sm text-[#1A1A1A] mt-2 mb-6 leading-relaxed">
-                    No e-fomento, os editais estão disponíveis para você acompanhar, inserir e editar informações
-                    agilizando o processo.
+                    No SIPA, os editais estão disponíveis para você acompanhar, inserir e editar informações agilizando
+                    o processo.
                 </p>
                 <div v-if="status" class="mb-4 text-sm font-medium text-green-600">
                     {{ status }}

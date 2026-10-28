@@ -62,9 +62,9 @@ const vuetify = createVuetify({
         VTab: { style: 'text-transform: none; letter-spacing: normal;' },
     },
     theme: {
-        defaultTheme: 'efomento',
+        defaultTheme: 'sipa',
         themes: {
-            efomento: {
+            sipa: {
                 colors: {
                     primary: '#008344',
                     secondary: '#ffcc05FF',
@@ -79,7 +79,7 @@ const vuetify = createVuetify({
     },
 });
 
-const appName = import.meta.env.VITE_APP_NAME || 'Laravel';
+const appName = 'SIPA';
 
 function resolvePage(name) {
     const pages = import.meta.glob('./Pages/**/*.vue');

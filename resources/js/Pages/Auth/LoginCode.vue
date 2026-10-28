@@ -75,7 +75,7 @@ const cancel = () => {
                     class="w-[20em] md:w-[20em] mb-6 lg:block hidden"
                 />
                 <div class="hidden lg:block">
-                    <p class="text-7xl font-bold text-[#2d353f]">e-fomento</p>
+                    <p class="text-7xl font-bold text-[#2d353f]">SIPA</p>
 
                     <p class="text-base md:text-[1.3em] text-left w-3/6 text-[#2d353f] mt-4 leading-relaxed">
                         o sistema para te ajudar a acompanhar os processos dos editais em andamento
@@ -101,7 +101,7 @@ const cancel = () => {
                 <h1 id="challenge-title" class="text-2xl font-bold leading-tight text-[#1A1A1A]">Confira seu email</h1>
                 <p id="code-help" class="mt-3 text-sm leading-relaxed text-gray-600">
                     Enviamos um código de {{ codeLength }} dígitos ao email da sua conta. Informe o código para entrar
-                    no e-fomento.
+                    no SIPA.
                 </p>
                 <p class="mt-3 flex items-center gap-2 text-sm text-gray-600">
                     <v-icon icon="mdi-clock-outline" size="18" aria-hidden="true" />
