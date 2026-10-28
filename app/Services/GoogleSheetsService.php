@@ -6,6 +6,7 @@ use App\Enums\CgeAtendeStatus;
 use App\Enums\DeliberationType;
 use App\Enums\ReportStatus;
 use App\Exceptions\Integration\ExternalServiceException;
+use App\Exceptions\Integration\PartialSpreadsheetSyncException;
 use App\Models\Budget;
 use App\Models\BudgetAllocation;
 use App\Models\Formalization;
@@ -29,6 +30,7 @@ class GoogleSheetsService
         private readonly BudgetAllocationResolver $budgetAllocationResolver,
     ) {}
 
+    /** Accepts a raw spreadsheet ID or an HTTPS Google Sheets document URL. */
     public static function extractSpreadsheetId(string $urlOrId): ?string
     {
         $value = trim($urlOrId);
@@ -48,7 +50,11 @@ class GoogleSheetsService
             : null;
     }
 
-    /** @return array{counts: array<string, int>, errors: array<string, string>} */
+    /**
+     * Imports every tab in dependency order, retaining partial counts and failures while continuing later tabs.
+     *
+     * @return array{counts: array<string, int>, errors: array<string, string>}
+     */
     public function importAll(
         string $spreadsheetId,
         int $userId,
@@ -67,6 +73,9 @@ class GoogleSheetsService
                     'Orçamento' => $this->syncBudget($spreadsheetId, $sheet, $userId),
                     'Pagamento' => $this->syncPagamento($spreadsheetId, $sheet, $userId),
                 };
+            } catch (PartialSpreadsheetSyncException $exception) {
+                $counts[$sheet] = $exception->processedCount;
+                $errors[$sheet] = $exception->getMessage();
             } catch (Throwable $exception) {
                 $errors[$sheet] = $exception->getMessage();
                 report($exception);
@@ -135,6 +144,8 @@ class GoogleSheetsService
     /**
      * Sincroniza a aba de Formalização com o model Formalization.
      * Retorna o número de registros gravados.
+     *
+     * @throws PartialSpreadsheetSyncException Após processar todas as linhas, se alguma gravação falhar.
      */
     public function syncFormalization(string $spreadsheetId, string $sheetName, int $userId): int
     {
@@ -147,6 +158,7 @@ class GoogleSheetsService
         $projects = $this->preloadProjectsByNumber($rows, $projectLookupColumn);
 
         $count = 0;
+        $failedCount = 0;
         foreach ($rows as $row) {
             if (($row['STATUS'] ?? null) === 'Desclassificado' || ($row['STATUS'] ?? null) === 'Desistente') {
                 continue;
@@ -211,11 +223,16 @@ class GoogleSheetsService
 
                 $count++;
             } catch (Throwable $e) {
+                $failedCount++;
                 Log::warning('spreadsheet.import.formalization_sync_failed', [
                     'project_number' => $project->number,
                     'message' => $e->getMessage(),
                 ]);
             }
+        }
+
+        if ($failedCount > 0) {
+            throw new PartialSpreadsheetSyncException($count, $failedCount);
         }
 
         return $count;
@@ -293,6 +310,8 @@ class GoogleSheetsService
     /**
      * Sincroniza a aba de Orçamento com os models Budget, BudgetAllocation e Installment.
      * Retorna o número de registros gravados.
+     *
+     * @throws PartialSpreadsheetSyncException Após processar todas as linhas, se alguma gravação falhar.
      */
     public function syncBudget(string $spreadsheetId, string $sheetName, int $userId): int
     {
@@ -305,6 +324,7 @@ class GoogleSheetsService
         $projects = $this->preloadProjectsByNumber($rows, $projectLookupColumn);
 
         $count = 0;
+        $failedCount = 0;
         foreach ($rows as $row) {
             $project = $projects->get($row[$projectLookupColumn] ?? null);
 
@@ -336,11 +356,16 @@ class GoogleSheetsService
 
                 $count++;
             } catch (Throwable $e) {
+                $failedCount++;
                 Log::warning('spreadsheet.import.budget_sync_failed', [
                     'project_number' => $project->number,
                     'message' => $e->getMessage(),
                 ]);
             }
+        }
+
+        if ($failedCount > 0) {
+            throw new PartialSpreadsheetSyncException($count, $failedCount);
         }
 
         return $count;

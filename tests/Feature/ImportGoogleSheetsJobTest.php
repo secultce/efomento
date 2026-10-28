@@ -3,12 +3,17 @@
 namespace Tests\Feature;
 
 use App\Jobs\ImportGoogleSheetsJob;
+use App\Models\Budget;
+use App\Models\Formalization;
+use App\Models\Project;
 use App\Models\User;
 use App\Notifications\AppNotification;
 use App\Services\GoogleSheetsService;
 use App\Support\Notify;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Notification;
+use PHPUnit\Framework\Attributes\DataProvider;
 use RuntimeException;
 use Tests\TestCase;
 
@@ -58,6 +63,54 @@ class ImportGoogleSheetsJobTest extends TestCase
         (new ImportGoogleSheetsJob('sheet-id', $user->id, 7, $user->id))->failed(new RuntimeException('Worker failed'));
 
         Notification::assertSentTo($user, AppNotification::class, fn ($notification) => $notification->type === 'error');
+    }
+
+    #[DataProvider('rowFailureTabs')]
+    public function test_row_save_failure_reports_error_with_partial_counts_and_continues_import(string $sheet, string $model): void
+    {
+        Notification::fake();
+        Http::preventStrayRequests();
+        $user = User::factory()->create();
+        $failedProject = Project::factory()->create(['number' => 'on-123']);
+        $successfulProject = Project::factory()->create(['number' => 'on-456']);
+
+        $model::saving(function ($record) use ($failedProject) {
+            if ($record->project_id === $failedProject->id) {
+                throw new RuntimeException('Private database error');
+            }
+        });
+
+        Http::fake(['docs.google.com/*' => function ($request) {
+            return Http::response(['table' => [
+                'cols' => [['label' => 'CÓDIGO INSCRIÇÃO MAPAS']],
+                'rows' => $request['sheet'] === 'Abertura' ? [] : [
+                    ['c' => [['v' => 'on-123']]],
+                    ['c' => [['v' => 'on-456']]],
+                ],
+            ]]);
+        }]);
+
+        (new ImportGoogleSheetsJob('sheet-id', $user->id, null, $user->id))
+            ->handle(app(GoogleSheetsService::class), app(Notify::class));
+
+        $counts = ['Abertura' => 0, 'Formalização' => 2, 'Orçamento' => 2, 'Pagamento' => 2];
+        $counts[$sheet] = 1;
+        Notification::assertSentTo($user, AppNotification::class, fn ($notification) => $notification->type === 'error'
+            && $notification->meta['counts'] === $counts
+            && $notification->meta['failed_sheets'] === [$sheet]
+            && ! str_contains(json_encode($notification->toArray($user)), 'Private database error'));
+        Notification::assertSentToTimes($user, AppNotification::class, 1);
+        $this->assertTrue($model::where('project_id', $successfulProject->id)->exists());
+        $this->assertFalse($model::where('project_id', $failedProject->id)->exists());
+        Http::assertSentCount(4);
+    }
+
+    public static function rowFailureTabs(): array
+    {
+        return [
+            'formalization' => ['Formalização', Formalization::class],
+            'budget' => ['Orçamento', Budget::class],
+        ];
     }
 
     public function test_import_all_runs_every_tab_in_order_even_after_a_tab_fails(): void

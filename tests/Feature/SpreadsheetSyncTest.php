@@ -175,4 +175,20 @@ class SpreadsheetSyncTest extends TestCase
         $response->assertJsonFragment(['id' => $admin->id, 'name' => $admin->name, 'avatar' => null]);
         $this->assertSame(['id', 'name', 'avatar'], array_keys($response->json('0')));
     }
+
+    public function test_deleted_edital_cannot_be_used_as_fallback(): void
+    {
+        Queue::fake();
+        $admin = $this->admin();
+        $notice = Notice::factory()->create();
+        $notice->delete();
+
+        $this->actingAs($admin)->post(route('spreadsheets.sync'), [
+            'spreadsheet_url' => 'sheet-id',
+            'user_id' => $admin->id,
+            'fallback_notice_id' => $notice->id,
+        ])->assertSessionHasErrors('fallback_notice_id');
+
+        Queue::assertNothingPushed();
+    }
 }

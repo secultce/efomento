@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Exceptions\Integration\PartialSpreadsheetSyncException;
 use App\Services\GoogleSheetsService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -63,5 +64,16 @@ class ImportGoogleSheetsCommandTest extends TestCase
 
         $this->artisan('app:import-google-sheets sheet-id --aba=Orçamento --user-id=1')
             ->assertSuccessful();
+    }
+
+    public function test_single_tab_command_returns_failure_when_some_rows_fail(): void
+    {
+        $this->mock(GoogleSheetsService::class)->shouldReceive('syncBudget')->once()
+            ->with('sheet-id', 'Orçamento', 1)
+            ->andThrow(new PartialSpreadsheetSyncException(2, 1));
+
+        $this->artisan('app:import-google-sheets sheet-id --aba=Orçamento --user-id=1')
+            ->expectsOutput('  Erro: 1 registro(s) não foram gravados; 2 registro(s) processados.')
+            ->assertFailed();
     }
 }

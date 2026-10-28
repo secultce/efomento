@@ -6,6 +6,7 @@ use App\Enums\Role;
 use App\Services\GoogleSheetsService;
 use Closure;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class ImportGoogleSheetsRequest extends FormRequest
 {
@@ -23,7 +24,7 @@ class ImportGoogleSheetsRequest extends FormRequest
                 }
             }],
             'user_id' => ['required', 'integer', 'exists:users,id'],
-            'fallback_notice_id' => ['nullable', 'integer', 'exists:notices,id'],
+            'fallback_notice_id' => ['nullable', 'integer', Rule::exists('notices', 'id')->withoutTrashed()],
         ];
     }
 
