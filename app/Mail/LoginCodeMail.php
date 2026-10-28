@@ -22,7 +22,7 @@ class LoginCodeMail extends Mailable implements ShouldBeEncrypted
 
     public function envelope(): Envelope
     {
-        return new Envelope(subject: 'Seu código de acesso ao e-fomento');
+        return new Envelope(subject: 'Seu código de acesso ao SIPA');
     }
 
     public function content(): Content

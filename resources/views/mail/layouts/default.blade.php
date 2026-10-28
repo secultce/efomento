@@ -24,7 +24,7 @@
                     </tr>
                     <tr>
                         <td align="center" style="padding: 42px 24px 48px;">
-                            <a href="{{ config('app.url') }}" style="color: #2d353f; font-size: 48px; font-weight: bold; letter-spacing: -2px; line-height: 1.2; text-decoration: none;">e-fomento</a>
+                            <a href="{{ config('app.url') }}" style="color: #2d353f; font-size: 48px; font-weight: bold; letter-spacing: -2px; line-height: 1.2; text-decoration: none;">SIPA</a>
                             <p style="margin: 12px 0 0; color: #69736e; font-size: 14px; line-height: 1.5;">Secretaria da Cultura do Ceará</p>
                         </td>
                     </tr>
@@ -35,7 +35,7 @@
                     </tr>
                     <tr>
                         <td align="center" bgcolor="#008344" style="padding: 22px 24px; border-radius: 0 0 14px 14px; color: #ffffff; font-size: 14px; line-height: 1.6;">
-                            <p style="margin: 0 0 4px; font-size: 16px; font-weight: bold;">e-fomento</p>
+                            <p style="margin: 0 0 4px; font-size: 16px; font-weight: bold;">SIPA</p>
                             <a href="{{ config('app.url') }}" style="color: #ffffff; text-decoration: none; word-break: break-word;">{{ config('app.url') }}</a>
                             <img src="{{ $message->embed(public_path('images/logos/ceara-white.png')) }}" width="170" alt="Ceará — Governo do Estado — Secretaria da Cultura" style="display: block; width: 170px; max-width: 100%; height: auto; margin: 14px auto 0; border: 0;">
                         </td>
