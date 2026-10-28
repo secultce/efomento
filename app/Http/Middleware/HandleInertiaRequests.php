@@ -2,6 +2,7 @@
 
 namespace App\Http\Middleware;
 
+use App\Enums\Role;
 use App\Support\UploadLimits;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -42,6 +43,7 @@ class HandleInertiaRequests extends Middleware
                 'roles' => $request->user()?->getRoleNames() ?? [],
                 'permissions' => $request->user()?->getAllPermissions()->pluck('name') ?? [],
                 'currentRoute' => Route::currentRouteName(),
+                'canSyncNotices' => app()->isLocal() && ($request->user()?->hasRole(Role::SUPER_ADMIN) ?? false),
             ],
             'allUnreadCount' => function () use ($request) {
                 if (! $request->user()) {

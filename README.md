@@ -26,6 +26,19 @@ Substitui a planilha compartilhada "Planilão" por um fluxo digital estruturado,
 - Importação inicial de projetos/agentes via API do Mapa Cultural do Ceará
 - Sincronização sob demanda (refresh) com resiliência — sistema funciona offline se a API estiver indisponível
 
+#### Google Sheets pela interface
+
+Usuários `super_admin` podem abrir **Sincronizar Planilha** no menu do avatar, abaixo de **Minha conta**.
+Informe o link ou ID de uma planilha pública e o usuário responsável (pré-selecionado com o usuário autenticado).
+Assim como no comando Artisan, o edital é identificado pelos dados da planilha. O ID interno de um edital no
+e-fomento é opcional e serve apenas como fallback; não deve ser confundido com o ID do edital no Mapas.
+
+A importação executa **Abertura → Formalização → Orçamento → Pagamento** em segundo plano, sempre incluindo
+arquivos e fichas de inscrição. O usuário que iniciou a importação recebe uma notificação com as contagens
+por aba ou as abas que falharam. Arquivos e fichas continuam nas filas próprias após a importação das abas.
+Os workers das filas `default`, `details` e `files` devem estar ativos (`efomento-queue` e `efomento-queue-files`
+no Docker Compose). Após atualizar o código, recarregue os workers e atualize o cache de rotas conforme o deploy.
+
 ### Workflow Multi-Etapas
 Fluxo sequencial com etapas dedicadas por setor:
 
