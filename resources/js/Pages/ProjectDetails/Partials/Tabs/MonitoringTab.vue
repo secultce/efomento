@@ -7,6 +7,7 @@ import SectionContent from '@/Components/SectionContent.vue';
 import SectionForm from '@/Components/SectionForm.vue';
 import FormField from '@/Components/FormField.vue';
 import TextField from '@/Components/TextField.vue';
+import RegistrationPhasesButton from '@/Components/RegistrationPhasesButton.vue';
 import AuxLinks from '@/Components/AuxLinks.vue';
 import ReturnProcessAction from '@/Components/ReturnProcessAction.vue';
 import DiligenceChat from '@/Components/DiligenceChat.vue';
@@ -50,14 +51,6 @@ const activeViewIndex = ref('all');
 const hasMonitoringSnapshot = computed(() => props.project.has_monitoring_snapshot === true);
 const monitoringDialogOpen = ref(false);
 
-const registrationFields = computed(() => {
-    const fields = props.project.monitoring?.data_registration?.fields ?? [];
-    return fields.map((f) => ({
-        label: f.titleField,
-        value: parseFieldValue(f.valueField),
-    }));
-});
-
 const monitoringFiles = ref([]);
 const loadingFiles = ref(false);
 
@@ -73,19 +66,6 @@ watch(monitoringDialogOpen, async (open) => {
         loadingFiles.value = false;
     }
 });
-
-function parseFieldValue(raw) {
-    if (raw === null || raw === undefined) return '—';
-    if (typeof raw !== 'string') return String(raw);
-    try {
-        const parsed = JSON.parse(raw);
-        if (typeof parsed === 'string') return parsed;
-        if (Array.isArray(parsed)) return parsed.join(', ');
-        return JSON.stringify(parsed);
-    } catch {
-        return raw;
-    }
-}
 
 const monitoringStage = computed(() => props.project.stages?.find((s) => s.slug === STAGE_SLUG) ?? null);
 
@@ -340,15 +320,10 @@ function submit() {
             <v-card-title class="pa-4">Ficha da fase do Monitoramento</v-card-title>
             <v-divider />
             <v-card-text class="pa-4">
-                <template v-if="registrationFields.length">
-                    <p class="font-semibold text-sm mb-3">Campos da inscrição</p>
-                    <div v-for="(field, i) in registrationFields" :key="'field-' + i" class="mb-3">
-                        <p class="text-xs text-gray-700 font-semibold uppercase">{{ field.label }}</p>
-                        <p class="text-sm">{{ field.value }}</p>
-                    </div>
-                </template>
+                <p class="font-semibold text-sm mb-3">Inscrições</p>
+                <RegistrationPhasesButton :project="project" class="mb-4" />
 
-                <v-divider v-if="registrationFields.length" class="my-4" />
+                <v-divider class="my-4" />
 
                 <p class="font-semibold text-sm mb-3">Arquivos da inscrição</p>
                 <v-progress-linear v-if="loadingFiles" indeterminate color="primary" class="mb-4" />
@@ -370,13 +345,6 @@ function submit() {
                     </div>
                 </template>
                 <p v-else class="text-sm text-gray-400">Nenhum arquivo encontrado.</p>
-
-                <p
-                    v-if="!registrationFields.length && !loadingFiles && !monitoringFiles.length"
-                    class="text-sm text-gray-500"
-                >
-                    Nenhum dado de inscrição disponível.
-                </p>
             </v-card-text>
             <v-divider />
             <v-card-actions class="pa-4 justify-end">
