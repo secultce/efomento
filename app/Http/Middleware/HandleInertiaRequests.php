@@ -52,6 +52,7 @@ class HandleInertiaRequests extends Middleware
                     ->unreadNotifications()
                     ->count();
             },
+            'mapasDomain' => config('efomento.mapas_domain'),
             'uploadLimits' => [
                 'maxBytes' => UploadLimits::determineMaxUploadBytes(),
                 'maxMb' => UploadLimits::maxUploadMb(),

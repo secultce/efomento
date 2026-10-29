@@ -99,6 +99,7 @@ const copyValue = async (value) => {
                     </span>
 
                     <v-icon
+                        v-if="!field.component"
                         v-show="hoveredIndex === index"
                         size="14"
                         class="cursor-pointer"
@@ -108,7 +109,8 @@ const copyValue = async (value) => {
                     </v-icon>
                 </div>
 
-                <div v-if="field.items" class="space-y-1">
+                <component :is="field.component" v-if="field.component" :project="project" />
+                <div v-else-if="field.items" class="space-y-1">
                     <p v-for="(item, itemIndex) in field.items(project)" :key="itemIndex" class="break-words">
                         {{ item.label }}: <span class="font-bold">{{ item.value }}</span>
                     </p>

@@ -71,13 +71,12 @@ class GoogleSheetsService
         bool $withFiles,
         int $userId,
         ?int $fallbackNoticeId = null,
-        bool $withRegistrationData = false,
     ): int {
         ['rows' => $rows] = $this->fetchSheet($spreadsheetId, $sheetName);
 
         $count = 0;
         foreach ($rows as $row) {
-            if ($this->importService->processRow($row, $withFiles, $userId, $fallbackNoticeId, $withRegistrationData) !== null) {
+            if ($this->importService->processRow($row, $withFiles, $userId, $fallbackNoticeId) !== null) {
                 $count++;
             }
         }
