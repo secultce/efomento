@@ -7,6 +7,7 @@ use App\Models\ProjectRegistrationPhase;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use UnexpectedValueException;
 
 class ProjectPhaseSyncService
 {
@@ -167,7 +168,12 @@ class ProjectPhaseSyncService
         $full = $this->mapasClient->registrationAllPhases($registrationId);
 
         $data = collect(data_get($full, 'phases', []))
-            ->firstWhere('registrationId', $registrationId) ?? $phaseSummary;
+            ->firstWhere('registrationId', $registrationId);
+
+        // Sem o detalhe não se grava o resumo: o summary_hash faria as próximas rodadas pularem a fase.
+        if (! is_array($data)) {
+            throw new UnexpectedValueException("Mapas returned no detail for registration {$registrationId}");
+        }
 
         $contentHash = $this->hash($data);
         $status = data_get($data, 'status');

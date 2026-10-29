@@ -234,6 +234,30 @@ class ProjectPhaseSyncTest extends TestCase
         $this->assertTrue($project->next_check_at->between(now()->addMinutes(59), now()->addMinutes(61)));
     }
 
+    public function test_detail_without_requested_phase_does_not_persist_summary(): void
+    {
+        $project = Project::factory()->create(['registration_id' => '100']);
+        $summary = $this->summary([$this->phase(1, 100, 1)]);
+
+        Http::swap(new Factory);
+        Http::fake(function (Request $request) use ($summary) {
+            return str_contains($request->url(), 'summary=1')
+                ? Http::response($summary)
+                : Http::response(['registration' => ['id' => 100], 'phases' => []]);
+        });
+
+        try {
+            (new SyncProjectPhasesProjectJob($project->id))->handle(app(ProjectPhaseSyncService::class));
+            $this->fail('Exceção esperada');
+        } catch (\UnexpectedValueException) {
+        }
+
+        $project->refresh();
+        $this->assertNull($project->summary_hash);
+        $this->assertSame(0, $project->registrationPhases()->count());
+        $this->assertTrue($project->next_check_at->between(now()->addMinutes(59), now()->addMinutes(61)));
+    }
+
     public function test_dispatcher_selects_only_due_active_projects(): void
     {
         Bus::fake();
