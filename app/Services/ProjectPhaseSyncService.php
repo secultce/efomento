@@ -46,9 +46,15 @@ class ProjectPhaseSyncService
             return;
         }
 
-        DB::transaction(function () use ($project, $summary, $hash) {
-            foreach (data_get($summary, 'phases', []) as $phaseSummary) {
-                $this->syncPhase($project, $phaseSummary);
+        // Requisições ao Mapas ficam fora da transação: ela só faz leituras e gravações no banco.
+        $resolved = collect(data_get($summary, 'phases', []))
+            ->map(fn (array $phaseSummary) => $this->resolvePhase($project, $phaseSummary))
+            ->filter()
+            ->all();
+
+        DB::transaction(function () use ($project, $summary, $hash, $resolved) {
+            foreach ($resolved as $phase) {
+                $this->storePhase($project, $phase);
             }
 
             [$nextCheckAt, $close] = $this->schedule($summary, true);
@@ -141,7 +147,12 @@ class ProjectPhaseSyncService
         return [$next->lt($tomorrow) ? $tomorrow : $next, false];
     }
 
-    private function syncPhase(Project $project, array $phaseSummary): void
+    /**
+     * Busca no Mapas o conteúdo da fase quando ela é nova ou mudou; null quando não há o que gravar.
+     *
+     * @return array{registration_id: int, data: array, content_hash: string, status: mixed}|null
+     */
+    private function resolvePhase(Project $project, array $phaseSummary): ?array
     {
         $registrationId = (int) data_get($phaseSummary, 'registrationId');
 
@@ -150,7 +161,7 @@ class ProjectPhaseSyncService
             ->first();
 
         if ($existing && ! $this->summaryDiffers($existing, $phaseSummary)) {
-            return;
+            return null;
         }
 
         $full = $this->mapasClient->registrationAllPhases($registrationId);
@@ -162,21 +173,33 @@ class ProjectPhaseSyncService
         $status = data_get($data, 'status');
 
         if ($existing && $existing->content_hash === $contentHash && $existing->status === $status) {
-            return;
+            return null;
         }
 
+        return [
+            'registration_id' => $registrationId,
+            'data' => $data,
+            'content_hash' => $contentHash,
+            'status' => $status,
+        ];
+    }
+
+    private function storePhase(Project $project, array $phase): void
+    {
+        $data = $phase['data'];
+
         ProjectRegistrationPhase::updateOrCreate(
-            ['project_id' => $project->id, 'registration_id' => $registrationId],
+            ['project_id' => $project->id, 'registration_id' => $phase['registration_id']],
             [
                 'opportunity_id' => data_get($data, 'opportunity.id'),
                 'phase_order' => (int) data_get($data, 'order'),
                 'is_first' => (bool) data_get($data, 'isFirstPhase'),
-                'status' => $status,
+                'status' => $phase['status'],
                 'sent_at' => $this->parseSentDate(data_get($data, 'sentDate')),
                 'registration_from' => data_get($data, 'opportunity.registrationFrom'),
                 'registration_to' => data_get($data, 'opportunity.registrationTo'),
                 'data' => $data,
-                'content_hash' => $contentHash,
+                'content_hash' => $phase['content_hash'],
                 'fetched_at' => now(),
             ]
         );
