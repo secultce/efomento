@@ -34,40 +34,57 @@ const sections = (phase) => phase.data?.sections ?? [];
             <v-card-text class="pa-4">
                 <p v-if="!phases.length" class="text-sm text-gray-500">Nenhum dado de inscrição disponível.</p>
 
-                <div v-for="phase in phases" :key="phase.id" class="border rounded-lg p-4 mb-4">
-                    <div class="flex flex-wrap items-start justify-between gap-2 mb-3">
-                        <p class="font-bold">{{ phase.data?.opportunity?.name ?? `Fase ${phase.phase_order}` }}</p>
-                        <div class="text-xs text-gray-700 text-right">
-                            <p>
-                                Status: <strong>{{ statusLabel(phase.status) }}</strong>
+                <v-expansion-panels v-if="phases.length" multiple class="gap-4 mb-4">
+                    <v-expansion-panel v-for="phase in phases" :key="phase.id" class="border rounded-lg">
+                        <v-expansion-panel-title>
+                            <div class="flex flex-wrap items-start justify-between gap-2 w-full pr-2">
+                                <p class="font-bold">
+                                    {{ phase.data?.opportunity?.name ?? `Fase ${phase.phase_order}` }}
+                                </p>
+                                <div class="text-xs text-gray-700 text-right">
+                                    <p>
+                                        Status: <strong>{{ statusLabel(phase.status) }}</strong>
+                                    </p>
+                                    <p>
+                                        Enviada em: <strong>{{ formatDate(phase.sent_at) }}</strong>
+                                    </p>
+                                </div>
+                            </div>
+                        </v-expansion-panel-title>
+                        <v-expansion-panel-text>
+                            <p v-if="!sections(phase).length" class="text-sm text-gray-500">
+                                Nenhum campo preenchido nesta fase.
                             </p>
-                            <p>
-                                Enviada em: <strong>{{ formatDate(phase.sent_at) }}</strong>
-                            </p>
-                        </div>
-                    </div>
 
-                    <div v-for="(section, sIndex) in sections(phase)" :key="sIndex" class="border-t pt-3 mt-3">
-                        <p class="font-bold uppercase text-xs tracking-wider mb-2">{{ section.title }}</p>
-                        <div v-for="(field, fIndex) in section.fields ?? []" :key="fIndex" class="mb-2">
-                            <p class="text-xs text-gray-700">{{ field.title }}</p>
-                            <p class="text-sm font-bold break-words">
-                                <template v-for="(item, iIndex) in formatField(field)" :key="iIndex">
-                                    <span v-if="iIndex > 0">, </span>
-                                    <a
-                                        v-if="item.href"
-                                        :href="item.href"
-                                        target="_blank"
-                                        rel="noopener noreferrer"
-                                        class="text-blue-600 hover:underline"
-                                        >{{ item.text }}</a
-                                    >
-                                    <span v-else>{{ item.text }}</span>
-                                </template>
-                            </p>
-                        </div>
-                    </div>
-                </div>
+                            <div
+                                v-for="(section, sIndex) in sections(phase)"
+                                :key="sIndex"
+                                :class="{ 'border-t pt-3 mt-3': sIndex > 0 }"
+                            >
+                                <p v-if="section.title" class="font-bold uppercase text-xs tracking-wider mb-2">
+                                    {{ section.title }}
+                                </p>
+                                <div v-for="(field, fIndex) in section.fields ?? []" :key="fIndex" class="mb-2">
+                                    <p class="text-xs text-gray-700">{{ field.title }}</p>
+                                    <p class="text-sm font-bold break-words">
+                                        <template v-for="(item, iIndex) in formatField(field)" :key="iIndex">
+                                            <span v-if="iIndex > 0">, </span>
+                                            <a
+                                                v-if="item.href"
+                                                :href="item.href"
+                                                target="_blank"
+                                                rel="noopener noreferrer"
+                                                class="text-blue-600 hover:underline"
+                                                >{{ item.text }}</a
+                                            >
+                                            <span v-else>{{ item.text }}</span>
+                                        </template>
+                                    </p>
+                                </div>
+                            </div>
+                        </v-expansion-panel-text>
+                    </v-expansion-panel>
+                </v-expansion-panels>
 
                 <div
                     v-for="n in missingPhases"

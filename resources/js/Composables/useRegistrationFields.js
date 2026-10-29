@@ -67,6 +67,9 @@ export function useRegistrationFields(getMapasDomain = () => '') {
     function formatField(field) {
         const { type, value } = field ?? {};
 
+        // No checkbox o `value` é o texto da declaração; quem diz se foi marcado é `checked`.
+        if (type === 'checkbox') return [{ text: toText(Boolean(field.checked)) }];
+
         if (isBlank(value) || (Array.isArray(value) && value.length === 0)) return [{ text: EMPTY }];
 
         const list = Array.isArray(value) ? value : [value];
@@ -75,10 +78,10 @@ export function useRegistrationFields(getMapasDomain = () => '') {
             case 'file':
             case 'links':
                 return list.map(linkItem);
+            case 'url':
+                return [linkItem(value)];
             case 'date':
                 return [{ text: formatDate(value) }];
-            case 'checkbox':
-                return [{ text: toText(Boolean(value)) }];
             case 'checkboxes':
             case 'persons':
                 if (Array.isArray(value)) return list.map((entry) => ({ text: toText(entry) }));
