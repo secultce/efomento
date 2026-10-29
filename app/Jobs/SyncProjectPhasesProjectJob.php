@@ -62,8 +62,9 @@ class SyncProjectPhasesProjectJob implements ShouldQueue
         try {
             $service->sync($project);
         } catch (Throwable $exception) {
-            // Estado preservado: só adia a próxima verificação (+1h, crescente por tentativa).
-            $service->postponeAfterFailure($project, $this->attempts());
+            // Estado preservado: só adia a próxima verificação. attempts() também conta as liberações
+            // da fila (rate limiter e WithoutOverlapping), então o adiamento fica limitado a 24h.
+            $service->postponeAfterFailure($project, min($this->attempts(), 24));
 
             throw $exception;
         }
