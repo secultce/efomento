@@ -1,5 +1,5 @@
+language: "pt-BR"
 reviews:
   base_branches:
     - main
     - develop
-  language: "pt-BR"

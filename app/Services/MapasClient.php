@@ -85,6 +85,20 @@ class MapasClient
         return $this->get("/registration/detalhes/{$registrationId}");
     }
 
+    public function registrationAllPhases(
+        int $registrationId,
+        bool $untilLatest = false,
+        bool $summary = false
+    ): array {
+        return $this->get(
+            "/pdf/inscricao_json_todas_as_fases/{$registrationId}",
+            array_filter([
+                'until_latest' => $untilLatest ? 1 : null,
+                'summary' => $summary ? 1 : null,
+            ])
+        );
+    }
+
     public function agentById(int $agentId): array
     {
         $key = "mapas:agent:{$agentId}";

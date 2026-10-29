@@ -2,6 +2,7 @@
 
 use App\Jobs\SyncMonitoringJob;
 use App\Jobs\SyncNoticesJob;
+use App\Jobs\SyncProjectPhasesJob;
 use Illuminate\Foundation\Inspiring;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Schedule;
@@ -9,6 +10,12 @@ use Illuminate\Support\Facades\Schedule;
 Artisan::command('inspire', function () {
     $this->comment(Inspiring::quote());
 })->purpose('Display an inspiring quote');
+
+Schedule::job(new SyncProjectPhasesJob)
+    ->dailyAt('04:00')
+    ->timezone('America/Fortaleza')
+    ->withoutOverlapping(60)
+    ->onOneServer();
 
 Schedule::job(new SyncNoticesJob)
     ->dailyAt('06:00')
