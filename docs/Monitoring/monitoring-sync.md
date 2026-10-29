@@ -7,10 +7,10 @@ Na fase de Monitoramento, o agente cultural envia sua prestação de contas dire
 1. Sincronizar essas inscrições de monitoramento via job assíncrono
 2. Cruzar a inscrição de monitoramento com o `Project` local pelo campo `number`
 3. Registrar um `ProfileSnapshot` com `source = MONITORING` como flag de que a inscrição foi encontrada
-4. Habilitar o botão **"VISUALIZAR FICHA DA FASE DO MONITORAMENTO"** na aba, que abre um dialog mostrando `project.data_registration`
+4. Habilitar o botão **"VISUALIZAR FICHA DA FASE DO MONITORAMENTO"** na aba, que abre um dialog mostrando as inscrições de `project_registration_phases` (`RegistrationPhasesButton`) e os arquivos
 
 **Decisões de design:**
-- O dialog exibe `project.data_registration` (dados da inscrição original, já armazenada no projeto)
+- O dialog exibe as inscrições de `project.registration_phases` (coluna `monitorings.data_registration` removida na #636)
 - `ProfileSnapshot` serve apenas como **flag** — sem nova coluna de dados (sem migração de schema)
 - Matching entre inscrição de monitoramento e projeto efomento: `registration.number == project.number`
 

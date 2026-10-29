@@ -133,7 +133,6 @@ entity Project {
   create_timestamp : datetime
   sent_timestamp : datetime
   consolidated_result : string
-  data_registration : array
   created_at : string
   updated_at : string
   deleted_at : datetime
