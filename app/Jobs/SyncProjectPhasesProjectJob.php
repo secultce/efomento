@@ -44,7 +44,8 @@ class SyncProjectPhasesProjectJob implements ShouldQueue
 
     public function retryUntil(): DateTimeInterface
     {
-        return now()->addHours(2);
+        // Calculado no despacho: cobre a espera na fila `details` e fica abaixo do próximo disparo diário.
+        return now()->addHours(12);
     }
 
     public function handle(ProjectPhaseSyncService $service): void

@@ -205,8 +205,8 @@ class ProjectPhaseSyncService
                 'is_first' => (bool) data_get($data, 'isFirstPhase'),
                 'status' => $phase['status'],
                 'sent_at' => $this->parseSentDate(data_get($data, 'sentDate')),
-                'registration_from' => data_get($data, 'opportunity.registrationFrom'),
-                'registration_to' => data_get($data, 'opportunity.registrationTo'),
+                'registration_from' => $this->toAppTimezone(data_get($data, 'opportunity.registrationFrom')),
+                'registration_to' => $this->toAppTimezone(data_get($data, 'opportunity.registrationTo')),
                 'data' => $data,
                 'content_hash' => $phase['content_hash'],
                 'fetched_at' => now(),
@@ -224,7 +224,13 @@ class ProjectPhaseSyncService
 
     private function iso(?string $value): ?string
     {
-        return $value ? Carbon::parse($value)->setTimezone(config('app.timezone'))->toIso8601String() : null;
+        return $this->toAppTimezone($value)?->toIso8601String();
+    }
+
+    // O cast datetime descarta o offset ao gravar, então o valor precisa estar no fuso da aplicação.
+    private function toAppTimezone(?string $value): ?Carbon
+    {
+        return $value ? Carbon::parse($value)->setTimezone(config('app.timezone')) : null;
     }
 
     private function parseSentDate(?string $value): ?Carbon

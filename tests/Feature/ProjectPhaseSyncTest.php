@@ -234,6 +234,18 @@ class ProjectPhaseSyncTest extends TestCase
         $this->assertTrue($project->next_check_at->between(now()->addMinutes(59), now()->addMinutes(61)));
     }
 
+    public function test_registration_period_is_stored_in_app_timezone(): void
+    {
+        $project = Project::factory()->create(['registration_id' => '100']);
+        $this->fakeMapas($this->summary([$this->phase(1, 100, 1)]));
+
+        $this->sync($project);
+
+        $phase = $project->registrationPhases()->first();
+        $this->assertSame('2023-09-07T03:00:00+00:00', $phase->registration_from->toIso8601String());
+        $this->assertSame('2023-09-27T02:59:00+00:00', $phase->registration_to->toIso8601String());
+    }
+
     public function test_unchanged_summary_with_final_result_closes_sync(): void
     {
         $project = Project::factory()->create(['registration_id' => '100']);
