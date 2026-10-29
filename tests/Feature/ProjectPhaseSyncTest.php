@@ -234,6 +234,23 @@ class ProjectPhaseSyncTest extends TestCase
         $this->assertTrue($project->next_check_at->between(now()->addMinutes(59), now()->addMinutes(61)));
     }
 
+    public function test_unchanged_summary_with_final_result_closes_sync(): void
+    {
+        $project = Project::factory()->create(['registration_id' => '100']);
+        $this->fakeMapas($this->summary([$this->phase(1, 100, 10)]));
+
+        $this->sync($project);
+
+        Project::whereKey($project->id)->toBase()->update(['next_check_at' => null, 'sync_closed_at' => null]);
+        $project->refresh();
+
+        $this->sync($project);
+
+        $project->refresh();
+        $this->assertNull($project->next_check_at);
+        $this->assertNotNull($project->sync_closed_at);
+    }
+
     public function test_detail_without_requested_phase_does_not_persist_summary(): void
     {
         $project = Project::factory()->create(['registration_id' => '100']);

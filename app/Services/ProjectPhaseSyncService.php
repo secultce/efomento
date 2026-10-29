@@ -39,9 +39,12 @@ class ProjectPhaseSyncService
         $changed = $hash !== $project->summary_hash;
 
         if (! $changed) {
+            [$nextCheckAt, $close] = $this->schedule($summary, false);
+
             $this->updateControl($project, [
                 'last_checked_at' => now(),
-                'next_check_at' => $this->schedule($summary, false)[0],
+                'next_check_at' => $nextCheckAt,
+                ...($close ? ['sync_closed_at' => now()] : []),
             ]);
 
             return;
