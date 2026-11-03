@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Jobs\SyncPhaseFilesJob;
 use App\Jobs\SyncProjectPhasesJob;
 use App\Jobs\SyncProjectPhasesProjectJob;
 use App\Models\Project;
@@ -17,6 +18,14 @@ use Tests\TestCase;
 class ProjectPhaseSyncTest extends TestCase
 {
     use RefreshDatabase;
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        // Fila sync nos testes: sem o fake o download das fases rodaria dentro da sincronização.
+        Bus::fake([SyncPhaseFilesJob::class]);
+    }
 
     private function phase(int $order, int $id, int $status, bool $hasNext = false, ?string $nextFrom = null, array $extra = []): array
     {
@@ -342,6 +351,41 @@ class ProjectPhaseSyncTest extends TestCase
             Carbon::parse($moved)->timestamp,
             Carbon::parse($project->registrationPhases()->first()->data['nextPhase']['registrationFrom'])->timestamp
         );
+    }
+
+    public function test_changed_phases_dispatch_file_download_and_unchanged_ones_do_not(): void
+    {
+        $project = Project::factory()->create(['registration_id' => '100']);
+        $nextFrom = now()->addDays(60)->toIso8601String();
+        $this->fakeMapas($this->summary([
+            $this->phase(1, 100, 10, true, $nextFrom),
+            $this->phase(2, 200, 1),
+        ]));
+
+        $this->sync($project);
+
+        $phaseIds = $project->registrationPhases()->pluck('id')->all();
+        $this->assertCount(2, $phaseIds);
+        Bus::assertDispatchedTimes(SyncPhaseFilesJob::class, 2);
+        foreach ($phaseIds as $id) {
+            Bus::assertDispatched(SyncPhaseFilesJob::class, fn ($job) => $job->phaseId === $id && $job->queue === 'files');
+        }
+
+        // Rodada sem mudança no resumo: nenhum download novo.
+        $this->travelTo(now()->addDay());
+        $this->sync($project->fresh());
+        Bus::assertDispatchedTimes(SyncPhaseFilesJob::class, 2);
+
+        // Só a fase 2 muda: só ela volta para a fila.
+        $this->fakeMapas($this->summary([
+            $this->phase(1, 100, 10, true, $nextFrom),
+            $this->phase(2, 200, 10),
+        ]));
+        $this->sync($project->fresh());
+
+        $phase2 = $project->registrationPhases()->where('registration_id', 200)->value('id');
+        Bus::assertDispatchedTimes(SyncPhaseFilesJob::class, 3);
+        Bus::assertDispatched(SyncPhaseFilesJob::class, fn ($job) => $job->phaseId === $phase2);
     }
 
     public function test_dispatcher_selects_only_due_active_projects(): void

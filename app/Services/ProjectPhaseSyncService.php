@@ -2,11 +2,13 @@
 
 namespace App\Services;
 
+use App\Jobs\SyncPhaseFilesJob;
 use App\Models\Project;
 use App\Models\ProjectRegistrationPhase;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Throwable;
 use UnexpectedValueException;
 
 class ProjectPhaseSyncService
@@ -56,9 +58,11 @@ class ProjectPhaseSyncService
             ->filter()
             ->all();
 
-        DB::transaction(function () use ($project, $summary, $hash, $resolved) {
+        $storedPhaseIds = [];
+
+        DB::transaction(function () use ($project, $summary, $hash, $resolved, &$storedPhaseIds) {
             foreach ($resolved as $phase) {
-                $this->storePhase($project, $phase);
+                $storedPhaseIds[] = $this->storePhase($project, $phase)->id;
             }
 
             [$nextCheckAt, $close] = $this->schedule($summary, true);
@@ -73,6 +77,8 @@ class ProjectPhaseSyncService
                 'sync_closed_at' => $close ? now() : null,
             ]);
         });
+
+        $this->dispatchFileDownloads($project, $storedPhaseIds);
 
         Log::info('sync.project_phases.changed', [
             'project_id' => $project->id,
@@ -186,11 +192,33 @@ class ProjectPhaseSyncService
         ];
     }
 
-    private function storePhase(Project $project, array $phase): void
+    /**
+     * Só as fases gravadas nesta rodada (novas ou alteradas) geram download. Depois do commit, para o job
+     * não rodar antes de a fase existir; e uma falha da fila não desfaz a sincronização: o comando
+     * app:sync-phase-files reenfileira o que ficou para trás.
+     *
+     * @param  array<int, int>  $phaseIds
+     */
+    private function dispatchFileDownloads(Project $project, array $phaseIds): void
+    {
+        foreach ($phaseIds as $phaseId) {
+            try {
+                SyncPhaseFilesJob::dispatch($phaseId);
+            } catch (Throwable $exception) {
+                Log::warning('sync.project_phases.files_dispatch_failed', [
+                    'project_id' => $project->id,
+                    'phase_id' => $phaseId,
+                    'message' => $exception->getMessage(),
+                ]);
+            }
+        }
+    }
+
+    private function storePhase(Project $project, array $phase): ProjectRegistrationPhase
     {
         $data = $phase['data'];
 
-        ProjectRegistrationPhase::updateOrCreate(
+        return ProjectRegistrationPhase::updateOrCreate(
             ['project_id' => $project->id, 'registration_id' => $phase['registration_id']],
             [
                 'opportunity_id' => data_get($data, 'opportunity.id'),
