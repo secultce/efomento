@@ -93,14 +93,7 @@ class ProjectPhaseSyncService
             'latestRegistrationId' => data_get($summary, 'latestRegistrationId'),
             'totalPhases' => data_get($summary, 'totalPhases'),
             'phases' => collect(data_get($summary, 'phases', []))
-                ->map(fn (array $phase) => [
-                    'registrationId' => data_get($phase, 'registrationId'),
-                    'status' => data_get($phase, 'status'),
-                    'sentDate' => data_get($phase, 'sentDate'),
-                    'registrationFrom' => data_get($phase, 'opportunity.registrationFrom'),
-                    'registrationTo' => data_get($phase, 'opportunity.registrationTo'),
-                    'hasNextPhase' => (bool) data_get($phase, 'hasNextPhase'),
-                ])
+                ->map(fn (array $phase) => $this->phaseFingerprint($phase))
                 ->all(),
         ];
 
@@ -214,17 +207,28 @@ class ProjectPhaseSyncService
         );
     }
 
+    // O resumo e o `data` salvo da fase têm o mesmo formato, então a comparação usa a mesma impressão
+    // digital dos dois lados: qualquer campo que entra no summary_hash também decide se a fase é rebuscada.
     private function summaryDiffers(ProjectRegistrationPhase $phase, array $summary): bool
     {
-        return $phase->status !== data_get($summary, 'status')
-            || $phase->sent_at?->format('d/m/Y') !== data_get($summary, 'sentDate')
-            || $phase->registration_from?->toIso8601String() !== $this->iso(data_get($summary, 'opportunity.registrationFrom'))
-            || $phase->registration_to?->toIso8601String() !== $this->iso(data_get($summary, 'opportunity.registrationTo'));
+        return $this->phaseFingerprint($summary) !== $this->phaseFingerprint($phase->data ?? []);
     }
 
-    private function iso(?string $value): ?string
+    /**
+     * Campos do resumo de uma fase que indicam mudança; datas normalizadas para não variar com o offset.
+     */
+    private function phaseFingerprint(array $phase): array
     {
-        return $this->toAppTimezone($value)?->toIso8601String();
+        return [
+            'registrationId' => data_get($phase, 'registrationId'),
+            'status' => data_get($phase, 'status'),
+            'sentDate' => data_get($phase, 'sentDate'),
+            'registrationFrom' => $this->toAppTimezone(data_get($phase, 'opportunity.registrationFrom'))?->toIso8601String(),
+            'registrationTo' => $this->toAppTimezone(data_get($phase, 'opportunity.registrationTo'))?->toIso8601String(),
+            'hasNextPhase' => (bool) data_get($phase, 'hasNextPhase'),
+            'nextPhaseOpportunityId' => data_get($phase, 'nextPhase.opportunityId'),
+            'nextPhaseRegistrationFrom' => $this->toAppTimezone(data_get($phase, 'nextPhase.registrationFrom'))?->toIso8601String(),
+        ];
     }
 
     // O cast datetime descarta o offset ao gravar, então o valor precisa estar no fuso da aplicação.
