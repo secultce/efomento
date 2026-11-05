@@ -40,6 +40,9 @@ class ProjectPhaseSyncService
             summary: true,
         );
 
+        // Antes de qualquer gravação: um 200 sem a estrutura esperada não pode virar summary_hash.
+        $this->assertValidSummary($summary);
+
         $hash = $this->summaryHash($summary);
         $changed = $hash !== $project->summary_hash;
 
@@ -217,6 +220,15 @@ class ProjectPhaseSyncService
                     'message' => $exception->getMessage(),
                 ]);
             }
+        }
+    }
+
+    private function assertValidSummary(array $summary): void
+    {
+        if (! is_array(data_get($summary, 'phases'))
+            || ! is_int(data_get($summary, 'totalPhases'))
+            || ! array_key_exists('latestRegistrationId', $summary)) {
+            throw new UnexpectedValueException('Mapas returned an invalid phases summary');
         }
     }
 

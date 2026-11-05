@@ -413,6 +413,29 @@ class ProjectPhaseSyncTest extends TestCase
         $this->assertSame('2026-11-07T03:00:00+00:00', $next->toIso8601String());
     }
 
+    public function test_summary_without_phases_structure_does_not_persist_anything(): void
+    {
+        $project = Project::factory()->create(['registration_id' => '100']);
+        $this->fakeMapas($this->summary([$this->phase(1, 100, 1)]));
+        $this->sync($project);
+        $before = $project->fresh();
+
+        Http::swap(new Factory);
+        Http::fake(['*' => Http::response(['status' => 'ok'])]);
+
+        try {
+            $this->sync($project->fresh());
+            $this->fail('Exceção esperada');
+        } catch (\UnexpectedValueException) {
+        }
+
+        $after = $project->fresh();
+        $this->assertSame($before->summary_hash, $after->summary_hash);
+        $this->assertSame($before->latest_registration_id, $after->latest_registration_id);
+        $this->assertSame($before->total_phases, $after->total_phases);
+        $this->assertEquals($before->last_changed_at, $after->last_changed_at);
+    }
+
     public function test_dispatcher_selects_only_due_active_projects(): void
     {
         Bus::fake();
