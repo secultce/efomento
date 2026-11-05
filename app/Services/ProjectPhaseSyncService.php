@@ -8,6 +8,7 @@ use App\Models\ProjectRegistrationPhase;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\RateLimiter;
 use Throwable;
 use UnexpectedValueException;
 
@@ -31,6 +32,8 @@ class ProjectPhaseSyncService
 
     public function sync(Project $project): void
     {
+        $this->awaitMapasSlot();
+
         $summary = $this->mapasClient->registrationAllPhases(
             (int) $project->registration_id,
             untilLatest: true,
@@ -143,7 +146,8 @@ class ProjectPhaseSyncService
         $nextFrom = data_get($latest, 'nextPhase.registrationFrom');
 
         if ($hasNext && $nextFrom) {
-            $beforeOpening = Carbon::parse($nextFrom)->subDay();
+            // O cast datetime grava sem converter o fuso: a data precisa estar no fuso da aplicação.
+            $beforeOpening = Carbon::parse($nextFrom)->subDay()->setTimezone(config('app.timezone'));
             $next = $beforeOpening->lt($next) ? $beforeOpening : $next;
         }
 
@@ -166,6 +170,8 @@ class ProjectPhaseSyncService
         if ($existing && ! $this->summaryDiffers($existing, $phaseSummary)) {
             return null;
         }
+
+        $this->awaitMapasSlot();
 
         $full = $this->mapasClient->registrationAllPhases($registrationId);
 
@@ -214,6 +220,21 @@ class ProjectPhaseSyncService
         }
     }
 
+    /**
+     * Espera uma vaga no limite de requisições do Mapas antes de cada chamada deste job. O middleware
+     * RateLimited conta jobs, não requisições: um projeto com várias fases faria várias chamadas por job.
+     * Usa a mesma chave do middleware (md5 do nome do limitador + chave), então o orçamento é compartilhado.
+     */
+    private function awaitMapasSlot(): void
+    {
+        $limit = RateLimiter::limiter('mapas-api')();
+        $key = md5('mapas-api'.$limit->key);
+
+        while (! RateLimiter::attempt($key, $limit->maxAttempts, fn () => true, $limit->decaySeconds)) {
+            sleep(max(1, RateLimiter::availableIn($key)));
+        }
+    }
+
     private function storePhase(Project $project, array $phase): ProjectRegistrationPhase
     {
         $data = $phase['data'];
@@ -249,6 +270,8 @@ class ProjectPhaseSyncService
     {
         return [
             'registrationId' => data_get($phase, 'registrationId'),
+            // A categoria define quais campos o Mapas devolve, então mudar só ela também exige nova busca.
+            'category' => data_get($phase, 'category'),
             'status' => data_get($phase, 'status'),
             'sentDate' => data_get($phase, 'sentDate'),
             'registrationFrom' => $this->toAppTimezone(data_get($phase, 'opportunity.registrationFrom'))?->toIso8601String(),

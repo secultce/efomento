@@ -388,6 +388,31 @@ class ProjectPhaseSyncTest extends TestCase
         Bus::assertDispatched(SyncPhaseFilesJob::class, fn ($job) => $job->phaseId === $phase2);
     }
 
+    public function test_category_change_refetches_phase(): void
+    {
+        $project = Project::factory()->create(['registration_id' => '100']);
+        $this->fakeMapas($this->summary([$this->phase(1, 100, 1, false, null, ['category' => 'A'])]));
+        $this->sync($project);
+        $this->assertSame('A', $project->registrationPhases()->first()->data['category']);
+
+        $this->fakeMapas($this->summary([$this->phase(1, 100, 1, false, null, ['category' => 'B'])]));
+        $this->sync($project->fresh());
+
+        $this->assertSame('B', $project->registrationPhases()->first()->data['category']);
+    }
+
+    public function test_next_check_is_stored_in_app_timezone(): void
+    {
+        $this->travelTo(Carbon::parse('2026-11-03 12:00:00', 'UTC'));
+        // Abertura da próxima fase: 08/11 às 00:00 em UTC−3, que é 03:00 UTC.
+        $summary = $this->summary([$this->phase(1, 100, 10, true, '2026-11-08T00:00:00-03:00')]);
+
+        [$next] = app(ProjectPhaseSyncService::class)->schedule($summary, false);
+
+        $this->assertSame(config('app.timezone'), $next->getTimezone()->getName());
+        $this->assertSame('2026-11-07T03:00:00+00:00', $next->toIso8601String());
+    }
+
     public function test_dispatcher_selects_only_due_active_projects(): void
     {
         Bus::fake();
