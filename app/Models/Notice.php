@@ -3,8 +3,10 @@
 namespace App\Models;
 
 use App\Enums\MonitoringReportRequestDeadline;
+use App\Support\NameAndNupSearch;
 use App\Traits\HasCreatedBy;
 use App\Traits\HasFiles;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -52,6 +54,33 @@ class Notice extends Model implements Auditable
     public function getMonitoringReportRequestDeadlineDaysAttribute(): int
     {
         return ($this->monitoring_report_request_deadline ?? MonitoringReportRequestDeadline::PNAB)->days();
+    }
+
+    public function scopeSearch(Builder $query, ?string $search): Builder
+    {
+        $search = new NameAndNupSearch($search);
+
+        if ($search->isEmpty) {
+            return $query;
+        }
+
+        if ($search->words === [] && $search->digits === '') {
+            return $query->whereRaw('1 = 0');
+        }
+
+        foreach ($search->words as $word) {
+            $query->whereRaw('LOWER(unaccent(name)) LIKE LOWER(unaccent(?))', ["%{$word}%"]);
+        }
+
+        if ($search->digits !== '') {
+            // Older notices can store the NUP with its display mask.
+            $query->whereRaw(
+                "REPLACE(REPLACE(REPLACE(REPLACE(nup, '.', ''), '/', ''), '-', ''), ' ', '') LIKE ?",
+                ["%{$search->digits}%"],
+            );
+        }
+
+        return $query;
     }
 
     /**

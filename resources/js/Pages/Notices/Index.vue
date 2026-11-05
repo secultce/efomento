@@ -1,9 +1,14 @@
 <script setup>
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
 import NoticesListPage from '@/Pages/Notices/NoticesListPage.vue';
-import { Head } from '@inertiajs/vue3';
+import { Head, router } from '@inertiajs/vue3';
+import { ref, watch } from 'vue';
 
-defineProps({
+const props = defineProps({
+    filters: {
+        type: Object,
+        default: () => ({}),
+    },
     totais: {
         type: Object,
         default: () => ({ oportunidades: 0, pendentes: 0, concluidos: 0, monitoramento: 0 }),
@@ -25,6 +30,30 @@ defineProps({
         default: () => [],
     },
 });
+
+const search = ref(props.filters.search ?? '');
+
+watch(
+    () => props.filters.search,
+    (value) => {
+        search.value = value ?? '';
+    }
+);
+
+function onSearch(value) {
+    search.value = value ?? '';
+
+    router.get(
+        route('notices.index'),
+        { search: search.value || undefined },
+        {
+            preserveState: true,
+            preserveScroll: true,
+            replace: true,
+            only: ['notices', 'filters'],
+        }
+    );
+}
 
 const stats = [
     { title: 'Editais pendentes para abertura de processo', key: 'pendentes' },
@@ -70,9 +99,11 @@ const stats = [
         <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-6">
             <NoticesListPage
                 :notices="notices"
+                :search="search"
                 :total-notices="totais.notices"
                 :instrument-types="instrumentTypes"
                 :monitoring-report-request-deadlines="monitoringReportRequestDeadlines"
+                @search="onSearch"
             />
         </div>
     </AuthenticatedLayout>
