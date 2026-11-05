@@ -43,6 +43,10 @@ class Project extends Model implements Auditable
         'sent_timestamp' => 'datetime',
         'data_registration' => 'array',
         'current_installment_cycle' => 'integer',
+        'last_checked_at' => 'datetime',
+        'last_changed_at' => 'datetime',
+        'next_check_at' => 'datetime',
+        'sync_closed_at' => 'datetime',
     ];
 
     protected $appends = ['phase', 'phase_slug', 'opening_nup'];
@@ -60,6 +64,11 @@ class Project extends Model implements Auditable
     public function category(): BelongsTo
     {
         return $this->belongsTo(Category::class);
+    }
+
+    public function registrationPhases(): HasMany
+    {
+        return $this->hasMany(ProjectRegistrationPhase::class);
     }
 
     public function openings(): HasMany

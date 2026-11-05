@@ -10,6 +10,7 @@ use App\Models\Monitoring;
 use App\Models\Notice;
 use App\Models\Opening;
 use App\Models\Project;
+use App\Models\ProjectRegistrationPhase;
 use App\Observers\NoticeObserver;
 use App\Observers\ProjectObserver;
 use App\Services\Diligenceable\MonitoringDiligenceableResolver;
@@ -52,6 +53,7 @@ class AppServiceProvider extends ServiceProvider
             'opening' => Opening::class,
             'monitoring' => Monitoring::class,
             'diligence_message' => DiligenceMessage::class,
+            'project_registration_phase' => ProjectRegistrationPhase::class,
         ]);
 
         Notice::observe(NoticeObserver::class);
