@@ -28,7 +28,7 @@ const copyright = computed(
                 class="text-2xl mt-[-1em] font-bold leading-none text-white no-underline hover:underline"
                 aria-label="Ir para o início"
             >
-                e-fomento
+                SIPA
             </a>
 
             <nav class="flex flex-col items-center gap-2.5 text-sm sm:items-start" aria-label="Links do rodapé">

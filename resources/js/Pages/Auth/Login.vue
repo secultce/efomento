@@ -41,33 +41,59 @@ const openSupport = () => {
         <Head title="Log in" />
 
         <div
-            class="min-h-screen flex flex-col lg:flex-row items-center justify-center px-6 py-10 md:gap-4 lg:gap-[15em]"
+            class="min-h-screen flex flex-col lg:flex-row items-center justify-center px-6 py-10 md:gap-4 lg:gap-[15em] xl:gap-[clamp(13rem,calc(100vw-67rem),15rem)]"
         >
             <!-- left side -->
             <div
-                class="flex-col items-center lg:items-start sm:text-center lg:text-left max-w-xl lg:mt-[-20em] hidden xl:block"
+                class="flex-col items-center lg:items-start sm:text-center lg:text-left max-w-xl xl:w-[36rem] lg:mt-[-20em] hidden xl:block"
             >
                 <img
                     src="/images/logos/ceara.png"
-                    alt="Logo do e-fomento"
+                    alt="Governo do Ceará"
                     class="w-[20em] md:w-[20em] mb-6 lg:block hidden"
                 />
                 <div class="hidden lg:block">
-                    <h1 class="text-7xl font-bold text-[#2d353f]">e-fomento</h1>
+                    <div class="flex items-center gap-6 w-[23em]" aria-label="SIPA">
+                        <img
+                            src="/images/logos/logo-sipa-white.svg"
+                            alt=""
+                            width="191"
+                            height="191"
+                            class="w-32 h-32 shrink-0"
+                        />
+                        <div class="flex-1 min-w-0">
+                            <img
+                                src="/images/logos/logo-sipa-wordmark-dark.svg"
+                                alt="SIPA"
+                                width="97"
+                                height="48"
+                                class="block w-full h-auto"
+                            />
+                            <img
+                                src="/images/logos/logo-sipa-description-dark.svg"
+                                alt="Sistema de integração de processos administrativos"
+                                width="176"
+                                height="49"
+                                class="block w-full h-auto"
+                            />
+                        </div>
+                    </div>
 
-                    <p class="text-base md:text-[1.3em] text-left w-3/6 text-[#2d353f] mt-4 leading-relaxed">
-                        o sistema para te ajudar a acompanhar os processos dos editais em andamento
+                    <p
+                        class="text-base md:text-[1.3em] text-left w-[24rem] max-w-full text-[#2d353f] mt-4 leading-relaxed"
+                    >
+                        O sistema para te ajudar a acompanhar os processos dos editais em andamento
                     </p>
                 </div>
             </div>
 
             <!-- right side (FORM) -->
-            <div class="w-full max-w-md bg-white px-6 py-8 shadow-md rounded-lg">
-                <h1 class="text-lg font-bold text-[#1A1A1A] leading-relaxed">Acesse sua conta do e-fomento</h1>
+            <div class="w-full max-w-md shrink-0 bg-white px-6 py-8 shadow-md rounded-lg">
+                <h1 class="text-lg font-bold text-[#1A1A1A] leading-relaxed">Acesse sua conta do SIPA</h1>
 
                 <p class="text-sm text-[#1A1A1A] mt-2 mb-6 leading-relaxed">
-                    No e-fomento, os editais estão disponíveis para você acompanhar, inserir e editar informações
-                    agilizando o processo.
+                    No SIPA, os editais estão disponíveis para você acompanhar, inserir e editar informações agilizando
+                    o processo.
                 </p>
                 <div v-if="status" class="mb-4 text-sm font-medium text-green-600">
                     {{ status }}

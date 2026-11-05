@@ -1,6 +1,6 @@
 @extends('mail.layouts.default')
 
-@section('title', 'Pagamento confirmado — e-fomento')
+@section('title', 'Pagamento confirmado — SIPA')
 
 @section('content')
 <p style="margin: 0 0 18px;">Olá, {{ $recipientName }}.</p>

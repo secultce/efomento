@@ -8,7 +8,7 @@ use Illuminate\Mail\Mailables\Envelope;
 
 class InstallmentPaidMail extends Mailable
 {
-    public const SUBJECT = 'Pagamento de parcela confirmado — e-fomento';
+    public const SUBJECT = 'Pagamento de parcela confirmado — SIPA';
 
     public function __construct(
         public readonly string $recipientName,
