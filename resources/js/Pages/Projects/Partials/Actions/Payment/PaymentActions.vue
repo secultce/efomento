@@ -4,6 +4,8 @@ import NoticeHistoryDialog from '@/Pages/Projects/Partials/Actions/NoticeHistory
 import HandleDocumentsDialog from '../HandleDocumentsDialog.vue';
 import DocumentListDialog from '../DocumentListDialog.vue';
 import { usePermissions } from '@/Composables/usePermissions';
+import DocumentDownloadMenu from '@/Components/DocumentDownloadMenu.vue';
+import { downloadDocumentsZip } from '@/Services/documentService';
 
 const props = defineProps({
     selectedProjects: { type: Array, default: () => [] },
@@ -18,6 +20,7 @@ const { canManagePayment } = usePermissions();
 const viewHistory = ref(false);
 const dispatchDialog = ref(false);
 const docListDialog = ref(false);
+const downloadingZip = ref(false);
 
 const errorMessage = ref('');
 const showError = ref(false);
@@ -75,6 +78,27 @@ function openDispatchDialog() {
 
     dispatchDialog.value = true;
 }
+
+function openDocListDialog() {
+    if (!hasSelectedProjects.value || !canManagePayment.value) return;
+
+    docListDialog.value = true;
+}
+
+async function downloadZip(format) {
+    if (!hasSelectedProjects.value || !canManagePayment.value || downloadingZip.value) return;
+
+    downloadingZip.value = true;
+
+    try {
+        await downloadDocumentsZip(props.selectedProjects, 'dp', format);
+    } catch {
+        errorMessage.value = 'Erro ao baixar os documentos. Tente novamente.';
+        showError.value = true;
+    } finally {
+        downloadingZip.value = false;
+    }
+}
 </script>
 
 <template>
@@ -130,6 +154,25 @@ function openDispatchDialog() {
                         Criar
                     </v-btn>
                 </template>
+            </div>
+
+            <div class="grid w-full grid-cols-[repeat(auto-fit,minmax(min(100%,9rem),1fr))] gap-2">
+                <DocumentDownloadMenu
+                    label="Baixar todos"
+                    button-class="flex-1 !shadow-none !border-primary !text-primary rounded-lg text-xs"
+                    :loading="downloadingZip"
+                    :disabled="!hasSelectedProjects || !canManagePayment"
+                    @download="downloadZip"
+                />
+
+                <v-btn
+                    class="flex-1 !shadow-none !font-bold !bg-[#ffcc05FF] !text-[#2d353fFF] rounded-lg text-xs"
+                    :disabled="!hasSelectedProjects || !canManagePayment"
+                    data-cy="list-payment-documents"
+                    @click="openDocListDialog"
+                >
+                    Conferir documento
+                </v-btn>
             </div>
 
             <div class="w-full flex flex-col gap-1">

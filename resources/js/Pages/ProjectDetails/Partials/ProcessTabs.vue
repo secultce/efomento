@@ -37,7 +37,7 @@ const tabs = [
     { value: 'opening', label: 'Abertura' },
     { value: 'legal-analysis', label: 'Análise jurídica' },
     { value: 'formalization', label: 'Formalização de processos' },
-    { value: 'budget', label: 'Orçamento' },
+    { value: 'budget', label: 'Parcela' },
     { value: 'payment', label: 'Pagamentos' },
     { value: 'monitoring', label: 'Monitoramento' },
 ];

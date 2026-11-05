@@ -272,14 +272,14 @@ class ProjectDocumentServiceTest extends TestCase
         ]);
 
         app(ProjectDocumentService::class)->createDocument(
-            DocumentType::PF,
+            DocumentType::PR,
             [$projectB->id, $projectA->id],
             '[budget_result_table]',
         );
 
         $documents = Document::query()
             ->whereIn('project_id', [$projectA->id, $projectB->id])
-            ->where('type', DocumentType::PF)
+            ->where('type', DocumentType::PR)
             ->get();
 
         $this->assertCount(2, $documents);
@@ -355,7 +355,7 @@ class ProjectDocumentServiceTest extends TestCase
         ]);
 
         app(ProjectDocumentService::class)->createDocument(
-            DocumentType::PF,
+            DocumentType::PR,
             [
                 $projectWithLinkedAllocation->id,
                 $projectWithUnlinkedBudget->id,
@@ -366,7 +366,7 @@ class ProjectDocumentServiceTest extends TestCase
 
         $body = Document::query()
             ->where('project_id', $projectWithLinkedAllocation->id)
-            ->where('type', DocumentType::PF)
+            ->where('type', DocumentType::PR)
             ->value('body');
 
         $this->assertStringContainsString('LINKED-CODE', $body);

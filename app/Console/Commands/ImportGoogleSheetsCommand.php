@@ -37,6 +37,19 @@ class ImportGoogleSheetsCommand extends Command
 
         $failed = false;
 
+        if ($abas === self::ABA_NAMES) {
+            $result = $service->importAll($spreadsheetId, $userId, $noticeId, $withFiles, $withRegistrationData);
+
+            foreach ($result['counts'] as $aba => $count) {
+                $this->info("{$aba}: {$count} registro(s) gravado(s).");
+            }
+            foreach ($result['errors'] as $aba => $error) {
+                $this->error("{$aba}: {$error}");
+            }
+
+            return $result['errors'] === [] ? self::SUCCESS : self::FAILURE;
+        }
+
         foreach ($abas as $aba) {
             $this->info("Importando aba \"{$aba}\"...");
 

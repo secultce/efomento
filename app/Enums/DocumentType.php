@@ -9,7 +9,7 @@ enum DocumentType: string
     case ET = 'et';
     case PJ = 'pj';
     case PI = 'pi';
-    case PF = 'pf';
+    case PR = 'pr';
     case DO = 'do';
     case DP = 'dp';
     case JR = 'jr';
@@ -22,7 +22,7 @@ enum DocumentType: string
             self::ET => 'ET',
             self::PJ => 'PJ',
             self::PI => 'PI',
-            self::PF => 'PF',
+            self::PR => 'PR',
             self::DO => 'DO',
             self::DP => 'DP',
             self::JR => 'JR',
@@ -37,7 +37,7 @@ enum DocumentType: string
             self::ET => 'Extrato',
             self::PJ => 'Parecer Jurídico',
             self::PI => 'Parecer Orçamentário Inicial',
-            self::PF => 'Parecer Orçamentário Final',
+            self::PR => 'Parecer Orçamentário Resultado',
             self::DO => 'Despacho Orçamentário',
             self::DP => 'Despacho de Pagamento',
             self::JR => 'Parecer Jurídico Referencial',
@@ -52,7 +52,7 @@ enum DocumentType: string
             self::ET,
             self::PJ => DocumentPhase::FORMALIZATION,
             self::PI,
-            self::PF,
+            self::PR,
             self::DO => DocumentPhase::BUDGET,
             self::DP => DocumentPhase::PAYMENT,
             self::JR => DocumentPhase::JURIDICAL,
@@ -61,7 +61,7 @@ enum DocumentType: string
 
     public function isBudgetOpinion(): bool
     {
-        return in_array($this, [self::PI, self::PF], true);
+        return in_array($this, [self::PI, self::PR], true);
     }
 
     public function isNoticeLevel(): bool

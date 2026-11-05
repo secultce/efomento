@@ -46,7 +46,7 @@ class BudgetOpinionDocumentTest extends TestCase
 
         $this->actingAs($user)
             ->post(route('projects.create-document'), [
-                'type' => 'pf',
+                'type' => 'pr',
                 'selected_projects' => [$project->id],
                 'content' => 'Conteúdo do parecer orçamentário.',
             ])
@@ -56,7 +56,7 @@ class BudgetOpinionDocumentTest extends TestCase
         $this->assertDatabaseHas('documents', [
             'project_id' => $project->id,
             'notice_id' => $project->notice_id,
-            'type' => 'pf',
+            'type' => 'pr',
             'phase' => 'budget',
             'created_by' => $user->id,
         ]);
@@ -184,7 +184,7 @@ class BudgetOpinionDocumentTest extends TestCase
     {
         return [
             'PI' => ['pi'],
-            'PF' => ['pf'],
+            'PR' => ['pr'],
         ];
     }
 
