@@ -33,12 +33,12 @@ class ForamlizationWorkflow {
 
         Project.selectProject();
 
-        Project.clickCreateDocument(documentType.createButton);
+        Project.clickCreateDocument(documentType);
         Project.fillDocument(documentType.text);
         Project.saveDocument();
         Project.verifySuccessMessageSaveDocument();
         Project.validateDocumentCreated(documentType.chip);
-        Project.clickEditDocument(documentType.editButton);
+        Project.clickEditDocument(documentType);
         Project.validateDocumentContent(documentType.text);
         Project.clickCancelDocumentButton();
     }
@@ -56,12 +56,12 @@ class ForamlizationWorkflow {
 
         Project.selectProject();
 
-        Project.clickCreateDocument(documentType.createButton);
+        Project.clickCreateDocument(documentType);
         Project.fillDocument(documentType.text);
         Project.saveDocument();
         Project.verifySuccessMessageSaveDocument();
         Project.validateDocumentCreated(documentType.chip);
-        Project.clickEditDocument(documentType.editButton);
+        Project.clickEditDocument(documentType);
         Project.validateDocumentContent(documentType.text);
         Project.clickCancelDocumentButton();
     }

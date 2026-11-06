@@ -19,6 +19,7 @@ class CypressSeeder extends Seeder
             CypressUserSeeder::class,
             CypressRoleSeeder::class,
             CypressNoticeSeeder::class,
+            CypressDocumentSeeder::class,
             CypressProjectSeeder::class,
             CypressOpeningTramitSeeder::class,
         ]);

@@ -379,7 +379,7 @@ const tramit = async () => {
 <template>
     <SplitScreenTab value="payment">
         <template #left-content>
-            <div class="space-y-6">
+            <div class="space-y-6" data-cy="payment-panel">
                 <div>
                     <div class="font-bold text-lg d-flex justify-between">
                         <span>Dados disponíveis para consulta</span>
