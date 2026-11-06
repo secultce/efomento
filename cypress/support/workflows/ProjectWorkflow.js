@@ -1,15 +1,21 @@
 import '../commands.js';
 import Project from '../../pages/project/ProjectPage.js';
-import Notice from '../../pages/notice/NoticePage.js';
+import NoticeWorkflow from '../workflows/NoticeWorkflow.js';
 
 class ProjectWorkflow {
-    accessProjectByNup({ notice, project }) {
-        Notice.visitPage();
-        Notice.searchNoticeByNup(notice.noticeNup);
-        Notice.goToNoticeDetailsPage(notice.noticeNup);
+    accessProjectListByNotice({ notice }) {
+        NoticeWorkflow.accessNoticeProjectsList(notice.noticeNup);
+    }
 
-        Project.findProjectByProjectNup(project.projectNup);
-        Project.goToProjectDetailsPage(project.projectNup);
+    accessProjectDetails({ notice, project }) {
+        this.accessProjectListByNotice({ notice });
+
+        Project.findProjectByProjectNup(project.nup ?? project.projectNup);
+        Project.goToProjectDetailsPage(project.nup ?? project.projectNup);
+    }
+
+    accessProjectByNup({ notice, project }) {
+        this.accessProjectDetails({ notice, project });
     }
 
     filterByPhase(phase) {
@@ -20,21 +26,23 @@ class ProjectWorkflow {
     validateProjectPhase({ notice, project, phase }) {
         cy.reload();
 
-        Notice.visitPage();
-        Notice.goToNoticeDetailsPage(notice.noticeNup);
+        NoticeWorkflow.accessNoticeProjectsList(notice.noticeNup);
 
-        Project.findProjectByProjectNup(project.projectNup);
-        Project.validateCurrentPhase(project.projectNup, phase);
+        Project.findProjectByProjectNup(project.nup ?? project.projectNup);
+        Project.validateCurrentPhase(project.nup ?? project.projectNup, phase);
     }
 
     validateDocumentCreated({ project, documentType }) {
         cy.reload();
 
-        Project.selectProject(project.projectNup);
-        Project.clickEditBudgetOrder(documentType.editButton);
+        Project.findProjectByProjectNup(project.nup ?? project.projectNup);
+        Project.selectProject(project.nup ?? project.projectNup);
+
+        Project.clickEditDocument(documentType);
         Project.validateDocumentContent(documentType.text);
         Project.clickCancelDocumentButton();
-        Project.validateDocumentCreated(project.projectNup, documentType.chip);
+
+        Project.validateDocumentCreated(project.nup ?? project.projectNup, documentType.chip);
     }
 }
 

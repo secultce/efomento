@@ -20,7 +20,7 @@ class BudgetWorkflows {
 
         Project.selectProject(project.projectNup);
 
-        Project.clickCreateBudgetOrder(documentType.createButton);
+        Project.clickCreateDocument(documentType);
 
         Project.fillDocument(documentType.text);
         cy.intercept('GET', '**/editais/*/projetos?phase=abertura&search=*').as('reloadProjects');

@@ -133,6 +133,7 @@ async function downloadZip(format) {
                         class="w-full !shadow-none !font-bold !border-gray-300 !bg-white !text-[#2d353fFF] rounded-lg text-xs gap-6"
                         :disabled="!hasSelectedProjects || !canCreateDispatch"
                         variant="outlined"
+                        data-cy="edit-payment-order"
                         @click="openDispatchDialog"
                     >
                         <span class="w-full text-left">Editar Despacho de Pagamento (DP)</span>
@@ -149,6 +150,7 @@ async function downloadZip(format) {
                     <v-btn
                         class="w-full !shadow-none !font-bold !bg-[#ffcc05FF] !text-[#2d353fFF] rounded-lg px-4 py-2 text-xs"
                         :disabled="!hasSelectedProjects || !canCreateDispatch"
+                        data-cy="create-payment-order"
                         @click="openDispatchDialog"
                     >
                         Criar
