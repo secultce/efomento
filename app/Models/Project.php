@@ -133,7 +133,10 @@ class Project extends Model implements Auditable
 
             if ($digits !== '') {
                 $query->whereHas('openings', function (Builder $openingQuery) use ($digits) {
-                    $openingQuery->where('opening_nup', 'like', "%{$digits}%");
+                    $openingQuery->whereRaw(
+                        "REPLACE(REPLACE(REPLACE(REPLACE(opening_nup, '.', ''), '/', ''), '-', ''), ' ', '') LIKE ?",
+                        ["%{$digits}%"],
+                    );
                 });
             }
         });

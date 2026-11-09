@@ -34,7 +34,7 @@ class ProjectSearchTest extends TestCase
         $this->notice = Notice::factory()->create();
         $this->projects = [
             $this->createProject($this->notice, 'Maria José da Silva', '12345123456202612'),
-            $this->createProject($this->notice, 'JOÃO SOUZA', '98765987654202599'),
+            $this->createProject($this->notice, 'JOÃO SOUZA', '98765.987654/2025-99'),
             $this->createProject($this->notice, 'Coletivo Silva 2026', null),
             $this->createProject($this->notice, 'Ana Luísa Gonçalves', null),
         ];
@@ -77,6 +77,9 @@ class ProjectSearchTest extends TestCase
             'unmasked NUP' => ['12345123456202612', [0]],
             'masked partial NUP' => ['12345.123', [0]],
             'unmasked partial NUP' => ['12345123', [0]],
+            'unmasked query against masked stored NUP' => ['98765987654202599', [1]],
+            'masked query against masked stored NUP' => ['98765.987654/2025-99', [1]],
+            'partial query across masked stored NUP separators' => ['987654202', [1]],
             'unknown NUP' => ['11111.111111/1111-11', []],
             'case and accent insensitive name' => ['joao', [1]],
             'nonadjacent words in reverse order' => ['SILVA MARIA', [0]],

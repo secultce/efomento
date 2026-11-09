@@ -87,7 +87,7 @@ const itensFiltrados = computed(() => {
 });
 
 // Reseta para página 1 sempre que qualquer filtro mudar
-watch([() => props.search, () => props.notices, selectedStatus, selectedInstrument], () => {
+watch([() => props.search, selectedStatus, selectedInstrument], () => {
     page.value = 1;
 });
 
