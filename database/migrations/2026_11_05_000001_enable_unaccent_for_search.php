@@ -7,9 +7,7 @@ return new class extends Migration
 {
     public function up(): void
     {
-        if (DB::connection()->getDriverName() === 'pgsql') {
-            DB::statement('CREATE EXTENSION IF NOT EXISTS unaccent');
-        }
+        DB::statement('CREATE EXTENSION IF NOT EXISTS unaccent');
     }
 
     public function down(): void

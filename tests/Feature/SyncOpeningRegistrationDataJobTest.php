@@ -45,7 +45,7 @@ class SyncOpeningRegistrationDataJobTest extends TestCase
 
         $opening->refresh();
 
-        $this->assertSame([
+        $this->assertEquals([
             'registration' => [
                 'id' => 999,
                 'number' => 'on-999',

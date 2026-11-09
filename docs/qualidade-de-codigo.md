@@ -171,8 +171,12 @@ Os dois jobs rodam em paralelo e são independentes.
 Executado em Pull Requests direcionados às branches `main` ou `develop`.
 
 **Job `coverage`** (PHP 8.4 + PCOV):
+
+O job inicia um serviço PostgreSQL 16 com o banco isolado `efomento_testing`.
+As migrations habilitam `unaccent` para testar as buscas com a mesma função usada em produção.
+
 1. Faz checkout do código
-2. Instala PHP 8.4 com a extensão **PCOV** habilitada (mais rápida que Xdebug para cobertura em CI)
+2. Instala PHP 8.4 com **pdo_pgsql** e a extensão **PCOV** habilitada (mais rápida que Xdebug para cobertura em CI)
 3. Instala dependências via `composer install`
 4. Executa `./vendor/bin/phpunit --coverage-clover coverage.xml`
 5. Envia o relatório `coverage.xml` ao [Codecov](https://app.codecov.io/) via `codecov/codecov-action@v5`

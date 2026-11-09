@@ -18,13 +18,9 @@ use App\Services\Strategies\StandardInstallmentCycleStrategy;
 use App\Support\Notify;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Database\Eloquent\Relations\Relation;
-use Illuminate\Database\Events\ConnectionEstablished;
-use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Facades\Vite;
 use Illuminate\Support\ServiceProvider;
-use Illuminate\Support\Str;
-use PDO;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -47,18 +43,6 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        // Keep accent-insensitive searches available on SQLite as well as PostgreSQL.
-        Event::listen(ConnectionEstablished::class, function (ConnectionEstablished $event) {
-            if ($event->connection->getDriverName() === 'sqlite') {
-                $event->connection->getPdo()->sqliteCreateFunction(
-                    'unaccent',
-                    fn (?string $value): ?string => $value === null ? null : Str::ascii($value),
-                    1,
-                    PDO::SQLITE_DETERMINISTIC,
-                );
-            }
-        });
-
         Vite::prefetch(concurrency: 3);
 
         Relation::morphMap([

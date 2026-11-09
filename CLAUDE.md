@@ -34,7 +34,10 @@ docker compose exec app php artisan migrate
 # Recriar banco com seeders
 docker compose exec app php artisan migrate:fresh --seed
 
-# Rodar todos os testes (SQLite in-memory)
+# Criar o banco de testes (uma vez, com o serviço postgres iniciado)
+docker compose exec postgres createdb -U efomento efomento_testing
+
+# Rodar todos os testes (PostgreSQL, banco efomento_testing)
 docker compose exec app php artisan test
 
 # Rodar teste específico por classe ou filtro
@@ -142,7 +145,7 @@ As skills mandam ler arquivos exemplares reais do repo antes de gerar código �
 
 ## Testes
 
-- PHPUnit 11, SQLite in-memory (`DB_CONNECTION=sqlite`, `DB_DATABASE=:memory:` em `phpunit.xml`)
+- PHPUnit 11, PostgreSQL 16 (`DB_CONNECTION=pgsql`, `DB_DATABASE=efomento_testing` em `phpunit.xml`); conexão em `.env.testing`, banco separado criado uma vez com `docker compose exec postgres createdb -U efomento efomento_testing`
 - Testes de feature: `tests/Feature/`
 - Testes unitários: `tests/Unit/`
 - E2E: Cypress (roda no navegador do host contra `http://localhost:8080`). O binário do Cypress requer instalação separada: `npx cypress install` no host (não no Docker).
