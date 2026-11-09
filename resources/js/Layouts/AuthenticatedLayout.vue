@@ -57,7 +57,7 @@ onUnmounted(() => {
 </script>
 
 <template>
-    <v-app theme="efomento">
+    <v-app theme="sipa">
         <AppHeader :user="user" :notifications-count="notificationsCount" />
         <v-main>
             <AppSnackbar />

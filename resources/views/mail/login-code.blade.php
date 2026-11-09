@@ -1,10 +1,10 @@
 @extends('mail.layouts.default')
 
-@section('title', 'Seu código de acesso ao e-fomento')
+@section('title', 'Seu código de acesso ao SIPA')
 
 @section('content')
 <p style="margin: 0 0 18px;">Olá!</p>
-<h1 style="margin: 0 0 12px; font-size: 22px; font-weight: bold; line-height: 1.4;">Confirme seu acesso ao e-fomento</h1>
+<h1 style="margin: 0 0 12px; font-size: 22px; font-weight: bold; line-height: 1.4;">Confirme seu acesso ao SIPA</h1>
 <p style="margin: 0 0 24px;">Para concluir seu acesso, digite o código abaixo na tela de verificação:</p>
 <table role="presentation" align="center" cellpadding="0" cellspacing="0" style="margin: 0 auto 24px;">
     <tr>
