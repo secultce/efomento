@@ -12,6 +12,6 @@ return new class extends Migration
 
     public function down(): void
     {
-        // The extension may predate this migration or be used by other queries.
+        DB::statement('DROP EXTENSION IF EXISTS unaccent');
     }
 };

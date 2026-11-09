@@ -73,7 +73,6 @@ class Notice extends Model implements Auditable
         }
 
         if ($search->digits !== '') {
-            // Older notices can store the NUP with its display mask.
             $query->whereRaw(
                 "REPLACE(REPLACE(REPLACE(REPLACE(nup, '.', ''), '/', ''), '-', ''), ' ', '') LIKE ?",
                 ["%{$search->digits}%"],
