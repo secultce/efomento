@@ -1,8 +1,9 @@
 <script setup>
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
+import { useDebounce } from '@/Composables/useDebounce';
 import NoticesListPage from '@/Pages/Notices/NoticesListPage.vue';
 import { Head, router } from '@inertiajs/vue3';
-import { ref, watch } from 'vue';
+import { ref } from 'vue';
 
 const props = defineProps({
     filters: {
@@ -33,16 +34,7 @@ const props = defineProps({
 
 const search = ref(props.filters.search ?? '');
 
-watch(
-    () => props.filters.search,
-    (value) => {
-        search.value = value ?? '';
-    }
-);
-
-function onSearch(value) {
-    search.value = value ?? '';
-
+const { debounced: fetchNotices } = useDebounce(() => {
     router.get(
         route('notices.index'),
         { search: search.value || undefined },
@@ -53,6 +45,11 @@ function onSearch(value) {
             only: ['notices', 'filters'],
         }
     );
+});
+
+function onSearch(value) {
+    search.value = value ?? '';
+    fetchNotices();
 }
 
 const stats = [
