@@ -2,12 +2,11 @@ import { ref } from 'vue';
 import { useSnackbar } from '@/Composables/useSnackbar';
 
 const ALLOWED_IMAGE_EXTENSIONS = ['jpg', 'jpeg', 'png', 'webp'];
-const ALLOWED_IMAGE_MIME_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
 
 function isAllowedImage(file) {
     const extension = file.name.split('.').pop()?.toLowerCase();
 
-    return ALLOWED_IMAGE_EXTENSIONS.includes(extension) && ALLOWED_IMAGE_MIME_TYPES.includes(file.type);
+    return ALLOWED_IMAGE_EXTENSIONS.includes(extension);
 }
 
 export function useDocumentImages() {
