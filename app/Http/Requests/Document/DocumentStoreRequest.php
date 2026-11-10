@@ -57,7 +57,7 @@ class DocumentStoreRequest extends FormRequest
             'images.*.path' => [
                 'required_with:images',
                 'string',
-                'regex:/\Adocuments\/[A-Za-z0-9_-]+\.(?:gif|jpe?g|png|webp)\z/i',
+                'regex:/\Adocuments\/[A-Za-z0-9_-]+\.(?:jpe?g|png|webp)\z/i',
             ],
         ];
     }
@@ -73,6 +73,7 @@ class DocumentStoreRequest extends FormRequest
             'type.required' => 'O tipo do documento é obrigatório.',
             'phase.required' => 'A fase do documento é obrigatória.',
             'body.required' => 'O conteúdo do documento é obrigatório.',
+            'images.*.path.regex' => 'Apenas imagens nos formatos .jpg, .jpeg, .png e .webp são permitidas.',
         ];
     }
 

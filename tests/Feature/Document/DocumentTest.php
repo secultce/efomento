@@ -25,6 +25,7 @@ use Illuminate\Database\QueryException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
+use PHPUnit\Framework\Attributes\DataProvider;
 use Tests\TestCase;
 
 class DocumentTest extends TestCase
@@ -864,6 +865,74 @@ class DocumentTest extends TestCase
             ])
             ->assertUnprocessable()
             ->assertJsonValidationErrors('images.0.path');
+    }
+
+    #[DataProvider('documentImagePaths')]
+    public function test_store_endpoint_validates_document_image_path_format(string $path, bool $valid): void
+    {
+        $response = $this->actingAs($this->user)
+            ->postJson('/api/documents', [
+                'type' => DocumentType::CI->value,
+                'phase' => DocumentPhase::OPENING->value,
+                'notice_id' => $this->notice->id,
+                'project_id' => $this->project->id,
+                'body' => 'Conteúdo.',
+                'images' => [[
+                    'section' => 'header',
+                    'position' => 'center',
+                    'path' => $path,
+                ]],
+            ]);
+
+        if ($valid) {
+            $response->assertCreated();
+
+            return;
+        }
+
+        $response->assertUnprocessable()
+            ->assertJsonValidationErrors([
+                'images.0.path' => 'Apenas imagens nos formatos .jpg, .jpeg, .png e .webp são permitidas.',
+            ]);
+    }
+
+    public static function documentImagePaths(): array
+    {
+        return [
+            'jpg' => ['documents/logo.jpg', true],
+            'jpeg' => ['documents/logo.jpeg', true],
+            'png' => ['documents/logo.png', true],
+            'webp' => ['documents/logo.webp', true],
+            'gif' => ['documents/logo.gif', false],
+            'bmp' => ['documents/logo.bmp', false],
+            'svg' => ['documents/logo.svg', false],
+            'pdf' => ['documents/logo.pdf', false],
+        ];
+    }
+
+    public function test_update_endpoint_rejects_disallowed_document_image_format(): void
+    {
+        $document = Document::factory()->create([
+            'notice_id' => $this->notice->id,
+            'project_id' => $this->project->id,
+            'type' => DocumentType::CI,
+            'phase' => DocumentPhase::OPENING,
+        ]);
+
+        $this->actingAs($this->user)
+            ->putJson("/api/documents/{$document->id}", [
+                'images' => [[
+                    'section' => 'footer',
+                    'position' => 'left',
+                    'path' => 'documents/logo.gif',
+                ]],
+            ])
+            ->assertUnprocessable()
+            ->assertJsonValidationErrors([
+                'images.0.path' => 'Apenas imagens nos formatos .jpg, .jpeg, .png e .webp são permitidas.',
+            ]);
+
+        $this->assertDatabaseCount('document_images', 0);
     }
 
     public function test_guest_cannot_delete_a_non_budget_document(): void

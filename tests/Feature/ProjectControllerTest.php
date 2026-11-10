@@ -10,6 +10,9 @@ use App\Models\Opening;
 use App\Models\Project;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Storage;
+use PHPUnit\Framework\Attributes\DataProvider;
 use Spatie\Permission\Models\Role;
 use Tests\TestCase;
 
@@ -446,5 +449,82 @@ class ProjectControllerTest extends TestCase
 
         $response->assertSessionHasErrors('selected_projects.0');
         $this->assertDatabaseCount('documents', 0);
+    }
+
+    #[DataProvider('allowedImageExtensions')]
+    public function test_create_document_accepts_allowed_image_formats(string $extension): void
+    {
+        Storage::fake('public');
+        $project = Project::factory()->create();
+
+        $response = $this->actingAs($this->user)
+            ->post(route('projects.create-document'), [
+                'type' => 'ci',
+                'selected_projects' => [$project->id],
+                'content' => 'Conteúdo da CI.',
+                'header_layout' => 'full',
+                'header_images' => [
+                    ['file' => UploadedFile::fake()->image("logo.{$extension}")],
+                ],
+            ]);
+
+        $response->assertSessionHasNoErrors();
+        $this->assertCount(1, Storage::disk('public')->files('documents'));
+        $this->assertDatabaseCount('document_images', 1);
+    }
+
+    public static function allowedImageExtensions(): array
+    {
+        return [
+            'jpg' => ['jpg'],
+            'jpeg' => ['jpeg'],
+            'png' => ['png'],
+            'webp' => ['webp'],
+        ];
+    }
+
+    #[DataProvider('disallowedImageFiles')]
+    public function test_create_document_rejects_disallowed_image_formats(callable $makeFile): void
+    {
+        Storage::fake('public');
+        $project = Project::factory()->create();
+
+        $response = $this->actingAs($this->user)
+            ->withHeaders(['Accept' => 'application/json'])
+            ->post(route('projects.create-document'), [
+                'type' => 'ci',
+                'selected_projects' => [$project->id],
+                'content' => 'Conteúdo da CI.',
+                'footer_layout' => 'full',
+                'footer_images' => [
+                    ['file' => $makeFile()],
+                ],
+            ]);
+
+        $response->assertUnprocessable()
+            ->assertJsonValidationErrors([
+                'footer_images.0.file' => 'Apenas imagens nos formatos .jpg, .jpeg, .png e .webp são permitidas.',
+            ]);
+        $this->assertEmpty(Storage::disk('public')->allFiles());
+        $this->assertDatabaseCount('documents', 0);
+    }
+
+    public static function disallowedImageFiles(): array
+    {
+        return [
+            'gif' => [fn () => UploadedFile::fake()->image('logo.gif')],
+            'bmp' => [fn () => UploadedFile::fake()->image('logo.bmp')],
+            'svg' => [fn () => UploadedFile::fake()->createWithContent(
+                'logo.svg',
+                '<svg xmlns="http://www.w3.org/2000/svg" width="1" height="1"></svg>',
+            )],
+            'pdf' => [fn () => UploadedFile::fake()->create('logo.pdf', 10, 'application/pdf')],
+            'png extension with gif content' => [function () {
+                $path = tempnam(sys_get_temp_dir(), 'img');
+                file_put_contents($path, base64_decode('R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7'));
+
+                return new UploadedFile($path, 'logo.png', null, null, true);
+            }],
+        ];
     }
 }
