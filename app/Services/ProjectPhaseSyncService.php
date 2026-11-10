@@ -2,11 +2,14 @@
 
 namespace App\Services;
 
+use App\Jobs\SyncPhaseFilesJob;
 use App\Models\Project;
 use App\Models\ProjectRegistrationPhase;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\RateLimiter;
+use Throwable;
 use UnexpectedValueException;
 
 class ProjectPhaseSyncService
@@ -29,11 +32,16 @@ class ProjectPhaseSyncService
 
     public function sync(Project $project): void
     {
+        $this->awaitMapasSlot();
+
         $summary = $this->mapasClient->registrationAllPhases(
             (int) $project->registration_id,
             untilLatest: true,
             summary: true,
         );
+
+        // Antes de qualquer gravação: um 200 sem a estrutura esperada não pode virar summary_hash.
+        $this->assertValidSummary($summary);
 
         $hash = $this->summaryHash($summary);
         $changed = $hash !== $project->summary_hash;
@@ -56,9 +64,11 @@ class ProjectPhaseSyncService
             ->filter()
             ->all();
 
-        DB::transaction(function () use ($project, $summary, $hash, $resolved) {
+        $storedPhaseIds = [];
+
+        DB::transaction(function () use ($project, $summary, $hash, $resolved, &$storedPhaseIds) {
             foreach ($resolved as $phase) {
-                $this->storePhase($project, $phase);
+                $storedPhaseIds[] = $this->storePhase($project, $phase)->id;
             }
 
             [$nextCheckAt, $close] = $this->schedule($summary, true);
@@ -73,6 +83,8 @@ class ProjectPhaseSyncService
                 'sync_closed_at' => $close ? now() : null,
             ]);
         });
+
+        $this->dispatchFileDownloads($project, $storedPhaseIds);
 
         Log::info('sync.project_phases.changed', [
             'project_id' => $project->id,
@@ -93,14 +105,7 @@ class ProjectPhaseSyncService
             'latestRegistrationId' => data_get($summary, 'latestRegistrationId'),
             'totalPhases' => data_get($summary, 'totalPhases'),
             'phases' => collect(data_get($summary, 'phases', []))
-                ->map(fn (array $phase) => [
-                    'registrationId' => data_get($phase, 'registrationId'),
-                    'status' => data_get($phase, 'status'),
-                    'sentDate' => data_get($phase, 'sentDate'),
-                    'registrationFrom' => data_get($phase, 'opportunity.registrationFrom'),
-                    'registrationTo' => data_get($phase, 'opportunity.registrationTo'),
-                    'hasNextPhase' => (bool) data_get($phase, 'hasNextPhase'),
-                ])
+                ->map(fn (array $phase) => $this->phaseFingerprint($phase))
                 ->all(),
         ];
 
@@ -144,7 +149,8 @@ class ProjectPhaseSyncService
         $nextFrom = data_get($latest, 'nextPhase.registrationFrom');
 
         if ($hasNext && $nextFrom) {
-            $beforeOpening = Carbon::parse($nextFrom)->subDay();
+            // O cast datetime grava sem converter o fuso: a data precisa estar no fuso da aplicação.
+            $beforeOpening = Carbon::parse($nextFrom)->subDay()->setTimezone(config('app.timezone'));
             $next = $beforeOpening->lt($next) ? $beforeOpening : $next;
         }
 
@@ -167,6 +173,8 @@ class ProjectPhaseSyncService
         if ($existing && ! $this->summaryDiffers($existing, $phaseSummary)) {
             return null;
         }
+
+        $this->awaitMapasSlot();
 
         $full = $this->mapasClient->registrationAllPhases($registrationId);
 
@@ -193,11 +201,57 @@ class ProjectPhaseSyncService
         ];
     }
 
-    private function storePhase(Project $project, array $phase): void
+    /**
+     * Só as fases gravadas nesta rodada (novas ou alteradas) geram download. Depois do commit, para o job
+     * não rodar antes de a fase existir; e uma falha da fila não desfaz a sincronização: o comando
+     * app:sync-phase-files reenfileira o que ficou para trás.
+     *
+     * @param  array<int, int>  $phaseIds
+     */
+    private function dispatchFileDownloads(Project $project, array $phaseIds): void
+    {
+        foreach ($phaseIds as $phaseId) {
+            try {
+                SyncPhaseFilesJob::dispatch($phaseId);
+            } catch (Throwable $exception) {
+                Log::warning('sync.project_phases.files_dispatch_failed', [
+                    'project_id' => $project->id,
+                    'phase_id' => $phaseId,
+                    'message' => $exception->getMessage(),
+                ]);
+            }
+        }
+    }
+
+    private function assertValidSummary(array $summary): void
+    {
+        if (! is_array(data_get($summary, 'phases'))
+            || ! is_int(data_get($summary, 'totalPhases'))
+            || ! array_key_exists('latestRegistrationId', $summary)) {
+            throw new UnexpectedValueException('Mapas returned an invalid phases summary');
+        }
+    }
+
+    /**
+     * Espera uma vaga no limite de requisições do Mapas antes de cada chamada deste job. O middleware
+     * RateLimited conta jobs, não requisições: um projeto com várias fases faria várias chamadas por job.
+     * Usa a mesma chave do middleware (md5 do nome do limitador + chave), então o orçamento é compartilhado.
+     */
+    private function awaitMapasSlot(): void
+    {
+        $limit = RateLimiter::limiter('mapas-api')();
+        $key = md5('mapas-api'.$limit->key);
+
+        while (! RateLimiter::attempt($key, $limit->maxAttempts, fn () => true, $limit->decaySeconds)) {
+            sleep(max(1, RateLimiter::availableIn($key)));
+        }
+    }
+
+    private function storePhase(Project $project, array $phase): ProjectRegistrationPhase
     {
         $data = $phase['data'];
 
-        ProjectRegistrationPhase::updateOrCreate(
+        return ProjectRegistrationPhase::updateOrCreate(
             ['project_id' => $project->id, 'registration_id' => $phase['registration_id']],
             [
                 'opportunity_id' => data_get($data, 'opportunity.id'),
@@ -205,8 +259,8 @@ class ProjectPhaseSyncService
                 'is_first' => (bool) data_get($data, 'isFirstPhase'),
                 'status' => $phase['status'],
                 'sent_at' => $this->parseSentDate(data_get($data, 'sentDate')),
-                'registration_from' => data_get($data, 'opportunity.registrationFrom'),
-                'registration_to' => data_get($data, 'opportunity.registrationTo'),
+                'registration_from' => $this->toAppTimezone(data_get($data, 'opportunity.registrationFrom')),
+                'registration_to' => $this->toAppTimezone(data_get($data, 'opportunity.registrationTo')),
                 'data' => $data,
                 'content_hash' => $phase['content_hash'],
                 'fetched_at' => now(),
@@ -214,17 +268,36 @@ class ProjectPhaseSyncService
         );
     }
 
+    // O resumo e o `data` salvo da fase têm o mesmo formato, então a comparação usa a mesma impressão
+    // digital dos dois lados: qualquer campo que entra no summary_hash também decide se a fase é rebuscada.
     private function summaryDiffers(ProjectRegistrationPhase $phase, array $summary): bool
     {
-        return $phase->status !== data_get($summary, 'status')
-            || $phase->sent_at?->format('d/m/Y') !== data_get($summary, 'sentDate')
-            || $phase->registration_from?->toIso8601String() !== $this->iso(data_get($summary, 'opportunity.registrationFrom'))
-            || $phase->registration_to?->toIso8601String() !== $this->iso(data_get($summary, 'opportunity.registrationTo'));
+        return $this->phaseFingerprint($summary) !== $this->phaseFingerprint($phase->data ?? []);
     }
 
-    private function iso(?string $value): ?string
+    /**
+     * Campos do resumo de uma fase que indicam mudança; datas normalizadas para não variar com o offset.
+     */
+    private function phaseFingerprint(array $phase): array
     {
-        return $value ? Carbon::parse($value)->setTimezone(config('app.timezone'))->toIso8601String() : null;
+        return [
+            'registrationId' => data_get($phase, 'registrationId'),
+            // A categoria define quais campos o Mapas devolve, então mudar só ela também exige nova busca.
+            'category' => data_get($phase, 'category'),
+            'status' => data_get($phase, 'status'),
+            'sentDate' => data_get($phase, 'sentDate'),
+            'registrationFrom' => $this->toAppTimezone(data_get($phase, 'opportunity.registrationFrom'))?->toIso8601String(),
+            'registrationTo' => $this->toAppTimezone(data_get($phase, 'opportunity.registrationTo'))?->toIso8601String(),
+            'hasNextPhase' => (bool) data_get($phase, 'hasNextPhase'),
+            'nextPhaseOpportunityId' => data_get($phase, 'nextPhase.opportunityId'),
+            'nextPhaseRegistrationFrom' => $this->toAppTimezone(data_get($phase, 'nextPhase.registrationFrom'))?->toIso8601String(),
+        ];
+    }
+
+    // O cast datetime descarta o offset ao gravar, então o valor precisa estar no fuso da aplicação.
+    private function toAppTimezone(?string $value): ?Carbon
+    {
+        return $value ? Carbon::parse($value)->setTimezone(config('app.timezone')) : null;
     }
 
     private function parseSentDate(?string $value): ?Carbon

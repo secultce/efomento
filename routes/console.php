@@ -13,7 +13,7 @@ Artisan::command('inspire', function () {
 
 Schedule::job(new SyncProjectPhasesJob)
     ->dailyAt('04:00')
-    ->timezone('America/Fortaleza')
+    ->timezone(config('efomento.phase_sync_timezone'))
     ->withoutOverlapping(60)
     ->onOneServer();
 

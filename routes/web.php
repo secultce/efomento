@@ -16,6 +16,7 @@ use App\Http\Controllers\OpeningController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ProjectController;
 use App\Http\Controllers\ProjectStageController;
+use App\Http\Controllers\SpreadsheetSyncController;
 use App\Http\Controllers\TrustedDeviceController;
 use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Route;
@@ -27,6 +28,11 @@ Route::get('/', function () {
 });
 
 Route::middleware(['auth', 'verified'])->group(function () {
+
+    Route::middleware('role:super_admin')->prefix('planilhas')->name('spreadsheets.')->group(function () {
+        Route::get('/usuarios', [SpreadsheetSyncController::class, 'usersList'])->name('users');
+        Route::post('/sincronizar', [SpreadsheetSyncController::class, 'sync'])->name('sync');
+    });
 
     Route::resource('editais', NoticeController::class)
         ->parameters([

@@ -2,12 +2,15 @@
 
 namespace App\Models;
 
+use App\Traits\HasFiles;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 // Sem Auditable: o JSON de `data` é grande e não deve ir para a tabela `audits`.
 class ProjectRegistrationPhase extends Model
 {
+    use HasFiles;
+
     protected $fillable = [
         'project_id',
         'registration_id',

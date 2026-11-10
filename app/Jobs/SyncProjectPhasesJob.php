@@ -37,11 +37,18 @@ class SyncProjectPhasesJob implements ShouldQueue
 
     public function handle(): void
     {
+        // O agendamento é por dia: next_check_at guarda o horário em que o projeto foi processado (que varia
+        // com a fila e o rate limit), então "vencido" é qualquer data até o fim do dia de hoje no fuso do
+        // agendamento. Comparar com now() puro pularia a execução de amanhã (04:00:10 > 04:00:01).
+        $dueUntil = now(config('efomento.phase_sync_timezone'))
+            ->endOfDay()
+            ->setTimezone(config('app.timezone'));
+
         $ids = Project::query()
             ->whereNull('sync_closed_at')
             ->where(fn ($query) => $query
                 ->whereNull('next_check_at')
-                ->orWhere('next_check_at', '<=', now()))
+                ->orWhere('next_check_at', '<=', $dueUntil))
             ->pluck('id');
 
         if ($ids->isEmpty()) {

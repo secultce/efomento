@@ -10,7 +10,6 @@ use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
-use Illuminate\Queue\Middleware\RateLimited;
 use Illuminate\Queue\Middleware\WithoutOverlapping;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Facades\Log;
@@ -34,8 +33,7 @@ class SyncProjectPhasesProjectJob implements ShouldQueue
     public function middleware(): array
     {
         return [
-            (new RateLimited('mapas-api'))->releaseAfter(30),
-
+            // O limite do Mapas é aplicado por requisição dentro do ProjectPhaseSyncService (awaitMapasSlot).
             (new WithoutOverlapping("sync-project-phases:{$this->projectId}"))
                 ->releaseAfter(60)
                 ->expireAfter(600),
@@ -44,7 +42,8 @@ class SyncProjectPhasesProjectJob implements ShouldQueue
 
     public function retryUntil(): DateTimeInterface
     {
-        return now()->addHours(2);
+        // Calculado no despacho: cobre a espera na fila `details` e fica abaixo do próximo disparo diário.
+        return now()->addHours(12);
     }
 
     public function handle(ProjectPhaseSyncService $service): void

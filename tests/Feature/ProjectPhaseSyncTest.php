@@ -2,10 +2,12 @@
 
 namespace Tests\Feature;
 
+use App\Jobs\SyncPhaseFilesJob;
 use App\Jobs\SyncProjectPhasesJob;
 use App\Jobs\SyncProjectPhasesProjectJob;
 use App\Models\Project;
 use App\Services\ProjectPhaseSyncService;
+use Carbon\Carbon;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\Client\Factory;
 use Illuminate\Http\Client\Request;
@@ -16,6 +18,14 @@ use Tests\TestCase;
 class ProjectPhaseSyncTest extends TestCase
 {
     use RefreshDatabase;
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        // Fila sync nos testes: sem o fake o download das fases rodaria dentro da sincronização.
+        Bus::fake([SyncPhaseFilesJob::class]);
+    }
 
     private function phase(int $order, int $id, int $status, bool $hasNext = false, ?string $nextFrom = null, array $extra = []): array
     {
@@ -233,6 +243,18 @@ class ProjectPhaseSyncTest extends TestCase
         $this->assertTrue($project->next_check_at->between(now()->addMinutes(59), now()->addMinutes(61)));
     }
 
+    public function test_registration_period_is_stored_in_app_timezone(): void
+    {
+        $project = Project::factory()->create(['registration_id' => '100']);
+        $this->fakeMapas($this->summary([$this->phase(1, 100, 1)]));
+
+        $this->sync($project);
+
+        $phase = $project->registrationPhases()->first();
+        $this->assertSame('2023-09-07T03:00:00+00:00', $phase->registration_from->toIso8601String());
+        $this->assertSame('2023-09-27T02:59:00+00:00', $phase->registration_to->toIso8601String());
+    }
+
     public function test_unchanged_summary_with_final_result_closes_sync(): void
     {
         $project = Project::factory()->create(['registration_id' => '100']);
@@ -272,6 +294,145 @@ class ProjectPhaseSyncTest extends TestCase
         $this->assertNull($project->summary_hash);
         $this->assertSame(0, $project->registrationPhases()->count());
         $this->assertTrue($project->next_check_at->between(now()->addMinutes(59), now()->addMinutes(61)));
+    }
+
+    public function test_dispatcher_selects_projects_due_later_today_in_schedule_timezone(): void
+    {
+        Bus::fake();
+
+        $tz = config('efomento.phase_sync_timezone');
+        $this->travelTo(Carbon::parse('2026-11-04 04:00:01', $tz));
+
+        // O cast datetime grava a hora local do Carbon sem converter, então as datas já entram em UTC.
+        $at = fn (string $time) => Carbon::parse($time, $tz)->utc();
+
+        // Processado às 04:00:10 do dia anterior (a fila atrasa): precisa entrar na rodada de hoje.
+        $processedLate = Project::factory()->create(['next_check_at' => $at('2026-11-04 04:00:10')]);
+        $endOfToday = Project::factory()->create(['next_check_at' => $at('2026-11-04 23:59:59')]);
+        Project::factory()->create(['next_check_at' => $at('2026-11-05 00:00:00')]);
+
+        (new SyncProjectPhasesJob)->handle();
+
+        Bus::assertBatched(fn ($batch) => $batch->jobs->pluck('projectId')->sort()->values()->all()
+            === collect([$processedLate->id, $endOfToday->id])->sort()->values()->all());
+    }
+
+    public function test_next_phase_change_refetches_phase_metadata(): void
+    {
+        $project = Project::factory()->create(['registration_id' => '100']);
+        $this->fakeMapas($this->summary([$this->phase(1, 100, 10)]));
+        $this->sync($project);
+
+        $this->assertFalse($project->registrationPhases()->first()->data['hasNextPhase']);
+
+        $nextFrom = now()->addDays(30)->toIso8601String();
+        $this->fakeMapas($this->summary([$this->phase(1, 100, 10, true, $nextFrom)]));
+        $this->sync($project->fresh());
+
+        $stored = $project->registrationPhases()->first()->data;
+        $this->assertTrue($stored['hasNextPhase']);
+        $this->assertSame(5000, $stored['nextPhase']['opportunityId']);
+        $this->assertNull($project->fresh()->sync_closed_at);
+    }
+
+    public function test_next_phase_opening_change_refetches_phase_metadata(): void
+    {
+        $project = Project::factory()->create(['registration_id' => '100']);
+        $first = now()->addDays(30)->toIso8601String();
+        $this->fakeMapas($this->summary([$this->phase(1, 100, 10, true, $first)]));
+        $this->sync($project);
+
+        $moved = now()->addDays(40)->toIso8601String();
+        $this->fakeMapas($this->summary([$this->phase(1, 100, 10, true, $moved)]));
+        $this->sync($project->fresh());
+
+        $this->assertSame(
+            Carbon::parse($moved)->timestamp,
+            Carbon::parse($project->registrationPhases()->first()->data['nextPhase']['registrationFrom'])->timestamp
+        );
+    }
+
+    public function test_changed_phases_dispatch_file_download_and_unchanged_ones_do_not(): void
+    {
+        $project = Project::factory()->create(['registration_id' => '100']);
+        $nextFrom = now()->addDays(60)->toIso8601String();
+        $this->fakeMapas($this->summary([
+            $this->phase(1, 100, 10, true, $nextFrom),
+            $this->phase(2, 200, 1),
+        ]));
+
+        $this->sync($project);
+
+        $phaseIds = $project->registrationPhases()->pluck('id')->all();
+        $this->assertCount(2, $phaseIds);
+        Bus::assertDispatchedTimes(SyncPhaseFilesJob::class, 2);
+        foreach ($phaseIds as $id) {
+            Bus::assertDispatched(SyncPhaseFilesJob::class, fn ($job) => $job->phaseId === $id && $job->queue === 'files');
+        }
+
+        // Rodada sem mudança no resumo: nenhum download novo.
+        $this->travelTo(now()->addDay());
+        $this->sync($project->fresh());
+        Bus::assertDispatchedTimes(SyncPhaseFilesJob::class, 2);
+
+        // Só a fase 2 muda: só ela volta para a fila.
+        $this->fakeMapas($this->summary([
+            $this->phase(1, 100, 10, true, $nextFrom),
+            $this->phase(2, 200, 10),
+        ]));
+        $this->sync($project->fresh());
+
+        $phase2 = $project->registrationPhases()->where('registration_id', 200)->value('id');
+        Bus::assertDispatchedTimes(SyncPhaseFilesJob::class, 3);
+        Bus::assertDispatched(SyncPhaseFilesJob::class, fn ($job) => $job->phaseId === $phase2);
+    }
+
+    public function test_category_change_refetches_phase(): void
+    {
+        $project = Project::factory()->create(['registration_id' => '100']);
+        $this->fakeMapas($this->summary([$this->phase(1, 100, 1, false, null, ['category' => 'A'])]));
+        $this->sync($project);
+        $this->assertSame('A', $project->registrationPhases()->first()->data['category']);
+
+        $this->fakeMapas($this->summary([$this->phase(1, 100, 1, false, null, ['category' => 'B'])]));
+        $this->sync($project->fresh());
+
+        $this->assertSame('B', $project->registrationPhases()->first()->data['category']);
+    }
+
+    public function test_next_check_is_stored_in_app_timezone(): void
+    {
+        $this->travelTo(Carbon::parse('2026-11-03 12:00:00', 'UTC'));
+        // Abertura da próxima fase: 08/11 às 00:00 em UTC−3, que é 03:00 UTC.
+        $summary = $this->summary([$this->phase(1, 100, 10, true, '2026-11-08T00:00:00-03:00')]);
+
+        [$next] = app(ProjectPhaseSyncService::class)->schedule($summary, false);
+
+        $this->assertSame(config('app.timezone'), $next->getTimezone()->getName());
+        $this->assertSame('2026-11-07T03:00:00+00:00', $next->toIso8601String());
+    }
+
+    public function test_summary_without_phases_structure_does_not_persist_anything(): void
+    {
+        $project = Project::factory()->create(['registration_id' => '100']);
+        $this->fakeMapas($this->summary([$this->phase(1, 100, 1)]));
+        $this->sync($project);
+        $before = $project->fresh();
+
+        Http::swap(new Factory);
+        Http::fake(['*' => Http::response(['status' => 'ok'])]);
+
+        try {
+            $this->sync($project->fresh());
+            $this->fail('Exceção esperada');
+        } catch (\UnexpectedValueException) {
+        }
+
+        $after = $project->fresh();
+        $this->assertSame($before->summary_hash, $after->summary_hash);
+        $this->assertSame($before->latest_registration_id, $after->latest_registration_id);
+        $this->assertSame($before->total_phases, $after->total_phases);
+        $this->assertEquals($before->last_changed_at, $after->last_changed_at);
     }
 
     public function test_dispatcher_selects_only_due_active_projects(): void

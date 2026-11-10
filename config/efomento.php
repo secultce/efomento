@@ -42,6 +42,9 @@ return [
 
     'mapas_rate_limit_per_minute' => env('MAPAS_RATE_LIMIT_PER_MINUTE', 60),
 
+    // Fuso em que o despachante diário das fases roda; define o que é "hoje" ao selecionar projetos vencidos.
+    'phase_sync_timezone' => env('PHASE_SYNC_TIMEZONE', 'America/Fortaleza'),
+
     'registration_detail_chunk' => env('MAPAS_REGISTRATION_DETAIL_CHUNK', 100),
 
     'file_download_timeout' => env('MAPAS_FILE_DOWNLOAD_TIMEOUT', 60),

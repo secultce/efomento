@@ -6,6 +6,7 @@ use App\Enums\CgeAtendeStatus;
 use App\Enums\DeliberationType;
 use App\Enums\ReportStatus;
 use App\Exceptions\Integration\ExternalServiceException;
+use App\Exceptions\Integration\PartialSpreadsheetSyncException;
 use App\Models\Budget;
 use App\Models\BudgetAllocation;
 use App\Models\Formalization;
@@ -28,6 +29,60 @@ class GoogleSheetsService
         private readonly SpreadsheetImportService $importService,
         private readonly BudgetAllocationResolver $budgetAllocationResolver,
     ) {}
+
+    /** Accepts a raw spreadsheet ID or an HTTPS Google Sheets document URL. */
+    public static function extractSpreadsheetId(string $urlOrId): ?string
+    {
+        $value = trim($urlOrId);
+
+        if (preg_match('/^[a-zA-Z0-9_-]+$/D', $value)) {
+            return $value;
+        }
+
+        $url = parse_url($value);
+        if ($url === false || ($url['scheme'] ?? '') !== 'https' || ($url['host'] ?? '') !== 'docs.google.com'
+            || isset($url['user']) || isset($url['pass']) || isset($url['port'])) {
+            return null;
+        }
+
+        return preg_match('~^/spreadsheets/d/(?!e/)([a-zA-Z0-9_-]+)(?:/|$)~', $url['path'] ?? '', $matches)
+            ? $matches[1]
+            : null;
+    }
+
+    /**
+     * Imports every tab in dependency order, retaining partial counts and failures while continuing later tabs.
+     *
+     * @return array{counts: array<string, int>, errors: array<string, string>}
+     */
+    public function importAll(
+        string $spreadsheetId,
+        int $userId,
+        ?int $fallbackNoticeId = null,
+        bool $withFiles = true,
+    ): array {
+        $counts = [];
+        $errors = [];
+
+        foreach (['Abertura', 'Formalização', 'Orçamento', 'Pagamento'] as $sheet) {
+            try {
+                $counts[$sheet] = match ($sheet) {
+                    'Abertura' => $this->importSheet($spreadsheetId, $sheet, $withFiles, $userId, $fallbackNoticeId),
+                    'Formalização' => $this->syncFormalization($spreadsheetId, $sheet, $userId),
+                    'Orçamento' => $this->syncBudget($spreadsheetId, $sheet, $userId),
+                    'Pagamento' => $this->syncPagamento($spreadsheetId, $sheet, $userId),
+                };
+            } catch (PartialSpreadsheetSyncException $exception) {
+                $counts[$sheet] = $exception->processedCount;
+                $errors[$sheet] = $exception->getMessage();
+            } catch (Throwable $exception) {
+                $errors[$sheet] = $exception->getMessage();
+                report($exception);
+            }
+        }
+
+        return compact('counts', 'errors');
+    }
 
     /**
      * Fetches all rows from a public Google Sheet tab and returns a structured array.
@@ -87,6 +142,8 @@ class GoogleSheetsService
     /**
      * Sincroniza a aba de Formalização com o model Formalization.
      * Retorna o número de registros gravados.
+     *
+     * @throws PartialSpreadsheetSyncException Após processar todas as linhas, se alguma gravação falhar.
      */
     public function syncFormalization(string $spreadsheetId, string $sheetName, int $userId): int
     {
@@ -99,6 +156,7 @@ class GoogleSheetsService
         $projects = $this->preloadProjectsByNumber($rows, $projectLookupColumn);
 
         $count = 0;
+        $failedCount = 0;
         foreach ($rows as $row) {
             if (($row['STATUS'] ?? null) === 'Desclassificado' || ($row['STATUS'] ?? null) === 'Desistente') {
                 continue;
@@ -163,11 +221,16 @@ class GoogleSheetsService
 
                 $count++;
             } catch (Throwable $e) {
+                $failedCount++;
                 Log::warning('spreadsheet.import.formalization_sync_failed', [
                     'project_number' => $project->number,
                     'message' => $e->getMessage(),
                 ]);
             }
+        }
+
+        if ($failedCount > 0) {
+            throw new PartialSpreadsheetSyncException($count, $failedCount);
         }
 
         return $count;
@@ -245,6 +308,8 @@ class GoogleSheetsService
     /**
      * Sincroniza a aba de Orçamento com os models Budget, BudgetAllocation e Installment.
      * Retorna o número de registros gravados.
+     *
+     * @throws PartialSpreadsheetSyncException Após processar todas as linhas, se alguma gravação falhar.
      */
     public function syncBudget(string $spreadsheetId, string $sheetName, int $userId): int
     {
@@ -257,6 +322,7 @@ class GoogleSheetsService
         $projects = $this->preloadProjectsByNumber($rows, $projectLookupColumn);
 
         $count = 0;
+        $failedCount = 0;
         foreach ($rows as $row) {
             $project = $projects->get($row[$projectLookupColumn] ?? null);
 
@@ -288,11 +354,16 @@ class GoogleSheetsService
 
                 $count++;
             } catch (Throwable $e) {
+                $failedCount++;
                 Log::warning('spreadsheet.import.budget_sync_failed', [
                     'project_number' => $project->number,
                     'message' => $e->getMessage(),
                 ]);
             }
+        }
+
+        if ($failedCount > 0) {
+            throw new PartialSpreadsheetSyncException($count, $failedCount);
         }
 
         return $count;
