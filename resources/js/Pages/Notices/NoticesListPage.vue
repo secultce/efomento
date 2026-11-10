@@ -8,6 +8,10 @@ import { useSnackbar } from '@/Composables/useSnackbar.js';
 import { useDate } from '@/Composables/useDate';
 
 const props = defineProps({
+    search: {
+        type: String,
+        default: '',
+    },
     notices: {
         type: Array,
         default: () => [],
@@ -57,7 +61,6 @@ const headers = [
 
 // ─── Estado ───────────────────────────────────────────────────────────────────
 
-const search = ref('');
 const selectedStatus = ref(null);
 const selectedInstrument = ref(null);
 const page = ref(1);
@@ -69,15 +72,6 @@ const itens = computed(() => (props.notices.length ? props.notices : []));
 
 const itensFiltrados = computed(() => {
     let lista = itens.value;
-    if (search.value.trim()) {
-        const termo = search.value.toLowerCase();
-        lista = lista.filter(
-            (item) =>
-                item.titulo?.toLowerCase().includes(termo) ||
-                item.mae?.toLowerCase().includes(termo) ||
-                item.numeroProcessoMae?.toLowerCase().includes(termo)
-        );
-    }
 
     if (selectedStatus.value) {
         lista = lista.filter((item) => item.status === selectedStatus.value);
@@ -93,7 +87,7 @@ const itensFiltrados = computed(() => {
 });
 
 // Reseta para página 1 sempre que qualquer filtro mudar
-watch([search, selectedStatus, selectedInstrument], () => {
+watch([() => props.search, selectedStatus, selectedInstrument], () => {
     page.value = 1;
 });
 
@@ -118,7 +112,6 @@ const { formatDate } = useDate();
 // ─── Handlers ────────────────────────────────────────────────────────────────
 
 function onSearch(value) {
-    search.value = value;
     emit('search', value);
 }
 

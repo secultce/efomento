@@ -16,7 +16,7 @@ Substitui a planilha compartilhada "Planilão" por um fluxo digital estruturado,
 | Frontend usuário final | Vue.js + Vuetify + Tailwind CSS (via API RESTful)|
 | Autenticação           | Laravel Breeze                                   |
 | Build                  | Vite 7, Node.js                                  |
-| Testes                 | PHPUnit 11 (SQLite in-memory)                    |
+| Testes                 | PHPUnit 11 (PostgreSQL 16)                       |
 | Lint                   | Laravel Pint                                     |
 | Infra                  | Docker (PHP-FPM, Nginx, PostgreSQL, Vite)        |
 
@@ -123,6 +123,11 @@ Os nomes dos campos nas mensagens de validação ficam em
 `lang/pt_BR/validation.php`, na chave `attributes`, incluindo os campos aninhados.
 
 ### Comandos úteis
+
+Os testes usam o banco PostgreSQL separado `efomento_testing`, configurado em
+`.env.testing` e fixado em `phpunit.xml`. Com o serviço `postgres` iniciado,
+crie esse banco uma vez com `docker compose exec postgres createdb -U efomento efomento_testing`.
+As migrations dos testes também habilitam a extensão `unaccent`, usada nas buscas.
 
 ```bash
 # Migrations

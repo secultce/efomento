@@ -27,9 +27,10 @@ class NoticeController extends Controller
     {
         return Inertia::render('Notices', [
             'user' => Auth::user(),
-            'notices' => $this->noticeService
+            'notices' => fn () => $this->noticeService
                 ->getNoticesForDashboard($request->query('search')),
-            'totais' => $this->noticeService->getTotals(),
+            'filters' => $request->only('search'),
+            'totais' => fn () => $this->noticeService->getTotals(),
             'instrumentTypes' => InstrumentType::values(),
             'monitoringReportRequestDeadlines' => MonitoringReportRequestDeadline::options(),
         ]);
