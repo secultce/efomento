@@ -11,6 +11,21 @@ jobs:
   coverage:
     runs-on: ubuntu-latest
 
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_DB: efomento_testing
+          POSTGRES_USER: efomento
+          POSTGRES_PASSWORD: efomento
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U efomento -d efomento_testing"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
     steps:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
         with:
@@ -20,11 +35,15 @@ jobs:
         with:
           php-version: "8.4"
           coverage: pcov
+          extensions: pdo_pgsql
 
       - name: Instalar dependências PHP
         run: composer install --no-interaction --prefer-dist
 
       - name: Rodar testes com cobertura
+        env:
+          DB_HOST: 127.0.0.1
+          DB_PORT: 5432
         run: ./vendor/bin/phpunit --coverage-clover coverage.xml
 
       - name: Enviar relatório ao Codecov

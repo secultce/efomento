@@ -5,6 +5,7 @@ namespace App\Models;
 use App\Enums\ProfileSnapshotSource;
 use App\Enums\ProjectStageSlug;
 use App\Enums\ProjectStageStatus;
+use App\Support\NameAndNupSearch;
 use App\Traits\HasCreatedBy;
 use App\Traits\HasFiles;
 use Illuminate\Database\Eloquent\Builder;
@@ -115,20 +116,36 @@ class Project extends Model implements Auditable
 
     public function scopeSearch(Builder $query, ?string $search): Builder
     {
-        if (! $search) {
+        $search = new NameAndNupSearch($search);
+
+        if ($search->isEmpty) {
             return $query;
         }
 
-        $search = strtolower($search);
+        $nameWords = $search->words;
+        $digits = $search->digits;
 
-        return $query->where(function ($q) use ($search) {
-            $q->orWhereHas('agent', function ($q2) use ($search) {
-                $q2->whereRaw('LOWER(name) LIKE ?', ["%{$search}%"]);
-            });
+        if ($nameWords === [] && $digits === '') {
+            return $query->whereRaw('1 = 0');
+        }
 
-            $q->orWhereHas('openings', function ($q3) use ($search) {
-                $q3->whereRaw('LOWER(opening_nup) LIKE ?', ["%{$search}%"]);
-            });
+        return $query->where(function (Builder $query) use ($nameWords, $digits) {
+            if ($nameWords !== []) {
+                $query->whereHas('agent', function (Builder $agentQuery) use ($nameWords) {
+                    foreach ($nameWords as $word) {
+                        $agentQuery->whereRaw('LOWER(unaccent(name)) LIKE LOWER(unaccent(?))', ["%{$word}%"]);
+                    }
+                });
+            }
+
+            if ($digits !== '') {
+                $query->whereHas('openings', function (Builder $openingQuery) use ($digits) {
+                    $openingQuery->whereRaw(
+                        "REPLACE(REPLACE(REPLACE(REPLACE(opening_nup, '.', ''), '/', ''), '-', ''), ' ', '') LIKE ?",
+                        ["%{$digits}%"],
+                    );
+                });
+            }
         });
     }
 

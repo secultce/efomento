@@ -269,7 +269,7 @@ O Mailpit (`axllent/mailpit`) foi avaliado e **descartado como solução única*
 ### Abordagem escolhida
 
 - **GreenMail** (`greenmail/standalone`) — servidor SMTP (3025) + IMAP (3143) de teste, uso interno na rede Docker. Com `-Dgreenmail.auth.disabled`, qualquer login/senha funciona e mailboxes são criadas sob demanda.
-- **Roundcube** (`roundcube/roundcubemail`) — webmail em http://localhost:8025 para atuar como o agente: ler o e-mail da diligência e **respondê-lo**. A resposta cai na caixa monitorada (`diligencias@efomento.ce.gov.br`) no GreenMail e o `app:sync-diligence-emails` ingere via IMAP.
+- **Roundcube** (`roundcube/roundcubemail`) — webmail em http://localhost:8026 para atuar como o agente: ler o e-mail da diligência e **respondê-lo**. A resposta cai na caixa monitorada (`diligencias@efomento.ce.gov.br`) no GreenMail e o `app:sync-diligence-emails` ingere via IMAP.
 
 Loop completo em dev: app envia via SMTP → Roundcube lê e responde → sync IMAP captura → thread aparece na UI.
 
@@ -291,7 +291,7 @@ roundcube:
   image: roundcube/roundcubemail:latest
   container_name: efomento-roundcube
   ports:
-    - "8025:80"
+    - "8026:80"
   environment:
     ROUNDCUBEMAIL_DEFAULT_HOST: greenmail
     ROUNDCUBEMAIL_DEFAULT_PORT: 3143
@@ -327,7 +327,7 @@ Em produção, os valores apontam para a caixa institucional real (ssl/993). O `
 
 1. `docker compose up -d` (greenmail e roundcube sobem) + `docker compose exec app php artisan config:clear`
 2. Enviar diligência pela UI de Monitoramento para `agente@example.com` → registro `OUTBOUND` com `imap_message_id` preenchido
-3. Abrir http://localhost:8025, logar como `agente@example.com` (qualquer senha) → responder o e-mail
+3. Abrir http://localhost:8026, logar como `agente@example.com` (qualquer senha) → responder o e-mail
 4. `docker compose exec app php artisan app:sync-diligence-emails` → registro `INBOUND` com `in_reply_to` casando com o `OUTBOUND`
 5. Conferir o fio na tela de Monitoramento
 

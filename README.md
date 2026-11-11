@@ -16,7 +16,7 @@ Substitui a planilha compartilhada "Planilão" por um fluxo digital estruturado,
 | Frontend usuário final | Vue.js + Vuetify + Tailwind CSS (via API RESTful)|
 | Autenticação           | Laravel Breeze                                   |
 | Build                  | Vite 7, Node.js                                  |
-| Testes                 | PHPUnit 11 (SQLite in-memory)                    |
+| Testes                 | PHPUnit 11 (PostgreSQL 16)                       |
 | Lint                   | Laravel Pint                                     |
 | Infra                  | Docker (PHP-FPM, Nginx, PostgreSQL, Vite)        |
 
@@ -108,7 +108,7 @@ Isso inicia automaticamente:
 | efomento-queue-files   | Worker de filas (files)                       | —              |
 | efomento-scheduler     | Laravel scheduler                             | —              |
 | efomento-greenmail     | Servidor SMTP/IMAP local (e-mail de teste)    | —              |
-| efomento-roundcube     | Webmail para visualizar e-mails de teste      | 8025           |
+| efomento-roundcube     | Webmail para visualizar e-mails de teste      | 8026           |
 
 Acesse: **http://localhost:8080**
 
@@ -123,6 +123,11 @@ Os nomes dos campos nas mensagens de validação ficam em
 `lang/pt_BR/validation.php`, na chave `attributes`, incluindo os campos aninhados.
 
 ### Comandos úteis
+
+Os testes usam o banco PostgreSQL separado `efomento_testing`, configurado em
+`.env.testing` e fixado em `phpunit.xml`. Com o serviço `postgres` iniciado,
+crie esse banco uma vez com `docker compose exec postgres createdb -U efomento efomento_testing`.
+As migrations dos testes também habilitam a extensão `unaccent`, usada nas buscas.
 
 ```bash
 # Migrations
@@ -176,7 +181,7 @@ Depois de alterar `SEED_MODE` em um ambiente com configuracao em cache, execute
 | Reverb        | ws://localhost:8081    |
 | Vite HMR      | http://localhost:5173  |
 | PostgreSQL    | localhost:5433         |
-| Webmail       | http://localhost:8025  |
+| Webmail       | http://localhost:8026  |
 
 ### Verificação de acesso por email
 

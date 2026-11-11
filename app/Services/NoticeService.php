@@ -15,10 +15,7 @@ class NoticeService
     {
         return Notice::query()
             ->with(['projects.stages'])
-            ->when($search, function ($query, $search) {
-                $query->where('name', 'ilike', "%{$search}%")
-                    ->orWhere('nup', 'ilike', "%{$search}%");
-            })
+            ->search($search)
             ->orderBy('created_at', 'desc')
             ->get()
             ->map(fn (Notice $notice) => [

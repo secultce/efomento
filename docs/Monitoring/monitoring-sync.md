@@ -39,7 +39,7 @@ SyncMonitoringJob  (queue: high)
 [Frontend — MonitoringTab]
   project.has_monitoring_snapshot === true
      → botão habilitado (amarelo)
-     → click → v-dialog exibe project.data_registration
+     → click → v-dialog exibe os arquivos e o RegistrationPhasesButton (project.registration_phases)
 ```
 ```
 ---
@@ -169,7 +169,8 @@ const monitoringDialogOpen = ref(false);
     <v-card-title class="pa-4">Ficha da fase do Monitoramento</v-card-title>
     <v-divider />
     <v-card-text class="pa-4">
-      <!-- Campos de project.data_registration renderizados como pares label/valor -->
+      <RegistrationPhasesButton :project="project" class="mb-4" />
+      <!-- Arquivos da inscrição -->
     </v-card-text>
     <v-divider />
     <v-card-actions class="pa-4 justify-end">
@@ -179,7 +180,7 @@ const monitoringDialogOpen = ref(false);
 </v-dialog>
 ```
 
-O conteúdo do dialog exibirá os campos de `project.data_registration` priorizando: número da inscrição, título do projeto, nome do agente, status consolidado e datas.
+O dialog exibe os arquivos da inscrição e o `RegistrationPhasesButton`, que abre as inscrições de `project.registration_phases`.
 
 ---
 
@@ -205,6 +206,6 @@ O conteúdo do dialog exibirá os campos de `project.data_registration` prioriza
 
 1. Criar um `ProfileSnapshot` com `source = 'monitoring'` diretamente via tinker para o projeto de teste — verificar que o botão fica habilitado no frontend
 2. Executar `SyncMonitoringJob::dispatch()` via tinker com o selo configurado — verificar logs e criação do snapshot
-3. Clicar no botão → dialog abre exibindo os campos de `data_registration`
+3. Clicar no botão → dialog abre exibindo os arquivos e o botão para consultar `project.registration_phases`
 4. Projeto sem snapshot → botão desabilitado (cinza)
 5. Rodar `./vendor/bin/pint` e `eslint` sem erros
