@@ -262,7 +262,7 @@ Runbook para a carga única de todas as planilhas históricas, incluindo os arqu
      --user-id=<id_do_usuario> --notice-id=<id_do_edital> --with-files
    ```
 
-2. **Esperar a fila `details` (e, em cascata, `files`) esvaziarem antes de gerar o dump SQL.** `--with-files` só *disparam* os jobs (assíncronos, todos entram primeiro na fila `details`: `LoadSpreadsheetProjectFilesJob`, que encadeia `SyncProjectFilesJob`/`DownloadMapasProjectFileJob` na fila `files`) — se o dump for tirado antes dos workers terminarem, o `.sql` vai ter os `Project`/`Opening` mas faltar `files` e/ou `Opening.registration_data` de itens ainda em andamento. Não há Horizon no projeto; confirmar fila vazia por:
+2. **Esperar a fila `details` (e, em cascata, `files`) esvaziarem antes de gerar o dump SQL.** `--with-files` só *disparam* os jobs (assíncronos, todos entram primeiro na fila `details`: `LoadSpreadsheetProjectFilesJob`, que encadeia `SyncProjectFilesJob`/`DownloadMapasProjectFileJob` na fila `files`) — se o dump for tirado antes dos workers terminarem, o `.sql` vai ter os `Project`/`Opening`, mas faltar os `files` de itens ainda em andamento. Não há Horizon no projeto; confirmar fila vazia por:
     - `job_batches` das batches `sync-project-files:%` (`pending_jobs = 0`);
     - logs de arquivos (`sync.project.files.queued` vs `sync.project.file.created` / `sync.project.file.failed` / `sync.project.files.empty`) até não sobrar pendência.
 
