@@ -29,8 +29,13 @@ class PaymentWorkflow {
 
     processProjectToMonitoring({ notice, project }) {
         NoticeWorkflow.uploadPaymentsReportFile();
+        NoticeWorkflow.validatePaymentReportUpload();
         this.accessPaymentTab({ notice, project });
         Tramit.tramit();
+    }
+
+    validateProjectProcessedToMonitoring() {
+        Tramit.val;
     }
 }
 
