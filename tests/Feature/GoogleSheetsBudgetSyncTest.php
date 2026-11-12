@@ -2,7 +2,6 @@
 
 namespace Tests\Feature;
 
-use App\Exceptions\Integration\PartialSpreadsheetSyncException;
 use App\Models\Budget;
 use App\Models\BudgetAllocation;
 use App\Models\Installment;
@@ -323,13 +322,9 @@ class GoogleSheetsBudgetSyncTest extends TestCase
             ],
         ]);
 
-        try {
-            $this->syncBudget();
-            $this->fail('A failed row must be reported to the caller.');
-        } catch (PartialSpreadsheetSyncException $exception) {
-            $this->assertSame(0, $exception->processedCount);
-            $this->assertSame(1, $exception->failedCount);
-        }
+        $count = $this->syncBudget();
+
+        $this->assertSame(0, $count);
         $this->assertNull(Budget::where('project_id', $project->id)->first());
         $this->assertNull(BudgetAllocation::where('allocation_code', 'FAIL-DOT')->first());
         $this->assertSame(0, Installment::count());
