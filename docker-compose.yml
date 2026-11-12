@@ -79,7 +79,7 @@ services:
       dockerfile: Dockerfile
       args:
         UID: ${UID}
-        GID: ${GID}laravel
+        GID: ${GID}
     container_name: efomento-queue
     environment:
       REVERB_HOST: reverb
