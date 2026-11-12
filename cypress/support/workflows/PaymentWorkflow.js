@@ -33,10 +33,6 @@ class PaymentWorkflow {
         this.accessPaymentTab({ notice, project });
         Tramit.tramit();
     }
-
-    validateProjectProcessedToMonitoring() {
-        Tramit.val;
-    }
 }
 
 export default new PaymentWorkflow();
