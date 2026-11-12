@@ -16,7 +16,6 @@ diretamente para os models Eloquent, via comando Artisan ou endpoint HTTP.
 | `app/Services/GoogleSheetsService.php` | Busca e parseia a planilha; contém a lógica de sync por aba (`importSheet`, `syncFormalization`, `syncBudget`, `syncPagamento`) |
 | `app/Services/SpreadsheetImportService.php` | Processa linhas da aba Abertura: cria/atualiza Agent, Category, Project, Opening e o usuário Fiscal (`User`/`OpeningSupervisor`) |
 | `app/Console/Commands/ImportGoogleSheetsCommand.php` | Comando Artisan unificado — aceita `--aba` para escolher quais abas importar |
-| `app/Jobs/SyncOpeningRegistrationDataJob.php` | Job assíncrono (fila `details`) que busca a ficha de inscrição via `MapasClient::registrationDetails()` e grava em `Opening.registration_data` |
 | `config/spreadsheet_mappings.php` | Mapeamento `coluna da planilha → campo do model` por aba |
 
 > **Planejado, não implementado**: o endpoint HTTP (`app/Http/Controllers/SpreadsheetSyncController.php` e as rotas `POST /sync/formalizacao` / `POST /sync/orcamento`) ainda não existe no repositório. Só o comando Artisan foi implementado até agora — ver seção "Como executar".
@@ -39,7 +38,7 @@ Planilha → fetchSheet() → rows[] por label
 
 > **Fiscal (`FISCAL`)**: `resolveSupervisor()` busca um `User` por `name` igual ao valor da coluna `FISCAL`. Se não encontrar, cria um novo `User` via `UserService::create()` com `cpf` = coluna `CPF FISCAL`, `registration_number` = coluna `MATRICULA DO FISCAL`, senha aleatória (`Str::password(32)`) e role `monitoring` — a planilha não tem e-mail do fiscal, então é gerado um sintético: `Str::slug(nome, '.').'@mail.com'`. O usuário resolvido preenche `Opening::supervisor_id` **e** é registrado como fiscal titular via `Opening::assignSupervisors()` (mesmo método usado por `ProjectSupervisorService`), para aparecer corretamente nos documentos gerados (`[fiscal_name]`) e nas regras de negócio da etapa. Se a coluna `FISCAL` vier vazia numa linha, `supervisor_id` é limpo (`null`), mas o vínculo já existente em `OpeningSupervisor` **não** é desfeito automaticamente.
 
-> **`registration_data` (ficha de inscrição via API do Mapas) — opt-in, requer `--with-registration-data`**: `processRow()` já extrai o id numérico da inscrição (`extractRegistrationId()`, a partir da URL na coluna `LINK FICHA DE INSCRIÇÃO` — mesmo valor gravado em `Project::registration_id`, sem o prefixo `"on-"`). Se a flag `--with-registration-data` for passada ao comando, `SyncOpeningRegistrationDataJob` é despachado (`afterCommit()`, fila `details`) para cada linha, chama `MapasClient::registrationDetails($registrationId)` e grava um subconjunto seguro da resposta (`registration.id/number/status/files`, `fileConfigurations`, `fields`) em `Opening.registration_data` (json). **Sem a flag, o campo fica `null`** — não é preenchido por padrão, para não disparar uma chamada à API do Mapas por linha em toda importação. Como o job é assíncrono, também é necessário que o worker da fila `details` (`efomento-queue`) esteja rodando para o campo ser efetivamente preenchido. No frontend, a Tab de Abertura (`OpeningTab.vue`) exibe os campos de `registration_data.fields` diretamente no painel esquerdo "Dados disponíveis para consulta" — seção "Ficha de Abertura (Mapas Cultural)" em `resources/js/Schemas/Opening/viewSections.js`, junto com os demais campos da Abertura (não é um botão/dialog separado, diferente do padrão usado em Monitoramento). O parse do valor bruto de cada campo (`valueField`, que a API do Mapas retorna como string JSON-encoded) usa `resources/js/Schemas/parseRegistrationFieldValue.js`.
+> **Ficha de inscrição:** a antiga `Opening.registration_data` foi removida (#636). As inscrições vêm de `project_registration_phases`, preenchida pelo `SyncProjectPhasesJob`.
 
 **Abas Formalização, Orçamento e Pagamento** (enriquece projetos/Opening existentes):
 ```
@@ -165,7 +164,6 @@ Opções disponíveis:
 | `--user-id` | **sim** | ID do usuário para `created_by` / `user_id` |
 | `--notice-id` | não | ID do edital fallback (necessário para Abertura quando `external_id` não bate) |
 | `--with-files` | não | Baixar arquivos do MAPAS ao importar projetos (apenas Abertura) |
-| `--with-registration-data` | não | Sincroniza `Opening.registration_data` via API do Mapas (`MapasClient::registrationDetails()`), assíncrono na fila `details` (apenas Abertura) |
 
 ### 3. Via endpoint HTTP (planejado, não implementado)
 
@@ -245,38 +243,37 @@ Route::post('/monitoramento', [SpreadsheetSyncController::class, 'syncMonitorame
 
 ---
 
-## Migração histórica de arquivos e registration_data (planilhas → produção)
+## Migração histórica de arquivos (planilhas → produção)
 
-Runbook para a carga única de todas as planilhas históricas, incluindo os arquivos anexados no Mapas Cultural (documentos da inscrição) e a ficha de inscrição (`Opening.registration_data`).
+Runbook para a carga única de todas as planilhas históricas, incluindo os arquivos anexados no Mapas Cultural (documentos da inscrição).
 
-**Estratégia definida:** todo o processo — import da planilha, download dos arquivos **e** sync de `registration_data` — roda em homologação. Depois, o `.sql` completo do banco é restaurado em produção e a infraestrutura transfere os arquivos físicos de homologação para produção via `rsync`. Não é necessário nenhum comando artisan dedicado — as flags `--with-files` e `--with-registration-data`, já existentes em `app:import-google-sheets`, resolvem sozinhas, pelos seguintes motivos:
+**Estratégia definida:** todo o processo — import da planilha, download dos arquivos — roda em homologação. Depois, o `.sql` completo do banco é restaurado em produção e a infraestrutura transfere os arquivos físicos de homologação para produção via `rsync`. Não é necessário nenhum comando artisan dedicado — as flags `--with-files`, já existentes em `app:import-google-sheets`, resolvem sozinhas, pelos seguintes motivos:
 
 - `DownloadMapasProjectFileJob` grava cada arquivo em path **relativo**: `projects/{project_id}/mapas/{external_id}.{ext}`, no disco `public` (root `storage/app/public`, ver `config/filesystems.php`).
-- `SyncOpeningRegistrationDataJob` grava o subconjunto seguro da ficha diretamente em `Opening.registration_data` (json) — sem nenhuma dependência de storage/arquivo físico, então não precisa de `rsync`: o dump SQL já carrega esse dado sozinho.
 - Como produção restaura o `.sql` **inteiro** do banco (não é merge/insert em banco já existente), os `id` de `projects` ficam idênticos entre homologação e produção — então o path relativo gravado na tabela `files` (que vai junto no mesmo dump) aponta para o lugar certo assim que o `rsync` copiar os arquivos.
-- Os dois pipelines (`LoadSpreadsheetProjectFilesJob`→`SyncProjectFilesJob`→`DownloadMapasProjectFileJob` e `SyncOpeningRegistrationDataJob`) são os mesmos usados no fluxo em tempo real: já têm rate limit (`mapas-api`, 60 req/min) e `DownloadMapasProjectFileJob` é idempotente (verifica `StoredFile::withTrashed()` antes de baixar de novo).
+- Os dois pipelines (`LoadSpreadsheetProjectFilesJob`→`SyncProjectFilesJob`→`DownloadMapasProjectFileJob`) são os mesmos usados no fluxo em tempo real: já têm rate limit (`mapas-api`, 60 req/min) e `DownloadMapasProjectFileJob` é idempotente (verifica `StoredFile::withTrashed()` antes de baixar de novo).
 
 ### Passo a passo
 
-1. Rodar os comandos de import em **homologação**, com `--with-files` e `--with-registration-data`:
+1. Rodar os comandos de import em **homologação**, com `--with-files`:
    ```bash
    docker exec <container_php> php artisan app:import-google-sheets ID_DA_PLANILHA \
      --aba="Abertura" --aba="Formalização" --aba="Orçamento" --aba="Pagamento" \
-     --user-id=<id_do_usuario> --notice-id=<id_do_edital> --with-files --with-registration-data
+     --user-id=<id_do_usuario> --notice-id=<id_do_edital> --with-files
    ```
 
-2. **Esperar a fila `details` (e, em cascata, `files`) esvaziarem antes de gerar o dump SQL.** `--with-files` e `--with-registration-data` só *disparam* os jobs (assíncronos, todos entram primeiro na fila `details`: `LoadSpreadsheetProjectFilesJob` e `SyncOpeningRegistrationDataJob`; o primeiro encadeia `SyncProjectFilesJob`/`DownloadMapasProjectFileJob` na fila `files`) — se o dump for tirado antes dos workers terminarem, o `.sql` vai ter os `Project`/`Opening` mas faltar `files` e/ou `Opening.registration_data` de itens ainda em andamento. Não há Horizon no projeto; confirmar fila vazia por:
+2. **Esperar a fila `details` (e, em cascata, `files`) esvaziarem antes de gerar o dump SQL.** `--with-files` só *disparam* os jobs (assíncronos, todos entram primeiro na fila `details`: `LoadSpreadsheetProjectFilesJob`, que encadeia `SyncProjectFilesJob`/`DownloadMapasProjectFileJob` na fila `files`) — se o dump for tirado antes dos workers terminarem, o `.sql` vai ter os `Project`/`Opening`, mas faltar os `files` de itens ainda em andamento. Não há Horizon no projeto; confirmar fila vazia por:
     - `job_batches` das batches `sync-project-files:%` (`pending_jobs = 0`);
-    - logs de arquivos (`sync.project.files.queued` vs `sync.project.file.created` / `sync.project.file.failed` / `sync.project.files.empty`) e de registration_data (`sync.opening.registration_data.start` vs `sync.opening.registration_data.done` / `sync.opening.registration_data.failed`) até não sobrar pendência.
+    - logs de arquivos (`sync.project.files.queued` vs `sync.project.file.created` / `sync.project.file.failed` / `sync.project.files.empty`) até não sobrar pendência.
 
 3. Gerar o dump `.sql` completo do banco de homologação **só depois** da confirmação acima.
 
 4. Restaurar o `.sql` em produção.
 
-5. Infraestrutura sincroniza `storage/app/public/projects/` de homologação para produção via `rsync` — precisa ser exatamente essa raiz relativa (mesmo disco `public`), senão os paths gravados no banco não resolvem. `registration_data` não precisa de rsync, já veio no dump.
+5. Infraestrutura sincroniza `storage/app/public/projects/` de homologação para produção via `rsync` — precisa ser exatamente essa raiz relativa (mesmo disco `public`), senão os paths gravados no banco não resolvem. 
 
-6. Falhas pontuais identificadas nos logs (`sync.project.file.failed` / `sync.opening.registration_data.failed`) podem ser reprocessadas re-executando o import. O comando `app:import-google-sheets` **não tem filtro por inscrição/linha** — ele reprocessa a aba inteira. As duas formas suportadas de reprocessar:
-   - **Planilha completa:** rodar o mesmo comando de novo com `--with-files`/`--with-registration-data`. É seguro (`firstOrCreate`/`firstOrNew`/`recordIfChanged` são idempotentes; `DownloadMapasProjectFileJob` deduplica via `StoredFile::withTrashed()`; `SyncOpeningRegistrationDataJob` apenas sobrescreve `registration_data`), mas re-enfileira os jobs para **todas** as linhas, respeitando o rate limit `mapas-api` (60 req/min).
+6. Falhas pontuais identificadas nos logs (`sync.project.file.failed`) podem ser reprocessadas re-executando o import. O comando `app:import-google-sheets` **não tem filtro por inscrição/linha** — ele reprocessa a aba inteira. As duas formas suportadas de reprocessar:
+   - **Planilha completa:** rodar o mesmo comando de novo com `--with-files`. É seguro (`firstOrCreate`/`firstOrNew`/`recordIfChanged` são idempotentes; `DownloadMapasProjectFileJob` deduplica via `StoredFile::withTrashed()`), mas re-enfileira os jobs para **todas** as linhas, respeitando o rate limit `mapas-api` (60 req/min).
    - **Subconjunto isolado:** criar uma cópia da planilha contendo só as linhas afetadas e rodar o import apontando para essa cópia (`--aba="Abertura"`). Evita re-enfileirar trabalho para o restante.
 
    Em ambos os casos, repetir os passos 2–4 (aguardar a fila, gerar novo dump, restaurar) para o conjunto reprocessado antes do rsync final.
@@ -286,7 +283,7 @@ Runbook para a carga única de todas as planilhas históricas, incluindo os arqu
 
 | Aba | Model(s) | Método no service |
 |---|---|---|
-| Abertura | `Agent`, `Category`, `Project`, `Opening`, `User`/`OpeningSupervisor` (Fiscal), `Opening.registration_data` (opt-in, `--with-registration-data`, via `SyncOpeningRegistrationDataJob`) | `importSheet()` |
+| Abertura | `Agent`, `Category`, `Project`, `Opening`, `User`/`OpeningSupervisor` (Fiscal) | `importSheet()` |
 | Formalização | `Formalization`, `Opening` (só `opening_nup`, cross-tab) | `syncFormalization()` |
 | Orçamento | `Budget` | `syncBudget()` |
 | Pagamento | `Opening` (só `creditor_number`, cross-tab) | `syncPagamento()` |

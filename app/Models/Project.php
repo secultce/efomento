@@ -34,7 +34,6 @@ class Project extends Model implements Auditable
         'create_timestamp',
         'sent_timestamp',
         'consolidated_result',
-        'data_registration',
         'created_by',
         'title_project',
     ];
@@ -42,7 +41,6 @@ class Project extends Model implements Auditable
     protected $casts = [
         'create_timestamp' => 'datetime',
         'sent_timestamp' => 'datetime',
-        'data_registration' => 'array',
         'current_installment_cycle' => 'integer',
         'last_checked_at' => 'datetime',
         'last_changed_at' => 'datetime',

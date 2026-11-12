@@ -151,6 +151,8 @@ class ProjectController extends Controller
             'agent.latestSnapshot',
             'monitoringSnapshot',
             'stages',
+            // Só no show: o `data` de cada fase é grande demais para a listagem.
+            'registrationPhases' => fn ($q) => $q->orderBy('phase_order'),
         ]);
 
         $project->documents->each(function ($document) use ($project) {

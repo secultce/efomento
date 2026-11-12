@@ -21,7 +21,6 @@ class MonitoringFactory extends Factory
                 ['suite_number' => $this->faker->numerify('####'), 'processing_date' => $this->faker->date()],
             ],
             'observations' => $this->faker->optional()->paragraph(),
-            'data_registration' => null,
         ];
     }
 }

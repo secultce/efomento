@@ -9,7 +9,6 @@ use App\Enums\ProfileSnapshotSource;
 use App\Enums\ReportStatus;
 use App\Enums\Role;
 use App\Jobs\LoadSpreadsheetProjectFilesJob;
-use App\Jobs\SyncOpeningRegistrationDataJob;
 use App\Models\Formalization;
 use App\Models\Notice;
 use App\Models\Opening;
@@ -42,9 +41,8 @@ class SpreadsheetImportService
         bool $withFiles,
         int $userId,
         ?int $fallbackNoticeId = null,
-        bool $withRegistrationData = false,
     ): ?Project {
-        return DB::transaction(function () use ($row, $withFiles, $userId, $fallbackNoticeId, $withRegistrationData) {
+        return DB::transaction(function () use ($row, $withFiles, $userId, $fallbackNoticeId) {
             $registrationUrl = trim((string) ($row['LINK FICHA DE INSCRIÇÃO'] ?? ''));
             $registrationId = $this->extractRegistrationId($registrationUrl);
 
@@ -118,16 +116,6 @@ class SpreadsheetImportService
                 LoadSpreadsheetProjectFilesJob::dispatch(
                     projectId: $project->id,
                     registrationId: (int) $registrationId,
-                )
-                    ->afterCommit()
-                    ->onQueue('details');
-            }
-
-            if ($withRegistrationData) {
-                SyncOpeningRegistrationDataJob::dispatch(
-                    projectId: $project->id,
-                    registrationId: (int) $registrationId,
-                    userId: $userId,
                 )
                     ->afterCommit()
                     ->onQueue('details');

@@ -13,8 +13,7 @@ class ImportGoogleSheetsCommand extends Command
                             {--aba=* : Abas a importar: Abertura, Formalização, Orçamento, Pagamento}
                             {--user-id= : ID do usuário para created_by / user_id}
                             {--notice-id= : ID do edital fallback quando não encontrado pela planilha (apenas Abertura)}
-                            {--with-files : Baixar arquivos do MAPAS ao importar projetos (apenas Abertura)}
-                            {--with-registration-data : Sincroniza registration_data do Opening via API do Mapas ao importar a aba Abertura}';
+                            {--with-files : Baixar arquivos do MAPAS ao importar projetos (apenas Abertura)}';
 
     protected $description = 'Importa dados de uma ou mais abas do Google Sheets para o banco';
 
@@ -27,7 +26,6 @@ class ImportGoogleSheetsCommand extends Command
         $userId = $this->option('user-id') ? (int) $this->option('user-id') : null;
         $noticeId = $this->option('notice-id') ? (int) $this->option('notice-id') : null;
         $withFiles = (bool) $this->option('with-files');
-        $withRegistrationData = (bool) $this->option('with-registration-data');
 
         if ($userId === null) {
             $this->error('Informe o usuário com --user-id=<id>.');
@@ -38,7 +36,7 @@ class ImportGoogleSheetsCommand extends Command
         $failed = false;
 
         if ($abas === self::ABA_NAMES) {
-            $result = $service->importAll($spreadsheetId, $userId, $noticeId, $withFiles, $withRegistrationData);
+            $result = $service->importAll($spreadsheetId, $userId, $noticeId, $withFiles);
 
             foreach ($result['counts'] as $aba => $count) {
                 $this->info("{$aba}: {$count} registro(s) gravado(s).");
@@ -55,7 +53,7 @@ class ImportGoogleSheetsCommand extends Command
 
             try {
                 $count = match ($aba) {
-                    'Abertura' => $service->importSheet($spreadsheetId, $aba, $withFiles, $userId, $noticeId, $withRegistrationData),
+                    'Abertura' => $service->importSheet($spreadsheetId, $aba, $withFiles, $userId, $noticeId),
                     'Formalização' => $service->syncFormalization($spreadsheetId, $aba, $userId),
                     'Orçamento' => $service->syncBudget($spreadsheetId, $aba, $userId),
                     'Pagamento' => $service->syncPagamento($spreadsheetId, $aba, $userId),

@@ -4,7 +4,6 @@ namespace Tests\Feature;
 
 use App\Jobs\ImportGoogleSheetsJob;
 use App\Jobs\LoadSpreadsheetProjectFilesJob;
-use App\Jobs\SyncOpeningRegistrationDataJob;
 use App\Models\Notice;
 use App\Models\User;
 use App\Notifications\AppNotification;
@@ -45,7 +44,6 @@ class SpreadsheetSyncTest extends TestCase
             'fallback_notice_id' => $notice->id,
             'triggered_by_user_id' => $responsible->id,
             'with_files' => false,
-            'with_registration_data' => false,
         ])->assertRedirect('/editais')->assertSessionHas('success');
 
         Queue::assertPushedOn('default', ImportGoogleSheetsJob::class, fn ($job) => $job->spreadsheetId === 'sheet-123'
@@ -121,7 +119,6 @@ class SpreadsheetSyncTest extends TestCase
         $this->assertDatabaseHas('projects', ['registration_id' => '123456', 'notice_id' => $notice->id]);
         Http::assertSentCount(4);
         Queue::assertPushed(LoadSpreadsheetProjectFilesJob::class);
-        Queue::assertPushed(SyncOpeningRegistrationDataJob::class);
         Notification::assertSentTo($admin, AppNotification::class, fn ($notification) => $notification->type === 'success'
             && $notification->meta['counts'] === ['Abertura' => 1, 'Formalização' => 1, 'Orçamento' => 1, 'Pagamento' => 1]);
     }

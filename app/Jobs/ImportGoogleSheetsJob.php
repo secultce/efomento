@@ -34,7 +34,7 @@ class ImportGoogleSheetsJob implements ShouldQueue
 
     public function handle(GoogleSheetsService $service, Notify $notify): void
     {
-        $result = $service->importAll($this->spreadsheetId, $this->userId, $this->fallbackNoticeId, true, true);
+        $result = $service->importAll($this->spreadsheetId, $this->userId, $this->fallbackNoticeId, true);
         $user = User::find($this->triggeredByUserId);
 
         if (! $user) {

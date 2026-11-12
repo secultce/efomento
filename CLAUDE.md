@@ -18,7 +18,7 @@ Todos os comandos rodam dentro do Docker — nunca execute `php`, `artisan`, `co
 | `efomento-queue-files` | Worker de filas (files)                       | —              |
 | `efomento-scheduler`   | Laravel scheduler                             | —              |
 | `efomento-greenmail`   | Servidor SMTP/IMAP local (e-mail de teste)    | —              |
-| `efomento-roundcube`   | Webmail para visualizar e-mails de teste      | 8025           |
+| `efomento-roundcube`   | Webmail para visualizar e-mails de teste      | 8026           |
 
 Acesso: http://localhost:8080
 

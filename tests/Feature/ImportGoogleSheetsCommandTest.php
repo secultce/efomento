@@ -11,10 +11,10 @@ class ImportGoogleSheetsCommandTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_all_tabs_use_shared_import_while_preserving_cli_defaults(): void
+    public function test_all_tabs_use_shared_import_with_cli_defaults(): void
     {
         $this->mock(GoogleSheetsService::class)->shouldReceive('importAll')->once()
-            ->with('sheet-id', 1, null, false, false)
+            ->with('sheet-id', 1, null, false)
             ->andReturn(['counts' => ['Abertura' => 2, 'Formalização' => 2, 'Orçamento' => 2, 'Pagamento' => 2], 'errors' => []]);
 
         $this->artisan('app:import-google-sheets sheet-id --user-id=1')->assertSuccessful();
@@ -23,31 +23,19 @@ class ImportGoogleSheetsCommandTest extends TestCase
     public function test_all_tabs_return_failure_when_any_tab_failed(): void
     {
         $this->mock(GoogleSheetsService::class)->shouldReceive('importAll')->once()
-            ->with('sheet-id', 1, 7, true, true)
+            ->with('sheet-id', 1, 7, true)
             ->andReturn(['counts' => ['Abertura' => 2], 'errors' => ['Formalização' => 'Tab unavailable']]);
 
-        $this->artisan('app:import-google-sheets sheet-id --user-id=1 --notice-id=7 --with-files --with-registration-data')
+        $this->artisan('app:import-google-sheets sheet-id --user-id=1 --notice-id=7 --with-files')
             ->assertFailed();
     }
 
-    public function test_with_registration_data_flag_is_passed_to_import_sheet(): void
+    public function test_import_sheet_is_called_for_abertura_tab(): void
     {
         $this->mock(GoogleSheetsService::class)
             ->shouldReceive('importSheet')
             ->once()
-            ->with('sheet-id', 'Abertura', false, 1, null, true)
-            ->andReturn(2);
-
-        $this->artisan('app:import-google-sheets sheet-id --aba=Abertura --user-id=1 --with-registration-data')
-            ->assertSuccessful();
-    }
-
-    public function test_registration_data_defaults_to_false_when_flag_is_absent(): void
-    {
-        $this->mock(GoogleSheetsService::class)
-            ->shouldReceive('importSheet')
-            ->once()
-            ->with('sheet-id', 'Abertura', false, 1, null, false)
+            ->with('sheet-id', 'Abertura', false, 1, null)
             ->andReturn(2);
 
         $this->artisan('app:import-google-sheets sheet-id --aba=Abertura --user-id=1')

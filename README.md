@@ -108,7 +108,7 @@ Isso inicia automaticamente:
 | efomento-queue-files   | Worker de filas (files)                       | —              |
 | efomento-scheduler     | Laravel scheduler                             | —              |
 | efomento-greenmail     | Servidor SMTP/IMAP local (e-mail de teste)    | —              |
-| efomento-roundcube     | Webmail para visualizar e-mails de teste      | 8025           |
+| efomento-roundcube     | Webmail para visualizar e-mails de teste      | 8026           |
 
 Acesse: **http://localhost:8080**
 
@@ -181,7 +181,7 @@ Depois de alterar `SEED_MODE` em um ambiente com configuracao em cache, execute
 | Reverb        | ws://localhost:8081    |
 | Vite HMR      | http://localhost:5173  |
 | PostgreSQL    | localhost:5433         |
-| Webmail       | http://localhost:8025  |
+| Webmail       | http://localhost:8026  |
 
 ### Verificação de acesso por email
 

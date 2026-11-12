@@ -26,7 +26,7 @@ resultar em reenvio.
 
 Para validar localmente, configure o SMTP de teste, execute as migrations e mantenha
 o worker ativo. Importe pela lista de editais um relatório que torne uma parcela
-paga e regular; confira a caixa de entrada no Roundcube (porta 8025) e o registro
+paga e regular; confira a caixa de entrada no Roundcube (porta 8026) e o registro
 `sent`, com `sent_at` preenchido. Reimporte o mesmo relatório para conferir que não
 há outro envio.
 

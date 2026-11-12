@@ -60,7 +60,6 @@ class GoogleSheetsService
         int $userId,
         ?int $fallbackNoticeId = null,
         bool $withFiles = true,
-        bool $withRegistrationData = true,
     ): array {
         $counts = [];
         $errors = [];
@@ -68,7 +67,7 @@ class GoogleSheetsService
         foreach (['Abertura', 'Formalização', 'Orçamento', 'Pagamento'] as $sheet) {
             try {
                 $counts[$sheet] = match ($sheet) {
-                    'Abertura' => $this->importSheet($spreadsheetId, $sheet, $withFiles, $userId, $fallbackNoticeId, $withRegistrationData),
+                    'Abertura' => $this->importSheet($spreadsheetId, $sheet, $withFiles, $userId, $fallbackNoticeId),
                     'Formalização' => $this->syncFormalization($spreadsheetId, $sheet, $userId),
                     'Orçamento' => $this->syncBudget($spreadsheetId, $sheet, $userId),
                     'Pagamento' => $this->syncPagamento($spreadsheetId, $sheet, $userId),
@@ -127,13 +126,12 @@ class GoogleSheetsService
         bool $withFiles,
         int $userId,
         ?int $fallbackNoticeId = null,
-        bool $withRegistrationData = false,
     ): int {
         ['rows' => $rows] = $this->fetchSheet($spreadsheetId, $sheetName);
 
         $count = 0;
         foreach ($rows as $row) {
-            if ($this->importService->processRow($row, $withFiles, $userId, $fallbackNoticeId, $withRegistrationData) !== null) {
+            if ($this->importService->processRow($row, $withFiles, $userId, $fallbackNoticeId) !== null) {
                 $count++;
             }
         }

@@ -21,12 +21,10 @@ class Monitoring extends Model implements Auditable
         'created_by',
         'technical_opinions',
         'observations',
-        'data_registration',
     ];
 
     protected $casts = [
         'technical_opinions' => 'array',
-        'data_registration' => 'array',
     ];
 
     public function project(): BelongsTo

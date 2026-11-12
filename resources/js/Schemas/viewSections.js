@@ -1,9 +1,9 @@
+import RegistrationPhasesButton from '@/Components/RegistrationPhasesButton.vue';
 import { useDate } from '@/Composables/useDate';
 import { useMask } from '@/Composables/useMask';
 import {
     getCurrentInstallment,
     getInstallmentJustification,
-    parseRegistrationFieldValue,
     getLegalType,
     getBudgetAllocation,
     getFullAddress,
@@ -185,20 +185,7 @@ export const viewSections = [
         key: 'registration',
         tabs: ['opening', 'formalization', 'legalAnalysis'],
         title: 'Ficha de Inscrição (Mapas Cultural)',
-        fields: [
-            {
-                label: 'Campos da inscrição',
-                fullWidth: true,
-                items: (project) => {
-                    const fields = project.opening?.registration_data?.fields ?? [];
-
-                    return fields.map((f) => ({
-                        label: f.titleField,
-                        value: parseRegistrationFieldValue(f.valueField),
-                    }));
-                },
-            },
-        ],
+        fields: [{ label: 'Inscrições', fullWidth: true, component: RegistrationPhasesButton }],
     },
     {
         key: 'agentProjectWithAddress',

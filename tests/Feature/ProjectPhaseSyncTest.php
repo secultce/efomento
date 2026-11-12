@@ -150,9 +150,9 @@ class ProjectPhaseSyncTest extends TestCase
         $this->assertSame(64, strlen($first));
     }
 
-    public function test_new_phase_creates_row_and_keeps_data_registration(): void
+    public function test_new_phase_creates_row_and_keeps_existing_ones(): void
     {
-        $project = Project::factory()->create(['registration_id' => '100', 'data_registration' => ['keep' => true]]);
+        $project = Project::factory()->create(['registration_id' => '100']);
         $this->fakeMapas($this->summary([$this->phase(1, 100, 10, true, now()->addDays(60)->toIso8601String())]));
         $this->sync($project);
 
@@ -165,7 +165,6 @@ class ProjectPhaseSyncTest extends TestCase
         $project->refresh();
         $this->assertSame(2, $project->registrationPhases()->count());
         $this->assertSame(200, $project->latest_registration_id);
-        $this->assertSame(['keep' => true], $project->data_registration);
     }
 
     public function test_status_change_updates_same_row(): void

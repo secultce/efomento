@@ -21,14 +21,14 @@ class ImportGoogleSheetsJobTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_success_notifies_the_initiator_and_always_enables_files_and_registration_data(): void
+    public function test_success_notifies_the_initiator_and_always_enables_files(): void
     {
         Notification::fake();
         $initiator = User::factory()->create();
         $responsible = User::factory()->create();
         $counts = ['Abertura' => 2, 'Formalização' => 3, 'Orçamento' => 4, 'Pagamento' => 5];
         $service = $this->mock(GoogleSheetsService::class);
-        $service->shouldReceive('importAll')->once()->with('sheet-id', $responsible->id, 7, true, true)
+        $service->shouldReceive('importAll')->once()->with('sheet-id', $responsible->id, 7, true)
             ->andReturn(['counts' => $counts, 'errors' => []]);
 
         (new ImportGoogleSheetsJob('sheet-id', $responsible->id, 7, $initiator->id))->handle($service, app(Notify::class));
@@ -116,7 +116,7 @@ class ImportGoogleSheetsJobTest extends TestCase
     public function test_import_all_runs_every_tab_in_order_even_after_a_tab_fails(): void
     {
         $service = $this->partialMock(GoogleSheetsService::class);
-        $service->shouldReceive('importSheet')->once()->with('sheet-id', 'Abertura', true, 1, 7, true)
+        $service->shouldReceive('importSheet')->once()->with('sheet-id', 'Abertura', true, 1, 7)
             ->ordered()->andReturn(2);
         $service->shouldReceive('syncFormalization')->once()->with('sheet-id', 'Formalização', 1)
             ->ordered()->andThrow(new RuntimeException('Tab unavailable'));

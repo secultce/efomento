@@ -40,20 +40,6 @@ class MonitoringTest extends TestCase
     }
 
     #[Test]
-    public function data_registration_is_cast_to_array(): void
-    {
-        $data = ['key' => 'value', 'count' => 3];
-
-        $monitoring = Monitoring::factory()->create(['data_registration' => $data]);
-
-        $fresh = $monitoring->fresh();
-
-        $this->assertIsArray($fresh->data_registration);
-        $this->assertEquals('value', $fresh->data_registration['key']);
-        $this->assertEquals(3, $fresh->data_registration['count']);
-    }
-
-    #[Test]
     public function relationships_resolve_correctly(): void
     {
         $user = User::factory()->create();
@@ -94,7 +80,6 @@ class MonitoringTest extends TestCase
             'created_by',
             'technical_opinions',
             'observations',
-            'data_registration',
         ], $monitoring->getFillable());
     }
 
@@ -206,28 +191,6 @@ class MonitoringTest extends TestCase
         $resolved = DiligenceMessage::find($message->id)->diligenceable;
         $this->assertInstanceOf(Monitoring::class, $resolved);
         $this->assertTrue($resolved->is($monitoring));
-    }
-
-    #[Test]
-    public function data_registration_stores_and_retrieves_data(): void
-    {
-        $data = [['field' => 'valor_a'], ['field' => 'valor_b']];
-
-        $monitoring = Monitoring::factory()->create(['data_registration' => $data]);
-
-        $fresh = $monitoring->fresh();
-
-        $this->assertCount(2, $fresh->data_registration);
-        $this->assertEquals('valor_a', $fresh->data_registration[0]['field']);
-        $this->assertEquals('valor_b', $fresh->data_registration[1]['field']);
-    }
-
-    #[Test]
-    public function data_registration_is_nullable(): void
-    {
-        $monitoring = Monitoring::factory()->create(['data_registration' => null]);
-
-        $this->assertNull($monitoring->fresh()->data_registration);
     }
 
     #[Test]

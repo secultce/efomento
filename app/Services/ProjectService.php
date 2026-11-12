@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Jobs\SyncProjectPhasesProjectJob;
 use App\Models\Project;
 
 class ProjectService
@@ -14,7 +15,7 @@ class ProjectService
         int $noticeId,
         ?int $categoryId
     ): Project {
-        return Project::query()->firstOrCreate(
+        $project = Project::query()->firstOrCreate(
             [
                 'registration_id' => $registrationId,
             ],
@@ -26,8 +27,14 @@ class ProjectService
                 'create_timestamp' => data_get($registration, 'createTimestamp.date'),
                 'sent_timestamp' => data_get($registration, 'sentTimestamp.date'),
                 'consolidated_result' => data_get($details, 'registration.consolidatedResult'),
-                'data_registration' => $details,
             ]
         );
+
+        // Sem isso o projeto novo só ganharia fases no disparo diário das 04:00.
+        if ($project->wasRecentlyCreated) {
+            SyncProjectPhasesProjectJob::dispatch($project->id)->afterCommit();
+        }
+
+        return $project;
     }
 }
