@@ -15,10 +15,10 @@ class BudgetWorkflows {
         Notice.searchNoticeByNup(notice.noticeNup);
         Notice.goToNoticeDetailsPage(notice.noticeNup);
 
-        Project.findProjectByProjectNup(project.projectNup);
+        Project.findProjectByProjectNup(project.nup);
         Project.clickFilterPhase(phase);
 
-        Project.selectProject(project.projectNup);
+        Project.selectProject(project.nup);
 
         Project.clickCreateDocument(documentType);
 

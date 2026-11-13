@@ -33,4 +33,34 @@ describe('Payment', () => {
             });
         });
     });
+
+    describe('Process', () => {
+        it('should process projeto to monitoring phase payment order', function () {
+            // Arrange
+            const notice = this.notice.notice;
+            const project = this.project.payment;
+
+            cy.loginByRole('financial');
+
+            PaymentWorkflow.createPaymentOrder({
+                notice,
+                project,
+                phase: PHASES.PAYMENT,
+            });
+
+            // Act
+            PaymentWorkflow.processProjectToMonitoring({
+                notice,
+                project,
+                phase: PHASES.MONITORING,
+            });
+
+            // Assert
+            ProjectWorkflow.validateProjectPhase({
+                notice,
+                project,
+                phase: PHASES.MONITORING,
+            });
+        });
+    });
 });
