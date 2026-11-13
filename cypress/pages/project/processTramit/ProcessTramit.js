@@ -2,7 +2,7 @@ import { elements as el } from './elements';
 
 class ProcessTramit {
     clickTramitButton() {
-        cy.get(el.tramitButton).should('be.visible').click({ force: true });
+        cy.get(el.tramitButton).should('be.visible').click();
     }
 
     confirmTramit() {

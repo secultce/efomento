@@ -5,6 +5,8 @@ import ProjectWorkflow from '../../../support/workflows/ProjectWorkflow.js';
 
 describe('Budget', () => {
     beforeEach(() => {
+        cy.resetCypressData();
+
         cy.fixture('notices').as('notice');
         cy.fixture('projects').as('project');
     });
@@ -16,15 +18,15 @@ describe('Budget', () => {
 
             // Act
             BudgetWorkflow.createBudgetOpinion({
-                notice: this.notice,
-                project: this.project,
+                notice: this.notice.notice,
+                project: this.project.budgetary,
                 phase: PHASES.BUDGET,
                 documentType: DOCUMENTS.budgetOrder,
             });
 
             // Assert
             ProjectWorkflow.validateDocumentCreated({
-                project: this.project,
+                project: this.project.budgetary,
                 documentType: DOCUMENTS.budgetOrder,
             });
         });
@@ -37,19 +39,19 @@ describe('Budget', () => {
 
             //act
             ProjectWorkflow.accessProjectByNup({
-                notice: this.notice,
-                project: this.project,
+                notice: this.notice.notice,
+                project: this.project.budgetary,
             });
 
             BudgetWorkflow.processProjecToPaymentPhase({
-                notice: this.notice,
-                project: this.project,
+                notice: this.notice.notice,
+                project: this.project.budgetary,
             });
 
             // Assert
             ProjectWorkflow.validateProjectPhase({
-                notice: this.notice,
-                project: this.project,
+                notice: this.notice.notice,
+                project: this.project.budgetary,
                 phase: PHASES.PAYMENT,
             });
         });
@@ -60,20 +62,20 @@ describe('Budget', () => {
 
             //act
             ProjectWorkflow.accessProjectByNup({
-                notice: this.notice,
-                project: this.project,
+                notice: this.notice.notice,
+                project: this.project.budgetary,
             });
 
             BudgetWorkflow.returnProjectToFormalizationPhase({
-                notice: this.notice,
-                project: this.project,
-                documentType: DOCUMENTS.devolutionMotive,
+                notice: this.notice.notice,
+                project: this.project.budgetary,
+                devolutionMotiveText: DOCUMENTS.devolutionMotive,
             });
 
             // Assert
             ProjectWorkflow.validateProjectPhase({
-                notice: this.notice,
-                project: this.project,
+                notice: this.notice.notice,
+                project: this.project.budgetary,
                 phase: PHASES.FORMALIZATION,
             });
         });

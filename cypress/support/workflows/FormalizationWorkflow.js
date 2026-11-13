@@ -1,4 +1,5 @@
 import '../commands.js';
+import { PHASES } from '../constants/phases.js';
 import Notice from '../../pages/notice/NoticePage.js';
 import Project from '../../pages/project/ProjectPage';
 import FormalizationTab from '../../pages/project/formalizationTab/FormalizationTab.js';
@@ -11,9 +12,9 @@ class ForamlizationWorkflow {
         Notice.searchNoticeByNup(notice.noticeNup);
         Notice.goToNoticeDetailsPage(notice.noticeNup);
 
-        Project.findProjectByProjectNup(project.projectNup);
+        Project.findProjectByProjectNup(project.nup);
 
-        Project.goToProjectDetailsPage(project.projectNup);
+        Project.goToProjectDetailsPage(project.nup);
 
         FormalizationTab.goToFormalizationTab();
 
@@ -27,17 +28,17 @@ class ForamlizationWorkflow {
         Notice.searchNoticeByNup(notice.noticeNup);
         Notice.goToNoticeDetailsPage(notice.noticeNup);
 
-        Project.clickFilterPhase();
-        Project.validateFilterPhase();
-        Project.findProjectByProjectNup(project.projectNup);
+        Project.clickFilterPhase(PHASES.FORMALIZATION);
+        Project.validateFilterPhase(PHASES.FORMALIZATION);
+        Project.findProjectByProjectNup(project.nup);
 
-        Project.selectProject();
+        Project.selectProject(project.nup);
 
         Project.clickCreateDocument(documentType);
         Project.fillDocument(documentType.text);
         Project.saveDocument();
         Project.verifySuccessMessageSaveDocument();
-        Project.validateDocumentCreated(documentType.chip);
+        Project.validateDocumentCreated(project.nup, documentType.chip);
         Project.clickEditDocument(documentType);
         Project.validateDocumentContent(documentType.text);
         Project.clickCancelDocumentButton();
@@ -50,17 +51,17 @@ class ForamlizationWorkflow {
         Notice.searchNoticeByNup(notice.noticeNup);
         Notice.goToNoticeDetailsPage(notice.noticeNup);
 
-        Project.clickFilterPhase();
-        Project.validateFilterPhase();
-        Project.findProjectByProjectNup(project.projectNup);
+        Project.clickFilterPhase(PHASES.FORMALIZATION);
+        Project.validateFilterPhase(PHASES.FORMALIZATION);
+        Project.findProjectByProjectNup(project.nup);
 
-        Project.selectProject();
+        Project.selectProject(project.nup);
 
         Project.clickCreateDocument(documentType);
         Project.fillDocument(documentType.text);
         Project.saveDocument();
         Project.verifySuccessMessageSaveDocument();
-        Project.validateDocumentCreated(documentType.chip);
+        Project.validateDocumentCreated(project.nup, documentType.chip);
         Project.clickEditDocument(documentType);
         Project.validateDocumentContent(documentType.text);
         Project.clickCancelDocumentButton();
