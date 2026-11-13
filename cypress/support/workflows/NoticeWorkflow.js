@@ -7,6 +7,19 @@ class NoticeWorkflow {
         Notice.verifyPageLoaded();
     }
 
+    accessNoticeProjectsList(noticeNup) {
+        this.gotToNoticePage();
+
+        Notice.searchNoticeByNup(noticeNup);
+        Notice.goToNoticeDetailsPage(noticeNup);
+
+        Notice.verifyNoticeDetailsPageIsDisplayed();
+    }
+
+    accessNoticeByNup(nup) {
+        this.accessNoticeProjectsList(nup);
+    }
+
     validateDashboardCardsAreVisible() {
         Notice.verifyDashboardCardsAreVisible();
     }

@@ -151,32 +151,16 @@ class Project {
             });
     }
 
-    clickCreateDocument(buttonText) {
-        cy.get(el.createDocumentButon).should('be.visible').and('not.be.disabled').contains(buttonText).click();
+    clickCreateDocument(documentType) {
+        const { createButton, selectors } = documentType;
+
+        cy.get(selectors.create, { timeout: TIMEOUTS.LONG }).should('be.visible').contains(createButton).click();
     }
 
-    clickCreateCI(buttonText) {
-        cy.get(el.createCIButton).should('be.visible').and('not.be.disabled').contains(buttonText).click();
-    }
+    clickEditDocument(documentType) {
+        const { editButton, selectors } = documentType;
 
-    clickEditDocument(buttonEditDocument) {
-        cy.get(el.editDocumentButon).should('be.visible').and('not.be.disabled').contains(buttonEditDocument).click();
-    }
-
-    clickEditBudgetOrder(buttonEditBudgetOrder) {
-        cy.get(el.editBudgetOrderButton)
-            .should('be.visible')
-            .and('not.be.disabled')
-            .contains(buttonEditBudgetOrder)
-            .click();
-    }
-
-    clickEditCI(buttonEditCI) {
-        cy.get(el.editCIButton).should('be.visible').and('not.be.disabled').contains(buttonEditCI).click();
-    }
-
-    clickCreateBudgetOrder(textButton) {
-        cy.get(el.createBudgetOrderButton).should('be.visible').and('not.be.disabled').contains(textButton).click();
+        cy.get(selectors.edit, { timeout: TIMEOUTS.LONG }).should('be.visible').contains(editButton).click();
     }
 
     saveDocument() {
@@ -205,23 +189,30 @@ class Project {
     }
 
     validateDocumentCreated(projectNup, chip) {
+        expect(projectNup, 'O NUP do projeto deve ser informado para validar o documento').to.be.a('string').and.not.be
+            .empty;
+
         const expectedNup = Notice.normalizeNup(projectNup);
 
-        cy.get(el.projectList, {
-            timeout: TIMEOUTS.LONG,
-        }).should('be.visible');
+        expect(expectedNup, 'NUP normalizado').to.exist;
 
-        cy.get(el.rowTableProjectList, { timeout: TIMEOUTS.LONG })
+        cy.get(el.rowTableProjectList, {
+            timeout: TIMEOUTS.LONG,
+        })
             .should('be.visible')
             .should('not.have.class', 'loading')
             .then(($rows) => {
-                cy.wrap($rows).filter((index, row) => {
+                const $matchingRow = $rows.filter((index, row) => {
                     const text = Cypress.$(row).find(el.projectNupProjectList).text();
 
                     const currentNup = Notice.normalizeNup(text);
 
                     return currentNup === expectedNup;
                 });
+
+                expect($matchingRow, `Projeto com NUP ${expectedNup}`).to.have.length(1);
+
+                return cy.wrap($matchingRow);
             })
             .within(() => {
                 cy.get(el.chipProjectList).contains(chip).should('be.visible');
