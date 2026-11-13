@@ -7,6 +7,7 @@ use App\Enums\DocumentImageSection;
 use App\Enums\DocumentPhase;
 use App\Enums\DocumentType;
 use App\Enums\Role;
+use App\Rules\ValidDocumentImagePath;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -57,7 +58,7 @@ class DocumentStoreRequest extends FormRequest
             'images.*.path' => [
                 'required_with:images',
                 'string',
-                'regex:/\Adocuments\/[A-Za-z0-9_-]+\.(?:jpe?g|png|webp)\z/i',
+                new ValidDocumentImagePath,
             ],
         ];
     }
@@ -73,7 +74,6 @@ class DocumentStoreRequest extends FormRequest
             'type.required' => 'O tipo do documento é obrigatório.',
             'phase.required' => 'A fase do documento é obrigatória.',
             'body.required' => 'O conteúdo do documento é obrigatório.',
-            'images.*.path.regex' => 'Apenas imagens nos formatos .jpg, .jpeg, .png e .webp são permitidas.',
         ];
     }
 
