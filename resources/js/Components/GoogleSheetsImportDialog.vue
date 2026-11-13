@@ -147,7 +147,7 @@ const submit = () => {
                     <div class="d-flex flex-wrap ga-2">
                         <v-chip size="small" color="success" prepend-icon="mdi-check">Arquivos incluídos</v-chip>
                         <v-chip size="small" color="success" prepend-icon="mdi-check"
-                            >Ficha de inscrição incluída</v-chip
+                            >Ficha de inscrição sincronizada pelas fases</v-chip
                         >
                     </div>
                 </v-form>

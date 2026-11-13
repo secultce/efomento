@@ -9,6 +9,7 @@ use App\Enums\ProfileSnapshotSource;
 use App\Enums\ReportStatus;
 use App\Enums\Role;
 use App\Jobs\LoadSpreadsheetProjectFilesJob;
+use App\Jobs\SyncProjectPhasesProjectJob;
 use App\Models\Formalization;
 use App\Models\Notice;
 use App\Models\Opening;
@@ -120,6 +121,9 @@ class SpreadsheetImportService
                     ->afterCommit()
                     ->onQueue('details');
             }
+
+            // Sem isso o projeto importado só ganharia a ficha (fases) no disparo diário das 04:00.
+            SyncProjectPhasesProjectJob::dispatch($project->id)->afterCommit();
 
             return $project;
         }, 3);
