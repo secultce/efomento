@@ -17,6 +17,7 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Queue;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Validator;
 use PHPUnit\Framework\Attributes\DataProvider;
@@ -230,6 +231,8 @@ class BankTest extends TestCase
     #[DataProvider('importBanks')]
     public function test_spreadsheet_import_resolves_banks_from_the_catalog(string $value, ?string $code): void
     {
+        // A fila é sync nos testes: sem o fake, o import executaria a sincronização de fases no Mapas.
+        Queue::fake();
         $notice = Notice::factory()->create();
         $user = User::factory()->create();
         if ($value === 'Banco desconhecido') {
