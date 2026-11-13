@@ -4,7 +4,9 @@ namespace Tests\Feature;
 
 use App\Jobs\ImportGoogleSheetsJob;
 use App\Jobs\LoadSpreadsheetProjectFilesJob;
+use App\Jobs\SyncProjectPhasesProjectJob;
 use App\Models\Notice;
+use App\Models\Project;
 use App\Models\User;
 use App\Notifications\AppNotification;
 use App\Services\GoogleSheetsService;
@@ -119,6 +121,9 @@ class SpreadsheetSyncTest extends TestCase
         $this->assertDatabaseHas('projects', ['registration_id' => '123456', 'notice_id' => $notice->id]);
         Http::assertSentCount(4);
         Queue::assertPushed(LoadSpreadsheetProjectFilesJob::class);
+        $projectId = Project::where('registration_id', '123456')->value('id');
+        Queue::assertPushedOn('details', SyncProjectPhasesProjectJob::class, fn ($job) => $job->projectId === $projectId);
+        Queue::assertPushed(SyncProjectPhasesProjectJob::class, 1);
         Notification::assertSentTo($admin, AppNotification::class, fn ($notification) => $notification->type === 'success'
             && $notification->meta['counts'] === ['Abertura' => 1, 'Formalização' => 1, 'Orçamento' => 1, 'Pagamento' => 1]);
     }
