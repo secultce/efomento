@@ -9,6 +9,15 @@ use Illuminate\Validation\Rule;
 
 class CreateProjectDocumentRequest extends FormRequest
 {
+    private const IMAGE_FILE_RULES = [
+        'nullable',
+        'file',
+        'mimes:jpeg,jpg,png,webp',
+        'mimetypes:image/jpeg,image/png,image/webp',
+    ];
+
+    private const IMAGE_FORMAT_MESSAGE = 'Apenas imagens nos formatos .jpg, .jpeg, .png e .webp são permitidas.';
+
     public function authorize(): bool
     {
         $type = $this->documentType();
@@ -48,16 +57,28 @@ class CreateProjectDocumentRequest extends FormRequest
 
             'header_images' => ['nullable', 'array'],
             'header_images.*.id' => ['nullable', 'integer'],
-            'header_images.*.file' => ['nullable', 'image'],
+            'header_images.*.file' => self::IMAGE_FILE_RULES,
             'header_images.*._delete' => ['nullable', 'in:1'],
 
             'footer_images' => ['nullable', 'array'],
             'footer_images.*.id' => ['nullable', 'integer'],
-            'footer_images.*.file' => ['nullable', 'image'],
+            'footer_images.*.file' => self::IMAGE_FILE_RULES,
             'footer_images.*._delete' => ['nullable', 'in:1'],
 
             'header_layout' => ['nullable', 'in:none,three,full'],
             'footer_layout' => ['nullable', 'in:none,three,full'],
+        ];
+    }
+
+    public function messages(): array
+    {
+        return [
+            'header_images.*.file.file' => self::IMAGE_FORMAT_MESSAGE,
+            'header_images.*.file.mimes' => self::IMAGE_FORMAT_MESSAGE,
+            'header_images.*.file.mimetypes' => self::IMAGE_FORMAT_MESSAGE,
+            'footer_images.*.file.file' => self::IMAGE_FORMAT_MESSAGE,
+            'footer_images.*.file.mimes' => self::IMAGE_FORMAT_MESSAGE,
+            'footer_images.*.file.mimetypes' => self::IMAGE_FORMAT_MESSAGE,
         ];
     }
 
