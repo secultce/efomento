@@ -30,7 +30,7 @@ const emit = defineEmits(['change', 'remove']);
                         <input
                             hidden
                             type="file"
-                            accept="image/*"
+                            accept="image/jpeg,image/png,image/webp,.jpg,.jpeg,.png,.webp"
                             @click="$event.target.value = ''"
                             @change="emit('change', $event, type, index)"
                         />
