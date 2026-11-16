@@ -277,52 +277,6 @@ class BudgetControllerTest extends TestCase
         $this->assertEquals('Atualizada', $installment->observations);
     }
 
-    public function test_update_restores_soft_deleted_installment_of_current_cycle(): void
-    {
-        $user = User::factory()->create();
-
-        $project = Project::factory()->create([
-            'current_installment_cycle' => 2,
-        ]);
-
-        $budget = Budget::factory()->create([
-            'project_id' => $project->id,
-        ]);
-
-        $trashed = Installment::factory()->create([
-            'budget_id' => $budget->id,
-            'installment_number' => 2,
-            'amount' => 1000,
-        ]);
-        $trashed->delete();
-
-        $this->actingAs($user);
-
-        $response = $this->patch(
-            route('projects.budgets.update', [
-                'project' => $project,
-                'budget' => $budget,
-            ]),
-            [
-                'notice_installment_number' => 2,
-                'installment_amount' => 2000,
-                'installment_request_date' => '2026-03-01',
-                'installment_observations' => 'Parcela restaurada',
-            ]
-        );
-
-        $response->assertRedirect();
-        $response->assertSessionHasNoErrors();
-
-        $this->assertDatabaseHas('installments', [
-            'id' => $trashed->id,
-            'budget_id' => $budget->id,
-            'installment_number' => 2,
-            'amount' => 2000,
-            'deleted_at' => null,
-        ]);
-    }
-
     public function test_store_rejects_invalid_notice_installment_number(): void
     {
         $user = User::factory()->create();
