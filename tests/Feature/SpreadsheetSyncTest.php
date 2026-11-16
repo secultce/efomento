@@ -10,6 +10,7 @@ use App\Models\Project;
 use App\Models\User;
 use App\Notifications\AppNotification;
 use App\Services\GoogleSheetsService;
+use App\Services\SpreadsheetImportService;
 use App\Support\Notify;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Http;
@@ -126,6 +127,39 @@ class SpreadsheetSyncTest extends TestCase
         Queue::assertPushed(SyncProjectPhasesProjectJob::class, 1);
         Notification::assertSentTo($admin, AppNotification::class, fn ($notification) => $notification->type === 'success'
             && $notification->meta['counts'] === ['Abertura' => 1, 'Formalização' => 1, 'Orçamento' => 1, 'Pagamento' => 1]);
+    }
+
+    #[DataProvider('withFilesFlags')]
+    public function test_row_schedules_phase_sync_and_files_load_only_when_requested(bool $withFiles, bool $expectsFilesJob): void
+    {
+        Queue::fake();
+        $user = User::factory()->create();
+        $notice = Notice::factory()->create();
+
+        $project = app(SpreadsheetImportService::class)->processRow([
+            'LINK FICHA DE INSCRIÇÃO' => 'https://mapacultural.secult.ce.gov.br/inscricao/123456',
+            'CPF / CNPJ DO PROPONENTE' => '52998224725',
+            'NOME COMPLETO / RAZÃO SOCIAL DO PROPONENTE' => 'Agente de teste',
+            'N° DO PROCESSO (NUP)' => '12345678901234567',
+        ], $withFiles, $user->id, $notice->id);
+
+        $this->assertNotNull($project);
+        Queue::assertPushedOn('details', SyncProjectPhasesProjectJob::class, fn ($job) => $job->projectId === $project->id);
+        Queue::assertPushed(SyncProjectPhasesProjectJob::class, 1);
+
+        if ($expectsFilesJob) {
+            Queue::assertPushed(LoadSpreadsheetProjectFilesJob::class, 1);
+        } else {
+            Queue::assertNotPushed(LoadSpreadsheetProjectFilesJob::class);
+        }
+    }
+
+    public static function withFilesFlags(): array
+    {
+        return [
+            'sem arquivos' => [false, false],
+            'com arquivos' => [true, true],
+        ];
     }
 
     #[DataProvider('disallowedRoles')]
