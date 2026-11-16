@@ -154,8 +154,8 @@ class BudgetService implements StageValidatorInterface
         if ($missingFields->isNotEmpty()) {
             throw ValidationException::withMessages([
                 'budget' => 'Preencha todos os campos obrigatórios antes de tramitar: '
-                    . $missingFields->join(', ')
-                    . '.',
+                    .$missingFields->join(', ')
+                    .'.',
             ]);
         }
     }
