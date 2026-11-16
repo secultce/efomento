@@ -64,15 +64,9 @@ class BudgetService implements StageValidatorInterface
 
     private function upsertInstallment(Budget $budget, Project $project, array $data): Installment
     {
-        // withTrashed: a unique (budget_id, installment_number) também vale para parcelas
-        // removidas logicamente, então a parcela é restaurada em vez de recriada.
-        $installment = $budget->installments()->withTrashed()->firstOrNew([
+        $installment = $budget->installments()->firstOrNew([
             'installment_number' => $project->current_installment_cycle,
         ]);
-
-        if ($installment->trashed()) {
-            $installment->restore();
-        }
 
         $installment->fill(
             $this->installmentData($data)
@@ -154,8 +148,8 @@ class BudgetService implements StageValidatorInterface
         if ($missingFields->isNotEmpty()) {
             throw ValidationException::withMessages([
                 'budget' => 'Preencha todos os campos obrigatórios antes de tramitar: '
-                    . $missingFields->join(', ')
-                    . '.',
+                    .$missingFields->join(', ')
+                    .'.',
             ]);
         }
     }
