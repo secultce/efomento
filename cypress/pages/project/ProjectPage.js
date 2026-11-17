@@ -194,26 +194,20 @@ class Project {
 
         const expectedNup = Notice.normalizeNup(projectNup);
 
-        expect(expectedNup, 'NUP normalizado').to.exist;
+        expect(expectedNup, 'NUP normalizado').to.not.be.empty;
 
         cy.get(el.rowTableProjectList, {
             timeout: TIMEOUTS.LONG,
         })
             .should('be.visible')
             .should('not.have.class', 'loading')
-            .then(($rows) => {
-                const $matchingRow = $rows.filter((index, row) => {
-                    const text = Cypress.$(row).find(el.projectNupProjectList).text();
+            .filter((index, row) => {
+                const text = Cypress.$(row).find(el.projectNupProjectList).text();
+                const currentNup = Notice.normalizeNup(text);
 
-                    const currentNup = Notice.normalizeNup(text);
-
-                    return currentNup === expectedNup;
-                });
-
-                expect($matchingRow, `Projeto com NUP ${expectedNup}`).to.have.length(1);
-
-                return cy.wrap($matchingRow);
+                return currentNup === expectedNup;
             })
+            .should('have.length', 1)
             .within(() => {
                 cy.get(el.chipProjectList).contains(chip).should('be.visible');
             });

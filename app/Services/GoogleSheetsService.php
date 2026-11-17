@@ -25,6 +25,21 @@ class GoogleSheetsService
 {
     private const GVIZ_ENDPOINT = 'https://docs.google.com/spreadsheets/d/%s/gviz/tq';
 
+    /**
+     * Colunas que indicam execução financeira (empenho, liquidação ou pagamento) já registrada
+     * na parcela. Parcelas com qualquer uma delas preenchida nunca são removidas pelo sync.
+     */
+    private const INSTALLMENT_FINANCIAL_EXECUTION_COLUMNS = [
+        'commitment_number',
+        'committed_amount',
+        'settlement_number',
+        'settlement_date',
+        'settlement_amount',
+        'payment_order_number',
+        'payment_amount',
+        'payment_date',
+    ];
+
     public function __construct(
         private readonly SpreadsheetImportService $importService,
         private readonly BudgetAllocationResolver $budgetAllocationResolver,
@@ -398,6 +413,13 @@ class GoogleSheetsService
             }
             $allocation->fill($values)->save();
 
+            // O edital pré-carregado é compartilhado entre os projetos do lote: descarta a
+            // coleção em memória para que a busca alternativa das próximas linhas enxergue
+            // a dotação recém-criada.
+            if ($allocation->wasRecentlyCreated) {
+                $project->notice?->unsetRelation('budgetAllocations');
+            }
+
             return $allocation;
         }
 
@@ -438,10 +460,10 @@ class GoogleSheetsService
             'amount' => $amount,
             'request_date' => Import::date($row['DATA DE SOLICITAÇÃO DA PARCELA'] ?? null),
             'observations' => Import::string($row['OBSERVAÇÃO'] ?? null),
-            'budget_allocation_id' => $budgetAllocation?->id,
+            ...$this->budgetAllocationData($budgetAllocation),
         ], $userId);
 
-        $budget->installments()->whereNotIn('installment_number', [1])->delete();
+        $this->deleteObsoleteInstallments($budget, [1]);
     }
 
     private function syncMultipleInstallments(Budget $budget, array $row, ?BudgetAllocation $budgetAllocation = null, ?int $userId = null): void
@@ -464,7 +486,7 @@ class GoogleSheetsService
                 if ($i === 1) {
                     $data['request_date'] = Import::date($row['DATA DE SOLICITAÇÃO DA PARCELA'] ?? null);
                     $data['observations'] = Import::string($row['OBSERVAÇÃO'] ?? null);
-                    $data['budget_allocation_id'] = $budgetAllocation?->id;
+                    $data = [...$data, ...$this->budgetAllocationData($budgetAllocation)];
                 }
 
                 $this->saveInstallment($budget, $i, $data, $userId);
@@ -473,13 +495,44 @@ class GoogleSheetsService
             }
         }
 
+        // Linha sem nenhuma coluna de valor: a planilha não trouxe informação de parcelas
+        // nesta execução, o que não significa que as parcelas foram removidas.
         if (empty($processedNumbers)) {
-            $budget->installments()->delete();
-
             return;
         }
 
-        $budget->installments()->whereNotIn('installment_number', $processedNumbers)->delete();
+        $this->deleteObsoleteInstallments($budget, $processedNumbers);
+    }
+
+    /**
+     * Só sobrescreve a dotação da parcela quando há uma dotação resolvida; sem ela,
+     * o vínculo existente (ex.: feito pela interface) é preservado.
+     *
+     * @return array{budget_allocation_id?: int}
+     */
+    private function budgetAllocationData(?BudgetAllocation $budgetAllocation): array
+    {
+        return $budgetAllocation ? ['budget_allocation_id' => $budgetAllocation->id] : [];
+    }
+
+    /**
+     * Remove as parcelas que a planilha não lista mais, exceto as que já têm execução
+     * financeira registrada (empenho, liquidação ou pagamento). A exclusão é feita por
+     * model para disparar os eventos de auditoria.
+     *
+     * @param  int[]  $keepNumbers
+     */
+    private function deleteObsoleteInstallments(Budget $budget, array $keepNumbers): void
+    {
+        $query = $budget->installments()->whereNotIn('installment_number', $keepNumbers);
+
+        foreach (self::INSTALLMENT_FINANCIAL_EXECUTION_COLUMNS as $column) {
+            $query->whereNull($column);
+        }
+
+        // lockForUpdate: roda dentro da transação do syncBudget; impede que uma importação
+        // financeira concorrente registre execução na parcela entre a leitura e a exclusão.
+        $query->lockForUpdate()->get()->each->delete();
     }
 
     /**
@@ -488,7 +541,13 @@ class GoogleSheetsService
      */
     private function saveInstallment(Budget $budget, int $number, array $data, ?int $userId): void
     {
-        $installment = $budget->installments()->firstOrNew(['installment_number' => $number]);
+        // withTrashed: a unique (budget_id, installment_number) também vale para parcelas
+        // removidas logicamente, então a parcela é restaurada em vez de recriada.
+        $installment = $budget->installments()->withTrashed()->firstOrNew(['installment_number' => $number]);
+
+        if ($installment->trashed()) {
+            $installment->restore();
+        }
 
         if ($installment->exists) {
             $installment->updated_by = $userId;

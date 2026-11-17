@@ -95,7 +95,7 @@ class ValidationLocalizationTest extends TestCase
                 DocumentStoreRequest::class,
                 ['images' => [['path' => 'invalid']]],
                 'images.0.path',
-                'O formato do valor para o campo caminho da imagem é inválido.',
+                'Apenas imagens nos formatos .jpg, .jpeg, .png e .webp são permitidas.',
             ],
             'nested header image' => [
                 CreateProjectDocumentRequest::class,
