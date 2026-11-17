@@ -12,6 +12,7 @@ use App\Models\User;
 use App\Services\GoogleSheetsService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Http;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
@@ -482,6 +483,52 @@ class GoogleSheetsBudgetSyncTest extends TestCase
         $paid = $budget->installments()->where('installment_number', 2)->first();
         $this->assertSame('OB-123', $paid->payment_order_number);
         $this->assertSame('2024-07-01', $paid->payment_date?->format('Y-m-d'));
+        $this->assertTrue($budget->installments()->onlyTrashed()->where('installment_number', 3)->exists());
+    }
+
+    public static function financialExecutionColumnProvider(): array
+    {
+        return [
+            'commitment_number' => ['commitment_number', 'NE-001'],
+            'committed_amount' => ['committed_amount', 1000],
+            'settlement_number' => ['settlement_number', 'NL-001'],
+            'settlement_date' => ['settlement_date', '2024-06-01'],
+            'settlement_amount' => ['settlement_amount', 1000],
+            'payment_order_number' => ['payment_order_number', 'OB-001'],
+            'payment_amount' => ['payment_amount', 1000],
+            'payment_date' => ['payment_date', '2024-07-01'],
+        ];
+    }
+
+    #[Test]
+    #[DataProvider('financialExecutionColumnProvider')]
+    public function keeps_obsolete_installment_when_any_single_financial_execution_column_is_filled(string $column, mixed $value): void
+    {
+        $project = Project::factory()->create(['number' => 'INSC-915']);
+
+        $this->fakeSheet([
+            [
+                'CÓDIGO INSCRIÇÃO MAPAS' => 'INSC-915',
+                'VALOR DE REPASSE (1ª PARCELA)' => 'R$ 30.000,00',
+                'VALOR DE REPASSE (2ª PARCELA)' => 'R$ 20.000,00',
+                'VALOR DE REPASSE (3ª PARCELA)' => 'R$ 10.000,00',
+            ],
+        ]);
+        $this->syncBudget();
+
+        $budget = $project->budgets()->first();
+        $budget->installments()->where('installment_number', 2)->first()->update([$column => $value]);
+
+        // 2ª execução com parcela única: a 2ª (com execução) permanece, a 3ª (sem execução) é removida
+        $this->fakeSheet([
+            [
+                'CÓDIGO INSCRIÇÃO MAPAS' => 'INSC-915',
+                'VALOR DE REPASSE (PARCELA ÚNICA)' => 'R$ 60.000,00',
+            ],
+        ]);
+        $this->syncBudget();
+
+        $this->assertEquals([1, 2], $budget->installments()->orderBy('installment_number')->pluck('installment_number')->toArray());
         $this->assertTrue($budget->installments()->onlyTrashed()->where('installment_number', 3)->exists());
     }
 

@@ -31,7 +31,9 @@ class GoogleSheetsService
      */
     private const INSTALLMENT_FINANCIAL_EXECUTION_COLUMNS = [
         'commitment_number',
+        'committed_amount',
         'settlement_number',
+        'settlement_date',
         'settlement_amount',
         'payment_order_number',
         'payment_amount',
@@ -528,7 +530,9 @@ class GoogleSheetsService
             $query->whereNull($column);
         }
 
-        $query->get()->each->delete();
+        // lockForUpdate: roda dentro da transação do syncBudget; impede que uma importação
+        // financeira concorrente registre execução na parcela entre a leitura e a exclusão.
+        $query->lockForUpdate()->get()->each->delete();
     }
 
     /**
