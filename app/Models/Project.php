@@ -70,6 +70,19 @@ class Project extends Model implements Auditable
         return $this->hasMany(ProjectRegistrationPhase::class);
     }
 
+    /**
+     * Arquivos avaliados na Análise Jurídica: os do próprio projeto (fase 1 baixada pelo fluxo antigo) e os
+     * das fases da inscrição (SyncPhaseFilesJob). Fonte única para listar, servir e avaliar.
+     */
+    public function analysisFiles(): Builder
+    {
+        return File::query()->where(function (Builder $query) {
+            $query->where(fn (Builder $q) => $q->where('object_type', 'project')->where('object_id', $this->id))
+                ->orWhere(fn (Builder $q) => $q->where('object_type', 'project_registration_phase')
+                    ->whereIn('object_id', ProjectRegistrationPhase::query()->where('project_id', $this->id)->select('id')));
+        });
+    }
+
     public function openings(): HasMany
     {
         return $this->hasMany(Opening::class);
