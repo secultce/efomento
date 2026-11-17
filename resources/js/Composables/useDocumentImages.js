@@ -1,6 +1,14 @@
 import { ref } from 'vue';
 import { useSnackbar } from '@/Composables/useSnackbar';
 
+const ALLOWED_IMAGE_EXTENSIONS = ['jpg', 'jpeg', 'png', 'webp'];
+
+function isAllowedImage(file) {
+    const extension = file.name.split('.').pop()?.toLowerCase();
+
+    return ALLOWED_IMAGE_EXTENSIONS.includes(extension);
+}
+
 export function useDocumentImages() {
     const { showSnackbar } = useSnackbar();
     const headerImages = ref([null, null, null]);
@@ -30,6 +38,12 @@ export function useDocumentImages() {
         const file = event.target.files?.[0];
 
         if (!file) return;
+
+        if (!isAllowedImage(file)) {
+            showSnackbar('Apenas imagens nos formatos .jpg, .jpeg, .png e .webp são permitidas.', 'error');
+            event.target.value = '';
+            return;
+        }
 
         if (file.size > 10 * 1024 * 1024) {
             showSnackbar('A imagem selecionada excede o limite máximo permitido de 10MB.', 'error');

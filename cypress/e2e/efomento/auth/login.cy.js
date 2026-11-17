@@ -88,7 +88,8 @@ describe('Login', () => {
             LoginWorkflow.login(user.email, user.password);
 
             // Act
-            LoginWorkflow.completeTwoFactorAuthentication({ code: invalidCode });
+            Login.fillVerificationCode(invalidCode);
+            Login.clickConfirmAndEnter();
 
             // Assert
             Login.verifyInvalidVerificationCodeMessage();
@@ -126,6 +127,22 @@ describe('Login', () => {
             // Assert
             Login.verifyRedirectedToNoticesPage();
         });
+    });
+
+    describe('Fixture accounts', () => {
+        ['fomentation', 'legal_analisys', 'formalization', 'budgetary', 'financial', 'coord_monitoring'].forEach(
+            (role) => {
+                it(`should authenticate ${role} and display the fixture user name`, function () {
+                    const user = this.user[role];
+
+                    cy.loginByRole(role);
+                    cy.visit('/editais');
+
+                    cy.location('pathname').should('eq', '/editais');
+                    cy.contains(user.name).should('be.visible');
+                });
+            }
+        );
     });
 
     describe('Session', () => {

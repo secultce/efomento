@@ -81,7 +81,7 @@
         "new_password": "newpassword"
     },
     "financial": {
-        "name": "Claudia Moreira",
+        "name": "Ana Claudia Moreira da Silva",
         "email": "claudia.moreira@secult.ce.gov.br",
         "valid_email": "claudia.moreira@secult.ce.gov.br",
         "password": "password",
@@ -96,5 +96,10 @@
         "updated_email": "user.updated@example.com",
         "newPassword": "newpassword",
         "new_password": "newpassword"
+    },
+    "coord_monitoring": {
+        "name": "Cicero Gondim",
+        "email": "cicero.gondim@secult.ce.gov.br",
+        "password": "password"
     }
 }
