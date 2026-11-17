@@ -26,11 +26,31 @@ describe('Project Page', () => {
         });
 
         it('should return no results for an invalid process number', function () {
+            // Arrange
+            const notice = this.notice.notice;
+
+            ProjectWorkflow.accessProjectListByNotice(notice);
+
+            // Act
             Project.findProjectByNonExistentProjectNup();
+
+            // Assert
+            Project.verifySearchResultByInexistentNup();
         });
 
         it('should search for a project by agent name', function () {
-            Project.findProjectByAgentName();
+            // Arrange
+            const notice = this.notice.notice;
+
+            ProjectWorkflow.accessProjectListByNotice(notice);
+
+            Project.getProjectData().then(({ agentName, projectNup }) => {
+                // Act
+                Project.findProjectByAgentName(agentName);
+
+                // Assert
+                Project.verifySearchResultByAgent(agentName, projectNup);
+            });
         });
     });
 });

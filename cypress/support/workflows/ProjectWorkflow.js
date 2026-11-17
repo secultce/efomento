@@ -8,7 +8,7 @@ class ProjectWorkflow {
     }
 
     accessProjectDetails({ notice, project }) {
-        this.accessProjectListByNotice({ notice });
+        this.accessProjectListByNotice(notice);
 
         Project.findProjectByProjectNup(project.nup ?? project.projectNup);
         Project.goToProjectDetailsPage(project.nup ?? project.projectNup);
