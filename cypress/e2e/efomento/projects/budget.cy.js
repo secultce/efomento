@@ -37,6 +37,13 @@ describe('Budget', () => {
             // Arrange
             cy.loginByRole('budgetary');
 
+            BudgetWorkflow.createBudgetOpinion({
+                notice: this.notice.notice,
+                project: this.project.budgetary,
+                phase: PHASES.BUDGET,
+                documentType: DOCUMENTS.budgetOrder,
+            });
+
             //act
             ProjectWorkflow.accessProjectByNup({
                 notice: this.notice.notice,

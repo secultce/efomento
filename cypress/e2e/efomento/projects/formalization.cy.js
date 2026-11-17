@@ -1,5 +1,8 @@
 import FormalizationWorkflow from '../../../support/workflows/FormalizationWorkflow.js';
 import { DOCUMENTS } from '../../../support/constants/documents.js';
+import { PHASES } from '../../../support/constants/phases.js';
+import DocumentWorkflow from '../../../support/workflows/DocumentWorkflow.js';
+import ProjectWorkflow from '../../../support/workflows/ProjectWorkflow.js';
 
 describe('Formalization', () => {
     beforeEach(() => {
@@ -49,9 +52,19 @@ describe('Formalization', () => {
         });
 
         it('should create legal opinion', function () {
-            FormalizationWorkflow.createLegalOpinion({
-                role: 'formalization',
+            // Arrange
+            cy.loginByRole('formalization');
+
+            // Act
+            DocumentWorkflow.create({
                 notice: this.notice.notice,
+                project: this.project.formalization,
+                phase: PHASES.FORMALIZATION,
+                documentType: DOCUMENTS.legalOpinion,
+            });
+
+            // Assert
+            ProjectWorkflow.validateDocumentCreated({
                 project: this.project.formalization,
                 documentType: DOCUMENTS.legalOpinion,
             });
