@@ -12,6 +12,7 @@ use App\Models\File;
 use App\Models\Project;
 use App\Models\User;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\DB;
 
 class LegalAnalysisService
 {
@@ -21,18 +22,25 @@ class LegalAnalysisService
             throw new DomainAuthorizationException('Usuário não tem permissão para avaliar documentos.');
         }
 
-        $stage = $project->stages()->where('slug', ProjectStageSlug::ANALISE_JURIDICA)->first();
+        // A leitura da etapa e a gravação ficam na mesma transação, com a etapa bloqueada: se a tramitação
+        // confirmar antes, a leitura já vê APROVADO e nada é gravado.
+        DB::transaction(function () use ($project, $file, $status) {
+            $stage = $project->stages()
+                ->where('slug', ProjectStageSlug::ANALISE_JURIDICA)
+                ->lockForUpdate()
+                ->first();
 
-        if ($stage?->status === ProjectStageStatus::APROVADO) {
-            throw new BusinessRuleException('Análise jurídica já foi tramitada.', httpStatus: 422);
-        }
+            if ($stage?->status === ProjectStageStatus::APROVADO) {
+                throw new BusinessRuleException('Análise jurídica já foi tramitada.', httpStatus: 422);
+            }
 
-        $analysis = $project->legalAnalysis()->firstOrCreate([]);
+            $analysis = $project->legalAnalysis()->firstOrCreate([]);
 
-        $analysis->files()->updateOrCreate(
-            ['file_id' => $file->id],
-            ['status' => $status],
-        );
+            $analysis->files()->updateOrCreate(
+                ['file_id' => $file->id],
+                ['status' => $status],
+            );
+        });
     }
 
     public function isAnalysisFile(Project $project, File $file): bool
@@ -48,10 +56,13 @@ class LegalAnalysisService
      * O mesmo arquivo do Mapas pode existir com dono `project` e com dono fase (corrida da fase 1). Fica a
      * linha que já tem avaliação, para não perder o que a ASJUR avaliou; sem avaliação, a do projeto.
      *
-     * @return Collection<int, array{group: string, phase_order: ?int, files: Collection<int, array{file: File, status: ?FileStatus}>}>
+     * @return Collection<int, array{key: string, group: string, phase_order: ?int, files: Collection<int, array{file: File, status: ?FileStatus}>}>
      */
     public function groupedAnalysisFiles(Project $project): Collection
     {
+        // Arquivos antes dos status: uma cópia gravada entre as duas leituras não entra na lista, em vez de
+        // entrar sem o status da outra cópia.
+        $files = $project->analysisFilesQuery()->get();
         $statuses = $project->legalAnalysis?->files()->pluck('status', 'file_id') ?? collect();
         $phaseOrders = $project->registrationPhases()->pluck('phase_order', 'id');
 
@@ -63,7 +74,7 @@ class LegalAnalysisService
             return $file->object_type === 'project' ? 1 : (int) ($phaseOrders[$file->object_id] ?? 1);
         };
 
-        return $project->analysisFilesQuery()->get()
+        return $files
             ->sortBy([
                 fn (File $a, File $b) => $statuses->has($b->id) <=> $statuses->has($a->id),
                 fn (File $a, File $b) => ($b->object_type === 'project') <=> ($a->object_type === 'project'),
@@ -74,7 +85,8 @@ class LegalAnalysisService
                 ? sprintf('0-phase-%05d', $order)
                 : '1-grp-'.($file->grp ?? 'Sem categoria'))
             ->sortKeys()
-            ->map(fn (Collection $files) => [
+            ->map(fn (Collection $files, string $key) => [
+                'key' => $key,
                 'group' => ($order = $phaseOf($files->first())) !== null ? "Fase {$order}" : ($files->first()->grp ?? 'Sem categoria'),
                 'phase_order' => $phaseOf($files->first()),
                 'files' => $files->sortBy('id')->map(fn (File $file) => [

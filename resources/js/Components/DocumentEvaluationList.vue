@@ -21,7 +21,7 @@ const emit = defineEmits(['status-updated']);
 
 <template>
     <div class="flex flex-col gap-6">
-        <div v-for="group in groups" :key="group.group" class="flex flex-col gap-2" data-cy="document-evaluation-group">
+        <div v-for="group in groups" :key="group.key" class="flex flex-col gap-2" data-cy="document-evaluation-group">
             <h3 class="text-sm font-bold text-[#3b3b3c]">{{ group.group }}</h3>
             <div class="flex flex-col gap-2">
                 <DocumentEvaluationItem
