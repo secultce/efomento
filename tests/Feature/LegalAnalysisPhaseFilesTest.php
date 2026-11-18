@@ -211,5 +211,32 @@ class LegalAnalysisPhaseFilesTest extends TestCase
 
         $this->assertSame(['Fase 1', 'certidoes'], array_column($groups, 'group'));
         $this->assertNull($groups[1]['phase_order']);
+        $this->assertCount(2, array_unique(array_column($groups, 'key')));
+    }
+
+    public function test_group_keys_are_unique_even_when_an_upload_group_is_named_like_a_phase(): void
+    {
+        $this->actingAs($this->analyst());
+        $project = Project::factory()->create();
+        $this->mapasFile('project', $project->id, '1');
+        $this->mapasFile('project', $project->id, '2', ['source' => 'upload', 'grp' => 'Fase 1']);
+
+        $groups = $this->getJson(route('legal-analysis.index', $project))->json('groups');
+
+        $this->assertSame(['Fase 1', 'Fase 1'], array_column($groups, 'group'));
+        $this->assertCount(2, array_unique(array_column($groups, 'key')));
+    }
+
+    public function test_only_legal_analysis_roles_can_list_and_open_files(): void
+    {
+        $project = Project::factory()->create();
+        $file = $this->mapasFile('project', $project->id, '20');
+
+        $this->actingAs($this->analyst('fomentation'));
+        $this->getJson(route('legal-analysis.index', $project))->assertForbidden();
+        $this->get(route('legal-analysis.files.serve', [$project, $file]))->assertForbidden();
+
+        $this->actingAs($this->analyst('coord_legal'));
+        $this->getJson(route('legal-analysis.index', $project))->assertOk();
     }
 }
