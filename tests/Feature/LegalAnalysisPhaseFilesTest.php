@@ -2,7 +2,10 @@
 
 namespace Tests\Feature;
 
+use App\Enums\FileStatus;
 use App\Models\File;
+use App\Models\LegalAnalysis;
+use App\Models\LegalAnalysisFile;
 use App\Models\Project;
 use App\Models\ProjectRegistrationPhase;
 use App\Models\User;
@@ -77,6 +80,44 @@ class LegalAnalysisPhaseFilesTest extends TestCase
 
         $this->assertCount(1, $groups);
         $this->assertSame([$legacy->id], array_column($groups[0]['files'], 'id'));
+    }
+
+    public function test_index_keeps_the_duplicate_that_already_has_a_status(): void
+    {
+        $this->actingAs(User::factory()->create());
+        $project = Project::factory()->create();
+        $phase1 = $this->phase($project, 1);
+
+        $this->mapasFile('project', $project->id, '7');
+        $evaluated = $this->mapasFile('project_registration_phase', $phase1->id, '7');
+        $analysis = LegalAnalysis::factory()->create(['project_id' => $project->id]);
+        LegalAnalysisFile::factory()->create([
+            'legal_analysis_id' => $analysis->id,
+            'file_id' => $evaluated->id,
+            'status' => FileStatus::VALID,
+        ]);
+
+        $files = $this->getJson(route('legal-analysis.index', $project))->json('groups.0.files');
+
+        $this->assertSame([$evaluated->id], array_column($files, 'id'));
+        $this->assertSame('valid', $files[0]['status']);
+    }
+
+    public function test_index_loads_statuses_in_a_single_query(): void
+    {
+        $this->actingAs(User::factory()->create());
+        $project = Project::factory()->create();
+        $phase = $this->phase($project, 2);
+        foreach (range(1, 6) as $i) {
+            $this->mapasFile('project_registration_phase', $phase->id, (string) $i);
+        }
+        LegalAnalysis::factory()->create(['project_id' => $project->id]);
+
+        \DB::enableQueryLog();
+        $this->getJson(route('legal-analysis.index', $project))->assertOk();
+        $statusQueries = collect(\DB::getQueryLog())->filter(fn ($q) => str_contains($q['query'], 'legal_analysis_files'));
+
+        $this->assertCount(1, $statusQueries);
     }
 
     public function test_phase_file_can_be_served_and_evaluated(): void
