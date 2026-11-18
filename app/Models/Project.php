@@ -72,9 +72,9 @@ class Project extends Model implements Auditable
 
     /**
      * Arquivos avaliados na Análise Jurídica: os do próprio projeto (fase 1 baixada pelo fluxo antigo) e os
-     * das fases da inscrição (SyncPhaseFilesJob). Fonte única para listar, servir e avaliar.
+     * das fases da inscrição (SyncPhaseFilesJob). Fonte única para listar, servir e avaliar. É uma query, não uma relação: não acessar como propriedade.
      */
-    public function analysisFiles(): Builder
+    public function analysisFilesQuery(): Builder
     {
         return File::query()->where(function (Builder $query) {
             $query->where(fn (Builder $q) => $q->where('object_type', 'project')->where('object_id', $this->id))

@@ -8,7 +8,7 @@
 >
 > **Teste manual no dev:** o Mapas local responde 500 para qualquer `/arquivos/privateFile/{id}/`, inclusive arquivos que o fluxo antigo registrou (não há arquivos físicos na instância). O caminho completo foi validado em `ProjectPhaseFilesTest` com o Mapas simulado.
 
-> **Análise Jurídica (branch `feature/download_file_mc_to_efomento`):** a decisão da seção 1 foi revista. Os arquivos continuam com a fase como dona, mas a ASJUR passa a avaliá-los: `Project::analysisFiles()` reúne os arquivos do projeto (fase 1 legada) e os das fases; `LegalAnalysisController` lista agrupado por fase ("Fase N"), valida o pertencimento ao projeto em vez de `scopeBindings()` (arquivo de fase daria 404) e serve inline só PDF/imagem (`SafeFileResponse`). Os arquivos das fases 2/3 entram na regra de tramitação: projetos já em análise ganham arquivos sem status. Se o mesmo arquivo do Mapas existir com dono `project` e dono fase (corrida da fase 1), a lista mostra a linha do projeto.
+> **Análise Jurídica (branch `feature/download_file_mc_to_efomento`):** a decisão da seção 1 foi revista. Os arquivos continuam com a fase como dona, mas a ASJUR passa a avaliá-los: `Project::analysisFilesQuery()` reúne os arquivos do projeto (fase 1 legada) e os das fases; `LegalAnalysisController` lista agrupado por fase ("Fase N"), valida o pertencimento ao projeto em vez de `scopeBindings()` (arquivo de fase daria 404) e serve inline só PDF/imagem (`SafeFileResponse`). Os arquivos das fases 2/3 entram na regra de tramitação: projetos já em análise ganham arquivos sem status. Se o mesmo arquivo do Mapas existir com dono `project` e dono fase (corrida da fase 1), a lista mostra a linha do projeto.
 
 ## Contexto
 
