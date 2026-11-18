@@ -1,0 +1,29 @@
+@startuml Notice
+
+class Notice {
+    -id: int
+    -nup: string
+    -notice_url: string
+    -external_id: string
+    -name: string
+    -total_notice_amount: decimal:2
+    -total_commitment_amount: decimal:2
+    -installments: integer
+    -process_manager: string
+    -process_manager_email: string
+    -creditor_registration_nup: string
+    -creditor_registration_request_date: date
+    -budget_allocation_nup: string
+    -budget_allocation_request_date: string
+    -instrument_type: string
+    -created_at: string
+    -updated_at: string
+    -deleted_at: datetime
+    --
+    +projects(): HasMany
+    +audits(): MorphMany
+    +files(): MorphMany
+    +publicFiles(): MorphMany
+}
+
+@enduml

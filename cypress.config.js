@@ -1,0 +1,17 @@
+import 'dotenv/config';
+import { defineConfig } from 'cypress';
+
+export default defineConfig({
+    viewportWidth: 1920,
+    viewportHeight: 1080,
+    allowCypressEnv: true,
+    video: false,
+    numTestsKeptInMemory: 0,
+    experimentalMemoryManagement: true,
+    e2e: {
+        baseUrl: process.env.APP_URL,
+        env: {
+            TWO_FACTOR_UNIVERSAL_CODE: process.env.TWO_FACTOR_UNIVERSAL_CODE,
+        },
+    },
+});

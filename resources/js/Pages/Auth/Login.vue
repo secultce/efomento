@@ -1,0 +1,180 @@
+<script setup>
+import GuestLayout from '@/Layouts/GuestLayout.vue';
+import InputError from '@/Components/InputError.vue';
+import InputLabel from '@/Components/InputLabel.vue';
+import PrimaryButton from '@/Components/PrimaryButton.vue';
+import SecondaryButton from '@/Components/SecondaryButton.vue';
+import TextInput from '@/Components/TextInput.vue';
+import { Head, Link, useForm } from '@inertiajs/vue3';
+import { ref } from 'vue';
+
+defineProps({
+    canResetPassword: {
+        type: Boolean,
+        default: false,
+    },
+    status: {
+        type: String,
+        default: null,
+    },
+});
+
+const form = useForm({
+    email: '',
+    password: '',
+});
+const showPassword = ref(false);
+
+const submit = () => {
+    form.post(route('login'), {
+        onFinish: () => form.reset('password'),
+    });
+};
+
+const openSupport = () => {
+    window.open('https://suporte.secult.ce.gov.br/', '_blank', 'noopener,noreferrer');
+};
+</script>
+
+<template>
+    <GuestLayout>
+        <Head title="Log in" />
+
+        <div
+            class="min-h-screen flex flex-col lg:flex-row items-center justify-center px-6 py-10 md:gap-4 lg:gap-[15em] xl:gap-[clamp(13rem,calc(100vw-67rem),15rem)]"
+        >
+            <!-- left side -->
+            <div
+                class="flex-col items-center lg:items-start sm:text-center lg:text-left max-w-xl xl:w-[36rem] lg:mt-[-20em] hidden xl:block"
+            >
+                <img
+                    src="/images/logos/ceara.png"
+                    alt="Governo do Ceará"
+                    class="w-[20em] md:w-[20em] mb-6 lg:block hidden"
+                />
+                <div class="hidden lg:block">
+                    <div class="flex items-center gap-6 w-[23em]" aria-label="SIPA">
+                        <img
+                            src="/images/logos/logo-sipa-white.svg"
+                            alt=""
+                            width="191"
+                            height="191"
+                            class="w-32 h-32 shrink-0"
+                        />
+                        <div class="flex-1 min-w-0">
+                            <img
+                                src="/images/logos/logo-sipa-wordmark-dark.svg"
+                                alt="SIPA"
+                                width="97"
+                                height="48"
+                                class="block w-full h-auto"
+                            />
+                            <img
+                                src="/images/logos/logo-sipa-description-dark.svg"
+                                alt="Sistema de integração de processos administrativos"
+                                width="176"
+                                height="49"
+                                class="block w-full h-auto"
+                            />
+                        </div>
+                    </div>
+
+                    <p
+                        class="text-base md:text-[1.3em] text-left w-[24rem] max-w-full text-[#2d353f] mt-4 leading-relaxed"
+                    >
+                        O sistema para te ajudar a acompanhar os processos dos editais em andamento
+                    </p>
+                </div>
+            </div>
+
+            <!-- right side (FORM) -->
+            <div class="w-full max-w-md shrink-0 bg-white px-6 py-8 shadow-md rounded-lg">
+                <h1 class="text-lg font-bold text-[#1A1A1A] leading-relaxed">Acesse sua conta do SIPA</h1>
+
+                <p class="text-sm text-[#1A1A1A] mt-2 mb-6 leading-relaxed">
+                    No SIPA, os editais estão disponíveis para você acompanhar, inserir e editar informações agilizando
+                    o processo.
+                </p>
+                <div v-if="status" class="mb-4 text-sm font-medium text-green-600">
+                    {{ status }}
+                </div>
+
+                <form class="mt-6" @submit.prevent="submit">
+                    <div>
+                        <InputLabel for="email" value="Insira seu usuário ou email" />
+
+                        <TextInput
+                            id="email"
+                            v-model="form.email"
+                            type="email"
+                            placeholder="Aqui vai o seu nome de usuário ou o email que solicitou acesso"
+                            class="border border-gray-300 h-[3.5em] block w-full border-radius-[0.5em] px-[0.8em] text-[0.8em]"
+                            required
+                            autofocus
+                            autocomplete="username"
+                            data-cy="email-field-input"
+                        />
+
+                        <InputError class="mt-2" :message="form.errors.email" />
+                    </div>
+
+                    <div class="mt-8">
+                        <InputLabel for="password" value="Insira sua senha" />
+
+                        <div class="relative mt-1">
+                            <TextInput
+                                id="password"
+                                v-model="form.password"
+                                :type="showPassword ? 'text' : 'password'"
+                                placeholder="Aqui vai a senha de acesso que você solicitou"
+                                class="border border-gray-300 h-[3.5em] block w-full border-radius-[0.5em] pl-[0.8em] pr-10 text-[0.8em]"
+                                required
+                                autocomplete="current-password"
+                                data-cy="password-field-input"
+                            />
+                            <button
+                                type="button"
+                                class="absolute inset-y-0 right-0 flex w-10 items-center justify-center rounded-r-md text-gray-600 hover:text-gray-900 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-500"
+                                :aria-label="showPassword ? 'Ocultar senha' : 'Mostrar senha'"
+                                :aria-pressed="showPassword"
+                                @click="showPassword = !showPassword"
+                            >
+                                <span
+                                    aria-hidden="true"
+                                    :class="showPassword ? 'mdi mdi-eye-off-outline' : 'mdi mdi-eye-outline'"
+                                ></span>
+                            </button>
+                        </div>
+
+                        <InputError class="mt-2" :message="form.errors.password" />
+                    </div>
+                    <div class="mt-1 flex items-center justify-end">
+                        <Link
+                            v-if="canResetPassword"
+                            :href="route('password.request')"
+                            class="no-underline rounded-md mt-1 font-weight-bold text-[0.6em] text-grey-darken-4 hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
+                        >
+                            Esqueceu sua senha? Solicite recuperação com o suporte.
+                        </Link>
+                    </div>
+                    <div class="mt-8 flex flex-col items-center w-full justify-center gap-6 mt-10">
+                        <PrimaryButton
+                            class="w-full !border-radius-[1em] !text-align-center"
+                            :disabled="form.processing"
+                        >
+                            Entrar
+                        </PrimaryButton>
+                        <span class="font-bold text-[0.8em] text-[#1A1A1A]">OU</span>
+                        <SecondaryButton
+                            class="w-full !border-radius-[1em] !text-align-center"
+                            :disabled="form.processing"
+                            @click="openSupport"
+                        >
+                            Quero solicitar acesso
+                        </SecondaryButton>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </GuestLayout>
+</template>

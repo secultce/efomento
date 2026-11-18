@@ -1,0 +1,102 @@
+<?php
+
+namespace App\Models;
+
+use App\Enums\MonitoringReportRequestDeadline;
+use App\Support\NameAndNupSearch;
+use App\Traits\HasCreatedBy;
+use App\Traits\HasFiles;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\SoftDeletes;
+use OwenIt\Auditing\Auditable as AuditableTrait;
+use OwenIt\Auditing\Contracts\Auditable;
+
+class Notice extends Model implements Auditable
+{
+    use AuditableTrait, HasCreatedBy, HasFactory, HasFiles, SoftDeletes;
+
+    protected $table = 'notices';
+
+    protected $fillable = [
+        'nup',
+        'notice_url',
+        'external_id',
+        'name',
+        'total_notice_amount',
+        'total_commitment_amount',
+        'installments',
+        'process_manager',
+        'process_manager_email',
+        'instrument_type',
+        'creditor_registration_nup',
+        'creditor_registration_request_date',
+        'budget_allocation_nup',
+        'budget_allocation_request_date',
+        'monitoring_report_request_deadline',
+        'created_by',
+    ];
+
+    protected $appends = [
+        'monitoring_report_request_deadline_days',
+    ];
+
+    protected $casts = [
+        'total_notice_amount' => 'decimal:2',
+        'total_commitment_amount' => 'decimal:2',
+        'creditor_registration_request_date' => 'date',
+        'installments' => 'integer',
+        'monitoring_report_request_deadline' => MonitoringReportRequestDeadline::class,
+    ];
+
+    public function getMonitoringReportRequestDeadlineDaysAttribute(): int
+    {
+        return ($this->monitoring_report_request_deadline ?? MonitoringReportRequestDeadline::PNAB)->days();
+    }
+
+    public function scopeSearch(Builder $query, ?string $search): Builder
+    {
+        $search = new NameAndNupSearch($search);
+
+        if ($search->isEmpty) {
+            return $query;
+        }
+
+        if ($search->words === [] && $search->digits === '') {
+            return $query->whereRaw('1 = 0');
+        }
+
+        foreach ($search->words as $word) {
+            $query->whereRaw('LOWER(unaccent(name)) LIKE LOWER(unaccent(?))', ["%{$word}%"]);
+        }
+
+        if ($search->digits !== '') {
+            $query->whereRaw(
+                "REPLACE(REPLACE(REPLACE(REPLACE(nup, '.', ''), '/', ''), '-', ''), ' ', '') LIKE ?",
+                ["%{$search->digits}%"],
+            );
+        }
+
+        return $query;
+    }
+
+    /**
+     * Get the projects for the notice.
+     */
+    public function projects(): HasMany
+    {
+        return $this->hasMany(Project::class);
+    }
+
+    public function documents(): HasMany
+    {
+        return $this->hasMany(Document::class);
+    }
+
+    public function budgetAllocations(): HasMany
+    {
+        return $this->hasMany(BudgetAllocation::class)->orderBy('id');
+    }
+}

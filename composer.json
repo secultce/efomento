@@ -6,12 +6,24 @@
     "keywords": ["laravel", "framework"],
     "license": "MIT",
     "require": {
-        "php": "^8.2",
-        "laravel/framework": "^12.0",
-        "laravel/tinker": "^2.10.1"
+        "php": "^8.3",
+        "barryvdh/laravel-dompdf": "^3.1",
+        "inertiajs/inertia-laravel": "^2.0",
+        "laravel/framework": "^13.0",
+        "laravel/reverb": "^1.11",
+        "laravel/sanctum": "^4.0",
+        "laravel/tinker": "^3.0",
+        "maatwebsite/excel": "^3.1",
+        "owen-it/laravel-auditing": "^14.0",
+        "sentry/sentry-laravel": "^4.26",
+        "spatie/laravel-permission": "^7.1",
+        "tightenco/ziggy": "^2.0",
+        "webklex/laravel-imap": "^6.2"
     },
     "require-dev": {
         "fakerphp/faker": "^1.23",
+        "laravel-lang/lang": "^15.28",
+        "laravel/breeze": "^2.3",
         "laravel/pail": "^1.2.2",
         "laravel/pint": "^1.24",
         "laravel/sail": "^1.41",
@@ -32,6 +44,8 @@
         }
     },
     "scripts": {
+        "lint": "./vendor/bin/pint --test",
+        "lint:fix": "./vendor/bin/pint",
         "setup": [
             "composer install",
             "@php -r \"file_exists('.env') || copy('.env.example', '.env');\"",
@@ -42,7 +56,7 @@
         ],
         "dev": [
             "Composer\\Config::disableProcessTimeout",
-            "npx concurrently -c \"#93c5fd,#c4b5fd,#fb7185,#fdba74\" \"php artisan serve\" \"php artisan queue:listen --tries=1 --timeout=0\" \"php artisan pail --timeout=0\" \"npm run dev\" --names=server,queue,logs,vite --kill-others"
+            "npx concurrently -c \"#93c5fd,#c4b5fd,#fb7185,#fdba74,#86efac\" \"php artisan serve\" \"php artisan queue:listen --tries=1 --timeout=0\" \"php artisan pail --timeout=0\" \"npm run dev\" \"php artisan reverb:start --port=8081\" --names=server,queue,logs,vite,reverb --kill-others"
         ],
         "test": [
             "@php artisan config:clear --ansi",

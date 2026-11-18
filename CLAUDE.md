@@ -1,136 +1,151 @@
 # CLAUDE.md
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+Este arquivo fornece orientações ao Claude Code (claude.ai/code) ao trabalhar neste repositório.
 
-## Idioma
+## Ambiente
 
-O desenvolvedor se comunica em **português brasileiro**. Responda sempre em pt-BR.
+O backend usa Laravel 13 e requer PHP 8.3 ou superior.
 
-## Visão Geral do Projeto
+Todos os comandos rodam dentro do Docker — nunca execute `php`, `artisan`, `composer` ou `npm` diretamente no host.
 
-**e-Fomento** — sistema web de gerenciamento de processos de fomento cultural da Secretaria da Cultura do Ceará (SECULT-CE), construído em Laravel 12. Substitui a planilha compartilhada "Planilão" por um fluxo digital estruturado, seguro e auditável.
+| Container              | Função                                        | Porta          |
+|------------------------|-----------------------------------------------|----------------|
+| `efomento-app`         | PHP-FPM (Laravel)                             | 9000 (interno) |
+| `efomento-vite`        | Servidor Vite + HMR                           | 5173           |
+| `efomento-nginx`       | Proxy reverso                                 | 8080           |
+| `efomento-postgres`    | PostgreSQL 16                                 | 5433 (host)    |
+| `efomento-queue`       | Worker de filas (high/medium/details/default) | —              |
+| `efomento-queue-files` | Worker de filas (files)                       | —              |
+| `efomento-scheduler`   | Laravel scheduler                             | —              |
+| `efomento-greenmail`   | Servidor SMTP/IMAP local (e-mail de teste)    | —              |
+| `efomento-roundcube`   | Webmail para visualizar e-mails de teste      | 8026           |
 
-Gerencia o ciclo completo de projetos aprovados em editais culturais (ex: Ciclo Cearense Carnavalesco, PNAB), desde a abertura do processo até o pagamento final e monitoramento, envolvendo múltiplos setores internos (C. Finalística, ASJUR, CODIP, CEGEF).
+Acesso: http://localhost:8080
 
-## Stack Tecnológica (decisões já tomadas — não questionar)
-
-- **Backend:** Laravel 12 (PHP 8.3+)
-- **Banco de dados:** PostgreSQL (preferir JSONB para campos flexíveis)
-- **Admin interno:** Filament PHP (acesso direto aos models, sem API)
-- **Frontend usuário final:** Vue.js + Vuetify + Tailwind CSS (via API RESTful)
-- **Autenticação:** Laravel Breeze
-- **Testes:** PHPUnit 11 (SQLite in-memory)
-- **Lint:** Laravel Pint
-
-## Comandos de Desenvolvimento
-
-Tudo roda via Docker. Nunca executar artisan/composer/npm diretamente no host.
+## Comandos comuns
 
 ```bash
-# Subir/parar containers
+# Subir todos os containers
 docker compose up -d
-docker compose down
-
-# Executar comandos artisan/composer/npm
-docker compose exec app php artisan <comando>
-docker compose exec app composer <comando>
-docker compose exec app npm <comando>
-
-# Testes
-docker compose exec app php artisan test
-docker compose exec app php artisan test --filter=NomeDoTeste
-
-# Lint (code style)
-docker compose exec app ./vendor/bin/pint
 
 # Migrations
 docker compose exec app php artisan migrate
 
-# Limpar caches (necessário após alterar config/rotas — entrypoint cacheia automaticamente)
-docker compose exec app php artisan config:clear
-docker compose exec app php artisan route:clear
-docker compose exec app php artisan view:clear
+# Recriar banco com seeders
+docker compose exec app php artisan migrate:fresh --seed
+
+# Criar o banco de testes (uma vez, com o serviço postgres iniciado)
+docker compose exec postgres createdb -U efomento efomento_testing
+
+# Rodar todos os testes (PostgreSQL, banco efomento_testing)
+docker compose exec app php artisan test
+
+# Rodar teste específico por classe ou filtro
+docker compose exec app php artisan test --filter=OpeningTest
+docker compose exec app php artisan test tests/Feature/OpeningTest.php
+
+# PHP lint/formatter (corrige automaticamente)
+docker compose exec app ./vendor/bin/pint
+
+# PHP lint somente verificação (modo CI)
+docker compose exec app ./vendor/bin/pint --test
+
+# JS/Vue lint (corrige automaticamente)
+docker compose exec vite npx eslint resources/js --fix
+
+# JS/Vue formatação
+docker compose exec vite npx prettier --write resources/js
+
+# Qualquer comando Artisan
+docker compose exec app php artisan <comando>
 ```
 
-### URLs locais
-- **App:** http://localhost:8080 (Nginx → PHP-FPM)
-- **Vite HMR:** http://localhost:5173 (container dedicado)
-- **PostgreSQL:** localhost:5432
+Os hooks de pré-commit (Husky + lint-staged) executam Pint e ESLint/Prettier automaticamente sobre os arquivos staged a cada `git commit`. Se o Docker não estiver rodando, o Pint é ignorado e o CI do GitHub Actions fará a verificação.
 
-## Arquitetura Docker
-
-```
-docker compose up -d
-├── efomento-postgres   (5432)  — PostgreSQL com health check
-├── efomento-app        (9000)  — PHP-FPM + OPcache, entrypoint cacheia config/route/view
-├── efomento-vite       (5173)  — Vite dev server com HMR
-└── efomento-nginx      (8080)  — Proxy reverso
-```
-
-O `entrypoint.sh` executa `config:cache`, `route:cache` e `view:cache` ao iniciar. **Após alterar config, rotas ou views, limpe os caches** ou reinicie o container.
-
-## Arquitetura de Aplicação
+## Arquitetura
 
 ### Duas camadas de interface
-- **Filament PHP** → admin interno (equipe técnica, gestores). Acessa models diretamente, sem API.
-- **Vue.js + Vuetify** → interface do usuário final (agentes culturais, analistas). Consome API RESTful.
 
-### Padrões de Projeto
-- **MVC:** Resource Controllers + Eloquent Models + Blade (Filament) / Vue (frontend)
-- **Service Layer:** lógica de negócio isolada em Services
-- **Observers:** cálculos automáticos e side effects
-- **Form Requests:** validação centralizada
-- **API Resources:** transformação de dados para o frontend Vue
+- **Filament PHP** → painel administrativo interno (`/admin`). Acessa os models Eloquent diretamente.
+- **Vue 3 + Vuetify 3 + Tailwind** → interface do usuário final via Inertia.js (`@inertiajs/vue3`). Páginas ficam em `resources/js/Pages/`.
 
-## Modelagem de Dados (Abordagem 01 — já validada)
+### Modelo de fluxo
 
-Models dedicadas por etapa do fluxo, espelhando as abas da planilha original. Cada etapa tem **campos fixos tipados** para dados críticos e **campos JSONB** para sub-seções flexíveis. **Não usar padrão EAV.**
+A entidade central é `Project` (uma inscrição em um edital de fomento cultural). Cada projeto percorre etapas sequenciais:
 
-### Entidade raiz
+```
+Notice (edital)
+└── Project (inscrição)
+    ├── Opening        — Coord. Finalística  (dados do agente, documentos, dados bancários)
+    ├── LegalAnalysis  — ASJUR               (certidões, impedimentos, pareceres)
+    ├── Formalization  — —                   (número do contrato)
+    ├── Budget         — CODIP               (parcelas, valores, cronograma)
+    ├── Payment        — CEGEF               (comprovantes, liberações)
+    └── Monitoring     — —                   (prestação de contas)
+```
 
-**Project** — projeto cultural:
-- `edital_id`, `agent_name`, `agent_cpf_cnpj`, `status` (enum global), `last_synced_at`
-- NUPs: `nup_mae`, `nup_dotacao`, `nup_credor`
-- Dados sincronizados via API do Mapa Cultural (somente leitura após importação)
+A progressão de etapas é controlada: cada etapa só é desbloqueada após aprovação da anterior. `ProjectStage` rastreia o status atual via enums `ProjectStageSlug` e `ProjectStageStatus`.
 
-### Models por etapa
+### Padrões adotados
 
-| Model | Etapa | Setor responsável | Status |
-|-------|-------|--------------------|--------|
-| `ProjectOpening` | Abertura | C. Finalística | Campos mapeados |
-| `ProjectFormalization` | Análise Jurídica | ASJUR | Aguardando UX |
-| `ProjectParcel` | Orçamento/Parcela | CODIP | Aguardando UX |
-| `ProjectPayment` | Pagamento | CEGEF | Aguardando UX |
-| `ProjectMonitoring` | Monitoramento | — | Aguardando UX |
+- **Service Layer** — lógica de negócio fica em `app/Services/`. Controllers são finos e delegam para os serviços.
+- **Observers** — `NoticeObserver` e `ProjectObserver` tratam side effects e cálculos automáticos.
+- **Form Requests** — validação centralizada, não nos controllers.
+- **API Resources** — dados Eloquent são transformados em `app/Http/Resources/` antes de chegar ao Vue.
+- **Auditoria** — `OwenIt\Auditing` rastreia alterações em models críticos (implementam `Auditable`).
+- **Morph map** — registrado no `AppServiceProvider`: `agent`, `notice`, `project`, `opening`.
 
-### ProjectOpening (referência de padrão para as demais)
+### Integrações externas
 
-**Campos tipados:** `numero_processo`, `data_abertura`, `status_agente_cultural`, `responsavel_abertura`, `valor_repasse` (decimal), `valor_repasse_extenso`, `banco`, `tipo_conta`, `agencia`, `conta`, `fiscal_nome`, `fiscal_cpf`, `fiscal_matricula`
+- **API do Mapa Cultural do Ceará** (`MapasClient`) — importa editais e dados de agentes; usa cache com resiliência caso a API esteja indisponível.
+- **Google Sheets** (`GoogleSheetsService`) — sincroniza dados da planilha para os models via comando Artisan ou endpoint HTTP. Mapeamento colunas → fields fica em `config/spreadsheet_mappings.php`.
 
-**Campos JSONB:** `parcelas_adicionais` (array dinâmico), `certidao_eparcerias`
+### Estrutura de filas
 
-**Controle:** `status` (enum: pendente/em_andamento/concluido), `responsible_user_id`, `concluded_at`
+Dois workers separados por responsabilidade:
+- `high,medium,details,default` — jobs gerais (sincronização, notificações)
+- `files` — jobs de download de arquivos (`DownloadMapasProjectFileJob`, `SyncProjectFilesJob`)
 
-Quando as telas de UX forem fornecidas para as demais models, seguir este mesmo padrão.
+### Tabs de etapa e Schemas
 
-### ProjectStage (tabela de configuração, opcional)
-- `slug`, `order`, `responsible_sector` — controle de fluxo e validação de avanço entre etapas
+As telas de cada etapa do Project são Tabs em `resources/js/Pages/ProjectDetails/Partials/Tabs/` (registradas em `ProcessTabs.vue`), construídas sobre `SplitScreenTab` + `SectionChips` + `SectionContent` (visualização) + `SectionForm` (edição). Os campos exibidos/editados são declarados em Schemas (`resources/js/Schemas/`):
 
-### Relacionamentos
-- 1 Project → 1 ProjectOpening → 1 ProjectFormalization → 1 ProjectParcel → 1 ProjectPayment → 1 ProjectMonitoring
-- 1 Project → N ProjectStages (configuração de fluxo)
-- User → responsável por etapa via `responsible_user_id`
+- `viewSections.js` — seções `{ title, fields }`; cada field usa `{ label, key }` (dot notation) ou `{ label, compute }` para valores calculados.
+- `formSections.js` — `{ title, key }`; o `SectionForm` renderiza um slot por `section.key`.
+Cada arquivo é único no projeto. `viewSections.js` exporta um catálogo de seções com `key` e `tabs`; cada Tab usa `getViewSections('opening')` (ou sua etapa) para selecionar as seções pertinentes na ordem do catálogo. Reutilizar as seções compartilhadas e preservar variantes quando os campos diferirem. `formSections.js` exporta arrays por etapa (ex.: `openingFormSections`), importados com o alias `formSections`. Não criar cópias em pastas por etapa.
 
-## Regras de Negócio Fundamentais
+Para datas nos Schemas, usar o composable `useDate`: `getDate(key)` formata, `addDaysTo(key, dias)` soma dias, `daysBetween(startKey, endKey)` retorna o intervalo em dias.
 
-- **Acesso por etapa:** cada setor edita apenas sua etapa
-- **Fluxo sequencial:** etapa só avança após aprovação da anterior
-- **Soft delete obrigatório:** projetos nunca são deletados fisicamente — usar status `desclassificado`
-- **Auditoria:** todo campo crítico alterado gera log (histórico de alterações)
-- **Dados sensíveis:** CPF e dados bancários sempre em colunas tipadas próprias, nunca em campos genéricos
-- **Resiliência:** sistema funciona mesmo se a API do Mapa Cultural estiver indisponível (dados locais sincronizados)
-- **Sincronização Mapa Cultural:** importação inicial via API + refresh sob demanda
+**Atenção:** o relacionamento de formalização no `Project` chama-se `formalizations` (plural, mesmo sendo `HasOne`) — no frontend o acesso é `project.formalizations.<campo>`.
 
-## Tom de Trabalho
+### Convenções de frontend
 
-Projeto de uso governamental com requisitos de transparência e auditoria. Priorizar sempre: **integridade dos dados, rastreabilidade de alterações, clareza do código** e aderência às decisões arquiteturais já tomadas. Quando houver dúvida sobre modelagem, **perguntar antes de implementar**.
+- Roteamento via **Ziggy** — o helper `route()` está disponível globalmente no Vue.
+- Navegação com Inertia: usar `document.referrer` (não `history.state`) para detectar a página anterior.
+- Seletores deep do Vuetify 3 que funcionam: `:deep(.v-data-table__th)` para cabeçalhos, `:deep(.v-data-table__tr:not(:last-child) td)` para linhas. O seletor `.v-data-table__thead th` **não existe** no Vuetify 3.
+- Paginação customizada: não usar `v-model:search` na `v-data-table` — filtrar manualmente com uma computed property.
+- TinyMCE é usado para texto rico e seus assets são incluídos no bundle do Vite.
+
+## Skills do Claude Code
+
+Existem skills locais em `.claude/skills/` que codificam os padrões do frontend — **prefira invocá-las a criar esses artefatos manualmente**:
+
+- `/nova-tab` — cria Tab de etapa + Schemas (viewSections/formSections) e registra no `ProcessTabs.vue`; se o backend da etapa não existir, segue o `checklist-backend.md` somente com confirmação do usuário.
+- `/novo-componente` — cria componente reutilizável em `resources/js/Components/`, verificando antes se já existe algo similar.
+- `/novo-composable` — cria composable em `resources/js/Composables/`, conferindo os existentes para não duplicar (funções de data vão no `useDate`, não em composable novo).
+- `/tratamento-erros` — aplica a hierarquia de exceções `AppException` (backend) e o padrão `useErrorHandler` (frontend) descritos em `docs/error_handling.md`; usar ao lançar/capturar erros, criar Service/Controller novo ou tratar erro de API no Vue.
+
+As skills mandam ler arquivos exemplares reais do repo antes de gerar código — não pule essa etapa. Documentação completa em `docs/skills/README.md`. O diretório `.claude/skills/` **é versionado** (commitado no repo); se uma skill gerar código fora do padrão, corrija o `SKILL.md` dela, não apenas o arquivo gerado.
+
+## Convenções de nomenclatura
+
+- Métodos PHP, colunas do banco, variáveis JS: **inglês**
+- Textos visíveis ao usuário (labels, placeholders, títulos): **português**
+- Enums: `SCREAMING_SNAKE_CASE` com valor backed string idêntico ao nome do case
+
+## Testes
+
+- PHPUnit 11, PostgreSQL 16 (`DB_CONNECTION=pgsql`, `DB_DATABASE=efomento_testing` em `phpunit.xml`); conexão em `.env.testing`, banco separado criado uma vez com `docker compose exec postgres createdb -U efomento efomento_testing`
+- Testes de feature: `tests/Feature/`
+- Testes unitários: `tests/Unit/`
+- E2E: Cypress (roda no navegador do host contra `http://localhost:8080`). O binário do Cypress requer instalação separada: `npx cypress install` no host (não no Docker).

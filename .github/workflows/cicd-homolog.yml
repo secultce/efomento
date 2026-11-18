@@ -1,0 +1,46 @@
+name: CICD_HOMOLOG
+on:
+  push:
+    branches:
+      - develop
+
+  workflow_dispatch:
+
+jobs:
+  BUILD:
+    runs-on: ubuntu-latest
+    outputs:
+      sha_short: ${{ steps.vars.outputs.sha_short }}
+    steps: 
+      - uses: actions/checkout@v7
+
+      - name: Define SHA curto
+        id: vars
+        run: echo "sha_short=$(git rev-parse --short=7 HEAD)" >> "$GITHUB_OUTPUT"
+
+      - name: Docker Login
+        uses: docker/login-action@v4
+        with:
+          username: ${{ secrets.DOCKERHUB_USER }}
+          password: ${{ secrets.DOCKERHUB_PASSWORD }}
+
+      - name: Criação da Imagem docker
+        uses: docker/bake-action@v6
+        env:
+          SHA_SHORT: ${{ steps.vars.outputs.sha_short }}
+          VITE_REVERB_APP_KEY: ${{ secrets.VITE_REVERB_APP_KEY }}
+          VITE_REVERB_HOST: ${{ secrets.VITE_REVERB_HOST }}
+          VITE_REVERB_PORT: ${{ secrets.VITE_REVERB_PORT }}
+          VITE_REVERB_SCHEME: ${{ secrets.VITE_REVERB_SCHEME }}
+        with:
+          files: ./docker/production/docker-bake-homolog.hcl
+          push: true
+
+  DEPLOY:
+    needs: BUILD
+    runs-on: localhomolog
+    steps:
+      - name: Pull da imagem do dockerhub
+        run: docker pull secultceara/efomento:homolog && docker pull secultceara/efomento-nginx:homolog
+      - name: Restart do docker compose para atualizar o container com a nova imagem
+        run: cd /srv/docker/efomento && docker compose down && docker compose up -d

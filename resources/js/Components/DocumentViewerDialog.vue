@@ -1,0 +1,100 @@
+<script setup>
+import { computed } from 'vue';
+import DocumentDownloadMenu from '@/Components/DocumentDownloadMenu.vue';
+import SanitizedHtml from '@/Components/SanitizedHtml.vue';
+import { getBudgetAllocation } from '@/Schemas/schemaUtils';
+
+const props = defineProps({
+    modelValue: { type: Boolean, default: false },
+    document: { type: Object, default: null },
+});
+
+const emit = defineEmits(['update:modelValue']);
+
+const isOpen = computed({
+    get: () => props.modelValue,
+    set: (val) => emit('update:modelValue', val),
+});
+
+const title = computed(() => {
+    return (
+        props.document?.project?.title_project ??
+        props.document?.project?.agent?.name ??
+        props.document?.notice?.name ??
+        'documento'
+    );
+});
+
+const contextLabel = computed(() => (props.document?.project ? 'Documento do projeto' : 'Documento do edital'));
+
+const resolvedBody = computed(() => {
+    if (props.document?.resolved_body != null) {
+        return props.document.resolved_body;
+    }
+
+    const body = props.document?.body;
+    const project = props.document?.project;
+    if (!body || !project) return body ?? '';
+    const budgetAllocation = getBudgetAllocation(project);
+
+    const replacements = {
+        '[notice_name]': project.notice?.name ?? '',
+        '[nup_mother]': project.notice?.nup ?? '',
+        '[agent_name]': project.agent?.name ?? '',
+        '[finality]': project.notice?.instrument_type ?? '',
+        '[fiscal_matricula]': project.opening?.active_supervisor?.user?.registration_number ?? 'sem matrícula',
+        '[fiscal_name]': project.opening?.active_supervisor?.user?.name ?? 'sem fiscal',
+        '[project_name]': project.title_project ?? 'sem projeto',
+        '[allocation_code]': budgetAllocation?.allocation_code ?? 'sem dotação orçamentária',
+        '[allocation_number]': budgetAllocation?.allocation_number ?? 'sem dotação orçamentária',
+        '[finalistic_project]': budgetAllocation?.finalistic_project ?? 'sem projeto finalístico',
+    };
+
+    return Object.entries(replacements).reduce(
+        (text, [placeholder, value]) => text.replaceAll(placeholder, value),
+        body
+    );
+});
+
+function download(format) {
+    window.open(`/projetos/documentos/${props.document.id}/download?format=${format}`, '_blank');
+}
+
+function close() {
+    isOpen.value = false;
+}
+</script>
+
+<template>
+    <v-dialog v-model="isOpen" max-width="720" persistent scrollable>
+        <v-card class="flex flex-col rounded-lg" max-height="85vh">
+            <v-card-title class="flex shrink-0 items-center justify-between p-4 pb-2">
+                <span class="text-sm font-bold">
+                    {{ contextLabel }}: {{ title.length > 50 ? title.substr(0, 49) + '...' : title }}
+                </span>
+                <v-btn icon size="small" variant="text" @click="close">
+                    <v-icon size="18">mdi-close</v-icon>
+                </v-btn>
+            </v-card-title>
+            <v-divider />
+
+            <v-card-text class="min-h-0 flex-1 overflow-y-auto p-6">
+                <div
+                    v-if="resolvedBody"
+                    class="max-w-full text-sm leading-relaxed text-[#3b3b3c] [overflow-wrap:anywhere] [&_p]:mb-3 [&_ol]:mb-3 [&_ol]:pl-6 [&_ul]:mb-3 [&_ul]:pl-6 [&_table]:mb-4 [&_table]:max-w-full [&_table]:table-fixed [&_table]:border-collapse [&_table]:!w-full [&_td]:min-w-0 [&_td]:border [&_td]:border-gray-300 [&_td]:px-2 [&_td]:py-1.5 [&_td]:align-top [&_td]:!whitespace-normal [&_td]:[overflow-wrap:anywhere] [&_td]:[word-break:break-word] [&_th]:min-w-0 [&_th]:border [&_th]:border-gray-300 [&_th]:bg-[#e6f1e3] [&_th]:px-2 [&_th]:py-1.5 [&_th]:align-top [&_th]:font-bold [&_th]:!whitespace-normal [&_th]:[overflow-wrap:anywhere] [&_th]:[word-break:break-word] [&_img]:h-auto [&_img]:max-w-full [&_pre]:max-w-full [&_pre]:overflow-x-auto [&_pre]:whitespace-pre-wrap [&_pre]:[overflow-wrap:anywhere]"
+                >
+                    <SanitizedHtml :content="resolvedBody" />
+                </div>
+                <div v-else class="py-6 text-center text-gray-400">Sem conteúdo disponível.</div>
+            </v-card-text>
+
+            <v-divider />
+
+            <v-card-actions class="shrink-0 p-4">
+                <v-spacer />
+                <DocumentDownloadMenu location="top end" button-class="rounded-lg text-xs" @download="download" />
+                <v-btn class="mr-2 rounded-lg bg-secondary text-black" @click="close"> Fechar </v-btn>
+            </v-card-actions>
+        </v-card>
+    </v-dialog>
+</template>

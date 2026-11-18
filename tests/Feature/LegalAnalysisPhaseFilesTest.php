@@ -1,0 +1,242 @@
+<?php
+
+namespace Tests\Feature;
+
+use App\Enums\FileStatus;
+use App\Enums\ProjectStageSlug;
+use App\Enums\ProjectStageStatus;
+use App\Models\File;
+use App\Models\LegalAnalysis;
+use App\Models\LegalAnalysisFile;
+use App\Models\Project;
+use App\Models\ProjectRegistrationPhase;
+use App\Models\User;
+use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Storage;
+use Spatie\Permission\Models\Role;
+use Tests\TestCase;
+
+class LegalAnalysisPhaseFilesTest extends TestCase
+{
+    use RefreshDatabase;
+
+    private function analyst(string $role = 'legal_analysis'): User
+    {
+        $user = User::factory()->create();
+        $user->assignRole(Role::firstOrCreate(['name' => $role, 'guard_name' => 'web']));
+
+        return $user;
+    }
+
+    private function phase(Project $project, int $order): ProjectRegistrationPhase
+    {
+        return ProjectRegistrationPhase::create([
+            'project_id' => $project->id,
+            'registration_id' => 100 + $order,
+            'phase_order' => $order,
+            'is_first' => $order === 1,
+            'status' => 10,
+            'data' => ['sections' => []],
+            'content_hash' => str_repeat('a', 64),
+            'fetched_at' => now(),
+        ]);
+    }
+
+    private function mapasFile(string $type, int $objectId, string $externalId, array $extra = []): File
+    {
+        return File::factory()->create(array_merge([
+            'object_type' => $type,
+            'object_id' => $objectId,
+            'source' => 'mapas',
+            'external_id' => $externalId,
+            'grp' => "rfc_{$externalId}",
+            'title' => "Campo {$externalId}",
+            'name' => "{$externalId}.pdf",
+            'path' => "projects/1/mapas/{$externalId}.pdf",
+            'private' => true,
+        ], $extra));
+    }
+
+    public function test_index_groups_project_and_phase_files_by_phase(): void
+    {
+        $this->actingAs($this->analyst());
+        $project = Project::factory()->create();
+        $phase2 = $this->phase($project, 2);
+        $phase3 = $this->phase($project, 3);
+
+        $this->mapasFile('project', $project->id, '1');
+        $this->mapasFile('project_registration_phase', $phase3->id, '3');
+        $this->mapasFile('project_registration_phase', $phase2->id, '2');
+        $this->mapasFile('project', Project::factory()->create()->id, '99');
+
+        $groups = $this->getJson(route('legal-analysis.index', $project))
+            ->assertOk()
+            ->json('groups');
+
+        $this->assertSame(['Fase 1', 'Fase 2', 'Fase 3'], array_column($groups, 'group'));
+        $this->assertSame(['Campo 1'], array_column($groups[0]['files'], 'title'));
+        $this->assertSame(['Campo 2'], array_column($groups[1]['files'], 'title'));
+    }
+
+    public function test_index_prefers_project_row_when_phase_one_file_is_duplicated(): void
+    {
+        $this->actingAs($this->analyst());
+        $project = Project::factory()->create();
+        $phase1 = $this->phase($project, 1);
+
+        $legacy = $this->mapasFile('project', $project->id, '7');
+        $this->mapasFile('project_registration_phase', $phase1->id, '7');
+
+        $groups = $this->getJson(route('legal-analysis.index', $project))->json('groups');
+
+        $this->assertCount(1, $groups);
+        $this->assertSame([$legacy->id], array_column($groups[0]['files'], 'id'));
+    }
+
+    public function test_index_keeps_the_duplicate_that_already_has_a_status(): void
+    {
+        $this->actingAs($this->analyst());
+        $project = Project::factory()->create();
+        $phase1 = $this->phase($project, 1);
+
+        $this->mapasFile('project', $project->id, '7');
+        $evaluated = $this->mapasFile('project_registration_phase', $phase1->id, '7');
+        $analysis = LegalAnalysis::factory()->create(['project_id' => $project->id]);
+        LegalAnalysisFile::factory()->create([
+            'legal_analysis_id' => $analysis->id,
+            'file_id' => $evaluated->id,
+            'status' => FileStatus::VALID,
+        ]);
+
+        $files = $this->getJson(route('legal-analysis.index', $project))->json('groups.0.files');
+
+        $this->assertSame([$evaluated->id], array_column($files, 'id'));
+        $this->assertSame('valid', $files[0]['status']);
+    }
+
+    public function test_index_loads_statuses_in_a_single_query(): void
+    {
+        $this->actingAs($this->analyst());
+        $project = Project::factory()->create();
+        $phase = $this->phase($project, 2);
+        foreach (range(1, 6) as $i) {
+            $this->mapasFile('project_registration_phase', $phase->id, (string) $i);
+        }
+        LegalAnalysis::factory()->create(['project_id' => $project->id]);
+
+        \DB::enableQueryLog();
+        $this->getJson(route('legal-analysis.index', $project))->assertOk();
+        $statusQueries = collect(\DB::getQueryLog())->filter(fn ($q) => str_contains($q['query'], 'legal_analysis_files'));
+
+        $this->assertCount(1, $statusQueries);
+    }
+
+    public function test_phase_file_can_be_served_and_evaluated(): void
+    {
+        $this->actingAs($this->analyst());
+        Storage::fake('public');
+        $project = Project::factory()->create();
+        $phase = $this->phase($project, 2);
+        $file = $this->mapasFile('project_registration_phase', $phase->id, '5');
+        Storage::disk('public')->put($file->path, '%PDF-1.4 conteudo');
+
+        $this->get(route('legal-analysis.files.serve', [$project, $file]))->assertOk();
+
+        $this->putJson(route('legal-analysis.update-status', [$project, $file]), ['status' => 'valid'])
+            ->assertOk();
+
+        $this->assertDatabaseHas('legal_analysis_files', ['file_id' => $file->id]);
+    }
+
+    public function test_file_from_another_project_returns_404(): void
+    {
+        $this->actingAs($this->analyst());
+        $project = Project::factory()->create();
+        $other = Project::factory()->create();
+        $file = $this->mapasFile('project_registration_phase', $this->phase($other, 2)->id, '8');
+
+        $this->get(route('legal-analysis.files.serve', [$project, $file]))->assertNotFound();
+        $this->putJson(route('legal-analysis.update-status', [$project, $file]), ['status' => 'valid'])
+            ->assertNotFound();
+    }
+
+    public function test_html_is_forced_to_download_and_never_inline(): void
+    {
+        $this->actingAs($this->analyst());
+        Storage::fake('public');
+        $project = Project::factory()->create();
+        $file = $this->mapasFile('project', $project->id, '9', ['name' => 'x.html', 'path' => 'projects/1/mapas/9.html']);
+        Storage::disk('public')->put($file->path, '<script>alert(1)</script>');
+
+        $response = $this->get(route('legal-analysis.files.serve', [$project, $file]));
+
+        $response->assertOk()->assertHeader('X-Content-Type-Options', 'nosniff');
+        $this->assertStringContainsString('attachment', $response->headers->get('Content-Disposition'));
+    }
+
+    public function test_user_without_legal_analysis_role_cannot_evaluate(): void
+    {
+        $this->actingAs($this->analyst('fomentation'));
+        $project = Project::factory()->create();
+        $file = $this->mapasFile('project', $project->id, '10');
+
+        $this->putJson(route('legal-analysis.update-status', [$project, $file]), ['status' => 'valid'])
+            ->assertForbidden();
+
+        $this->assertDatabaseCount('legal_analysis_files', 0);
+    }
+
+    public function test_cannot_evaluate_after_legal_analysis_stage_is_approved(): void
+    {
+        $this->actingAs($this->analyst());
+        $project = Project::factory()->create();
+        $file = $this->mapasFile('project', $project->id, '11');
+        $project->stages()->where('slug', ProjectStageSlug::ANALISE_JURIDICA)
+            ->update(['status' => ProjectStageStatus::APROVADO]);
+
+        $this->putJson(route('legal-analysis.update-status', [$project, $file]), ['status' => 'valid'])
+            ->assertStatus(422);
+
+        $this->assertDatabaseCount('legal_analysis_files', 0);
+    }
+
+    public function test_non_mapas_project_files_are_not_labeled_as_phase_one(): void
+    {
+        $this->actingAs($this->analyst());
+        $project = Project::factory()->create();
+        $this->mapasFile('project', $project->id, '1');
+        $this->mapasFile('project', $project->id, '12', ['source' => 'upload', 'grp' => 'certidoes']);
+
+        $groups = $this->getJson(route('legal-analysis.index', $project))->json('groups');
+
+        $this->assertSame(['Fase 1', 'certidoes'], array_column($groups, 'group'));
+        $this->assertNull($groups[1]['phase_order']);
+        $this->assertCount(2, array_unique(array_column($groups, 'key')));
+    }
+
+    public function test_group_keys_are_unique_even_when_an_upload_group_is_named_like_a_phase(): void
+    {
+        $this->actingAs($this->analyst());
+        $project = Project::factory()->create();
+        $this->mapasFile('project', $project->id, '1');
+        $this->mapasFile('project', $project->id, '2', ['source' => 'upload', 'grp' => 'Fase 1']);
+
+        $groups = $this->getJson(route('legal-analysis.index', $project))->json('groups');
+
+        $this->assertSame(['Fase 1', 'Fase 1'], array_column($groups, 'group'));
+        $this->assertCount(2, array_unique(array_column($groups, 'key')));
+    }
+
+    public function test_only_legal_analysis_roles_can_list_and_open_files(): void
+    {
+        $project = Project::factory()->create();
+        $file = $this->mapasFile('project', $project->id, '20');
+
+        $this->actingAs($this->analyst('fomentation'));
+        $this->getJson(route('legal-analysis.index', $project))->assertForbidden();
+        $this->get(route('legal-analysis.files.serve', [$project, $file]))->assertForbidden();
+
+        $this->actingAs($this->analyst('coord_legal'));
+        $this->getJson(route('legal-analysis.index', $project))->assertOk();
+    }
+}

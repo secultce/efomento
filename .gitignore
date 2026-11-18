@@ -1,4 +1,5 @@
 *.log
+docs/spreadsheet-sync.md
 .DS_Store
 .env
 .env.backup
@@ -9,7 +10,6 @@
 /.idea
 /.nova
 /.phpunit.cache
-/.vscode
 /.zed
 /auth.json
 /node_modules
@@ -22,3 +22,6 @@
 Homestead.json
 Homestead.yaml
 Thumbs.db
+cypress.env.json
+coverage.xml
+docs/spreadsheet-sync.md

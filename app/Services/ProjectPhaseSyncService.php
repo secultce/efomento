@@ -1,0 +1,338 @@
+<?php
+
+namespace App\Services;
+
+use App\Jobs\SyncPhaseFilesJob;
+use App\Models\Project;
+use App\Models\ProjectRegistrationPhase;
+use Carbon\Carbon;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\RateLimiter;
+use Throwable;
+use UnexpectedValueException;
+
+class ProjectPhaseSyncService
+{
+    private const STATUS_DRAFT = 0;
+
+    private const STATUS_SENT = 1;
+
+    private const STATUS_INVALID = 2;
+
+    private const STATUS_NOT_SELECTED = 3;
+
+    private const STATUS_WAITLIST = 8;
+
+    private const STATUS_SELECTED = 10;
+
+    private const RECHECK_DAYS = 7;
+
+    public function __construct(private readonly MapasClient $mapasClient) {}
+
+    public function sync(Project $project): void
+    {
+        $this->awaitMapasSlot();
+
+        $summary = $this->mapasClient->registrationAllPhases(
+            (int) $project->registration_id,
+            untilLatest: true,
+            summary: true,
+        );
+
+        // Antes de qualquer gravação: um 200 sem a estrutura esperada não pode virar summary_hash.
+        $this->assertValidSummary($summary);
+
+        $hash = $this->summaryHash($summary);
+        $changed = $hash !== $project->summary_hash;
+
+        if (! $changed) {
+            [$nextCheckAt, $close] = $this->schedule($summary, false);
+
+            $this->updateControl($project, [
+                'last_checked_at' => now(),
+                'next_check_at' => $nextCheckAt,
+                ...($close ? ['sync_closed_at' => now()] : []),
+            ]);
+
+            return;
+        }
+
+        // Requisições ao Mapas ficam fora da transação: ela só faz leituras e gravações no banco.
+        $resolved = collect(data_get($summary, 'phases', []))
+            ->map(fn (array $phaseSummary) => $this->resolvePhase($project, $phaseSummary))
+            ->filter()
+            ->all();
+
+        $storedPhaseIds = [];
+
+        DB::transaction(function () use ($project, $summary, $hash, $resolved, &$storedPhaseIds) {
+            foreach ($resolved as $phase) {
+                $storedPhaseIds[] = $this->storePhase($project, $phase)->id;
+            }
+
+            [$nextCheckAt, $close] = $this->schedule($summary, true);
+
+            $this->updateControl($project, [
+                'latest_registration_id' => data_get($summary, 'latestRegistrationId'),
+                'total_phases' => data_get($summary, 'totalPhases'),
+                'summary_hash' => $hash,
+                'last_checked_at' => now(),
+                'last_changed_at' => now(),
+                'next_check_at' => $nextCheckAt,
+                'sync_closed_at' => $close ? now() : null,
+            ]);
+        });
+
+        $this->dispatchFileDownloads($project, $storedPhaseIds);
+
+        Log::info('sync.project_phases.changed', [
+            'project_id' => $project->id,
+            'total_phases' => data_get($summary, 'totalPhases'),
+        ]);
+    }
+
+    public function postponeAfterFailure(Project $project, int $attempt): void
+    {
+        $this->updateControl($project, [
+            'next_check_at' => now()->addHours(max(1, $attempt)),
+        ]);
+    }
+
+    public function summaryHash(array $summary): string
+    {
+        $normalized = [
+            'latestRegistrationId' => data_get($summary, 'latestRegistrationId'),
+            'totalPhases' => data_get($summary, 'totalPhases'),
+            'phases' => collect(data_get($summary, 'phases', []))
+                ->map(fn (array $phase) => $this->phaseFingerprint($phase))
+                ->all(),
+        ];
+
+        return $this->hash($normalized);
+    }
+
+    /**
+     * @return array{0: ?Carbon, 1: bool} [próxima verificação, encerrar sincronização]
+     */
+    public function schedule(array $summary, bool $changed): array
+    {
+        $latest = collect(data_get($summary, 'phases', []))
+            ->firstWhere('registrationId', data_get($summary, 'latestRegistrationId'));
+
+        $tomorrow = now()->addDay();
+
+        if (! $latest) {
+            return [$tomorrow, false];
+        }
+
+        $status = (int) data_get($latest, 'status');
+
+        if (in_array($status, [self::STATUS_DRAFT, self::STATUS_SENT], true)) {
+            return [$tomorrow, false];
+        }
+
+        $hasNext = (bool) data_get($latest, 'hasNextPhase');
+
+        $final = in_array($status, [self::STATUS_SELECTED, self::STATUS_INVALID, self::STATUS_NOT_SELECTED], true);
+
+        if ($final && ! $hasNext) {
+            return [null, true];
+        }
+
+        if ($changed) {
+            return [$tomorrow, false];
+        }
+
+        $next = now()->addDays(self::RECHECK_DAYS);
+
+        $nextFrom = data_get($latest, 'nextPhase.registrationFrom');
+
+        if ($hasNext && $nextFrom) {
+            // O cast datetime grava sem converter o fuso: a data precisa estar no fuso da aplicação.
+            $beforeOpening = Carbon::parse($nextFrom)->subDay()->setTimezone(config('app.timezone'));
+            $next = $beforeOpening->lt($next) ? $beforeOpening : $next;
+        }
+
+        return [$next->lt($tomorrow) ? $tomorrow : $next, false];
+    }
+
+    /**
+     * Busca no Mapas o conteúdo da fase quando ela é nova ou mudou; null quando não há o que gravar.
+     *
+     * @return array{registration_id: int, data: array, content_hash: string, status: mixed}|null
+     */
+    private function resolvePhase(Project $project, array $phaseSummary): ?array
+    {
+        $registrationId = (int) data_get($phaseSummary, 'registrationId');
+
+        $existing = $project->registrationPhases()
+            ->where('registration_id', $registrationId)
+            ->first();
+
+        if ($existing && ! $this->summaryDiffers($existing, $phaseSummary)) {
+            return null;
+        }
+
+        $this->awaitMapasSlot();
+
+        $full = $this->mapasClient->registrationAllPhases($registrationId);
+
+        $data = collect(data_get($full, 'phases', []))
+            ->firstWhere('registrationId', $registrationId);
+
+        // Sem o detalhe não se grava o resumo: o summary_hash faria as próximas rodadas pularem a fase.
+        if (! is_array($data)) {
+            throw new UnexpectedValueException("Mapas returned no detail for registration {$registrationId}");
+        }
+
+        $contentHash = $this->hash($data);
+        $status = data_get($data, 'status');
+
+        if ($existing && $existing->content_hash === $contentHash && $existing->status === $status) {
+            return null;
+        }
+
+        return [
+            'registration_id' => $registrationId,
+            'data' => $data,
+            'content_hash' => $contentHash,
+            'status' => $status,
+        ];
+    }
+
+    /**
+     * Só as fases gravadas nesta rodada (novas ou alteradas) geram download. Depois do commit, para o job
+     * não rodar antes de a fase existir; e uma falha da fila não desfaz a sincronização: o comando
+     * app:sync-phase-files reenfileira o que ficou para trás.
+     *
+     * @param  array<int, int>  $phaseIds
+     */
+    private function dispatchFileDownloads(Project $project, array $phaseIds): void
+    {
+        foreach ($phaseIds as $phaseId) {
+            try {
+                SyncPhaseFilesJob::dispatch($phaseId);
+            } catch (Throwable $exception) {
+                Log::warning('sync.project_phases.files_dispatch_failed', [
+                    'project_id' => $project->id,
+                    'phase_id' => $phaseId,
+                    'message' => $exception->getMessage(),
+                ]);
+            }
+        }
+    }
+
+    private function assertValidSummary(array $summary): void
+    {
+        if (! is_array(data_get($summary, 'phases'))
+            || ! is_int(data_get($summary, 'totalPhases'))
+            || ! array_key_exists('latestRegistrationId', $summary)) {
+            throw new UnexpectedValueException('Mapas returned an invalid phases summary');
+        }
+    }
+
+    /**
+     * Espera uma vaga no limite de requisições do Mapas antes de cada chamada deste job. O middleware
+     * RateLimited conta jobs, não requisições: um projeto com várias fases faria várias chamadas por job.
+     * Usa a mesma chave do middleware (md5 do nome do limitador + chave), então o orçamento é compartilhado.
+     */
+    private function awaitMapasSlot(): void
+    {
+        $limit = RateLimiter::limiter('mapas-api')();
+        $key = md5('mapas-api'.$limit->key);
+
+        while (! RateLimiter::attempt($key, $limit->maxAttempts, fn () => true, $limit->decaySeconds)) {
+            sleep(max(1, RateLimiter::availableIn($key)));
+        }
+    }
+
+    private function storePhase(Project $project, array $phase): ProjectRegistrationPhase
+    {
+        $data = $phase['data'];
+
+        return ProjectRegistrationPhase::updateOrCreate(
+            ['project_id' => $project->id, 'registration_id' => $phase['registration_id']],
+            [
+                'opportunity_id' => data_get($data, 'opportunity.id'),
+                'phase_order' => (int) data_get($data, 'order'),
+                'is_first' => (bool) data_get($data, 'isFirstPhase'),
+                'status' => $phase['status'],
+                'sent_at' => $this->parseSentDate(data_get($data, 'sentDate')),
+                'registration_from' => $this->toAppTimezone(data_get($data, 'opportunity.registrationFrom')),
+                'registration_to' => $this->toAppTimezone(data_get($data, 'opportunity.registrationTo')),
+                'data' => $data,
+                'content_hash' => $phase['content_hash'],
+                'fetched_at' => now(),
+            ]
+        );
+    }
+
+    // O resumo e o `data` salvo da fase têm o mesmo formato, então a comparação usa a mesma impressão
+    // digital dos dois lados: qualquer campo que entra no summary_hash também decide se a fase é rebuscada.
+    private function summaryDiffers(ProjectRegistrationPhase $phase, array $summary): bool
+    {
+        return $this->phaseFingerprint($summary) !== $this->phaseFingerprint($phase->data ?? []);
+    }
+
+    /**
+     * Campos do resumo de uma fase que indicam mudança; datas normalizadas para não variar com o offset.
+     */
+    private function phaseFingerprint(array $phase): array
+    {
+        return [
+            'registrationId' => data_get($phase, 'registrationId'),
+            // A categoria define quais campos o Mapas devolve, então mudar só ela também exige nova busca.
+            'category' => data_get($phase, 'category'),
+            'status' => data_get($phase, 'status'),
+            'sentDate' => data_get($phase, 'sentDate'),
+            'registrationFrom' => $this->toAppTimezone(data_get($phase, 'opportunity.registrationFrom'))?->toIso8601String(),
+            'registrationTo' => $this->toAppTimezone(data_get($phase, 'opportunity.registrationTo'))?->toIso8601String(),
+            'hasNextPhase' => (bool) data_get($phase, 'hasNextPhase'),
+            'nextPhaseOpportunityId' => data_get($phase, 'nextPhase.opportunityId'),
+            'nextPhaseRegistrationFrom' => $this->toAppTimezone(data_get($phase, 'nextPhase.registrationFrom'))?->toIso8601String(),
+        ];
+    }
+
+    // O cast datetime descarta o offset ao gravar, então o valor precisa estar no fuso da aplicação.
+    private function toAppTimezone(?string $value): ?Carbon
+    {
+        return $value ? Carbon::parse($value)->setTimezone(config('app.timezone')) : null;
+    }
+
+    private function parseSentDate(?string $value): ?Carbon
+    {
+        return $value ? Carbon::createFromFormat('d/m/Y', $value)->startOfDay() : null;
+    }
+
+    private function updateControl(Project $project, array $attributes): void
+    {
+        // Query base: não dispara auditoria nem observers nem altera updated_at a cada consulta diária.
+        Project::query()->whereKey($project->id)->toBase()->update($attributes);
+
+        $project->forceFill($attributes)->syncOriginal();
+    }
+
+    private function hash(array $content): string
+    {
+        return hash('sha256', json_encode(
+            $this->sortKeys($content),
+            JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES
+        ));
+    }
+
+    private function sortKeys(array $value): array
+    {
+        foreach ($value as $key => $item) {
+            if (is_array($item)) {
+                $value[$key] = $this->sortKeys($item);
+            }
+        }
+
+        if (! array_is_list($value)) {
+            ksort($value);
+        }
+
+        return $value;
+    }
+}

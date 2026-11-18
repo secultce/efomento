@@ -1,0 +1,39 @@
+<?php
+
+namespace App\Models;
+
+use App\Traits\HasCreatedBy;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\SoftDeletes;
+use OwenIt\Auditing\Auditable as AuditableTrait;
+use OwenIt\Auditing\Contracts\Auditable;
+
+class LegalAnalysis extends Model implements Auditable
+{
+    use AuditableTrait, HasCreatedBy, HasFactory, SoftDeletes;
+
+    protected $table = 'legal_analyses';
+
+    protected $fillable = [
+        'project_id',
+        'created_by',
+        'processed_at',
+    ];
+
+    protected $casts = [
+        'processed_at' => 'datetime',
+    ];
+
+    public function project(): BelongsTo
+    {
+        return $this->belongsTo(Project::class);
+    }
+
+    public function files(): HasMany
+    {
+        return $this->hasMany(LegalAnalysisFile::class);
+    }
+}

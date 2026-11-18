@@ -1,0 +1,785 @@
+<?php
+
+namespace App\Services;
+
+use App\Enums\CgeAtendeStatus;
+use App\Enums\DeliberationType;
+use App\Enums\ReportStatus;
+use App\Exceptions\Integration\ExternalServiceException;
+use App\Exceptions\Integration\PartialSpreadsheetSyncException;
+use App\Models\Budget;
+use App\Models\BudgetAllocation;
+use App\Models\Formalization;
+use App\Models\Project;
+use App\Support\Import;
+use Illuminate\Http\Client\ConnectionException;
+use Illuminate\Http\Client\RequestException;
+use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
+use RuntimeException;
+use Throwable;
+
+class GoogleSheetsService
+{
+    private const GVIZ_ENDPOINT = 'https://docs.google.com/spreadsheets/d/%s/gviz/tq';
+
+    /**
+     * Colunas que indicam execução financeira (empenho, liquidação ou pagamento) já registrada
+     * na parcela. Parcelas com qualquer uma delas preenchida nunca são removidas pelo sync.
+     */
+    private const INSTALLMENT_FINANCIAL_EXECUTION_COLUMNS = [
+        'commitment_number',
+        'committed_amount',
+        'settlement_number',
+        'settlement_date',
+        'settlement_amount',
+        'payment_order_number',
+        'payment_amount',
+        'payment_date',
+    ];
+
+    public function __construct(
+        private readonly SpreadsheetImportService $importService,
+        private readonly BudgetAllocationResolver $budgetAllocationResolver,
+    ) {}
+
+    /** Accepts a raw spreadsheet ID or an HTTPS Google Sheets document URL. */
+    public static function extractSpreadsheetId(string $urlOrId): ?string
+    {
+        $value = trim($urlOrId);
+
+        if (preg_match('/^[a-zA-Z0-9_-]+$/D', $value)) {
+            return $value;
+        }
+
+        $url = parse_url($value);
+        if ($url === false || ($url['scheme'] ?? '') !== 'https' || ($url['host'] ?? '') !== 'docs.google.com'
+            || isset($url['user']) || isset($url['pass']) || isset($url['port'])) {
+            return null;
+        }
+
+        return preg_match('~^/spreadsheets/d/(?!e/)([a-zA-Z0-9_-]+)(?:/|$)~', $url['path'] ?? '', $matches)
+            ? $matches[1]
+            : null;
+    }
+
+    /**
+     * Imports every tab in dependency order, retaining partial counts and failures while continuing later tabs.
+     *
+     * @return array{counts: array<string, int>, errors: array<string, string>}
+     */
+    public function importAll(
+        string $spreadsheetId,
+        int $userId,
+        ?int $fallbackNoticeId = null,
+        bool $withFiles = true,
+    ): array {
+        $counts = [];
+        $errors = [];
+
+        foreach (['Abertura', 'Formalização', 'Orçamento', 'Pagamento'] as $sheet) {
+            try {
+                $counts[$sheet] = match ($sheet) {
+                    'Abertura' => $this->importSheet($spreadsheetId, $sheet, $withFiles, $userId, $fallbackNoticeId),
+                    'Formalização' => $this->syncFormalization($spreadsheetId, $sheet, $userId),
+                    'Orçamento' => $this->syncBudget($spreadsheetId, $sheet, $userId),
+                    'Pagamento' => $this->syncPagamento($spreadsheetId, $sheet, $userId),
+                };
+            } catch (PartialSpreadsheetSyncException $exception) {
+                $counts[$sheet] = $exception->processedCount;
+                $errors[$sheet] = $exception->getMessage();
+            } catch (Throwable $exception) {
+                $errors[$sheet] = $exception->getMessage();
+                report($exception);
+            }
+        }
+
+        return compact('counts', 'errors');
+    }
+
+    /**
+     * Fetches all rows from a public Google Sheet tab and returns a structured array.
+     *
+     * @return array{columns: string[], rows: array<int, array<string, mixed>>}
+     *
+     * @throws ExternalServiceException
+     * @throws RuntimeException
+     */
+    public function fetchSheet(string $spreadsheetId, string $sheetName): array
+    {
+        $url = sprintf(self::GVIZ_ENDPOINT, $spreadsheetId);
+
+        try {
+            $raw = Http::timeout(30)
+                ->get($url, ['tqx' => 'out:json', 'sheet' => $sheetName])
+                ->throw()
+                ->body();
+        } catch (ConnectionException|RequestException $e) {
+            throw ExternalServiceException::unavailable('Google Sheets', $e);
+        }
+        $json = $this->stripSecurityPrefix($raw);
+
+        $table = $this->decodeTable($json);
+
+        $columns = $this->extractColumns($table);
+
+        return [
+            'columns' => $columns,
+            'rows' => $this->extractRows($table, $columns),
+        ];
+    }
+
+    /**
+     * Usando o SpreadsheetImportService::processRow().
+     * Retorna o número de linhas gravadas.
+     */
+    public function importSheet(
+        string $spreadsheetId,
+        string $sheetName,
+        bool $withFiles,
+        int $userId,
+        ?int $fallbackNoticeId = null,
+    ): int {
+        ['rows' => $rows] = $this->fetchSheet($spreadsheetId, $sheetName);
+
+        $count = 0;
+        foreach ($rows as $row) {
+            if ($this->importService->processRow($row, $withFiles, $userId, $fallbackNoticeId) !== null) {
+                $count++;
+            }
+        }
+
+        return $count;
+    }
+
+    /**
+     * Sincroniza a aba de Formalização com o model Formalization.
+     * Retorna o número de registros gravados.
+     *
+     * @throws PartialSpreadsheetSyncException Após processar todas as linhas, se alguma gravação falhar.
+     */
+    public function syncFormalization(string $spreadsheetId, string $sheetName, int $userId): int
+    {
+        $config = config('spreadsheet_mappings.formalizacao');
+        $columnMap = $config['column_map'];
+        $projectLookupColumn = $config['column_for_project_lookup'];
+
+        ['rows' => $rows] = $this->fetchSheet($spreadsheetId, $sheetName);
+
+        $projects = $this->preloadProjectsByNumber($rows, $projectLookupColumn);
+
+        $count = 0;
+        $failedCount = 0;
+        foreach ($rows as $row) {
+            if (($row['STATUS'] ?? null) === 'Desclassificado' || ($row['STATUS'] ?? null) === 'Desistente') {
+                continue;
+            }
+
+            $project = $projects->get($row[$projectLookupColumn] ?? null);
+
+            if (! $project) {
+                continue;
+            }
+
+            $record = ['process_supervisor_id' => $userId, 'created_by' => $userId];
+            foreach ($columnMap as $sheetColumn => $modelField) {
+                $rawValue = $row[$sheetColumn] ?? null;
+
+                if ($modelField === 'cge_atende_ticket') {
+                    $normalized = $this->normalizeCgeAtendeStatus($rawValue, $project->number);
+
+                    if ($this->rejectedInvalidValue($normalized, $rawValue)) {
+                        continue;
+                    }
+
+                    $record[$modelField] = $normalized;
+
+                    continue;
+                }
+
+                if ($modelField === 'report_status') {
+                    $normalized = $this->normalizeReportStatus($rawValue, $project->number);
+
+                    if ($this->rejectedInvalidValue($normalized, $rawValue)) {
+                        continue;
+                    }
+
+                    $record[$modelField] = $normalized;
+
+                    continue;
+                }
+
+                if ($modelField === 'deliberation') {
+                    $normalized = $this->normalizeDeliberationType($rawValue, $project->number);
+
+                    if ($this->rejectedInvalidValue($normalized, $rawValue)) {
+                        continue;
+                    }
+
+                    $record[$modelField] = $normalized;
+
+                    continue;
+                }
+
+                $record[$modelField] = $rawValue;
+            }
+
+            try {
+                Formalization::updateOrCreate(['project_id' => $project->id], $record);
+
+                // Sempre sobrescreve (mesmo quando null): um NUP removido/corrigido
+                // na planilha precisa refletir em Opening, não ficar com valor antigo.
+                $nup = Import::normalizeNup($row[$config['opening_nup_column'] ?? 'N° DO PROCESSO (NUP)'] ?? null);
+                $project->opening?->update(['opening_nup' => $nup]);
+
+                $count++;
+            } catch (Throwable $e) {
+                $failedCount++;
+                Log::warning('spreadsheet.import.formalization_sync_failed', [
+                    'project_number' => $project->number,
+                    'message' => $e->getMessage(),
+                ]);
+            }
+        }
+
+        if ($failedCount > 0) {
+            throw new PartialSpreadsheetSyncException($count, $failedCount);
+        }
+
+        return $count;
+    }
+
+    private function normalizeReportStatus(mixed $value, ?string $projectNumber): ?string
+    {
+        $status = ReportStatus::tryFromLoose($value);
+
+        if ($status === null && ! blank($value)) {
+            Log::warning('spreadsheet.import.report_status_invalid', [
+                'project_number' => $projectNumber,
+                'value' => $value,
+            ]);
+        }
+
+        return $status?->value;
+    }
+
+    /**
+     * Normaliza o valor bruto da coluna "CHAMADO CGE ATENDE" para o enum CgeAtendeStatus.
+     * Valores que não correspondam a nenhum case (números de chamado antigos, texto fora do padrão)
+     * são descartados (null) e registrados em log, em vez de interromper a sincronização.
+     */
+    private function normalizeCgeAtendeStatus(mixed $value, ?string $projectNumber): ?string
+    {
+        if (blank($value)) {
+            return null;
+        }
+
+        $normalized = CgeAtendeStatus::tryFrom(mb_strtoupper(trim((string) $value)));
+
+        if ($normalized === null) {
+            Log::warning('spreadsheet.import.cge_atende_ticket_invalid', [
+                'project_number' => $projectNumber,
+                'value' => $value,
+            ]);
+        }
+
+        return $normalized?->value;
+    }
+
+    /**
+     * Normaliza o valor bruto da coluna "DELIBERAÇÃO" para o enum DeliberationType.
+     * A planilha usa o label de exibição (ex.: "LOTE CGE"), não o backing value (BATCH_CGE);
+     * tenta casar por backing value e, se falhar, pelo label antes de descartar (null) e logar.
+     */
+    private function normalizeDeliberationType(mixed $value, ?string $projectNumber): ?string
+    {
+        if (blank($value)) {
+            return null;
+        }
+
+        $normalizedValue = mb_strtoupper(trim((string) $value));
+
+        $normalized = DeliberationType::tryFrom($normalizedValue)
+            ?? collect(DeliberationType::cases())
+                ->first(fn (DeliberationType $case) => mb_strtoupper($case->label()) === $normalizedValue);
+
+        if ($normalized === null) {
+            Log::warning('spreadsheet.import.deliberation_type_invalid', [
+                'project_number' => $projectNumber,
+                'value' => $value,
+            ]);
+        }
+
+        return $normalized?->value;
+    }
+
+    private function rejectedInvalidValue(?string $normalized, mixed $rawValue): bool
+    {
+        return $normalized === null && ! blank($rawValue);
+    }
+
+    /**
+     * Sincroniza a aba de Orçamento com os models Budget, BudgetAllocation e Installment.
+     * Retorna o número de registros gravados.
+     *
+     * @throws PartialSpreadsheetSyncException Após processar todas as linhas, se alguma gravação falhar.
+     */
+    public function syncBudget(string $spreadsheetId, string $sheetName, int $userId): int
+    {
+        $config = config('spreadsheet_mappings.orcamento');
+        $columnMap = $config['column_map'];
+        $projectLookupColumn = $config['column_for_project_lookup'];
+
+        ['rows' => $rows] = $this->fetchSheet($spreadsheetId, $sheetName);
+
+        $projects = $this->preloadProjectsByNumber($rows, $projectLookupColumn);
+
+        $count = 0;
+        $failedCount = 0;
+        foreach ($rows as $row) {
+            $project = $projects->get($row[$projectLookupColumn] ?? null);
+
+            if (! $project) {
+                Log::warning('spreadsheet.import.budget_project_not_found', [
+                    'project_number' => $row[$projectLookupColumn] ?? null,
+                ]);
+
+                continue;
+            }
+
+            try {
+                $budgetData = [];
+                foreach ($columnMap as $sheetColumn => $modelField) {
+                    $budgetData[$modelField] = Import::date($row[$sheetColumn] ?? null);
+                }
+
+                DB::transaction(function () use ($project, $budgetData, $row, $userId): void {
+                    $budget = Budget::firstOrNew(['project_id' => $project->id]);
+                    if (! $budget->exists) {
+                        $budget->created_by = $userId;
+                    }
+                    $budget->fill($budgetData)->save();
+
+                    $budgetAllocation = $this->syncBudgetAllocation($project, $row, $userId);
+
+                    $this->syncInstallments($budget, $row, $budgetAllocation, $userId);
+                });
+
+                $count++;
+            } catch (Throwable $e) {
+                $failedCount++;
+                Log::warning('spreadsheet.import.budget_sync_failed', [
+                    'project_number' => $project->number,
+                    'message' => $e->getMessage(),
+                ]);
+            }
+        }
+
+        if ($failedCount > 0) {
+            throw new PartialSpreadsheetSyncException($count, $failedCount);
+        }
+
+        return $count;
+    }
+
+    private function syncBudgetAllocation(Project $project, array $row, ?int $userId = null): ?BudgetAllocation
+    {
+        $allocationCode = Import::string($row['CÓDIGO DA DOTAÇÃO'] ?? null);
+        $allocationNumber = Import::string($row['DOTAÇÃO ORÇAMENTÁRIA'] ?? null);
+        $finalisticProject = Import::string($row['PROJETO FINALISTICO'] ?? null);
+
+        // Se colunas de dotação estiverem preenchidas
+        if ($allocationCode || $allocationNumber || $finalisticProject) {
+            $match = ['notice_id' => $project->notice_id];
+            if ($allocationCode) {
+                $match['allocation_code'] = $allocationCode;
+            } elseif ($allocationNumber) {
+                $match['allocation_number'] = $allocationNumber;
+            } else {
+                $match['finalistic_project'] = $finalisticProject;
+            }
+
+            $values = array_filter([
+                'allocation_code' => $allocationCode,
+                'allocation_number' => $allocationNumber,
+                'finalistic_project' => $finalisticProject,
+            ], fn ($val) => $val !== null);
+
+            $allocation = BudgetAllocation::firstOrNew($match);
+            if (! $allocation->exists) {
+                $allocation->created_by = $userId;
+            }
+            $allocation->fill($values)->save();
+
+            // O edital pré-carregado é compartilhado entre os projetos do lote: descarta a
+            // coleção em memória para que a busca alternativa das próximas linhas enxergue
+            // a dotação recém-criada.
+            if ($allocation->wasRecentlyCreated) {
+                $project->notice?->unsetRelation('budgetAllocations');
+            }
+
+            return $allocation;
+        }
+
+        // Fallback: resolver dotação disponível
+        return $this->budgetAllocationResolver->resolveAvailable($project);
+    }
+
+    private function syncInstallments(Budget $budget, array $row, ?BudgetAllocation $budgetAllocation = null, ?int $userId = null): void
+    {
+        // Verificar Parcela Única
+        if ($this->hasSingleInstallment($row)) {
+            $this->syncSingleInstallment($budget, $row, $budgetAllocation, $userId);
+
+            return;
+        }
+
+        // Verificar Múltiplas Parcelas
+        $this->syncMultipleInstallments($budget, $row, $budgetAllocation, $userId);
+    }
+
+    private function hasSingleInstallment(array $row): bool
+    {
+        return $this->hasValue($row['VALOR DE REPASSE (PARCELA ÚNICA)'] ?? null);
+    }
+
+    private function hasValue(mixed $value): bool
+    {
+        return $value !== null && trim((string) $value) !== '';
+    }
+
+    private function syncSingleInstallment(Budget $budget, array $row, ?BudgetAllocation $budgetAllocation = null, ?int $userId = null): void
+    {
+        $amount = Import::money($row['VALOR DE REPASSE (PARCELA ÚNICA)'] ?? null);
+        $noticeInstallmentNumber = Import::integer($row['Nº PARCELA'] ?? null) ?? 1;
+
+        $this->saveInstallment($budget, 1, [
+            'notice_installment_number' => $noticeInstallmentNumber,
+            'amount' => $amount,
+            'request_date' => Import::date($row['DATA DE SOLICITAÇÃO DA PARCELA'] ?? null),
+            'observations' => Import::string($row['OBSERVAÇÃO'] ?? null),
+            ...$this->budgetAllocationData($budgetAllocation),
+        ], $userId);
+
+        $this->deleteObsoleteInstallments($budget, [1]);
+    }
+
+    private function syncMultipleInstallments(Budget $budget, array $row, ?BudgetAllocation $budgetAllocation = null, ?int $userId = null): void
+    {
+        $processedNumbers = [];
+
+        for ($i = 1; $i <= 3; $i++) {
+            $column = "VALOR DE REPASSE ({$i}ª PARCELA)";
+
+            if ($this->hasValue($row[$column] ?? null)) {
+                $amount = Import::money($row[$column]);
+                $noticeInstallmentNumber = Import::integer($row['Nº PARCELA'] ?? null) ?? $i;
+
+                $data = [
+                    'notice_installment_number' => $noticeInstallmentNumber,
+                    'amount' => $amount,
+                ];
+
+                // Apenas 1ª parcela tem request_date, observations e budget_allocation_id
+                if ($i === 1) {
+                    $data['request_date'] = Import::date($row['DATA DE SOLICITAÇÃO DA PARCELA'] ?? null);
+                    $data['observations'] = Import::string($row['OBSERVAÇÃO'] ?? null);
+                    $data = [...$data, ...$this->budgetAllocationData($budgetAllocation)];
+                }
+
+                $this->saveInstallment($budget, $i, $data, $userId);
+
+                $processedNumbers[] = $i;
+            }
+        }
+
+        // Linha sem nenhuma coluna de valor: a planilha não trouxe informação de parcelas
+        // nesta execução, o que não significa que as parcelas foram removidas.
+        if (empty($processedNumbers)) {
+            return;
+        }
+
+        $this->deleteObsoleteInstallments($budget, $processedNumbers);
+    }
+
+    /**
+     * Só sobrescreve a dotação da parcela quando há uma dotação resolvida; sem ela,
+     * o vínculo existente (ex.: feito pela interface) é preservado.
+     *
+     * @return array{budget_allocation_id?: int}
+     */
+    private function budgetAllocationData(?BudgetAllocation $budgetAllocation): array
+    {
+        return $budgetAllocation ? ['budget_allocation_id' => $budgetAllocation->id] : [];
+    }
+
+    /**
+     * Remove as parcelas que a planilha não lista mais, exceto as que já têm execução
+     * financeira registrada (empenho, liquidação ou pagamento). A exclusão é feita por
+     * model para disparar os eventos de auditoria.
+     *
+     * @param  int[]  $keepNumbers
+     */
+    private function deleteObsoleteInstallments(Budget $budget, array $keepNumbers): void
+    {
+        $query = $budget->installments()->whereNotIn('installment_number', $keepNumbers);
+
+        foreach (self::INSTALLMENT_FINANCIAL_EXECUTION_COLUMNS as $column) {
+            $query->whereNull($column);
+        }
+
+        // lockForUpdate: roda dentro da transação do syncBudget; impede que uma importação
+        // financeira concorrente registre execução na parcela entre a leitura e a exclusão.
+        $query->lockForUpdate()->get()->each->delete();
+    }
+
+    /**
+     * Cria ou atualiza a parcela preservando o created_by original;
+     * em atualizações registra o usuário da sincronização em updated_by.
+     */
+    private function saveInstallment(Budget $budget, int $number, array $data, ?int $userId): void
+    {
+        // withTrashed: a unique (budget_id, installment_number) também vale para parcelas
+        // removidas logicamente, então a parcela é restaurada em vez de recriada.
+        $installment = $budget->installments()->withTrashed()->firstOrNew(['installment_number' => $number]);
+
+        if ($installment->trashed()) {
+            $installment->restore();
+        }
+
+        if ($installment->exists) {
+            $installment->updated_by = $userId;
+        } else {
+            $installment->created_by = $userId;
+        }
+
+        $installment->fill($data)->save();
+    }
+
+    /**
+     * Sincroniza a aba de Pagamento com Opening::creditor_number (cross-tab).
+     * A aba Pagamento ainda não tem model próprio sincronizado — só este campo.
+     * Retorna o número de registros atualizados.
+     */
+    public function syncPagamento(string $spreadsheetId, string $sheetName, int $userId): int
+    {
+        $config = config('spreadsheet_mappings.pagamento');
+        $projectLookupColumn = $config['column_for_project_lookup'];
+        $creditorNumberColumn = $config['creditor_number_column'];
+
+        ['rows' => $rows] = $this->fetchSheet($spreadsheetId, $sheetName);
+
+        $projects = $this->preloadProjectsByNumber($rows, $projectLookupColumn);
+
+        $count = 0;
+        foreach ($rows as $row) {
+            $project = $projects->get($row[$projectLookupColumn] ?? null);
+
+            if (! $project) {
+                continue;
+            }
+
+            $creditorNumber = trim((string) ($row[$creditorNumberColumn] ?? ''));
+
+            $project->opening?->update([
+                'creditor_number' => $creditorNumber !== '' ? $creditorNumber : null,
+            ]);
+
+            $count++;
+        }
+
+        return $count;
+    }
+
+    /**
+     * @param  array<int, array<string, mixed>>  $rows
+     * @return Collection<string, Project>
+     */
+    private function preloadProjectsByNumber(array $rows, string $column): Collection
+    {
+        $numbers = collect($rows)
+            ->pluck($column)
+            ->filter()
+            ->unique()
+            ->values()
+            ->all();
+
+        return Project::whereIn('number', $numbers)
+            ->with(['opening', 'budgets.installments', 'notice.budgetAllocations', 'agent.latestSnapshot'])
+            ->get()
+            ->keyBy('number');
+    }
+
+    /**
+     * Importa linhas de uma aba para qualquer model Eloquent usando um mapa de colunas declarativo.
+     *
+     * @param  class-string  $modelClass
+     * @param  array<string, string>  $columnMap  chave = label ou id da coluna na planilha; valor = campo fillable do model
+     * @param  string|string[]  $uniqueBy  campo(s) usados como chave no upsert; vazio = insert simples
+     * @param  array<string, mixed>  $defaults  campos com valor fixo mesclados em cada registro (ex: created_by, process_supervisor_id)
+     * @return int número de linhas gravadas
+     */
+    public function importToModel(
+        string $spreadsheetId,
+        string $sheetName,
+        string $modelClass,
+        array $columnMap,
+        string|array $uniqueBy = [],
+        array $defaults = [],
+    ): int {
+        ['rows' => $rows, 'lookup' => $lookup] = $this->fetchSheetWithLookup($spreadsheetId, $sheetName);
+
+        $records = [];
+        foreach ($rows as $row) {
+            $record = $defaults;
+            foreach ($columnMap as $sheetColumn => $modelField) {
+                $rowKey = $lookup[$sheetColumn] ?? null;
+                $record[$modelField] = $rowKey !== null ? ($row[$rowKey] ?? null) : null;
+            }
+            $records[] = $record;
+        }
+
+        if (empty($records)) {
+            return 0;
+        }
+
+        $updateColumns = array_unique(array_merge(array_values($columnMap), array_keys($defaults)));
+
+        if (empty($uniqueBy)) {
+            $modelClass::insert($records);
+        } else {
+            $modelClass::upsert($records, (array) $uniqueBy, $updateColumns);
+        }
+
+        return count($records);
+    }
+
+    /**
+     * Igual a fetchSheet() mas também devolve um lookup label/id → rowKey,
+     * permitindo que o columnMap aceite tanto o label quanto o id da coluna.
+     *
+     * @return array{columns: string[], rows: array<int, array<string, mixed>>, lookup: array<string, string>}
+     */
+    private function fetchSheetWithLookup(string $spreadsheetId, string $sheetName): array
+    {
+        $url = sprintf(self::GVIZ_ENDPOINT, $spreadsheetId);
+
+        try {
+            $raw = Http::timeout(30)
+                ->get($url, ['tqx' => 'out:json', 'sheet' => $sheetName])
+                ->throw()
+                ->body();
+        } catch (ConnectionException|RequestException $e) {
+            throw ExternalServiceException::unavailable('Google Sheets', $e);
+        }
+
+        $table = $this->decodeTable($this->stripSecurityPrefix($raw));
+        $columns = $this->extractColumns($table);
+        $rows = $this->extractRows($table, $columns);
+
+        // Monta lookup: label → rowKey e id → rowKey (rowKey = label ?: id)
+        $lookup = [];
+        foreach ($table['cols'] ?? [] as $index => $col) {
+            $rowKey = $columns[$index];
+            $label = (string) ($col['label'] ?? '');
+            $id = (string) ($col['id'] ?? '');
+
+            if ($label !== '') {
+                $lookup[$label] = $rowKey;
+            }
+            if ($id !== '') {
+                $lookup[$id] = $rowKey;
+            }
+        }
+
+        return ['columns' => $columns, 'rows' => $rows, 'lookup' => $lookup];
+    }
+
+    /**
+     * Strips the /*O_o*\/\ngoogle.visualization.Query.setResponse(...); wrapper.
+     */
+    private function stripSecurityPrefix(string $raw): string
+    {
+        // Extract JSON from inside the outer setResponse( ... ) call.
+        if (preg_match('/google\.visualization\.Query\.setResponse\((.*)\);?\s*$/s', $raw, $matches)) {
+            return $matches[1];
+        }
+
+        // Fallback: try to find the first '{' and last '}' in the string.
+        $start = strpos($raw, '{');
+        $end = strrpos($raw, '}');
+
+        if ($start === false || $end === false) {
+            throw new RuntimeException('Could not locate JSON payload in Google Sheets response.');
+        }
+
+        return substr($raw, $start, $end - $start + 1);
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function decodeTable(string $json): array
+    {
+        $decoded = json_decode($json, associative: true);
+
+        if (json_last_error() !== JSON_ERROR_NONE) {
+            throw new RuntimeException('Invalid JSON from Google Sheets: '.json_last_error_msg());
+        }
+
+        $table = $decoded['table'] ?? null;
+
+        if (! is_array($table)) {
+            throw new RuntimeException('Unexpected Google Sheets response structure: missing "table" key.');
+        }
+
+        return $table;
+    }
+
+    /** @return string[] */
+    private function extractColumns(array $table): array
+    {
+        return array_map(
+            static fn (array $col): string => (string) (($col['label'] ?? '') !== '' ? $col['label'] : ($col['id'] ?? '')),
+            $table['cols'] ?? [],
+        );
+    }
+
+    /**
+     * @param  string[]  $columns
+     * @return array<int, array<string, mixed>>
+     */
+    private function extractRows(array $table, array $columns): array
+    {
+        $rows = [];
+
+        foreach ($table['rows'] ?? [] as $rawRow) {
+            $cells = $rawRow['c'] ?? [];
+            $mapped = [];
+
+            foreach ($columns as $index => $column) {
+                $cell = $cells[$index] ?? null;
+                $mapped[$column] = isset($cell['v']) ? $this->parseGvizValue($cell['v']) : null;
+            }
+
+            $rows[] = $mapped;
+        }
+
+        return $rows;
+    }
+
+    /**
+     * Converte o formato gviz de data "Date(Y,M,D)" (mês 0-indexado) para "Y-m-d".
+     * Outros valores são devolvidos sem alteração.
+     */
+    private function parseGvizValue(mixed $value): mixed
+    {
+        if (is_string($value) && preg_match('/^Date\((\d+),(\d+),(\d+)\)$/', $value, $m)) {
+            return sprintf('%04d-%02d-%02d', (int) $m[1], (int) $m[2] + 1, (int) $m[3]);
+        }
+
+        return $value;
+    }
+}

@@ -1,0 +1,36 @@
+export const elements = {
+    formalizationTab: '[data-cy=formalization-tab]',
+    projecNupOpeningTab: '[data-cy=project-nup-opening-tab]',
+    rightPanel: '[data-cy=right-panel]',
+    asjurFinalisticProcessingDate: '[data-cy=asjur-finalistic-processing-date]',
+    asjurProcessReceivedDate: '[data-cy=asjur-process-received-date]',
+    processAssignedToSelect: '[data-cy=process-assigned-to]',
+    reportStatusSelect: '[data-cy=report-status-select]',
+    eparceriasCertificateDate: '[data-cy=eparcerias-certificate-date]',
+    asjurProcessingDateInput: '[data-cy=asjur-processing-date-input]',
+    termNumberInput: '[data-cy=term-number-input]',
+    termSignedAtInput: '[data-cy=term-signed-at-input]',
+    sentToOfficeAt: '[data-cy=sent-to-office-at-input]',
+    signedByOfficeAtInput: '[data-cy=signed-by-office-at-input]',
+    saccNumberInput: '[data-cy=sacc-number-input]',
+    cgeAtendeTicketSelect: '[data-cy=cge-atende-ticket-select]',
+    deliberationSelect: '[data-cy=deliberation-select]',
+    sentToChiefOfStaffAtInput: '[data-cy=sent-to-chief-of-staff-at-input]',
+    officialGazettePublishedAtInput: '[data-cy=official-gazette-published-at-input]',
+    instrumentValidityStartAtInput: '[data-cy=instrument-validity-start-at-input]',
+    instrumentValidityEndAtInput: '[data-cy=instrument-validity-end-at-input]',
+    legalOpinionDateInput: '[data-cy=legal-opinion-date-input]',
+    snackbarAlert: '[data-cy=snack-alert]',
+    tramitButton: '[data-cy=tramit-button]',
+    tramitContainer: '[data-cy=tramit-container]',
+    returnProcessButton: '[data-cy=return-process-button-formalization]',
+    retunrProcessSentButton: '[data-cy=return-process-sent-button]',
+    returnProcessSuccessMessage: '[data-cy="snack-alert"]',
+};
+
+// Constantes de timeout para melhor manutenibilidade
+export const TIMEOUTS = {
+    DEFAULT: 5000,
+    LONG: 8000,
+    SEARCH: 3000,
+};

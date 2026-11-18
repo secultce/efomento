@@ -1,0 +1,26 @@
+{
+    "withoutDocuments": {
+        "registrationId": "CYPRESS-OPENING-TRAMIT-NONE",
+        "title": "Projeto Cypress - Abertura sem CI e TC",
+        "nup": "27001701234567890",
+        "documents": []
+    },
+    "onlyCI": {
+        "registrationId": "CYPRESS-OPENING-TRAMIT-CI",
+        "title": "Projeto Cypress - Abertura só com CI",
+        "nup": "27001701234567891",
+        "documents": ["ci"]
+    },
+    "onlyTC": {
+        "registrationId": "CYPRESS-OPENING-TRAMIT-TC",
+        "title": "Projeto Cypress - Abertura só com TC",
+        "nup": "27001701234567892",
+        "documents": ["tc"]
+    },
+    "withDocuments": {
+        "registrationId": "CYPRESS-OPENING-TRAMIT-ALL",
+        "title": "Projeto Cypress - Abertura com CI e TC",
+        "nup": "27001701234567893",
+        "documents": ["ci", "tc"]
+    }
+}

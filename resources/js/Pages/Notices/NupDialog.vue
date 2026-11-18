@@ -1,0 +1,289 @@
+<script setup>
+import { computed, ref, watch } from 'vue';
+import { useForm } from '@inertiajs/vue3';
+import extenso from 'extenso';
+
+import FormField from '@/Components/FormField.vue';
+import TextField from '@/Components/TextField.vue';
+import SelectField from '@/Components/SelectField.vue';
+import { useSnackbar } from '@/Composables/useSnackbar';
+
+const props = defineProps({
+    modelValue: { type: Boolean, default: false },
+    item: { type: Object, default: null },
+    instrumentTypes: { type: Array, default: () => [] },
+    monitoringReportRequestDeadlines: { type: Array, default: () => [] },
+});
+
+const { showSnackbar } = useSnackbar();
+
+const formRef = ref(null);
+const isValid = ref(false);
+
+const emit = defineEmits(['update:modelValue']);
+
+const form = useForm({
+    nup: '',
+    instrument_type: null,
+    total_notice_amount: '',
+    installments: '',
+    process_manager: '',
+    process_manager_email: '',
+    budget_allocation_nup: '',
+    budget_allocation_request_date: '',
+    creditor_registration_nup: '',
+    creditor_registration_request_date: '',
+    monitoring_report_request_deadline: null,
+});
+
+watch(
+    () => props.item,
+    (notice) => {
+        if (!notice) return;
+        form.nup = notice.mae ?? '';
+    }
+);
+
+watch(
+    () => props.modelValue,
+    (isOpen) => {
+        if (isOpen) form.monitoring_report_request_deadline = null;
+    }
+);
+
+function close() {
+    emit('update:modelValue', false);
+}
+
+async function submit() {
+    const { valid } = await formRef.value.validate();
+    if (!valid) return;
+
+    form.patch(route('notices.update', props.item.id), {
+        onSuccess: () => {
+            showSnackbar('Número do processo salvo com sucesso', 'success');
+            close();
+            form.reset();
+        },
+        onError: (errors) => {
+            const message = Object.values(errors).flat().join(', ') || 'Ocorreu um erro ao salvar o processo';
+            showSnackbar(message, 'error');
+        },
+    });
+}
+
+const valorExtenso = computed(() => {
+    if (!form.total_notice_amount) return '';
+
+    const value = Number(form.total_notice_amount);
+
+    if (isNaN(value)) return '';
+
+    return extenso(value, { mode: 'currency' });
+});
+</script>
+
+<template>
+    <v-dialog :model-value="modelValue" max-width="800" persistent>
+        <v-card>
+            <v-form ref="formRef" v-model="isValid" data-cy="identification-data-form">
+                <v-card-title class="text-h6 font-weight-bold">
+                    Adicione as informações de identificação e processos
+                </v-card-title>
+
+                <v-card-text>
+                    <p class="text-subtitle-2 font-weight-bold mb-3">Dados de Identificação</p>
+
+                    <v-row dense>
+                        <v-col cols="12" md="6">
+                            <FormField label="Número do processo mãe (SUITE)" :error="form.errors.nup" required>
+                                <TextField
+                                    v-model="form.nup"
+                                    placeholder="Insira o número do processo aqui"
+                                    clearable
+                                    mask="#####.######/####-##"
+                                    data-cy="notice-nup-identification-data-form"
+                                />
+                                <p class="text-xs text-gray-500 mt-n3">
+                                    * O NUP não pode ser editado após completar a adição dos dados. Fique atento.
+                                </p>
+                            </FormField>
+                        </v-col>
+
+                        <v-col cols="12" md="6">
+                            <FormField label="Tipo de instrumento" :error="form.errors.instrument_type" required>
+                                <SelectField
+                                    v-model="form.instrument_type"
+                                    :items="instrumentTypes"
+                                    placeholder="Selecione um tipo"
+                                    data-cy="instrument-type-identification-data-form-select"
+                                />
+                            </FormField>
+                        </v-col>
+
+                        <v-col cols="12" md="6">
+                            <FormField label="Valor total do edital" :error="form.errors.total_notice_amount" required>
+                                <TextField
+                                    v-model="form.total_notice_amount"
+                                    placeholder="Insira o valor total do edital aqui"
+                                    money
+                                    data-cy="total-amount-notice-identification-data-form"
+                                />
+                            </FormField>
+                        </v-col>
+
+                        <v-col cols="12" md="6">
+                            <FormField label="Valor por extenso">
+                                <TextField
+                                    :model-value="valorExtenso"
+                                    readonly
+                                    capitalize
+                                    disabled
+                                    data-cy="amount-in-full-information-data"
+                                />
+                            </FormField>
+                        </v-col>
+
+                        <v-col cols="12" md="6">
+                            <FormField label="Gestor do acompanhamento do edital" :error="form.errors.process_manager">
+                                <TextField
+                                    v-model="form.process_manager"
+                                    placeholder="Insira o nome do gestor aqui"
+                                    capitalize
+                                    data-cy="notice-manager-accompaniment-identification-data-form"
+                                />
+                            </FormField>
+                        </v-col>
+
+                        <v-col cols="12" md="6">
+                            <FormField label="Email do gestor" :error="form.errors.process_manager_email">
+                                <TextField
+                                    v-model="form.process_manager_email"
+                                    placeholder="Insira o email do gestor aqui"
+                                    data-cy="manager-email-identification-data-form"
+                                />
+                            </FormField>
+                        </v-col>
+
+                        <v-col cols="12" md="6">
+                            <FormField
+                                label="Informe se a parcela é única(1) ou indique o número de parcelas."
+                                :error="form.errors.installments"
+                                required
+                            >
+                                <TextField
+                                    v-model="form.installments"
+                                    placeholder="Insira o número aqui"
+                                    type="number"
+                                    data-cy="quota-number-identification-data-form"
+                                    min="0"
+                                />
+                            </FormField>
+                        </v-col>
+
+                        <v-col cols="12" md="6">
+                            <FormField
+                                label="Política Pública"
+                                :error="form.errors.monitoring_report_request_deadline"
+                                required
+                            >
+                                <SelectField
+                                    v-model="form.monitoring_report_request_deadline"
+                                    :items="monitoringReportRequestDeadlines"
+                                    item-title="label"
+                                    item-value="value"
+                                    placeholder="Selecione uma Política Pública"
+                                    required
+                                    data-cy="public-policy-identification-data-form-select"
+                                />
+                            </FormField>
+                        </v-col>
+                    </v-row>
+
+                    <p class="text-subtitle-2 font-weight-bold mt-6 mb-3">Demais números de processo</p>
+
+                    <v-row dense>
+                        <v-col cols="12" md="6">
+                            <FormField
+                                label="Número do processo de dotação orçamentária"
+                                :error="form.errors.budget_allocation_nup"
+                            >
+                                <TextField
+                                    v-model="form.budget_allocation_nup"
+                                    placeholder="Insira o número da dotação"
+                                    mask="#####.######/####-##"
+                                    data-cy="budget-allocation-nup"
+                                />
+                            </FormField>
+                        </v-col>
+
+                        <v-col cols="12" md="6">
+                            <FormField
+                                label="Data da Solicitação da Dotação"
+                                :error="form.errors.budget_allocation_request_date"
+                            >
+                                <TextField
+                                    v-model="form.budget_allocation_request_date"
+                                    type="date"
+                                    min="2016-01-01"
+                                    data-cy="budget-allocation-request-date"
+                                />
+                            </FormField>
+                        </v-col>
+
+                        <v-col cols="12" md="6">
+                            <FormField
+                                label="Nº Processo Cadastro do Credor"
+                                :error="form.errors.creditor_registration_nup"
+                            >
+                                <TextField
+                                    v-model="form.creditor_registration_nup"
+                                    placeholder="Número do processo do cadastro do credor"
+                                    mask="#####.######/####-##"
+                                    data-cy="creditor-retistration-nup"
+                                />
+                            </FormField>
+                        </v-col>
+
+                        <v-col cols="12" md="6">
+                            <FormField
+                                label="Data da Solicitação do Cadastro do Credor"
+                                :error="form.errors.creditor_registration_request_date"
+                            >
+                                <TextField
+                                    v-model="form.creditor_registration_request_date"
+                                    type="date"
+                                    min="2016-01-01"
+                                    data-cy="creditor-registration-request-date"
+                                />
+                            </FormField>
+                        </v-col>
+                    </v-row>
+                </v-card-text>
+
+                <v-card-actions>
+                    <v-spacer />
+
+                    <v-btn
+                        class="!inline-flex !bg-[#485465FF] !items-center !justify-center !rounded-md !px-4 !py-2 !text-xs !font-semibold !tracking-widest !transition !duration-150 !ease-in-out !focus:outline-none !focus:ring-2 !focus:ring-gray-800 !focus:ring-offset-2 !text-white"
+                        variant="outlined"
+                        data-cy="close-idetification-data-button"
+                        @click="close"
+                    >
+                        Cancelar
+                    </v-btn>
+
+                    <v-btn
+                        class="!inline-flex !bg-[#ffcc05FF] !items-center !justify-center !rounded-md !px-4 !py-2 !text-xs !font-semibold !tracking-widest !transition !duration-150 !ease-in-out !focus:outline-none !focus:ring-2 !focus:ring-gray-800 !focus:ring-offset-2 !text-black"
+                        :loading="form.processing"
+                        :disabled="form.processing"
+                        data-cy="add-data-identification-data-form-button"
+                        @click="submit"
+                    >
+                        Adicionar dados
+                    </v-btn>
+                </v-card-actions>
+            </v-form>
+        </v-card>
+    </v-dialog>
+</template>

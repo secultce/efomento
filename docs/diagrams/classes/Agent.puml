@@ -1,0 +1,31 @@
+@startuml Agent
+
+class Agent {
+    -id: int
+    -name: string
+    -cpf: string
+    -director_position: string
+    -director_email: string
+    -phone: string
+    -email: string
+    -birth_date: date
+    -street: string
+    -number: string
+    -complement: string
+    -postal_code: string
+    -neighborhood: string
+    -city: string
+    -state: string
+    -gender: App\Enums\Gender
+    -education: App\Enums\Education
+    -sexual_orientation: App\Enums\SexualOrientation
+    -race: App\Enums\RaceColor
+    -has_disability: App\Enums\DisabilityType
+    -created_at: string
+    -updated_at: string
+    -deleted_at: datetime
+    --
+    +projects(): HasMany
+}
+
+@enduml

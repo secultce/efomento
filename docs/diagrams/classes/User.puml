@@ -1,0 +1,21 @@
+@startuml User
+
+class User {
+    -id: int
+    -name: string
+    -email: string
+    -email_verified_at: datetime
+    -password: hashed
+    -remember_token: string
+    -created_at: string
+    -updated_at: string
+    --
+    +notifications(): MorphMany
+    +readNotifications(): MorphMany
+    +unreadNotifications(): MorphMany
+    +roles(): MorphToMany
+    +permissions(): MorphToMany
+    +audits(): MorphMany
+}
+
+@enduml

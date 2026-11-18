@@ -1,0 +1,107 @@
+<script setup>
+import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
+import { useDebounce } from '@/Composables/useDebounce';
+import NoticesListPage from '@/Pages/Notices/NoticesListPage.vue';
+import { Head, router } from '@inertiajs/vue3';
+import { ref } from 'vue';
+
+const props = defineProps({
+    filters: {
+        type: Object,
+        default: () => ({}),
+    },
+    totais: {
+        type: Object,
+        default: () => ({ oportunidades: 0, pendentes: 0, concluidos: 0, monitoramento: 0 }),
+    },
+    notices: {
+        type: Array,
+        default: () => [],
+    },
+    user: {
+        type: Object,
+        required: true,
+    },
+    instrumentTypes: {
+        type: Array,
+        default: () => [],
+    },
+    monitoringReportRequestDeadlines: {
+        type: Array,
+        default: () => [],
+    },
+});
+
+const search = ref(props.filters.search ?? '');
+
+const { debounced: fetchNotices } = useDebounce(() => {
+    router.get(
+        route('notices.index'),
+        { search: search.value || undefined },
+        {
+            preserveState: true,
+            preserveScroll: true,
+            replace: true,
+            only: ['notices', 'filters'],
+        }
+    );
+});
+
+function onSearch(value) {
+    search.value = value ?? '';
+    fetchNotices();
+}
+
+const stats = [
+    { title: 'Editais pendentes para abertura de processo', key: 'pendentes' },
+    { title: 'Editais com processos em andamento', key: 'oportunidades' },
+    { title: 'Processos Formalizados', key: 'concluidos' },
+];
+</script>
+
+<template>
+    <Head title="Edital | lista dos editais " />
+
+    <AuthenticatedLayout>
+        <template #subheader>
+            <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+                <v-container class="py-6">
+                    <v-row>
+                        <p class="text-white text-h6 mb-3" data-cy="welcome-message">
+                            Bem-vindo ao seu espaço, {{ user.name }}
+                        </p>
+                    </v-row>
+                    <v-row>
+                        <v-col v-for="stat in stats" :key="stat.key" cols="12" sm="6" lg="4">
+                            <v-card variant="outlined" class="pa-5 bg-white" height="100%">
+                                <v-row align="center">
+                                    <v-col cols="6">
+                                        <div class="text-body-2 font-weight-bold" data-cy="card-dashboard">
+                                            {{ stat.title }}
+                                        </div>
+                                    </v-col>
+                                    <v-col cols="6" class="text-right">
+                                        <div class="text-h4 font-weight-bold text-green-darken-2">
+                                            {{ totais[stat.key] }}
+                                        </div>
+                                    </v-col>
+                                </v-row>
+                            </v-card>
+                        </v-col>
+                    </v-row>
+                </v-container>
+            </div>
+        </template>
+
+        <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-6">
+            <NoticesListPage
+                :notices="notices"
+                :search="search"
+                :total-notices="totais.notices"
+                :instrument-types="instrumentTypes"
+                :monitoring-report-request-deadlines="monitoringReportRequestDeadlines"
+                @search="onSearch"
+            />
+        </div>
+    </AuthenticatedLayout>
+</template>

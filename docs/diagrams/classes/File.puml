@@ -1,0 +1,20 @@
+@startuml File
+
+class File {
+    -id: int
+    -mime_type: string
+    -name: string
+    -object_type: string
+    -object_id: string
+    -grp: string
+    -description: string
+    -path: string
+    -private: boolean
+    -created_at: datetime
+    -updated_at: datetime
+    -deleted_at: datetime
+    --
+    +fileable(): MorphTo
+}
+
+@enduml

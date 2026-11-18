@@ -1,0 +1,37 @@
+<?php
+
+namespace App\Http\Requests\Notice;
+
+use App\Enums\MonitoringReportRequestDeadline;
+use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rules\Enum;
+
+class NoticeStoreRequest extends FormRequest
+{
+    public function authorize(): bool
+    {
+        return true;
+    }
+
+    public function rules(): array
+    {
+        return [
+            'nup' => 'required|string|unique:notices,nup',
+            'name' => 'required|string',
+            'notice_url' => 'nullable|string',
+            'external_id' => 'nullable|string',
+            'total_notice_amount' => 'nullable|numeric',
+            'total_commitment_amount' => 'nullable|numeric',
+            'installments' => 'nullable|integer|min:0',
+            'process_manager' => 'nullable|string',
+            'process_manager_email' => 'nullable|email',
+            'creditor_registration_nup' => 'nullable|string',
+            'creditor_registration_request_date' => 'nullable|date',
+            'monitoring_report_request_deadline' => [
+                'sometimes',
+                'required',
+                new Enum(MonitoringReportRequestDeadline::class),
+            ],
+        ];
+    }
+}

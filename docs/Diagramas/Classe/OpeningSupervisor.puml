@@ -1,0 +1,36 @@
+@startuml OpeningSupervisor
+!theme plain
+skinparam classAttributeIconSize 0
+skinparam class {
+    BackgroundColor #E8F5E9
+    BorderColor #2E7D32
+    ArrowColor #01579B
+}
+
+class OpeningSupervisor {
+    -id: int
+    -opening_id: int
+    -user_id: int
+    -assigned_by: int [nullable]
+    -is_active: boolean
+    -assigned_at: timestamp
+    -removed_at: timestamp [nullable]
+    -created_at: timestamp
+    -updated_at: timestamp
+    --
+    +opening(): BelongsTo
+    +user(): BelongsTo
+    +assignedBy(): BelongsTo
+}
+
+class Opening <<referenced>> {
+}
+
+class User <<referenced>> {
+}
+
+OpeningSupervisor "0..*" --> "1" Opening : opening
+OpeningSupervisor "0..*" --> "1" User : user (supervisor)
+OpeningSupervisor "0..*" --> "0..1" User : assignedBy
+
+@enduml

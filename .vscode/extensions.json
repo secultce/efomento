@@ -1,0 +1,11 @@
+{
+    "recommendations": [
+        "esbenp.prettier-vscode",
+        "dbaeumer.vscode-eslint",
+        "bmewburn.vscode-intelephense-client",
+        "Vue.volar",
+        "EditorConfig.EditorConfig",
+        "onecentlin.laravel-blade",
+        "shufo.vscode-blade-formatter"
+    ]
+}

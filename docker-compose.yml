@@ -4,14 +4,23 @@ services:
       context: ./docker/php
       dockerfile: Dockerfile
       args:
-        UID: 1001
-        GID: 1001
+        UID: ${UID}
+        GID: ${GID}
     container_name: efomento-app
+    environment:
+      REVERB_HOST: reverb
+      REVERB_PORT: 8080
     volumes:
       - .:/var/www
     depends_on:
-      mysql:
+      postgres:
         condition: service_healthy
+    healthcheck:
+      test: ["CMD", "php", "-r", "exit(@fsockopen('127.0.0.1', 9000) ? 0 : 1);"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+      start_period: 5s
     networks:
       - efomento
 
@@ -20,8 +29,8 @@ services:
       context: ./docker/php
       dockerfile: Dockerfile
       args:
-        UID: 1001
-        GID: 1001
+        UID: ${UID}
+        GID: ${GID}
     container_name: efomento-vite
     ports:
       - "5173:5173"
@@ -44,31 +53,148 @@ services:
     networks:
       - efomento
 
-  mysql:
-    image: mysql:8.0
-    container_name: efomento-mysql
+  postgres:
+    image: postgres:16
+    container_name: efomento-postgres
     environment:
-      MYSQL_DATABASE: efomento
-      MYSQL_USER: efomento
-      MYSQL_PASSWORD: secret
-      MYSQL_ROOT_PASSWORD: secret
+      POSTGRES_DB: efomento
+      POSTGRES_USER: efomento
+      POSTGRES_PASSWORD: efomento
     ports:
-      - "3306:3306"
+      - "5433:5432"
     volumes:
-      - mysql_data:/var/lib/mysql
+      - postgres_data:/var/lib/postgresql/data
     networks:
       - efomento
     healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-psecret"]
+      test: ["CMD-SHELL", "pg_isready -U efomento -d efomento"]
       interval: 5s
       timeout: 5s
       retries: 10
       start_period: 30s
+
+  queue:
+    build:
+      context: ./docker/php
+      dockerfile: Dockerfile
+      args:
+        UID: ${UID}
+        GID: ${GID}
+    container_name: efomento-queue
+    environment:
+      REVERB_HOST: reverb
+      REVERB_PORT: 8080
+    volumes:
+      - .:/var/www
+    depends_on:
+      postgres:
+        condition: service_healthy
+      reverb:
+        condition: service_healthy
+    command:
+      [
+        "sh",
+        "-c",
+        "php artisan queue:work --queue=high,medium,details,default --sleep=1 --tries=3 --timeout=240",
+      ]
+    networks:
+      - efomento
+
+  reverb:
+    build:
+      context: ./docker/php
+      dockerfile: Dockerfile
+      args:
+        UID: ${UID}
+        GID: ${GID}
+    container_name: efomento-reverb
+    ports:
+      - "8081:8080"
+    volumes:
+      - .:/var/www
+    depends_on:
+      app:
+        condition: service_healthy
+    command: ["php", "artisan", "reverb:start", "--host=0.0.0.0", "--port=8080"]
+    healthcheck:
+      test: ["CMD", "php", "-r", "exit(@fsockopen('127.0.0.1', 8080) ? 0 : 1);"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+      start_period: 5s
+    networks:
+      - efomento
+
+  queue-files:
+    build:
+      context: ./docker/php
+      dockerfile: Dockerfile
+      args:
+        UID: ${UID}
+        GID: ${GID}
+    container_name: efomento-queue-files
+    volumes:
+      - .:/var/www
+    depends_on:
+      postgres:
+        condition: service_healthy
+    command:
+      [
+        "sh",
+        "-c",
+        "php artisan queue:work --queue=files --sleep=1 --tries=3 --timeout=240",
+      ]
+    networks:
+      - efomento
+
+  greenmail:
+    image: greenmail/standalone:latest
+    container_name: efomento-greenmail
+    environment:
+      GREENMAIL_OPTS: >-
+        -Dgreenmail.setup.test.all
+        -Dgreenmail.hostname=0.0.0.0
+        -Dgreenmail.auth.disabled
+        -Dgreenmail.verbose
+    networks:
+      - efomento
+
+  roundcube:
+    image: roundcube/roundcubemail:latest
+    container_name: efomento-roundcube
+    ports:
+      - "8026:80"
+    environment:
+      ROUNDCUBEMAIL_DEFAULT_HOST: greenmail
+      ROUNDCUBEMAIL_DEFAULT_PORT: 3143
+      ROUNDCUBEMAIL_SMTP_SERVER: greenmail
+      ROUNDCUBEMAIL_SMTP_PORT: 3025
+    depends_on:
+      - greenmail
+    networks:
+      - efomento
+
+  scheduler:
+    build:
+      context: ./docker/php
+      dockerfile: Dockerfile
+      args:
+        UID: ${UID}
+        GID: ${GID}
+    container_name: efomento-scheduler
+    volumes:
+      - .:/var/www
+    depends_on:
+      postgres:
+        condition: service_healthy
+    command: ["php", "artisan", "schedule:work"]
+    networks:
+      - efomento
 
 networks:
   efomento:
     driver: bridge
 
 volumes:
-  mysql_data:
+  postgres_data:
     driver: local

@@ -1,0 +1,184 @@
+<?php
+
+namespace App\Support;
+
+use App\Exceptions\Domain\BusinessRuleException;
+use Carbon\Carbon;
+use DateTimeInterface;
+use Illuminate\Support\Str;
+use PhpOffice\PhpSpreadsheet\Shared\Date as ExcelDate;
+
+class Import
+{
+    public static function normalizeHeader(mixed $value): string
+    {
+        return Str::of((string) $value)
+            ->trim()
+            ->ascii()
+            ->lower()
+            ->replaceMatches('/[^a-z0-9]+/', '_')
+            ->trim('_')
+            ->toString();
+    }
+
+    public static function buildAliases(array $mapping): array
+    {
+        return collect($mapping)
+            ->flatMap(function (array $aliases, string $canonical) {
+                return collect([$canonical, ...$aliases])
+                    ->mapWithKeys(fn ($alias) => [
+                        self::normalizeHeader($alias) => $canonical,
+                    ]);
+            })
+            ->toArray();
+    }
+
+    public static function validateRequiredColumns(
+        array $headers,
+        array $required
+    ): void {
+        $normalizedHeaders = collect($headers)
+            ->map(fn ($header) => self::normalizeHeader($header))
+            ->toArray();
+
+        $missing = collect($required)
+            ->map(fn ($column) => self::normalizeHeader($column))
+            ->reject(fn ($column) => in_array($column, $normalizedHeaders, true));
+
+        if ($missing->isNotEmpty()) {
+            throw new BusinessRuleException(
+                'Spreadsheet is missing required columns: '.
+                    $missing->implode(', ')
+            );
+        }
+    }
+
+    public static function normalizeNup(mixed $value): ?string
+    {
+        if ($value === null || $value === '') {
+            return null;
+        }
+
+        $normalized = preg_replace('/\D+/', '', (string) $value);
+
+        return $normalized !== '' ? $normalized : null;
+    }
+
+    public static function date(mixed $value): ?string
+    {
+        if ($value === null || $value === '') {
+            return null;
+        }
+
+        if ($value instanceof DateTimeInterface) {
+            return $value->format('Y-m-d');
+        }
+
+        if (is_numeric($value)) {
+            try {
+                return ExcelDate::excelToDateTimeObject($value)->format('Y-m-d');
+            } catch (\Throwable) {
+                return null;
+            }
+        }
+
+        $value = trim((string) $value);
+
+        foreach (['d/m/Y', 'd-m-Y', 'Y-m-d', 'd/m/y', 'd-m-y'] as $format) {
+            // Carbon::createFromFormat() lança exceção (não retorna false) quando o
+            // valor não bate com o formato — precisa capturar por tentativa para
+            // não abortar o loop inteiro e nunca chegar nos formatos seguintes.
+            try {
+                $date = Carbon::createFromFormat($format, $value);
+
+                if ($date !== false) {
+                    return $date->format('Y-m-d');
+                }
+            } catch (\Throwable) {
+                continue;
+            }
+        }
+
+        try {
+            return Carbon::parse($value)->format('Y-m-d');
+        } catch (\Throwable) {
+            return null;
+        }
+    }
+
+    public static function money(mixed $value): ?float
+    {
+        if ($value === null || $value === '') {
+            return null;
+        }
+
+        if (is_numeric($value)) {
+            return (float) $value;
+        }
+
+        $value = trim((string) $value);
+
+        /**
+         * Handles:
+         * 1.234,56
+         * R$ 1.234,56
+         */
+        $value = preg_replace('/[^\d,.-]/', '', $value);
+
+        if (str_contains($value, ',')) {
+            $value = str_replace('.', '', $value);
+            $value = str_replace(',', '.', $value);
+        }
+
+        return is_numeric($value) ? (float) $value : null;
+    }
+
+    public static function integer(mixed $value): ?int
+    {
+        if ($value === null || $value === '') {
+            return null;
+        }
+
+        if (is_int($value)) {
+            return $value;
+        }
+
+        $value = trim((string) $value);
+
+        if (is_numeric($value)) {
+            return (int) $value;
+        }
+
+        if (preg_match('/\d+/', $value, $matches)) {
+            return (int) $matches[0];
+        }
+
+        return null;
+    }
+
+    public static function string(mixed $value): ?string
+    {
+        if ($value === null) {
+            return null;
+        }
+
+        $value = trim((string) $value);
+
+        return $value !== '' ? $value : null;
+    }
+
+    public static function dateKey(mixed $date): string
+    {
+        return Carbon::parse($date)->format('Y-m-d');
+    }
+
+    public static function normalizeMoneyForComparison(mixed $value): string
+    {
+        return number_format(
+            num: (float) $value,
+            decimals: 2,
+            decimal_separator: '.',
+            thousands_separator: ''
+        );
+    }
+}

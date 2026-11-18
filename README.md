@@ -1,6 +1,8 @@
 # e-Fomento
 
-Sistema web de gerenciamento de processos de fomento cultural da **Secretaria da Cultura do Ceará (SECULT-CE)**, construído em Laravel 12.
+[![codecov](https://codecov.io/gh/secultce/efomento/graph/badge.svg?token=B8H2FVK1PN)](https://codecov.io/gh/secultce/efomento)
+
+Sistema web de gerenciamento de processos de fomento cultural da **Secretaria da Cultura do Ceará (SECULT-CE)**, construído em Laravel 13.
 
 Substitui a planilha compartilhada "Planilão" por um fluxo digital estruturado, seguro e auditável para acompanhar editais culturais pós-seleção no Mapa Cultural do Ceará. Gerencia o ciclo completo de projetos aprovados em editais (ex: Ciclo Cearense Carnavalesco, PNAB), desde a abertura do processo até o pagamento final e monitoramento.
 
@@ -8,13 +10,13 @@ Substitui a planilha compartilhada "Planilão" por um fluxo digital estruturado,
 
 | Camada                 | Tecnologia                                      |
 |------------------------|--------------------------------------------------|
-| Backend                | Laravel 12 (PHP 8.3+)                           |
+| Backend                | Laravel 13 (PHP 8.3+)                           |
 | Banco de dados         | PostgreSQL (JSONB para campos flexíveis)         |
 | Admin interno          | Filament PHP (acesso direto aos models)          |
 | Frontend usuário final | Vue.js + Vuetify + Tailwind CSS (via API RESTful)|
 | Autenticação           | Laravel Breeze                                   |
 | Build                  | Vite 7, Node.js                                  |
-| Testes                 | PHPUnit 11 (SQLite in-memory)                    |
+| Testes                 | PHPUnit 11 (PostgreSQL 16)                       |
 | Lint                   | Laravel Pint                                     |
 | Infra                  | Docker (PHP-FPM, Nginx, PostgreSQL, Vite)        |
 
@@ -24,16 +26,30 @@ Substitui a planilha compartilhada "Planilão" por um fluxo digital estruturado,
 - Importação inicial de projetos/agentes via API do Mapa Cultural do Ceará
 - Sincronização sob demanda (refresh) com resiliência — sistema funciona offline se a API estiver indisponível
 
+#### Google Sheets pela interface
+
+Usuários `super_admin` podem abrir **Sincronizar Planilha** no menu do avatar, abaixo de **Minha conta**.
+Informe o link ou ID de uma planilha pública e o usuário responsável (pré-selecionado com o usuário autenticado).
+Assim como no comando Artisan, o edital é identificado pelos dados da planilha. O ID interno de um edital no
+e-fomento é opcional e serve apenas como fallback; não deve ser confundido com o ID do edital no Mapas.
+
+A importação executa **Abertura → Formalização → Orçamento → Pagamento** em segundo plano, sempre incluindo
+arquivos e fichas de inscrição. O usuário que iniciou a importação recebe uma notificação com as contagens
+por aba ou as abas que falharam. Arquivos e fichas continuam nas filas próprias após a importação das abas.
+Os workers das filas `default`, `details` e `files` devem estar ativos (`efomento-queue` e `efomento-queue-files`
+no Docker Compose). Após atualizar o código, recarregue os workers e atualize o cache de rotas conforme o deploy.
+
 ### Workflow Multi-Etapas
 Fluxo sequencial com etapas dedicadas por setor:
 
-| Etapa                  | Setor Responsável | Escopo                                              |
-|------------------------|-------------------|------------------------------------------------------|
-| **Abertura**           | C. Finalística    | Dados do agente, endereço, documentos, dados bancários, parcelas |
-| **Análise Jurídica**   | ASJUR             | Regularidade, certidões, impedimentos                |
-| **Orçamento / Parcela**| CODIP             | Definição de parcelas, valores, cronograma           |
-| **Pagamento**          | CEGEF             | Comprovantes, liberações                             |
-| **Monitoramento**      | —                 | Prestação de contas                                  |
+| Etapa                  | Model           | Setor Responsável | Escopo                                              |
+|------------------------|-----------------|-------------------|------------------------------------------------------|
+| **Abertura**           | `Opening`       | C. Finalística    | Dados do agente, endereço, documentos, dados bancários, parcelas |
+| **Análise Jurídica**   | `LegalAnalysis` | ASJUR             | Regularidade, certidões, impedimentos, pareceres     |
+| **Formalização**       | `Formalization` | —                 | Formalização contratual, número do contrato          |
+| **Orçamento**          | `Budget`        | CODIP             | Definição de parcelas, valores, cronograma           |
+| **Pagamento**          | `Payment`       | CEGEF             | Comprovantes, liberações                             |
+| **Monitoramento**      | `Monitoring`    | —                 | Prestação de contas                                  |
 
 - Cada setor edita apenas sua etapa
 - Etapa só avança após aprovação da anterior
@@ -52,62 +68,21 @@ Fluxo sequencial com etapas dedicadas por setor:
 ## Modelo de Dados
 
 ```
-Project (entidade raiz — projeto cultural)
-├── ProjectOpening        (Abertura — C. Finalística)
-├── ProjectFormalization   (Análise Jurídica — ASJUR)
-├── ProjectParcel          (Orçamento/Parcela — CODIP)
-├── ProjectPayment         (Pagamento — CEGEF)
-└── ProjectMonitoring      (Monitoramento/Prestação de Contas)
+Notice (edital cultural)
+└── Registration (inscrição/projeto — entidade raiz do fluxo)
+    ├── Opening              (Abertura — C. Finalística)
+    │   └── OpeningSupervisor  (Fiscal atribuído à abertura — pivot user ↔ opening)
+    ├── LegalAnalysis        (Análise Jurídica — ASJUR)
+    ├── Formalization        (Formalização)
+    ├── Budget               (Orçamento — CODIP)
+    ├── Payment              (Pagamento — CEGEF)
+    └── Monitoring           (Monitoramento/Prestação de Contas)
 ```
+## Diagramas
+- Para uso do PlantUml poderá ter que instalar o executável dot.exe na sua máquina o instalar no linux e configurar o 
+caminho do Ubuntu que é '/usr/bin/dot'. A instalação é com `sudo apt install graphviz`
 
-### Princípios de modelagem
-- **Models dedicadas por etapa** — espelham as abas da planilha original
-- **Campos fixos tipados** para dados críticos (CPF, valores, dados bancários)
-- **Campos JSONB** para sub-seções flexíveis (parcelas dinâmicas, certidões)
-- **Sem padrão EAV** (Entity-Attribute-Value)
-- **Soft delete obrigatório** — projetos nunca são deletados, usam status `desclassificado`
-
-### Project (entidade raiz)
-
-| Campo          | Tipo     | Descrição                               |
-|----------------|----------|-----------------------------------------|
-| edital_id      | FK       | Edital vinculado                        |
-| agent_name     | string   | Nome do agente cultural                 |
-| agent_cpf_cnpj | string   | CPF ou CNPJ do agente                   |
-| nup_mae        | string   | NUP do processo mãe                     |
-| nup_dotacao    | string   | NUP de dotação                          |
-| nup_credor     | string   | NUP do credor                           |
-| status         | enum     | Status global do projeto                |
-| last_synced_at | datetime | Última sincronização com Mapa Cultural  |
-
-### ProjectOpening (referência de padrão para as demais)
-
-| Campo                   | Tipo    | Descrição                    |
-|-------------------------|---------|------------------------------|
-| numero_processo         | string  | Número do processo           |
-| data_abertura           | date    | Data de abertura             |
-| valor_repasse           | decimal | Valor do repasse             |
-| valor_repasse_extenso   | string  | Valor por extenso            |
-| banco, tipo_conta       | string  | Dados bancários              |
-| agencia, conta          | string  | Dados bancários              |
-| fiscal_nome             | string  | Nome do fiscal               |
-| fiscal_cpf              | string  | CPF do fiscal                |
-| fiscal_matricula        | string  | Matrícula do fiscal          |
-| status                  | enum    | pendente/em_andamento/concluido |
-| responsible_user_id     | FK      | Responsável pela etapa       |
-| parcelas_adicionais     | JSONB   | Array dinâmico de parcelas   |
-| certidao_eparcerias     | JSONB   | Dados de certidão            |
-
-> As demais models (Formalization, Parcel, Payment, Monitoring) seguirão o mesmo padrão quando as telas de UX forem definidas.
 </div>
-## Regras de Negócio
-
-- **Acesso por etapa** — cada setor edita apenas sua model/etapa
-- **Fluxo sequencial** — avanço condicionado à aprovação da etapa anterior
-- **Auditoria obrigatória** — todo campo crítico alterado gera log de histórico
-- **Dados sensíveis protegidos** — CPF e dados bancários sempre em colunas tipadas, nunca em JSONB genérico
-- **Resiliência** — dados do Mapa Cultural são sincronizados localmente; sistema opera independente da API externa
-- **Soft delete** — projetos usam status `desclassificado`, nunca exclusão física
 
 ## Como Rodar
 
@@ -122,16 +97,37 @@ docker compose up -d
 
 Isso inicia automaticamente:
 
-| Container        | Descrição                              | Porta          |
-|------------------|----------------------------------------|----------------|
-| efomento-postgres| PostgreSQL com health check            | 5432           |
-| efomento-app     | PHP-FPM com OPcache + caches Laravel   | 9000 (interno) |
-| efomento-vite    | Vite dev server com HMR                | 5173           |
-| efomento-nginx   | Proxy reverso                          | 8080           |
+| Container              | Descrição                                     | Porta          |
+|------------------------|-----------------------------------------------|----------------|
+| efomento-postgres      | PostgreSQL 16 com health check                | 5433 (host)    |
+| efomento-app           | PHP-FPM com OPcache + caches Laravel          | 9000 (interno) |
+| efomento-vite          | Vite dev server com HMR                       | 5173           |
+| efomento-nginx         | Proxy reverso                                 | 8080           |
+| efomento-reverb        | Servidor WebSocket para notificações          | 8081           |
+| efomento-queue         | Worker de filas (high/medium/details/default) | —              |
+| efomento-queue-files   | Worker de filas (files)                       | —              |
+| efomento-scheduler     | Laravel scheduler                             | —              |
+| efomento-greenmail     | Servidor SMTP/IMAP local (e-mail de teste)    | —              |
+| efomento-roundcube     | Webmail para visualizar e-mails de teste      | 8026           |
 
 Acesse: **http://localhost:8080**
 
+### Idioma das mensagens
+
+O idioma padrão é português brasileiro (`pt_BR`). Em ambientes já instalados,
+configure `APP_LOCALE=pt_BR` e `APP_FALLBACK_LOCALE=pt_BR` no `.env` e execute
+`php artisan config:clear` (ou `php artisan config:cache` no deploy) para aplicar
+a alteração. Reinicie os workers de fila para que também usem o novo idioma.
+
+Os nomes dos campos nas mensagens de validação ficam em
+`lang/pt_BR/validation.php`, na chave `attributes`, incluindo os campos aninhados.
+
 ### Comandos úteis
+
+Os testes usam o banco PostgreSQL separado `efomento_testing`, configurado em
+`.env.testing` e fixado em `phpunit.xml`. Com o serviço `postgres` iniciado,
+crie esse banco uma vez com `docker compose exec postgres createdb -U efomento efomento_testing`.
+As migrations dos testes também habilitam a extensão `unaccent`, usada nas buscas.
 
 ```bash
 # Migrations
@@ -150,20 +146,60 @@ docker compose exec app ./vendor/bin/pint
 docker compose exec app php artisan <comando>
 docker compose exec app composer <comando>
 docker compose exec app npm <comando>
+docker exec efomento-app composer require laravel/breeze --dev
+docker exec efomento-app php artisan migrate:fresh --seed
+docker exec efomento-app php artisan db:seed --class=PermissionSeeder
+
+# Forcar Sincronismo dos editais
+docker compose exec app php artisan tinker  --execute="SyncNoticesJob::dispatch()"
+
+# Importação de dados via Google Sheets (Abertura, Formalização, Orçamento, Pagamento)
+docker compose exec app php artisan app:import-google-sheets <spreadsheet-id> --user-id=<user_id>
+# Importar apenas a aba de Orçamento
+docker compose exec app php artisan app:import-google-sheets <spreadsheet-id> --aba=Orçamento --user-id=<user_id>
 ```
+
+O comando `php artisan db:seed` (inclusive via `migrate:fresh --seed`) respeita
+`SEED_MODE`:
+
+| Valor | Dados criados |
+|-------|---------------|
+| `none` | Nenhum (padrao) |
+| `users` | Seeders comuns, permissoes, perfis e usuarios |
+| `all` | Seeders comuns e todos os dados de desenvolvimento |
+
+Os seeders comuns sao definidos em `config/seeding.php` (`common`) e incluem o catalogo de bancos. O modo `none` nao executa esses seeders.
+
+Depois de alterar `SEED_MODE` em um ambiente com configuracao em cache, execute
+`php artisan config:clear` antes de rodar o seeder.
 
 ### Acessos locais
 
-| Serviço    | URL / Host             |
-|------------|------------------------|
-| App        | http://localhost:8080   |
-| Vite HMR   | http://localhost:5173   |
-| PostgreSQL | localhost:5432          |
+| Serviço       | URL / Host             |
+|---------------|------------------------|
+| App           | http://localhost:8080  |
+| Reverb        | ws://localhost:8081    |
+| Vite HMR      | http://localhost:5173  |
+| PostgreSQL    | localhost:5433         |
+| Webmail       | http://localhost:8026  |
+
+### Verificação de acesso por email
+
+O login exige senha e um código de 6 dígitos enviado ao email da conta. O código expira em 5 minutos, é de uso único e fica armazenado como hash no cache. Há limite de 5 tentativas por conta em 10 minutos e intervalo de 60 segundos entre envios. Reenviar invalida o código anterior daquela sessão; alterar email ou senha também invalida a solicitação.
+
+O envio reutiliza `config/mail.php` e as variáveis `MAIL_*` existentes, com jobs criptografados na fila `high`. Mantenha um worker consumindo essa fila (por exemplo, `php artisan queue:work --queue=high,medium,details,default`). O prazo começa na solicitação, não na entrega; monitore atrasos e falhas de envio. Configure um mailer que entregue emails no ambiente de produção; `log` e `array` não entregam mensagens. Localmente, a estrutura Greenmail/Roundcube existente pode receber os códigos.
+
+Use cache persistente com suporte a locks (por exemplo, `database` ou `redis`), compartilhado entre instâncias, e sessões persistentes. Execute as migrations para criar a tabela `trusted_devices`. Não use sessões em cookies: as rotas de login usam bloqueio de sessão para serializar verificação, reenvio e cancelamento. Ao publicar, atualize o build do frontend e o cache de rotas com o fluxo habitual de deploy. Sessões já abertas continuam válidas; novos logins exigem o código e cookies antigos de “lembrar de mim” não permitem entrar pela interface web.
+
+A opção “Confiar neste dispositivo” dispensa o código por 30 dias após uma verificação bem-sucedida, mas sempre exige a senha. A validade não se estende com o uso. O cookie é criptografado, HttpOnly, SameSite=Lax e Secure em produção; use HTTPS. Os tokens são vinculados ao email e à senha atuais. Trocas e redefinições de senha removem os dispositivos e registram a revogação na auditoria sem armazenar tokens ou senhas. Alterar a senha pelo perfil exige a senha atual.
+
+Os parâmetros ficam em `config/two_factor.php`. Ao atualizar esta implementação, desafios pendentes antigos e cookies de confiança emitidos antes da vinculação às credenciais deixam de funcionar; o usuário deve entrar novamente e confirmar um novo código.
+
+Validação automatizada: `php artisan test tests/Feature/Auth`.
 
 ## Arquitetura
 
 ### Duas camadas de interface
-- **Filament PHP** → admin interno (equipe técnica, gestores). Acessa models diretamente.
 - **Vue.js + Vuetify + Tailwind** → interface do usuário final. Consome API RESTful.
 
 ### Padrões de Projeto

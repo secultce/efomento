@@ -2,9 +2,9 @@
 
 namespace Database\Seeders;
 
-use App\Models\User;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
+use InvalidArgumentException;
 
 class DatabaseSeeder extends Seeder
 {
@@ -15,11 +15,35 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        // User::factory(10)->create();
+        $mode = config('seeding.mode');
 
-        User::factory()->create([
-            'name' => 'Test User',
-            'email' => 'test@example.com',
-        ]);
+        $seeders = match ($mode) {
+            'none' => [],
+            'users' => [
+                PermissionSeeder::class,
+                UserSeeder::class,
+            ],
+            'all' => [
+                PermissionSeeder::class,
+                NoticeSeeder::class,
+                UserSeeder::class,
+                AgentSeeder::class,
+                LegalAnalysisSeeder::class,
+                BudgetSeeder::class,
+                PaymentSeeder::class,
+                MonitoringSeeder::class,
+            ],
+            default => throw new InvalidArgumentException(
+                'Invalid SEED_MODE. Supported values: none, users, all.'
+            ),
+        };
+
+        if ($mode !== 'none') {
+            $seeders = array_values(array_unique(array_merge(config('seeding.common', []), $seeders)));
+        }
+
+        if ($seeders !== []) {
+            $this->call($seeders);
+        }
     }
 }

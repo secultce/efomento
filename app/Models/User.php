@@ -3,14 +3,20 @@
 namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
+use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use OwenIt\Auditing\Auditable as AuditableTrait;
+use OwenIt\Auditing\Contracts\Auditable;
+use Spatie\Permission\Traits\HasRoles;
 
-class User extends Authenticatable
+class User extends Authenticatable implements Auditable
 {
-    /** @use HasFactory<\Database\Factories\UserFactory> */
-    use HasFactory, Notifiable;
+    /** @use HasFactory<UserFactory> */
+    use AuditableTrait, HasFactory, HasRoles, Notifiable;
 
     /**
      * The attributes that are mass assignable.
@@ -21,6 +27,8 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
+        'cpf',
+        'registration_number',
     ];
 
     /**
@@ -33,6 +41,8 @@ class User extends Authenticatable
         'remember_token',
     ];
 
+    protected $auditExclude = ['password', 'remember_token'];
+
     /**
      * Get the attributes that should be cast.
      *
@@ -44,5 +54,37 @@ class User extends Authenticatable
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
         ];
+    }
+
+    public function supervisorAssignments(): HasMany
+    {
+        return $this->hasMany(OpeningSupervisor::class, 'user_id');
+    }
+
+    public function trustedDevices(): HasMany
+    {
+        return $this->hasMany(TrustedDevice::class);
+    }
+
+    public function assignedSupervisors(): HasMany
+    {
+        return $this->hasMany(OpeningSupervisor::class, 'assigned_by');
+    }
+
+    public function avatarFile(): HasOne
+    {
+        // User não participa do morph map global (isso quebraria o notifiable_type
+        // das notificações nativas do Laravel, que usa o mesmo morph map) — o alias
+        // 'user' é o mesmo que o FileService gera via fallback (Str::snake(class_basename())).
+        // documentar depois na Wiki secult
+        return $this->hasOne(File::class, 'object_id')
+            ->where('object_type', 'user')
+            ->where('grp', 'avatar')
+            ->latestOfMany();
+    }
+
+    public function avatarUrl(): ?string
+    {
+        return $this->avatarFile?->url;
     }
 }
