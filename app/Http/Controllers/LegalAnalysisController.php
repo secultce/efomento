@@ -3,12 +3,13 @@
 namespace App\Http\Controllers;
 
 use App\Enums\FileStatus;
+use App\Enums\Role;
 use App\Models\File;
 use App\Models\Project;
 use App\Services\LegalAnalysisService;
+use App\Support\SafeFileResponse;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
@@ -16,28 +17,24 @@ class LegalAnalysisController extends Controller
 {
     public function __construct(private readonly LegalAnalysisService $legalAnalysisService) {}
 
-    public function index(Project $project): JsonResponse
+    public function index(Request $request, Project $project): JsonResponse
     {
-        $analysis = $project->legalAnalysis;
-        $files = $project->files()->get();
+        $this->authorizeLegalAnalysis($request);
 
-        $grouped = $files->groupBy('grp')->map(function ($groupFiles, $grp) use ($analysis, $project) {
-            return [
-                'group' => $grp ?? 'Sem categoria',
-                'files' => $groupFiles->map(function ($file) use ($analysis, $project) {
-                    $status = $analysis?->getFileStatus($file->id);
-
-                    return [
-                        'id' => $file->id,
-                        'name' => $file->name,
-                        'url' => route('legal-analysis.files.serve', [$project, $file]),
-                        'status' => $status?->value,
-                        'status_label' => $status?->label(),
-                        'title' => $file->title,
-                    ];
-                })->values(),
-            ];
-        })->values();
+        $grouped = $this->legalAnalysisService->groupedAnalysisFiles($project)
+            ->map(fn (array $group) => [
+                'key' => $group['key'],
+                'group' => $group['group'],
+                'phase_order' => $group['phase_order'],
+                'files' => $group['files']->map(fn (array $item) => [
+                    'id' => $item['file']->id,
+                    'name' => $item['file']->name,
+                    'url' => route('legal-analysis.files.serve', [$project, $item['file']]),
+                    'status' => $item['status']?->value,
+                    'status_label' => $item['status']?->label(),
+                    'title' => $item['file']->title,
+                ])->values(),
+            ]);
 
         return response()->json([
             'groups' => $grouped,
@@ -47,25 +44,32 @@ class LegalAnalysisController extends Controller
 
     public function serveFile(Project $project, File $file, Request $request): StreamedResponse
     {
-        $disk = Storage::disk(config('efomento.file_disk', 'public'));
+        $this->authorizeLegalAnalysis($request);
+        $this->assertFileBelongsToProject($project, $file);
 
-        abort_unless($disk->exists($file->path), 404);
-
-        if ($request->boolean('download')) {
-            return $disk->download($file->path, $file->name);
-        }
-
-        return $disk->response($file->path, $file->name);
+        return SafeFileResponse::make($file, $request->boolean('download'));
     }
 
     public function updateFileStatus(Request $request, Project $project, File $file): JsonResponse
     {
+        $this->assertFileBelongsToProject($project, $file);
+
         $data = $request->validate([
             'status' => ['required', Rule::enum(FileStatus::class)],
         ]);
 
-        $this->legalAnalysisService->updateFileStatus($project, $file, FileStatus::from($data['status']));
+        $this->legalAnalysisService->updateFileStatus($project, $file, FileStatus::from($data['status']), $request->user());
 
         return response()->json(['message' => 'Status atualizado com sucesso']);
+    }
+
+    private function authorizeLegalAnalysis(Request $request): void
+    {
+        abort_unless($request->user()?->hasAnyRole(Role::legalAnalysisRoles()) ?? false, 403);
+    }
+
+    private function assertFileBelongsToProject(Project $project, File $file): void
+    {
+        abort_unless($this->legalAnalysisService->isAnalysisFile($project, $file), 404);
     }
 }
