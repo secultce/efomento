@@ -53,7 +53,7 @@ class LegalAnalysisController extends Controller
             'status' => ['required', Rule::enum(FileStatus::class)],
         ]);
 
-        $this->legalAnalysisService->updateFileStatus($project, $file, FileStatus::from($data['status']));
+        $this->legalAnalysisService->updateFileStatus($project, $file, FileStatus::from($data['status']), $request->user());
 
         return response()->json(['message' => 'Status atualizado com sucesso']);
     }
