@@ -1,38 +1,23 @@
-import Login from '../../../pages/auth/Login';
-import Notice from '../../../pages/notice/NoticePage';
+import { PHASES } from '../../../support/constants/phases.js';
 import Project from '../../../pages/project/ProjectPage';
+import ProjectWorkflow from '../../../support/workflows/ProjectWorkflow';
 
 describe('Project Page', () => {
     beforeEach(() => {
-        cy.fixture('users').as('user');
+        cy.resetCypressData();
+        cy.loginByRole('fomentation');
+
         cy.fixture('notices').as('notice');
         cy.fixture('projects').as('project');
-
-        cy.intercept('GET', '**/editais/*/projetos*').as('projectRequest');
-
-        cy.get('@user').then((user) => {
-            Login.accessLoginPage();
-            Login.successLogin(user.valid_email, user.password, user.name);
-        });
-
-        cy.get('@notice').then((notice) => {
-            Notice.visitPage();
-            Project.accessProjectPage(notice.id);
-
-            cy.wait('@projectRequest').then(() => {
-                cy.wrap(notice).as('currentNotice');
-            });
-        });
-
-        cy.get('@project').then((project) => {
-            cy.wrap(project).as('currentProject');
-            Project.displayProjectList();
-        });
     });
 
     describe('Search Functionality', () => {
+        beforeEach(function () {
+            ProjectWorkflow.accessProjectListByNotice(this.notice.notice);
+        });
+
         it('should search for a project by project NUP', function () {
-            Project.findProjectByProjectNup();
+            Project.findProjectByProjectNup(this.project.opening.nup);
         });
 
         it('should return no results for an invalid process number', function () {
@@ -41,6 +26,25 @@ describe('Project Page', () => {
 
         it('should search for a project by agent name', function () {
             Project.findProjectByAgentName();
+        });
+    });
+
+    describe('Supervisor Assignment', () => {
+        it('should display the assigned supervisor in the opening project details', function () {
+            // Arrange
+            const notice = this.notice.notice;
+            const project = this.project.opening;
+
+            ProjectWorkflow.accessProjectListByNotice(notice);
+
+            // Act
+            ProjectWorkflow.assignSupervisor({
+                project,
+                phase: PHASES.OPENING,
+            }).then((supervisorName) => {
+                // Assert
+                ProjectWorkflow.validateSupervisorAssigned({ notice, project, supervisorName });
+            });
         });
     });
 });

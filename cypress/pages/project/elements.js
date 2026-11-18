@@ -8,7 +8,7 @@ export const elements = {
     rowTableProjectList: '[data-cy=project-list-row-table]',
     chipProjectList: '[data-cy=chip-project-list]',
     agentNameProjectList: '[data-cy=agent-name-project-list]',
-    noDataAvailableMessage: '[data-cy=no-data-available-message]',
+    noDataAvailableMessage: '[data-cy=project-list-empty-state]',
     projectPhase: '[data-cy=project-phase]',
     createCIButton: '[data-cy=create-ci-button]',
     editCIButton: '[data-cy=edit-ci-button]',
@@ -20,6 +20,11 @@ export const elements = {
     editDocumentButon: '[data-cy=edit-document-button]',
     saveDocumentButton: '[data-cy=save-document-button]',
     cancelDocumentButton: '[data-cy=cancel-document-button]',
+    assignSupervisorButton: '[data-cy=assign-supervisor-button]',
+    selectSupervisorSelect: '[data-cy=select-supervisor-select]',
+    supervisorOption: '.v-autocomplete__content [role=option]:visible',
+    saveSupervisorButton: '[data-cy=save-supervisor-button]',
+    principalSupervisorName: '[data-cy=principal-supervisor-name]',
     successAlert: '.v-snackbar',
 };
 

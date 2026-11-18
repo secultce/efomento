@@ -115,7 +115,12 @@ const copyValue = async (value) => {
                         {{ item.label }}: <span class="font-bold">{{ item.value }}</span>
                     </p>
                 </div>
-                <span v-else class="font-bold break-words" :class="{ 'whitespace-pre-line': field.multiline }">
+                <span
+                    v-else
+                    :data-cy="field.dataCy"
+                    class="font-bold break-words"
+                    :class="{ 'whitespace-pre-line': field.multiline }"
+                >
                     {{ displayValue(field) }}
                 </span>
             </div>
