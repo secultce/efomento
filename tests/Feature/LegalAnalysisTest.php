@@ -2,10 +2,7 @@
 
 namespace Tests\Feature;
 
-use App\Enums\FileStatus;
-use App\Models\File;
 use App\Models\LegalAnalysis;
-use App\Models\LegalAnalysisFile;
 use App\Models\Project;
 use App\Models\User;
 use Carbon\Carbon;
@@ -66,28 +63,5 @@ class LegalAnalysisTest extends TestCase
         ]);
 
         $this->assertInstanceOf(Carbon::class, $analysis->processed_at);
-    }
-
-    public function test_get_file_status_returns_correct_status()
-    {
-        $analysis = LegalAnalysis::factory()->create();
-        $fileModel = File::factory()->create();
-
-        $file = LegalAnalysisFile::factory()->create([
-            'legal_analysis_id' => $analysis->id,
-            'file_id' => $fileModel->id,
-            'status' => FileStatus::VALID,
-        ]);
-
-        $status = $analysis->getFileStatus($fileModel->id);
-
-        $this->assertEquals(FileStatus::VALID, $status);
-    }
-
-    public function test_get_file_status_returns_null_when_not_found()
-    {
-        $analysis = LegalAnalysis::factory()->create();
-
-        $this->assertNull($analysis->getFileStatus(999));
     }
 }

@@ -3,6 +3,8 @@
 namespace Tests\Feature;
 
 use App\Enums\FileStatus;
+use App\Enums\ProjectStageSlug;
+use App\Enums\ProjectStageStatus;
 use App\Models\File;
 use App\Models\LegalAnalysis;
 use App\Models\LegalAnalysisFile;
@@ -11,11 +13,20 @@ use App\Models\ProjectRegistrationPhase;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Storage;
+use Spatie\Permission\Models\Role;
 use Tests\TestCase;
 
 class LegalAnalysisPhaseFilesTest extends TestCase
 {
     use RefreshDatabase;
+
+    private function analyst(string $role = 'legal_analysis'): User
+    {
+        $user = User::factory()->create();
+        $user->assignRole(Role::firstOrCreate(['name' => $role, 'guard_name' => 'web']));
+
+        return $user;
+    }
 
     private function phase(Project $project, int $order): ProjectRegistrationPhase
     {
@@ -48,7 +59,7 @@ class LegalAnalysisPhaseFilesTest extends TestCase
 
     public function test_index_groups_project_and_phase_files_by_phase(): void
     {
-        $this->actingAs(User::factory()->create());
+        $this->actingAs($this->analyst());
         $project = Project::factory()->create();
         $phase2 = $this->phase($project, 2);
         $phase3 = $this->phase($project, 3);
@@ -69,7 +80,7 @@ class LegalAnalysisPhaseFilesTest extends TestCase
 
     public function test_index_prefers_project_row_when_phase_one_file_is_duplicated(): void
     {
-        $this->actingAs(User::factory()->create());
+        $this->actingAs($this->analyst());
         $project = Project::factory()->create();
         $phase1 = $this->phase($project, 1);
 
@@ -84,7 +95,7 @@ class LegalAnalysisPhaseFilesTest extends TestCase
 
     public function test_index_keeps_the_duplicate_that_already_has_a_status(): void
     {
-        $this->actingAs(User::factory()->create());
+        $this->actingAs($this->analyst());
         $project = Project::factory()->create();
         $phase1 = $this->phase($project, 1);
 
@@ -105,7 +116,7 @@ class LegalAnalysisPhaseFilesTest extends TestCase
 
     public function test_index_loads_statuses_in_a_single_query(): void
     {
-        $this->actingAs(User::factory()->create());
+        $this->actingAs($this->analyst());
         $project = Project::factory()->create();
         $phase = $this->phase($project, 2);
         foreach (range(1, 6) as $i) {
@@ -122,7 +133,7 @@ class LegalAnalysisPhaseFilesTest extends TestCase
 
     public function test_phase_file_can_be_served_and_evaluated(): void
     {
-        $this->actingAs(User::factory()->create());
+        $this->actingAs($this->analyst());
         Storage::fake('public');
         $project = Project::factory()->create();
         $phase = $this->phase($project, 2);
@@ -139,7 +150,7 @@ class LegalAnalysisPhaseFilesTest extends TestCase
 
     public function test_file_from_another_project_returns_404(): void
     {
-        $this->actingAs(User::factory()->create());
+        $this->actingAs($this->analyst());
         $project = Project::factory()->create();
         $other = Project::factory()->create();
         $file = $this->mapasFile('project_registration_phase', $this->phase($other, 2)->id, '8');
@@ -151,7 +162,7 @@ class LegalAnalysisPhaseFilesTest extends TestCase
 
     public function test_html_is_forced_to_download_and_never_inline(): void
     {
-        $this->actingAs(User::factory()->create());
+        $this->actingAs($this->analyst());
         Storage::fake('public');
         $project = Project::factory()->create();
         $file = $this->mapasFile('project', $project->id, '9', ['name' => 'x.html', 'path' => 'projects/1/mapas/9.html']);
@@ -161,5 +172,44 @@ class LegalAnalysisPhaseFilesTest extends TestCase
 
         $response->assertOk()->assertHeader('X-Content-Type-Options', 'nosniff');
         $this->assertStringContainsString('attachment', $response->headers->get('Content-Disposition'));
+    }
+
+    public function test_user_without_legal_analysis_role_cannot_evaluate(): void
+    {
+        $this->actingAs($this->analyst('fomentation'));
+        $project = Project::factory()->create();
+        $file = $this->mapasFile('project', $project->id, '10');
+
+        $this->putJson(route('legal-analysis.update-status', [$project, $file]), ['status' => 'valid'])
+            ->assertForbidden();
+
+        $this->assertDatabaseCount('legal_analysis_files', 0);
+    }
+
+    public function test_cannot_evaluate_after_legal_analysis_stage_is_approved(): void
+    {
+        $this->actingAs($this->analyst());
+        $project = Project::factory()->create();
+        $file = $this->mapasFile('project', $project->id, '11');
+        $project->stages()->where('slug', ProjectStageSlug::ANALISE_JURIDICA)
+            ->update(['status' => ProjectStageStatus::APROVADO]);
+
+        $this->putJson(route('legal-analysis.update-status', [$project, $file]), ['status' => 'valid'])
+            ->assertStatus(422);
+
+        $this->assertDatabaseCount('legal_analysis_files', 0);
+    }
+
+    public function test_non_mapas_project_files_are_not_labeled_as_phase_one(): void
+    {
+        $this->actingAs($this->analyst());
+        $project = Project::factory()->create();
+        $this->mapasFile('project', $project->id, '1');
+        $this->mapasFile('project', $project->id, '12', ['source' => 'upload', 'grp' => 'certidoes']);
+
+        $groups = $this->getJson(route('legal-analysis.index', $project))->json('groups');
+
+        $this->assertSame(['Fase 1', 'certidoes'], array_column($groups, 'group'));
+        $this->assertNull($groups[1]['phase_order']);
     }
 }
