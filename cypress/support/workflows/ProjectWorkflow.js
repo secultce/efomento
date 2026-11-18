@@ -3,12 +3,12 @@ import Project from '../../pages/project/ProjectPage.js';
 import NoticeWorkflow from '../workflows/NoticeWorkflow.js';
 
 class ProjectWorkflow {
-    accessProjectListByNotice({ notice }) {
+    accessProjectListByNotice(notice) {
         NoticeWorkflow.accessNoticeProjectsList(notice.noticeNup);
     }
 
     accessProjectDetails({ notice, project }) {
-        this.accessProjectListByNotice({ notice });
+        this.accessProjectListByNotice(notice);
 
         Project.findProjectByProjectNup(project.nup ?? project.projectNup);
         Project.goToProjectDetailsPage(project.nup ?? project.projectNup);
@@ -43,6 +43,28 @@ class ProjectWorkflow {
         Project.clickCancelDocumentButton();
 
         Project.validateDocumentCreated(project.nup ?? project.projectNup, documentType.chip);
+    }
+
+    assignSupervisor({ project, phase }) {
+        const projectNup = project.nup ?? project.projectNup;
+
+        this.filterByPhase(phase);
+        Project.findProjectByProjectNup(projectNup);
+        Project.validateCurrentPhase(projectNup, phase);
+        Project.selectProject(projectNup);
+        Project.clickAssignSupervisorButton();
+
+        return Project.selectAvailableSupervisor().then((supervisorName) => {
+            Project.clickSaveSupervisorButton();
+            Project.verifySupervisorAssignmentSaved();
+
+            return cy.wrap(supervisorName);
+        });
+    }
+
+    validateSupervisorAssigned({ notice, project, supervisorName }) {
+        this.accessProjectDetails({ notice, project });
+        Project.validatePrincipalSupervisor(supervisorName);
     }
 }
 
