@@ -3,12 +3,12 @@ import Project from '../../pages/project/ProjectPage.js';
 import NoticeWorkflow from '../workflows/NoticeWorkflow.js';
 
 class ProjectWorkflow {
-    accessProjectListByNotice({ notice }) {
+    accessProjectListByNotice(notice) {
         NoticeWorkflow.accessNoticeProjectsList(notice.noticeNup);
     }
 
     accessProjectDetails({ notice, project }) {
-        this.accessProjectListByNotice({ notice });
+        this.accessProjectListByNotice(notice);
 
         Project.findProjectByProjectNup(project.nup ?? project.projectNup);
         Project.goToProjectDetailsPage(project.nup ?? project.projectNup);
