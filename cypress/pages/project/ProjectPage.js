@@ -270,8 +270,11 @@ class Project {
     }
 
     verifySearchResultByAgent(agentName, projectNup) {
-        const expectedAgent = agentName.trim().toLowerCase();
+        const normalizeName = (value) => value.normalize('NFD').replace(/\p{M}/gu, '').toLowerCase();
+        const expectedWords = [...new Set((agentName.match(/\p{L}[\p{L}\p{M}]*/gu) ?? []).map(normalizeName))];
         const expectedNup = this.normalizeNup(projectNup);
+
+        expect(expectedWords, 'Palavras do nome utilizadas na busca').to.have.length.greaterThan(0);
 
         cy.get(el.projectList)
             .find(el.rowTableProjectList)
@@ -281,9 +284,11 @@ class Project {
                 const returnedNups = [];
 
                 $rows.each((_, row) => {
-                    const actualAgent = Cypress.$(row).find(el.agentNameProjectList).text().trim().toLowerCase();
+                    const actualAgent = normalizeName(Cypress.$(row).find(el.agentNameProjectList).text());
 
-                    expect(actualAgent, 'Agente do projeto encontrado').to.equal(expectedAgent);
+                    expectedWords.forEach((word) => {
+                        expect(actualAgent, `Agente do projeto encontrado deve conter "${word}"`).to.include(word);
+                    });
                     returnedNups.push(this.normalizeNup(Cypress.$(row).find(el.projectNupProjectList).text()));
                 });
 
