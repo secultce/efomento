@@ -4,7 +4,7 @@ Este arquivo fornece orientações ao Claude Code (claude.ai/code) ao trabalhar 
 
 ## Ambiente
 
-O backend usa Laravel 13 e requer PHP 8.3 ou superior.
+O backend usa Laravel 13 e requer PHP 8.4 ou superior.
 
 Todos os comandos rodam dentro do Docker — nunca execute `php`, `artisan`, `composer` ou `npm` diretamente no host.
 
