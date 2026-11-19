@@ -30,7 +30,18 @@ describe('Project Page', () => {
         });
 
         it('should search for a project by agent name', function () {
-            Project.findProjectByAgentName();
+            // Arrange
+            const notice = this.notice.notice;
+
+            ProjectWorkflow.accessProjectListByNotice(notice);
+
+            Project.getProjectData().then(({ agentName, projectNup }) => {
+                // Act
+                Project.findProjectByAgentName(agentName);
+
+                // Assert
+                Project.verifySearchResultByAgent(agentName, projectNup);
+            });
         });
     });
 });
