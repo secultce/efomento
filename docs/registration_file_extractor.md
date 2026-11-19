@@ -1,10 +1,14 @@
 # Plano: baixar para o e-Fomento os arquivos das fases (SyncProjectPhasesJob)
 
-> **Status:** as seções 1 a 5 (download) estão implementadas na `feature/job_all_registration`, sem commit: `PhaseFileExtractor`, `SyncPhaseFilesJob`, `app:sync-phase-files`, morph map, `HasFiles` e gatilho em `ProjectPhaseSyncService`. A seção 6 (renderização no modal) continua pendente e depende da #636.
+> **Status:** as seções 1 a 5 (download) estão implementadas e já na `develop` (PR #641, junto com o job de fases): `PhaseFileExtractor`, `SyncPhaseFilesJob`, `app:sync-phase-files`, morph map, `HasFiles` e gatilho em `ProjectPhaseSyncService`. O modal das fases entrou pelo PR #645 (`RegistrationPhasesButton.vue`, `RegistrationPhasesModal.vue`), mas ainda mostra os links do Mapas: a seção 6 **não foi implementada** (não existem `RegistrationPhaseFileController`, `FilePreviewDialog.vue`, `local_files` em `ProjectController@show` nem a rota de arquivo; `useRegistrationFields.linkItem()` ainda devolve `href` do Mapas).
+>
+> **Endpoint em produção:** `GET /pdf/inscricao_json_todas_as_fases/{id}` responde 404 no Mapas de produção (`mapacultural.secult.ce.gov.br`); ele só existe na instância de dev. Em ambiente com `MAPAS_DOMAIN` de produção o `sync()` lança `ExternalServiceException` 404. Confirmar com a equipe do Mapas a publicação do endpoint antes de ativar o job em homolog/produção.
 >
 > **Fase 1:** o job novo trata todas as fases, inclusive a 1. No dev nenhum arquivo da fase 1 existia em `files` (0 de 484), então não se confirmou a premissa de que o fluxo antigo já os baixou. O filtro por `external_id` evita baixar de novo o que já estiver registrado, mas, se o job novo baixar um arquivo da fase 1 antes do fluxo antigo, o fluxo antigo (que só confere os arquivos do próprio projeto) pode registrar uma segunda linha.
 >
 > **Teste manual no dev:** o Mapas local responde 500 para qualquer `/arquivos/privateFile/{id}/`, inclusive arquivos que o fluxo antigo registrou (não há arquivos físicos na instância). O caminho completo foi validado em `ProjectPhaseFilesTest` com o Mapas simulado.
+
+> **Análise Jurídica (branch `feature/download_file_mc_to_efomento`):** a decisão da seção 1 foi revista. Os arquivos continuam com a fase como dona, mas a ASJUR passa a avaliá-los: `Project::analysisFilesQuery()` reúne os arquivos do projeto (fase 1 legada) e os das fases; `LegalAnalysisController` lista agrupado por fase ("Fase N"), valida o pertencimento ao projeto em vez de `scopeBindings()` (arquivo de fase daria 404) e serve inline só PDF/imagem (`SafeFileResponse`). Os arquivos das fases 2/3 entram na regra de tramitação: projetos já em análise ganham arquivos sem status. Se o mesmo arquivo do Mapas existir com dono `project` e dono fase (corrida da fase 1), a lista mostra a linha do projeto.
 
 ## Contexto
 
@@ -40,7 +44,7 @@ A #636 vai exibir as fases num modal. Sem download, o usuário depende de login 
 Em `ProjectPhaseSyncService::sync()`, depois do `DB::transaction`, despachar `SyncPhaseFilesJob` para cada fase gravada em `$resolved` (as que são novas ou mudaram). Fase sem mudança não dispara nada, então o custo diário continua sendo o do resumo. `storePhase()` passa a devolver o model/id.
 
 ### 5. Carga inicial (backfill)
-As 198 fases do dev (e as de homolog/produção, quando o PR #641 entrar) são gravadas pela primeira vez na primeira rodada, então os downloads sobem em rajada. Duas proteções:
+As 198 fases do dev (e as de homolog/produção, quando o endpoint de fases existir no Mapas de produção) são gravadas pela primeira vez na primeira rodada, então os downloads sobem em rajada. Duas proteções:
 - O limitador `mapas-api` (60/min) é compartilhado com a sincronização de detalhes. Milhares de arquivos levam horas; é aceitável por rodar na fila `files`, mas deve ser comunicado.
 - Comando `app:sync-phase-files {--project=}` para reprocessar fases já gravadas (útil também se um download falhar de vez) e para a primeira carga controlada.
 
