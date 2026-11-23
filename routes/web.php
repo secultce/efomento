@@ -113,10 +113,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/projetos/{project}/analise-juridica', [LegalAnalysisController::class, 'index'])
         ->name('legal-analysis.index');
     Route::get('/projetos/{project}/analise-juridica/arquivos/{file}', [LegalAnalysisController::class, 'serveFile'])
-        ->scopeBindings()
         ->name('legal-analysis.files.serve');
     Route::put('/projetos/{project}/analise-juridica/arquivos/{file}', [LegalAnalysisController::class, 'updateFileStatus'])
-        ->scopeBindings()
         ->name('legal-analysis.update-status');
 
     Route::post('/projetos/{project}/formalizacao', [FormalizationController::class, 'store'])

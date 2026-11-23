@@ -32,13 +32,14 @@ Planilha → fetchSheet() → rows[] por label
         → resolveSupervisor(): User::where('name', row['FISCAL'])->first() ou cria via UserService
         → resolveOpening(): Opening::updateOrCreate(['project_id' => $id], $record)
                              + assignSupervisors() → OpeningSupervisor (fiscal titular)
+        → SyncProjectPhasesProjectJob (fila details, após o commit) → project_registration_phases
 ```
 
 > **Atenção — Opening já existe antes do resolveOpening rodar**: `ProjectObserver::created()` cria um `Opening` vazio (`$project->openings()->create()`) assim que o `Project` é criado dentro do mesmo `processRow()`. Por isso `resolveOpening()` usa `Opening::updateOrCreate()` (não `firstOrCreate()`) — com `firstOrCreate` o registro já existente faria o Eloquent ignorar silenciosamente o array de valores, deixando `opening_date`, `agent_status`, `opened_by`, `bank`, etc. sempre em branco. A planilha sempre sobrescreve os campos do Opening a cada execução (mesmo comportamento de Formalização/Orçamento abaixo).
 
 > **Fiscal (`FISCAL`)**: `resolveSupervisor()` busca um `User` por `name` igual ao valor da coluna `FISCAL`. Se não encontrar, cria um novo `User` via `UserService::create()` com `cpf` = coluna `CPF FISCAL`, `registration_number` = coluna `MATRICULA DO FISCAL`, senha aleatória (`Str::password(32)`) e role `monitoring` — a planilha não tem e-mail do fiscal, então é gerado um sintético: `Str::slug(nome, '.').'@mail.com'`. O usuário resolvido preenche `Opening::supervisor_id` **e** é registrado como fiscal titular via `Opening::assignSupervisors()` (mesmo método usado por `ProjectSupervisorService`), para aparecer corretamente nos documentos gerados (`[fiscal_name]`) e nas regras de negócio da etapa. Se a coluna `FISCAL` vier vazia numa linha, `supervisor_id` é limpo (`null`), mas o vínculo já existente em `OpeningSupervisor` **não** é desfeito automaticamente.
 
-> **Ficha de inscrição:** a antiga `Opening.registration_data` foi removida (#636). As inscrições vêm de `project_registration_phases`, preenchida pelo `SyncProjectPhasesJob`.
+> **Ficha de inscrição:** a antiga `Opening.registration_data` foi removida (#636). As inscrições vêm de `project_registration_phases` (uma linha por fase). Não há flag: `processRow()` sempre despacha `SyncProjectPhasesProjectJob` (fila `details`, após o commit) para cada projeto importado, então a ficha e os arquivos dela chegam em segundo plano logo após a importação (#646). O `SyncProjectPhasesJob` diário das 04:00 fica como rechecagem. Reimportar a mesma planilha é idempotente: com o `summary_hash` igual, o job faz só a chamada de resumo ao Mapas e não regrava fases; projetos com `sync_closed_at` são ignorados.
 
 **Abas Formalização, Orçamento e Pagamento** (enriquece projetos/Opening existentes):
 ```

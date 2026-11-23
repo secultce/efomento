@@ -2,7 +2,6 @@
 
 namespace App\Models;
 
-use App\Enums\FileStatus;
 use App\Traits\HasCreatedBy;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -36,12 +35,5 @@ class LegalAnalysis extends Model implements Auditable
     public function files(): HasMany
     {
         return $this->hasMany(LegalAnalysisFile::class);
-    }
-
-    public function getFileStatus(int $fileId): ?FileStatus
-    {
-        $file = $this->files()->where('file_id', $fileId)->first();
-
-        return $file ? $file->status : null;
     }
 }

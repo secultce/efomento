@@ -288,6 +288,24 @@ class Project {
                 cy.get(el.projectPhase).should('be.visible').and('have.text', expectedPhase);
             });
     }
+
+    verifySearchResultByNup(nup) {
+        const expectedNup = this.normalizeNup(nup);
+
+        cy.get(el.projectList).within(() => {
+            cy.get(el.projectNupProjectList).should(($elements) => {
+                expect($elements, 'projetos encontrados').to.have.length(1);
+
+                const actualNup = this.normalizeNup($elements.eq(0).text());
+
+                expect(actualNup, 'NUP do projeto encontrado').to.equal(expectedNup);
+            });
+        });
+    }
+
+    normalizeNup(value) {
+        return String(value).replace(/\D/g, '');
+    }
 }
 
 export default new Project();

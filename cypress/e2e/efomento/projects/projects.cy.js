@@ -7,6 +7,7 @@ describe('Project Page', () => {
         cy.resetCypressData();
         cy.loginByRole('fomentation');
 
+        cy.fixture('users').as('user');
         cy.fixture('notices').as('notice');
         cy.fixture('projects').as('project');
     });
@@ -17,7 +18,17 @@ describe('Project Page', () => {
         });
 
         it('should search for a project by project NUP', function () {
-            Project.findProjectByProjectNup(this.project.opening.nup);
+            // Arrange
+            const notice = this.notice.notice;
+            const project = this.project.opening;
+
+            ProjectWorkflow.accessProjectListByNotice(notice);
+
+            // Act
+            Project.findProjectByProjectNup(project.nup);
+
+            // Assert
+            Project.verifySearchResultByNup(project.nup);
         });
 
         it('should return no results for an invalid process number', function () {
