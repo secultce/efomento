@@ -132,6 +132,37 @@ class Project {
         cy.get(el.filterProjectPhaseCard).contains(phase).should('be.visible').click();
     }
 
+    clearPhaseFilter() {
+        cy.get(el.showAllAgentsButton).click();
+        cy.location('search').should((search) => {
+            expect(new URLSearchParams(search).has('phase'), 'filtro de fase na URL').to.be.false;
+        });
+    }
+
+    validateOpeningActions() {
+        cy.get(el.openingActions)
+            .should('be.visible')
+            .within(() => {
+                cy.contains('Ações disponíveis para você').should('be.visible');
+                cy.contains('p', 'Comunicação Interna').should('be.visible');
+                cy.contains('p', 'Termo de Execução Cultural').should('be.visible');
+                cy.get(el.createCIButton).should('be.visible');
+                cy.get(el.createTCButton).should('be.visible');
+                cy.get(el.reviewCIDocumentsButton).should('be.visible');
+                cy.get(el.reviewTCDocumentsButton).should('be.visible');
+                cy.get('button')
+                    .filter((_, button) => button.textContent.trim() === 'Baixar todos')
+                    .should('have.length', 2)
+                    .each(($button) => expect($button).to.be.visible);
+                cy.contains('button', 'Atribuir Fiscal').should('be.visible');
+                cy.contains('button', 'Conferir Histórico').should('be.visible');
+            });
+    }
+
+    validateOpeningActionsAbsent() {
+        cy.get(el.openingActions).should('not.exist');
+    }
+
     validateFilterPhase(phase) {
         cy.get(el.projectPhase).contains(phase).should('be.visible');
     }
@@ -268,6 +299,21 @@ class Project {
                 expect(actualNup, 'NUP do projeto encontrado').to.equal(expectedNup);
             });
         });
+    }
+
+    validateSelectedPhase(phase) {
+        cy.contains(el.filterProjectPhaseCard, phase).should('be.visible').and('have.attr', 'data-selected', 'true');
+    }
+
+    validateListedProjectPhases(phase) {
+        cy.get(el.projectList)
+            .find(el.projectPhase)
+            .should(($cells) => {
+                expect($cells, 'projetos na lista filtrada').to.have.length.greaterThan(0);
+                $cells.each((_, cell) => {
+                    expect(cell.textContent.trim(), 'fase do projeto na lista').to.equal(phase);
+                });
+            });
     }
 
     normalizeNup(value) {

@@ -1,5 +1,6 @@
 import ProjectWorkflow from '../../../support/workflows/ProjectWorkflow';
 import Project from '../../../pages/project/ProjectPage';
+import { PHASES } from '../../../support/constants/phases';
 
 describe('Project Page', () => {
     beforeEach(() => {
@@ -31,6 +32,28 @@ describe('Project Page', () => {
 
         it('should search for a project by agent name', function () {
             Project.findProjectByAgentName();
+        });
+    });
+
+    describe.only('Filter Functionality', () => {
+        it('should filter projects in Opening Phase', function () {
+            // Arrange
+            const notice = this.notice.notice;
+            const project = this.project.opening;
+            const phase = PHASES.OPENING;
+
+            ProjectWorkflow.accessProjectListByNotice(notice);
+            Project.validateOpeningActionsAbsent();
+
+            // Act
+            ProjectWorkflow.filterByPhase(phase);
+
+            // Assert
+            ProjectWorkflow.validateProjectsFilteredByPhase({ project, phase, phaseQuery: 'abertura' });
+            Project.validateOpeningActions();
+
+            Project.clearPhaseFilter();
+            Project.validateOpeningActionsAbsent();
         });
     });
 });

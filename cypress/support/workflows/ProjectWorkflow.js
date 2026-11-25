@@ -20,7 +20,15 @@ class ProjectWorkflow {
 
     filterByPhase(phase) {
         Project.clickFilterPhase(phase);
-        Project.validateFilterPhase(phase);
+    }
+
+    validateProjectsFilteredByPhase({ project, phase, phaseQuery }) {
+        Project.validateSelectedPhase(phase);
+        cy.location('search').should((search) => {
+            expect(new URLSearchParams(search).get('phase'), 'fase na URL').to.equal(phaseQuery);
+        });
+        Project.validateListedProjectPhases(phase);
+        Project.validateCurrentPhase(project.nup ?? project.projectNup, phase);
     }
 
     validateProjectPhase({ notice, project, phase }) {

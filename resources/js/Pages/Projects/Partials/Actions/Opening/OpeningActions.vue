@@ -63,7 +63,7 @@ function openNoticeHistory() {
         :supervisors="supervisorsAvailable"
         @saved="$emit('saved')"
     />
-    <v-card class="w-full pb-4 pt-4 !shadow-none border border-gray-800 rounded-lg">
+    <v-card data-cy="opening-actions" class="w-full pb-4 pt-4 !shadow-none border border-gray-800 rounded-lg">
         <v-card-title class="font-weight-bold !text-lg">Ações disponíveis para você </v-card-title>
         <v-card-text class="flex flex-col gap-4">
             <DocumentActionsList
