@@ -35,7 +35,7 @@ describe('Project Page', () => {
         });
     });
 
-    describe.only('Filter Functionality', () => {
+    describe('Filter Functionality', () => {
         it('should filter projects in Opening Phase', function () {
             // Arrange
             const notice = this.notice.notice;
@@ -53,6 +53,7 @@ describe('Project Page', () => {
             Project.validateOpeningActions();
 
             Project.clearPhaseFilter();
+            Project.getProjectRowByNup(this.project.legal_analisys.nup).should('be.visible');
             Project.validateOpeningActionsAbsent();
         });
     });
