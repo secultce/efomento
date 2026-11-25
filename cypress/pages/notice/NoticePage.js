@@ -113,6 +113,10 @@ class Notice {
         const expectedNup = this.normalizeNup(nup);
 
         cy.get(el.findSpecificNoticeInput).should('be.visible').type(expectedNup);
+
+        cy.location('search').should((search) => {
+            expect(new URLSearchParams(search).get('search')).to.equal(expectedNup);
+        });
     }
 
     validateResultSearchByNup(nup) {
