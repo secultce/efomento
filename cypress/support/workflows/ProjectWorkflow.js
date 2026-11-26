@@ -31,6 +31,12 @@ class ProjectWorkflow {
         Project.validateCurrentPhase(project.nup ?? project.projectNup, phase);
     }
 
+    clearPhaseFilterAndValidateProjectVisible(projectNup) {
+        Project.clearPhaseFilter();
+        Project.getProjectRowByNup(projectNup).should('be.visible');
+        Project.validateOpeningActionsAbsent();
+    }
+
     validateProjectPhase({ notice, project, phase }) {
         cy.reload();
 
