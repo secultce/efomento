@@ -20,7 +20,20 @@ class ProjectWorkflow {
 
     filterByPhase(phase) {
         Project.clickFilterPhase(phase);
-        Project.validateFilterPhase(phase);
+    }
+
+    validateProjectsFilteredByPhase({ expectedNups, phase, phaseQuery }) {
+        Project.validateSelectedPhase(phase);
+        cy.location('search').should((search) => {
+            expect(new URLSearchParams(search).get('phase'), 'fase na URL').to.equal(phaseQuery);
+        });
+        Project.validateListedProjectsByPhase(phase, expectedNups);
+    }
+
+    clearPhaseFilterAndValidateProjectVisible(projectNup) {
+        Project.clearPhaseFilter();
+        Project.getProjectRowByNup(projectNup).should('be.visible');
+        Project.validateOpeningActionsAbsent();
     }
 
     validateProjectPhase({ notice, project, phase }) {
