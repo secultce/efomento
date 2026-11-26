@@ -63,8 +63,25 @@ export function useRegistrationFields(getMapasDomain = () => '') {
         return { text: toText(text), href };
     }
 
-    // Devolve sempre uma lista de { text, href? }; o template só interpola texto (sem HTML bruto).
-    function formatField(field) {
+    // Arquivo já baixado para o e-Fomento (localFiles, por external_id = id do Mapas) aponta para a rota local; sem download, segue o Mapas.
+    function fileItem(entry, localFiles) {
+        const id = typeof entry === 'object' && entry !== null ? entry.id : null;
+        const local = id == null ? null : (localFiles ?? []).find((file) => String(file.external_id) === String(id));
+
+        if (local) {
+            return {
+                text: toText(entry.name ?? entry.title ?? local.name),
+                local: { view_url: local.view_url, download_url: local.download_url },
+            };
+        }
+
+        const item = linkItem(entry);
+
+        return item.href ? { ...item, text: `${item.text} (abrir no Mapas)` } : item;
+    }
+
+    // Devolve sempre uma lista de { text, href? } ou { text, local? }; o template só interpola texto (sem HTML bruto).
+    function formatField(field, localFiles = []) {
         const { type, value } = field ?? {};
 
         // No checkbox o `value` é o texto da declaração; quem diz se foi marcado é `checked`.
@@ -76,6 +93,7 @@ export function useRegistrationFields(getMapasDomain = () => '') {
 
         switch (type) {
             case 'file':
+                return list.map((entry) => fileItem(entry, localFiles));
             case 'links':
                 return list.map(linkItem);
             case 'url':

@@ -67,10 +67,29 @@ const sections = (phase) => phase.data?.sections ?? [];
                                 <div v-for="(field, fIndex) in section.fields ?? []" :key="fIndex" class="mb-2">
                                     <p class="text-xs text-gray-700">{{ field.title }}</p>
                                     <p class="text-sm font-bold break-words">
-                                        <template v-for="(item, iIndex) in formatField(field)" :key="iIndex">
+                                        <template
+                                            v-for="(item, iIndex) in formatField(field, phase.local_files)"
+                                            :key="iIndex"
+                                        >
                                             <span v-if="iIndex > 0">, </span>
+                                            <span v-if="item.local">
+                                                <a
+                                                    :href="item.local.view_url"
+                                                    target="_blank"
+                                                    rel="noopener noreferrer"
+                                                    class="text-blue-600 hover:underline"
+                                                    >{{ item.text }}</a
+                                                >
+                                                <a
+                                                    :href="item.local.download_url"
+                                                    target="_blank"
+                                                    rel="noopener noreferrer"
+                                                    class="ml-1 text-xs font-normal text-blue-600 hover:underline"
+                                                    >(baixar)</a
+                                                >
+                                            </span>
                                             <a
-                                                v-if="item.href"
+                                                v-else-if="item.href"
                                                 :href="item.href"
                                                 target="_blank"
                                                 rel="noopener noreferrer"

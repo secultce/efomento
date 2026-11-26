@@ -25,6 +25,7 @@ use App\Models\User;
 use App\Services\Documents\DocumentPlaceholderResolver;
 use App\Services\ProjectDocumentService;
 use App\Services\ProjectSupervisorService;
+use App\Services\RegistrationPhaseFilesService;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 
@@ -126,7 +127,7 @@ class ProjectController extends Controller
         ]);
     }
 
-    public function projectDetail(Request $request, Notice $notice, Project $project)
+    public function projectDetail(Request $request, Notice $notice, Project $project, RegistrationPhaseFilesService $phaseFiles)
     {
         $project->load([
             'notice',
@@ -154,6 +155,8 @@ class ProjectController extends Controller
             // Só no show: o `data` de cada fase é grande demais para a listagem.
             'registrationPhases' => fn ($q) => $q->orderBy('phase_order'),
         ]);
+
+        $phaseFiles->attachLocalFiles($project);
 
         $project->documents->each(function ($document) use ($project) {
             $document->setRelation('project', $project);
