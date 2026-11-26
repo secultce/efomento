@@ -37,20 +37,21 @@ describe('Project Page', () => {
 
     describe('Filter Functionality', () => {
         beforeEach(function () {
+            cy.fixture('openingTramit').as('openingTramit');
             ProjectWorkflow.accessProjectListByNotice(this.notice.notice);
             Project.validateOpeningActionsAbsent();
         });
 
         it('should filter projects in Opening Phase', function () {
             // Arrange
-            const project = this.project.opening;
+            const expectedNups = [this.project.opening.nup, ...Object.values(this.openingTramit).map(({ nup }) => nup)];
             const phase = PHASES.OPENING;
 
             // Act
             ProjectWorkflow.filterByPhase(phase);
 
             // Assert
-            ProjectWorkflow.validateProjectsFilteredByPhase({ project, phase, phaseQuery: 'abertura' });
+            ProjectWorkflow.validateProjectsFilteredByPhase({ expectedNups, phase, phaseQuery: 'abertura' });
             Project.validateOpeningActions();
 
             ProjectWorkflow.clearPhaseFilterAndValidateProjectVisible(this.project.legal_analisys.nup);
@@ -58,14 +59,14 @@ describe('Project Page', () => {
 
         it('should filter projects in Legal Analysis Phase', function () {
             // Arrange
-            const project = this.project.legal_analisys;
+            const expectedNups = [this.project.legal_analisys.nup];
             const phase = PHASES.LEGAL_ANALYSIS;
 
             // Act
             ProjectWorkflow.filterByPhase(phase);
 
             // Assert
-            ProjectWorkflow.validateProjectsFilteredByPhase({ project, phase, phaseQuery: 'analise_juridica' });
+            ProjectWorkflow.validateProjectsFilteredByPhase({ expectedNups, phase, phaseQuery: 'analise_juridica' });
             Project.validateOpeningActionsAbsent();
 
             ProjectWorkflow.clearPhaseFilterAndValidateProjectVisible(this.project.opening.nup);

@@ -305,14 +305,22 @@ class Project {
         cy.contains(el.filterProjectPhaseCard, phase).should('be.visible').and('have.attr', 'data-selected', 'true');
     }
 
-    validateListedProjectPhases(phase) {
+    validateListedProjectsByPhase(phase, expectedNups) {
+        const normalizedExpectedNups = expectedNups.map((nup) => this.normalizeNup(nup)).sort();
+
         cy.get(el.projectList)
-            .find(el.projectPhase)
-            .should(($cells) => {
-                expect($cells, 'projetos na lista filtrada').to.have.length.greaterThan(0);
-                $cells.each((_, cell) => {
-                    expect(cell.textContent.trim(), 'fase do projeto na lista').to.equal(phase);
+            .find(el.rowTableProjectList)
+            .should(($rows) => {
+                const actualNups = Array.from($rows, (row) => {
+                    const $row = Cypress.$(row);
+                    const nup = this.normalizeNup($row.find(el.projectNupProjectList).text());
+
+                    expect($row.find(el.projectPhase).text().trim(), `fase do projeto ${nup}`).to.equal(phase);
+
+                    return nup;
                 });
+
+                expect(actualNups.sort(), 'NUPs da lista filtrada').to.deep.equal(normalizedExpectedNups);
             });
     }
 
