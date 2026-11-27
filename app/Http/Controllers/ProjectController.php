@@ -33,6 +33,7 @@ class ProjectController extends Controller
 {
     public function __construct(
         private readonly DocumentPlaceholderResolver $placeholderResolver,
+        private readonly RegistrationPhaseFilesService $phaseFiles,
     ) {}
 
     public function index(Request $request, Notice $notice)
@@ -127,7 +128,7 @@ class ProjectController extends Controller
         ]);
     }
 
-    public function projectDetail(Request $request, Notice $notice, Project $project, RegistrationPhaseFilesService $phaseFiles)
+    public function projectDetail(Request $request, Notice $notice, Project $project)
     {
         $project->load([
             'notice',
@@ -156,7 +157,7 @@ class ProjectController extends Controller
             'registrationPhases' => fn ($q) => $q->orderBy('phase_order'),
         ]);
 
-        $phaseFiles->attachLocalFiles($project);
+        $this->phaseFiles->attachLocalFiles($project);
 
         $project->documents->each(function ($document) use ($project) {
             $document->setRelation('project', $project);
