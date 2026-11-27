@@ -15,6 +15,7 @@ use App\Enums\ProjectStageSlug;
 use App\Enums\ProjectStageStatus;
 use App\Enums\ReportStatus;
 use App\Enums\Role;
+use App\Http\Requests\Project\AssignExpenseNatureRequest;
 use App\Http\Requests\Project\CreateProjectDocumentRequest;
 use App\Http\Resources\DocumentResource;
 use App\Http\Resources\ProjectResource;
@@ -25,6 +26,7 @@ use App\Models\ProjectStage;
 use App\Models\User;
 use App\Services\Documents\DocumentPlaceholderResolver;
 use App\Services\ProjectDocumentService;
+use App\Services\ProjectExpenseNatureService;
 use App\Services\ProjectSupervisorService;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -35,7 +37,7 @@ class ProjectController extends Controller
         private readonly DocumentPlaceholderResolver $placeholderResolver,
     ) {}
 
-    public function index(Request $request, Notice $notice)
+    public function index(Request $request, Notice $notice, ProjectExpenseNatureService $expenseNatureService)
     {
         $projectsQuery = $notice->projects()
             ->with([
@@ -124,6 +126,8 @@ class ProjectController extends Controller
             'monitoringReportsCount' => $notice->projects()->whereHas('monitoring')->count(),
 
             'hasBudgetAllocations' => $notice->budgetAllocations()->exists(),
+
+            'availableExpenseNatures' => $expenseNatureService->availableOptions($notice),
         ]);
     }
 
@@ -192,6 +196,18 @@ class ProjectController extends Controller
             'canAdvance' => $this->userCanActOnStage($currentStage),
             'initialTab' => $request->get('tab', 'opening'),
         ]);
+    }
+
+    public function assignExpenseNature(
+        AssignExpenseNatureRequest $request,
+        ProjectExpenseNatureService $service
+    ) {
+        $service->assign(
+            $request->validated('selected_projects'),
+            $request->expenseNature(),
+        );
+
+        return back()->with('success', 'Natureza da despesa atribuída com sucesso!');
     }
 
     public function assignProjectSupervisor(Request $request, ProjectSupervisorService $service)

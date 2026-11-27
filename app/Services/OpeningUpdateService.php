@@ -4,44 +4,47 @@ namespace App\Services;
 
 use App\Contracts\StageValidatorInterface;
 use App\Enums\DocumentType;
+use App\Enums\ExpenseNature;
 use App\Enums\ProfileSnapshotSource;
 use App\Models\Opening;
 use App\Models\Project;
 use App\Models\User;
 use BackedEnum;
-use Exception;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
 class OpeningUpdateService implements StageValidatorInterface
 {
     public function __construct(
-        protected ProfileSnapshotService $snapshotService
+        protected ProfileSnapshotService $snapshotService,
+        protected ProjectExpenseNatureService $expenseNatureService,
     ) {}
 
     public function handle(Project $project, Opening $opening, array $data): void
     {
-        try {
-            DB::transaction(function () use ($project, $opening, $data) {
+        $openingData = $data['opening'] ?? [];
+        $formalizationData = $data['formalization'] ?? [];
+        $agentData = $data['agent'] ?? [];
+        $supervisors = $openingData['supervisors'] ?? [];
 
-                $openingData = $data['opening'] ?? [];
-                $formalizationData = $data['formalization'] ?? [];
-                $agentData = $data['agent'] ?? [];
-                $supervisors = $openingData['supervisors'] ?? [];
+        unset($openingData['supervisors']);
 
-                unset($openingData['supervisors']);
-
-                $this->updateOpening($opening, $openingData);
-
-                $this->updateFormalization($project, $formalizationData);
-
-                $this->updateAgentSnapshot($project, $agentData);
-
-                $this->syncSupervisors($project, $supervisors);
-            });
-        } catch (Exception $e) {
-            throw new Exception($e->getMessage(), $e->getCode(), $e);
+        if (! empty($openingData['expense_nature'])) {
+            $this->expenseNatureService->ensureCanChange(
+                $project,
+                ExpenseNature::from($openingData['expense_nature'])
+            );
         }
+
+        DB::transaction(function () use ($project, $opening, $openingData, $formalizationData, $agentData, $supervisors) {
+            $this->updateOpening($opening, $openingData);
+
+            $this->updateFormalization($project, $formalizationData);
+
+            $this->updateAgentSnapshot($project, $agentData);
+
+            $this->syncSupervisors($project, $supervisors);
+        });
     }
 
     protected function updateOpening(Opening $opening, array $data): void
