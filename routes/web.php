@@ -16,6 +16,7 @@ use App\Http\Controllers\OpeningController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ProjectController;
 use App\Http\Controllers\ProjectStageController;
+use App\Http\Controllers\RegistrationPhaseFileController;
 use App\Http\Controllers\SpreadsheetSyncController;
 use App\Http\Controllers\TrustedDeviceController;
 use App\Http\Controllers\UserController;
@@ -110,6 +111,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
     )
         ->scopeBindings()
         ->name('projects.installments.remarks.update');
+    Route::get('/projetos/{project}/fases/{registrationPhase}/arquivos/{file}', [RegistrationPhaseFileController::class, 'serveFile'])
+        ->name('projects.registration-phases.files.serve');
     Route::get('/projetos/{project}/analise-juridica', [LegalAnalysisController::class, 'index'])
         ->name('legal-analysis.index');
     Route::get('/projetos/{project}/analise-juridica/arquivos/{file}', [LegalAnalysisController::class, 'serveFile'])
