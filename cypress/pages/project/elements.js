@@ -20,6 +20,11 @@ export const elements = {
     editDocumentButon: '[data-cy=edit-document-button]',
     saveDocumentButton: '[data-cy=save-document-button]',
     cancelDocumentButton: '[data-cy=cancel-document-button]',
+    assignSupervisorButton: '[data-cy=assign-supervisor-button]',
+    selectSupervisorSelect: '[data-cy=select-supervisor-select]',
+    supervisorOption: '.v-autocomplete__content [role=option]:visible',
+    saveSupervisorButton: '[data-cy=save-supervisor-button]',
+    principalSupervisorName: '[data-cy=principal-supervisor-name]',
     successAlert: '.v-snackbar',
 };
 

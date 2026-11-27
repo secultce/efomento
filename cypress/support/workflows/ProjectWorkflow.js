@@ -44,6 +44,28 @@ class ProjectWorkflow {
 
         Project.validateDocumentCreated(project.nup ?? project.projectNup, documentType.chip);
     }
+
+    assignSupervisor({ project, phase }) {
+        const projectNup = project.nup ?? project.projectNup;
+
+        this.filterByPhase(phase);
+        Project.findProjectByProjectNup(projectNup);
+        Project.validateCurrentPhase(projectNup, phase);
+        Project.selectProject(projectNup);
+        Project.clickAssignSupervisorButton();
+
+        return Project.selectAvailableSupervisor().then((supervisorName) => {
+            Project.clickSaveSupervisorButton();
+            Project.verifySupervisorAssignmentSaved();
+
+            return cy.wrap(supervisorName);
+        });
+    }
+
+    validateSupervisorAssigned({ notice, project, supervisorName }) {
+        this.accessProjectDetails({ notice, project });
+        Project.validatePrincipalSupervisor(supervisorName);
+    }
 }
 
 export default new ProjectWorkflow();

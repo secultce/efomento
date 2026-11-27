@@ -3,6 +3,6 @@ export const elements = {
     checkboxItem: '.v-card .v-checkbox input[type="checkbox"]',
     btnConferirDocumentos: '[data-cy=btnConferirDocumentos]',
     btnCriarCI: '[data-cy=btnCriarCI]',
-    btnAtribuirFiscal: '[data-cy=btnAtribuirFiscal]',
+    btnAtribuirFiscal: '[data-cy=assign-supervisor-button]',
     modalCriarCITitulo: '.v-card-title:contains("Crie um documento de comunicação interna")',
 };

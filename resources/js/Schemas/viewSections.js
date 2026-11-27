@@ -169,7 +169,11 @@ export const viewSections = [
         tabs: ['opening', 'formalization', 'legalAnalysis', 'monitoring'],
         title: 'Dados do fiscal',
         fields: [
-            { label: 'Fiscal titular', key: 'opening.supervisors.0.user.name' },
+            {
+                label: 'Fiscal titular',
+                key: 'opening.supervisors.0.user.name',
+                dataCy: 'principal-supervisor-name',
+            },
             { label: 'Matrícula titular', key: 'opening.supervisors.0.user.registration_number' },
             { label: 'Fiscal suplente', key: 'opening.supervisors.1.user.name' },
             { label: 'Matrícula suplente', key: 'opening.supervisors.1.user.registration_number' },

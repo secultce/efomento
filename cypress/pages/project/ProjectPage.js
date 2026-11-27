@@ -86,6 +86,8 @@ class Project {
         cy.get(`${el.findProjectPageInput} input`).type('123456789012345678901', {
             delay: 50,
         });
+
+        cy.get(el.noDataAvailableMessage, { timeout: TIMEOUTS.SEARCH }).should('be.visible');
     }
 
     verifySearchResultByInexistentNup() {
@@ -156,6 +158,41 @@ class Project {
         const { createButton, selectors } = documentType;
 
         cy.get(selectors.create, { timeout: TIMEOUTS.LONG }).should('be.visible').contains(createButton).click();
+    }
+
+    clickAssignSupervisorButton() {
+        cy.get(el.assignSupervisorButton).should('be.enabled').click();
+    }
+
+    selectAvailableSupervisor() {
+        cy.get(el.selectSupervisorSelect).click();
+
+        return cy
+            .get(el.supervisorOption)
+            .first()
+            .should('be.visible')
+            .then(($option) => {
+                const supervisorName = $option.text().trim();
+                expect(supervisorName, 'Nome do fiscal selecionado').not.to.be.empty;
+
+                cy.wrap($option).click();
+
+                return cy.wrap(supervisorName);
+            });
+    }
+
+    clickSaveSupervisorButton() {
+        cy.get(el.saveSupervisorButton).should('be.enabled').click();
+    }
+
+    verifySupervisorAssignmentSaved() {
+        cy.get(el.successAlert, { timeout: TIMEOUTS.LONG })
+            .contains('Sucesso ao atribuir fiscal ao projeto')
+            .should('be.visible');
+    }
+
+    validatePrincipalSupervisor(supervisorName) {
+        cy.get(el.principalSupervisorName).filter(':visible').should('have.text', supervisorName);
     }
 
     clickEditDocument(documentType) {

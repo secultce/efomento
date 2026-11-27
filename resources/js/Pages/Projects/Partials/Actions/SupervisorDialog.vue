@@ -73,6 +73,7 @@ defineExpose({ isOpen });
                         placeholder="Selecione um usuário"
                         item-title="name"
                         item-value="id"
+                        data-cy="select-supervisor-select"
                     />
                 </div>
             </v-card-text>
@@ -84,6 +85,7 @@ defineExpose({ isOpen });
                     class="!shadow-none !font-bold !bg-[#ffcc05FF] !text-[#2d353fFF] rounded-lg"
                     :disabled="!form.titularSupervisor"
                     :loading="form.processing"
+                    data-cy="save-supervisor-button"
                     @click="saveSupervisors"
                     >Salvar</v-btn
                 >

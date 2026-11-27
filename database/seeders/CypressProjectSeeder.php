@@ -56,11 +56,13 @@ class CypressProjectSeeder extends Seeder
             category: $category,
         );
 
-        $this->createOpening(
+        $opening = $this->createOpening(
             project: $openingProject,
             user: $user,
             nup: $openingProjectData['nup'],
         );
+
+        $opening->supervisors()->delete();
 
         $this->setProjectStage(
             project: $openingProject,
@@ -255,8 +257,8 @@ class CypressProjectSeeder extends Seeder
         Project $project,
         User $user,
         string $nup
-    ): void {
-        Opening::updateOrCreate(
+    ): Opening {
+        return Opening::updateOrCreate(
             [
                 'project_id' => $project->id,
             ],

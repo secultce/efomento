@@ -86,7 +86,7 @@ function openNoticeHistory() {
             >
                 <p>Atribuir fiscal aos selecionados</p>
                 <v-btn
-                    data-cy="btnAtribuirFiscal"
+                    data-cy="assign-supervisor-button"
                     class="w-full !shadow-none !font-bold !bg-[#ffcc05FF] !text-[#2d353fFF] rounded-lg px-4 py-2 text-xs"
                     :disabled="!(props.selectedProjects?.length > 0) || !canAssignSupervisor"
                     @click="openSupervisorDialog"
