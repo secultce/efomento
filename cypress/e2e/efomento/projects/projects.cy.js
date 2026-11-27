@@ -19,10 +19,7 @@ describe('Project Page', () => {
 
         it('should search for a project by project NUP', function () {
             // Arrange
-            const notice = this.notice.notice;
             const project = this.project.opening;
-
-            ProjectWorkflow.accessProjectListByNotice(notice);
 
             // Act
             Project.findProjectByProjectNup(project.nup);
@@ -32,12 +29,6 @@ describe('Project Page', () => {
         });
 
         it('should return no results for an invalid process number', function () {
-            // Arrange
-            const notice = this.notice.notice;
-            const project = this.project.opening;
-
-            ProjectWorkflow.accessProjectListByNotice(notice);
-
             // Act
             Project.findProjectByNonExistentProjectNup();
 
@@ -47,10 +38,6 @@ describe('Project Page', () => {
 
         it('should search for a project by agent name', function () {
             // Arrange
-            const notice = this.notice.notice;
-
-            ProjectWorkflow.accessProjectListByNotice(notice);
-
             Project.getProjectData().then(({ agentName, projectNup }) => {
                 // Act
                 Project.findProjectByAgentName(agentName);
