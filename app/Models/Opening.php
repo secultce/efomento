@@ -9,7 +9,6 @@ use App\Enums\ExpenseNature;
 use App\Enums\OpeningStatus;
 use App\Traits\HasCreatedBy;
 use App\Traits\HasFiles;
-use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -61,17 +60,8 @@ class Opening extends Model implements Auditable
         'concluded_at' => 'datetime',
     ];
 
-    protected $appends = [
-        'expense_nature_label',
-    ];
-
     /** @var array<int, string> */
     public array $auditTags = [];
-
-    protected function expenseNatureLabel(): Attribute
-    {
-        return Attribute::get(fn () => $this->expense_nature?->label());
-    }
 
     public function generateTags(): array
     {

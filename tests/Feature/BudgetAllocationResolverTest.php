@@ -80,6 +80,16 @@ class BudgetAllocationResolverTest extends TestCase
         $this->assertTrue(app(BudgetAllocationResolver::class)->resolveAvailable($project)->is($match));
     }
 
+    public function test_serialized_allocation_carries_its_expense_nature_label(): void
+    {
+        $project = $this->projectInCariri(null);
+        $allocation = $this->allocation($project, ExpenseNature::CONTRIBUICOES_COM_FINS_LUCRATIVOS, '01 – CARIRI');
+        $legacy = $this->allocation($project, null, '02 – CENTRO SUL');
+
+        $this->assertSame(ExpenseNature::CONTRIBUICOES_COM_FINS_LUCRATIVOS->label(), $allocation->toArray()['expense_nature_label']);
+        $this->assertNull($legacy->toArray()['expense_nature_label']);
+    }
+
     private function projectInCariri(?ExpenseNature $nature): Project
     {
         $project = Project::factory()->create();

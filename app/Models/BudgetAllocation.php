@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Enums\ExpenseNature;
 use App\Traits\HasCreatedBy;
+use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -40,6 +41,15 @@ class BudgetAllocation extends Model implements Auditable
     protected $casts = [
         'expense_nature' => ExpenseNature::class,
     ];
+
+    protected $appends = [
+        'expense_nature_label',
+    ];
+
+    protected function expenseNatureLabel(): Attribute
+    {
+        return Attribute::get(fn () => $this->expense_nature?->label());
+    }
 
     public function notice(): BelongsTo
     {

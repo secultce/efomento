@@ -293,6 +293,30 @@ class BudgetAllocationImportServiceTest extends TestCase
         ]);
     }
 
+    public function test_import_and_preview_reject_a_file_without_allocation_code_or_number(): void
+    {
+        $user = User::factory()->create();
+        SpatieRole::firstOrCreate([
+            'name' => Role::BUDGETARY->value,
+            'guard_name' => 'web',
+        ]);
+        $user->assignRole(Role::BUDGETARY->value);
+        $notice = Notice::factory()->create();
+        $file = fn () => $this->csvFile($this->csvRow([
+            'Código da Dotação' => '',
+            'Número da dotação completa' => '',
+        ]));
+
+        foreach (['budget-allocations.preview', 'budget-allocations.import'] as $route) {
+            $this->actingAs($user)
+                ->post(route($route, $notice), ['file' => $file()], ['Accept' => 'application/json'])
+                ->assertUnprocessable()
+                ->assertJsonPath('message', 'Nenhuma linha do arquivo possui código ou número de dotação.');
+        }
+
+        $this->assertDatabaseCount('budget_allocations', 0);
+    }
+
     public function test_preview_endpoint_rejects_an_unknown_expense_nature(): void
     {
         $user = User::factory()->create();
