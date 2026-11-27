@@ -159,6 +159,34 @@ class Project {
             });
     }
 
+    validateFormalizationActions() {
+        const documents = [
+            ['Termo de Execução Cultural', 'Criar termo de execução cultural (TC)'],
+            ['Extrato do Termo', 'Criar extrato do termo (ET)'],
+            ['Parecer Jurídico', 'Criar parecer jurídico (PJ)'],
+        ];
+
+        cy.get(el.formalizationActions)
+            .should('be.visible')
+            .within(() => {
+                cy.contains('Ações disponíveis para você').should('be.visible');
+
+                documents.forEach(([title, createLabel]) => {
+                    cy.contains('p', title).should('be.visible');
+                    cy.contains('button', createLabel).should('be.visible');
+                });
+
+                ['Baixar todos', 'Conferir documentos'].forEach((label) => {
+                    cy.get('button')
+                        .filter((_, button) => button.textContent.trim() === label)
+                        .should('have.length', documents.length)
+                        .each(($button) => expect($button).to.be.visible);
+                });
+
+                cy.contains('button', 'Conferir Histórico').should('be.visible');
+            });
+    }
+
     validateOpeningActionsAbsent() {
         cy.get(el.openingActions).should('not.exist');
     }

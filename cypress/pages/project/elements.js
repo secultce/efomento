@@ -3,6 +3,7 @@ export const elements = {
     filterProjectPhaseCard: '[data-cy=filter-phase-card]',
     showAllAgentsButton: '[data-cy=show-all-agents]',
     openingActions: '[data-cy=opening-actions]',
+    formalizationActions: 'aside[aria-label="Ações disponíveis para você"]',
     openProjectOpeningTabButton: '[data-cy=open-project-opening-tab-button]',
     checkboxProjectList: '[data-cy=checkbox-project-list]',
     findProjectPageInput: '[data-cy=find-project-input]',

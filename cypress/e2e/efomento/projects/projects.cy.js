@@ -71,5 +71,20 @@ describe('Project Page', () => {
 
             ProjectWorkflow.clearPhaseFilterAndValidateProjectVisible(this.project.opening.nup);
         });
+
+        it('should filter projects in Formalization Phase', function () {
+            // Arrange
+            const expectedNups = [this.project.formalization.nup];
+            const phase = PHASES.FORMALIZATION;
+
+            // Act
+            ProjectWorkflow.filterByPhase(phase);
+
+            // Assert
+            ProjectWorkflow.validateProjectsFilteredByPhase({ expectedNups, phase, phaseQuery: 'formalizacao' });
+            Project.validateFormalizationActions();
+
+            ProjectWorkflow.clearPhaseFilterAndValidateProjectVisible(this.project.opening.nup);
+        });
     });
 });
