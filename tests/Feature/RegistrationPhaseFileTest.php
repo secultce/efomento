@@ -191,6 +191,43 @@ class RegistrationPhaseFileTest extends TestCase
             ->assertNotFound();
     }
 
+    public function test_file_shared_by_two_phases_is_served_to_the_phase_that_references_it(): void
+    {
+        Storage::fake('public');
+        $project = Project::factory()->create();
+        $owner = $this->phase($project, 2, [555]);
+        $sharing = $this->phase($project, 3, [555]);
+        $file = $this->mapasFile('project_registration_phase', $owner->id, 555);
+        Storage::disk('public')->put($file->path, '%PDF-1.4');
+
+        $this->actingAs(User::factory()->create())
+            ->get(route('projects.registration-phases.files.serve', [$project, $sharing, $file]))
+            ->assertOk();
+
+        $this->actingAs(User::factory()->create())
+            ->get(route('notices.projects.show', [$project->notice, $project]))
+            ->assertOk()
+            ->assertInertia(fn ($page) => $page
+                ->where('project.registration_phases.1.local_files.0.id', $file->id)
+                ->where('project.registration_phases.1.local_files.0.view_url',
+                    route('projects.registration-phases.files.serve', [$project, $sharing, $file]))
+            );
+    }
+
+    public function test_shared_file_is_not_served_to_a_phase_that_does_not_reference_it(): void
+    {
+        Storage::fake('public');
+        $project = Project::factory()->create();
+        $owner = $this->phase($project, 2, [555]);
+        $unrelated = $this->phase($project, 3, [999]);
+        $file = $this->mapasFile('project_registration_phase', $owner->id, 555);
+        Storage::disk('public')->put($file->path, '%PDF-1.4');
+
+        $this->actingAs(User::factory()->create())
+            ->get(route('projects.registration-phases.files.serve', [$project, $unrelated, $file]))
+            ->assertNotFound();
+    }
+
     public function test_guest_is_redirected_to_login(): void
     {
         $project = Project::factory()->create();

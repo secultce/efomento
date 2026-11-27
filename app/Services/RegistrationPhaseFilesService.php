@@ -47,10 +47,10 @@ class RegistrationPhaseFilesService
             $ownIds = $phaseExternalIds[$phase->id] ?? [];
 
             $localFiles = $files
-                ->filter(fn (File $file) => in_array((string) $file->external_id, $ownIds, true)
-                    && $this->ownedByPhaseOrProject($file, $phase, $project))
-                // Cópia da própria fase antes da do projeto (fase 1 baixada pelo fluxo antigo).
-                ->sortBy(fn (File $file) => $file->object_type === 'project' ? 1 : 0)
+                // A consulta já restringe os donos ao projeto; aqui só fica o que esta fase referencia.
+                ->filter(fn (File $file) => in_array((string) $file->external_id, $ownIds, true))
+                // Cópia da própria fase primeiro; depois a de outra fase do projeto (arquivo compartilhado); por fim a do projeto (fase 1 legada).
+                ->sortBy(fn (File $file) => $this->ownerRank($file, $phase))
                 ->unique('external_id')
                 ->map(fn (File $file) => [
                     'external_id' => (string) $file->external_id,
@@ -68,15 +68,34 @@ class RegistrationPhaseFilesService
     }
 
     /**
-     * Arquivo que pertence à fase ou ao projeto (fase 1 legada). Usado também pela rota de leitura.
+     * Pode servir o arquivo para esta fase: é do Mapas, pertence ao projeto (fase do projeto ou fase 1 legada
+     * com dono `project`) e aparece no JSON da própria fase. Um arquivo compartilhado entre fases do mesmo
+     * projeto (baixado só para uma delas) fica acessível nas outras que o referenciam.
      */
-    public function ownedByPhaseOrProject(File $file, ProjectRegistrationPhase $phase, Project $project): bool
+    public function canServe(File $file, ProjectRegistrationPhase $phase, Project $project): bool
     {
         if ($file->source !== 'mapas') {
             return false;
         }
 
-        return ($file->object_type === SyncPhaseFilesJob::OBJECT_TYPE && (int) $file->object_id === $phase->id)
-            || ($file->object_type === 'project' && (int) $file->object_id === $project->id);
+        $ownedByProject = ($file->object_type === 'project' && (int) $file->object_id === $project->id)
+            || ($file->object_type === SyncPhaseFilesJob::OBJECT_TYPE
+                && ProjectRegistrationPhase::query()->where('project_id', $project->id)->whereKey($file->object_id)->exists());
+
+        if (! $ownedByProject) {
+            return false;
+        }
+
+        return $this->extractor->extract($phase->data ?? [])
+            ->contains(fn (array $entry) => (string) $entry['external_id'] === (string) $file->external_id);
+    }
+
+    private function ownerRank(File $file, ProjectRegistrationPhase $phase): int
+    {
+        if ($file->object_type === SyncPhaseFilesJob::OBJECT_TYPE) {
+            return (int) $file->object_id === $phase->id ? 0 : 1;
+        }
+
+        return 2;
     }
 }

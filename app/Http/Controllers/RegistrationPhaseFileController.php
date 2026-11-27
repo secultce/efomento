@@ -18,7 +18,7 @@ class RegistrationPhaseFileController extends Controller
     public function serveFile(Request $request, Project $project, ProjectRegistrationPhase $registrationPhase, File $file): StreamedResponse
     {
         abort_unless($registrationPhase->project_id === $project->id, 404);
-        abort_unless($this->phaseFiles->ownedByPhaseOrProject($file, $registrationPhase, $project), 404);
+        abort_unless($this->phaseFiles->canServe($file, $registrationPhase, $project), 404);
 
         return SafeFileResponse::make($file, $request->boolean('download'));
     }
