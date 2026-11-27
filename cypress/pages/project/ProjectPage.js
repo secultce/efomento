@@ -86,10 +86,12 @@ class Project {
         cy.get(`${el.findProjectPageInput} input`).type('123456789012345678901', {
             delay: 50,
         });
+    }
 
-        cy.get(el.messageNoDataAvailable, { timeout: TIMEOUTS.SEARCH })
+    verifySearchResultByInexistentNup() {
+        cy.get(el.noDataAvailableMessage, { timeout: TIMEOUTS.SEARCH })
             .should('be.visible')
-            .should('contain', 'No data available');
+            .should('contain', 'Não foi encontrado dados para sua pesquisa');
     }
 
     findProjectByAgentName(agentName) {
