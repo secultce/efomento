@@ -10,7 +10,7 @@ export const elements = {
     // Tables
     noticeTotalCount: '[data-cy=notice-total-count]',
     noticeListTable: '[data-cy=table-notice-list]',
-    noticeTableRow: '[data-cy=row-table-notice-list]',
+    noticeTableRow: '[data-cy=table-notice-list] tbody tr',
     noticeNupNoticesList: '[data-cy=notice-nup-notices-list]',
     noticeTitleNoticesList: '[data-cy=notice-title-notices-list]',
     instrumentTypeNoticesList: '[data-cy=instrument-type-notices-list]',

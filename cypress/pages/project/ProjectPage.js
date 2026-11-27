@@ -32,24 +32,21 @@ class Project {
     }
 
     getProjectData() {
-        const projects = [];
-
-        return cy.get(el.rowTableProjectList).then(($rows) => {
-            Cypress.$($rows).each((_, row) => {
+        return cy
+            .get(el.projectList)
+            .find(el.rowTableProjectList)
+            .filter((_, row) => {
                 const agentName = Cypress.$(row).find(el.agentNameProjectList).text().trim();
+                const projectNup = this.normalizeNup(Cypress.$(row).find(el.projectNupProjectList).text());
 
-                const projectNup = Cypress.$(row).find(el.projectNupProjectList).text().trim();
-
-                projects.push({
-                    agentName,
-                    projectNup: projectNup && projectNup !== '-' ? projectNup : null,
-                });
-            });
-
-            const project = Math.floor(Math.random() * projects.length);
-
-            return projects[project];
-        });
+                return agentName.length > 0 && projectNup.length > 0;
+            })
+            .should('have.length.greaterThan', 0)
+            .first()
+            .then(($row) => ({
+                agentName: $row.find(el.agentNameProjectList).text().trim(),
+                projectNup: $row.find(el.projectNupProjectList).text().trim(),
+            }));
     }
 
     findProjectByProjectNup(projectNup) {
@@ -93,20 +90,28 @@ class Project {
         cy.get(el.noDataAvailableMessage, { timeout: TIMEOUTS.SEARCH }).should('be.visible');
     }
 
-    findProjectByAgentName() {
-        this.getProjectData().then((data) => {
-            const agentName = data.agentName;
+    verifySearchResultByInexistentNup() {
+        cy.get(el.noDataAvailableMessage, { timeout: TIMEOUTS.SEARCH })
+            .should('be.visible')
+            .should('contain', 'Não foi encontrado dados para sua pesquisa');
+    }
 
-            cy.log('agentName', agentName);
+    findProjectByAgentName(agentName) {
+        expect(agentName, 'Nome do agente utilizado na busca').to.be.a('string').and.not.be.empty;
 
-            cy.get(`${el.findProjectPageInput} input`, { timeout: TIMEOUTS.DEFAULT }).should('be.visible').clear();
+        cy.intercept('GET', '**/editais/*/projetos*', (request) => {
+            const url = new URL(request.url);
 
-            cy.get(`${el.findProjectPageInput} input`).type(agentName);
-
-            cy.get(el.projectList).within(() => {
-                cy.get(el.agentNameProjectList, { timeout: TIMEOUTS.SEARCH }).contains(agentName).should('be.visible');
-            });
+            if (/\/editais\/\d+\/projetos$/.test(url.pathname) && url.searchParams.get('search') === agentName) {
+                request.alias = 'searchProjectsByAgent';
+            }
         });
+
+        cy.get(`${el.findProjectPageInput} input`, { timeout: TIMEOUTS.DEFAULT }).should('be.visible').clear();
+
+        cy.get(`${el.findProjectPageInput} input`).type(agentName, { parseSpecialCharSequences: false });
+
+        return cy.wait('@searchProjectsByAgent').its('response.statusCode').should('eq', 200);
     }
 
     getProjectRowByNup(projectNup) {
@@ -301,6 +306,33 @@ class Project {
                 expect(actualNup, 'NUP do projeto encontrado').to.equal(expectedNup);
             });
         });
+    }
+
+    verifySearchResultByAgent(agentName, projectNup) {
+        const normalizeName = (value) => value.normalize('NFD').replace(/\p{M}/gu, '').toLowerCase();
+        const expectedWords = [...new Set((agentName.match(/\p{L}[\p{L}\p{M}]*/gu) ?? []).map(normalizeName))];
+        const expectedNup = this.normalizeNup(projectNup);
+
+        expect(expectedWords, 'Palavras do nome utilizadas na busca').to.have.length.greaterThan(0);
+
+        cy.get(el.projectList)
+            .find(el.rowTableProjectList)
+            .should(($rows) => {
+                expect($rows, 'Projetos encontrados').to.have.length.greaterThan(0);
+
+                const returnedNups = [];
+
+                $rows.each((_, row) => {
+                    const actualAgent = normalizeName(Cypress.$(row).find(el.agentNameProjectList).text());
+
+                    expectedWords.forEach((word) => {
+                        expect(actualAgent, `Agente do projeto encontrado deve conter "${word}"`).to.include(word);
+                    });
+                    returnedNups.push(this.normalizeNup(Cypress.$(row).find(el.projectNupProjectList).text()));
+                });
+
+                expect(returnedNups, 'NUP do projeto capturado antes da busca').to.include(expectedNup);
+            });
     }
 
     normalizeNup(value) {
