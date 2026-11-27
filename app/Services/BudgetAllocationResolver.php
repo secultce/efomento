@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Models\BudgetAllocation;
 use App\Models\Notice;
 use App\Models\Project;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Str;
 
 class BudgetAllocationResolver
@@ -25,14 +26,9 @@ class BudgetAllocationResolver
 
     public function resolveAvailable(Project $project): ?BudgetAllocation
     {
-        $project->loadMissing([
-            'agent.latestSnapshot',
-            'notice.budgetAllocations',
-        ]);
+        $allocations = $this->candidatesFor($project);
 
-        $allocations = $project->notice?->budgetAllocations;
-
-        if (! $allocations || $allocations->isEmpty()) {
+        if ($allocations->isEmpty()) {
             return null;
         }
 
@@ -59,25 +55,58 @@ class BudgetAllocationResolver
 
     public function resolveForBudgetOpinion(?Project $project, ?Notice $notice = null): ?BudgetAllocation
     {
-        if ($project) {
-            $project->loadMissing([
-                'budgets.installments.budgetAllocation',
-                'notice.budgetAllocations',
-            ]);
+        if (! $project) {
+            $notice?->loadMissing('budgetAllocations');
 
-            $currentInstallment = $project->budgets?->installments
-                ?->firstWhere('installment_number', $project->current_installment_cycle);
-
-            if ($currentInstallment?->budgetAllocation) {
-                return $currentInstallment->budgetAllocation;
-            }
-
-            $notice = $project->notice ?? $notice;
+            return $notice?->budgetAllocations?->sortByDesc('id')->first();
         }
 
-        $notice?->loadMissing('budgetAllocations');
+        $project->loadMissing([
+            'budgets.installments.budgetAllocation',
+        ]);
 
-        return $notice?->budgetAllocations?->sortByDesc('id')->first();
+        $currentInstallment = $project->budgets?->installments
+            ?->firstWhere('installment_number', $project->current_installment_cycle);
+
+        if ($currentInstallment?->budgetAllocation) {
+            return $currentInstallment->budgetAllocation;
+        }
+
+        // Sem dotação vinculada: mesma regra da associação (natureza + macrorregião) e,
+        // se ainda for ambíguo, a dotação mais recente da natureza da Abertura.
+        return $this->resolveAvailable($project)
+            ?? $this->candidatesFor($project)->sortByDesc('id')->first();
+    }
+
+    /**
+     * Dotações do edital elegíveis para o projeto. Se a Abertura tem natureza da
+     * despesa, só valem as dotações dessa natureza; sem natureza (projetos anteriores
+     * ao campo ou editais sem natureza nas dotações), associa só pela macrorregião.
+     *
+     * @return Collection<int, BudgetAllocation>
+     */
+    private function candidatesFor(Project $project): Collection
+    {
+        $project->loadMissing([
+            'agent.latestSnapshot',
+            'notice.budgetAllocations',
+            'opening',
+        ]);
+
+        $allocations = $project->notice?->budgetAllocations ?? new Collection;
+        $expenseNature = $project->opening?->expense_nature;
+
+        $noticeHasNatures = $allocations->contains(
+            fn (BudgetAllocation $allocation) => $allocation->expense_nature !== null
+        );
+
+        if (! $expenseNature || ! $noticeHasNatures) {
+            return $allocations;
+        }
+
+        return $allocations
+            ->filter(fn (BudgetAllocation $allocation) => $allocation->expense_nature === $expenseNature)
+            ->values();
     }
 
     private function normalizeMacroregion(mixed $value): ?string

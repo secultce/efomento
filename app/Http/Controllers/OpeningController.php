@@ -48,27 +48,16 @@ class OpeningController extends Controller
             abort(404);
         }
 
-        try {
+        $service->handle(
+            $project,
+            $opening,
+            $request->validated()
+        );
 
-            $service->handle(
-                $project,
-                $opening,
-                $request->validated()
-            );
-
-            return back()->with(
-                'success',
-                'Abertura atualizada com sucesso.'
-            );
-
-        } catch (\Throwable $e) {
-
-            report($e);
-
-            return back()->withErrors([
-                'message' => 'Erro ao atualizar abertura. Tente novamente mais tarde. ',
-            ]);
-        }
+        return back()->with(
+            'success',
+            'Abertura atualizada com sucesso.'
+        );
     }
 
     /**

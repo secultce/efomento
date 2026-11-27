@@ -49,6 +49,10 @@ const props = defineProps({
         type: Array,
         default: () => [],
     },
+    expenseNature: {
+        type: Array,
+        default: () => [],
+    },
     banks: {
         type: Array,
         default: () => [],
@@ -86,6 +90,7 @@ const form = useForm({
         account_type: null,
         branch: null,
         account: null,
+        expense_nature: null,
         supervisors: [
             { id: null, registration_number: '', type: 'principal' },
             { id: null, registration_number: '', type: 'alternate' },
@@ -120,6 +125,7 @@ onMounted(() => {
         account_type: opening.account_type ?? null,
         branch: opening.branch ?? null,
         account: opening.account ?? null,
+        expense_nature: opening.expense_nature ?? null,
         supervisors: (() => {
             const principal = opening.supervisors?.find((s) => s.type === 'principal');
             const alternate = opening.supervisors?.find((s) => s.type === 'alternate');
@@ -219,7 +225,17 @@ const missingGeneratedDocuments = computed(() => {
 
 const hasGeneratedRequiredDocuments = computed(() => missingGeneratedDocuments.value.length === 0);
 
+const MISSING_ALLOCATION_SPREADSHEET_MESSAGE =
+    'A natureza da despesa depende da planilha de dotação orçamentária, que ainda não foi importada para este edital. Solicite ao setor orçamentário o upload da planilha antes de tramitar.';
+
+const hasExpenseNatureOptions = computed(() => props.expenseNature.length > 0);
+
 const tramit = () => {
+    if (!form.opening.expense_nature && !hasExpenseNatureOptions.value) {
+        showSnackbar(MISSING_ALLOCATION_SPREADSHEET_MESSAGE, 'warning');
+        return;
+    }
+
     if (!allRequiredFilled.value) {
         showValidationErrors.value = true;
         showSnackbar('Preencha e salve todos os campos obrigatórios em destaque antes de tramitar.', 'error');
@@ -283,6 +299,7 @@ const allRequiredFilled = computed(() => {
         opening.account_type &&
         hasText(opening.branch) &&
         hasText(opening.account) &&
+        opening.expense_nature &&
         hasPrincipalSupervisor.value
     );
 });
@@ -299,6 +316,7 @@ const errors = computed(() => {
         accountType: !form.opening.account_type ? standardMessage : null,
         branch: !hasText(form.opening.branch) ? standardMessage : null,
         account: !hasText(form.opening.account) ? standardMessage : null,
+        expenseNature: !form.opening.expense_nature ? standardMessage : null,
         principalSupervisor: !hasPrincipalSupervisor.value ? standardMessage : null,
     };
 });
@@ -510,6 +528,35 @@ const activeEditIndex = ref('all');
                                             label="Insira aqui o número da conta"
                                             :error="errors.account"
                                         />
+                                    </form-field>
+                                </div>
+                            </template>
+                            <template v-else-if="section.key === 'expense_nature'">
+                                <div class="grid grid-cols-2 gap-4">
+                                    <form-field
+                                        label="Natureza da despesa"
+                                        class="col-span-2"
+                                        required
+                                        :error="form.errors['opening.expense_nature'] || errors.expenseNature"
+                                    >
+                                        <select-field
+                                            v-model="form.opening.expense_nature"
+                                            data-cy="expense-nature-select"
+                                            item-title="label"
+                                            item-value="value"
+                                            :items="props.expenseNature"
+                                            label="Selecione a natureza da despesa"
+                                            :error="form.errors['opening.expense_nature'] || errors.expenseNature"
+                                        />
+                                        <p
+                                            v-if="!hasExpenseNatureOptions"
+                                            data-cy="expense-nature-missing-spreadsheet"
+                                            class="text-orange-600 whitespace-normal text-xs mt-1"
+                                        >
+                                            A planilha de dotação orçamentária ainda não foi importada para este edital.
+                                            As naturezas da despesa ficam disponíveis após o upload pelo setor
+                                            orçamentário.
+                                        </p>
                                     </form-field>
                                 </div>
                             </template>

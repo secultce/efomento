@@ -93,6 +93,8 @@ class BudgetService implements StageValidatorInterface
             return;
         }
 
+        $project->lockOpeningForUpdate();
+
         $allocation = $this->budgetAllocationResolver->resolveAvailable($project);
 
         if (! $allocation) {

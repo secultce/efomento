@@ -187,6 +187,8 @@ class ProjectStageService
             return;
         }
 
+        $project->lockOpeningForUpdate();
+
         $allocation = $this->budgetAllocationResolver->resolveAvailable($project);
 
         if (! $allocation) {

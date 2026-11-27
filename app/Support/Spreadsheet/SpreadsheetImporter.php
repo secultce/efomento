@@ -13,7 +13,8 @@ class SpreadsheetImporter
         array $mapping = [],
         array $required = [],
         int $headerRow = 1,
-        int $dataStartsAt = 2
+        int $dataStartsAt = 2,
+        bool $keyByLine = false,
     ): Collection {
         $sheets = Excel::toArray([], $file);
 
@@ -35,7 +36,7 @@ class SpreadsheetImporter
 
         Import::validateRequiredColumns($headers, $required);
 
-        return collect(array_slice($rows, $dataStartsAt))
+        $data = collect(array_slice($rows, $dataStartsAt))
             ->filter(function ($row) {
                 return collect($row)
                     ->filter(fn ($value) => $value !== null && $value !== '')
@@ -49,7 +50,10 @@ class SpreadsheetImporter
                 );
 
                 return array_combine($headers, $values);
-            })
-            ->values();
+            });
+
+        return $keyByLine
+            ? $data->keyBy(fn ($row, $index) => $index + $dataStartsAt + 1)
+            : $data->values();
     }
 }

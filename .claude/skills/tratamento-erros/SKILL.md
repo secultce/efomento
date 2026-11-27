@@ -48,7 +48,7 @@ Não presumir que um Controller/Service específico já foi migrado. Rodar (ou p
 grep -rn "InvalidArgumentException\|catch (\\\\Throwable\|catch (\\\\Exception" app/Http/Controllers app/Services
 ```
 
-Pendências conhecidas na última verificação (ver seção 3.2 de `docs/erros_plan.md` para o estado atualizado): `UserController` e `OpeningController` ainda têm `catch` a remover; `useErrorHandler.js` e Sentry no frontend ainda não foram criados.
+Pendências conhecidas na última verificação (ver seção 3.2 de `docs/erros_plan.md` para o estado atualizado): `UserController` ainda tem `catch` a remover; `useErrorHandler.js` e Sentry no frontend ainda não foram criados.
 
 ## Passo 5 — Checklist de conformidade
 

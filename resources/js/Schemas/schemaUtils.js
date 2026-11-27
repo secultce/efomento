@@ -66,8 +66,17 @@ const asArray = (value) => {
 export const getBudgetAllocation = (project) => {
     if (!project) return null;
 
-    const noticeAllocations = asArray(project.notice?.budget_allocations);
-    const noticeFallback = noticeAllocations[0] ?? null;
+    const allNoticeAllocations = asArray(project.notice?.budget_allocations);
+    const hasExpenseNatures = allNoticeAllocations.some((allocation) => allocation.expense_nature);
+    const expenseNature = project.opening?.expense_nature ?? null;
+    const noticeAllocations =
+        hasExpenseNatures && expenseNature
+            ? allNoticeAllocations.filter((allocation) => allocation.expense_nature === expenseNature)
+            : allNoticeAllocations;
+    const noticeFallback = noticeAllocations.reduce(
+        (newest, allocation) => (!newest || Number(allocation.id) > Number(newest.id) ? allocation : newest),
+        null
+    );
     const currentBudget = asArray(project.budgets).at(-1);
     const installment = asArray(currentBudget?.installments).find(
         (item) => Number(item.installment_number) === Number(project.current_installment_cycle)
@@ -76,7 +85,7 @@ export const getBudgetAllocation = (project) => {
     if (installment?.budget_allocation) return installment.budget_allocation;
 
     if (installment?.budget_allocation_id) {
-        const linkedAllocation = noticeAllocations.find(
+        const linkedAllocation = allNoticeAllocations.find(
             (allocation) => Number(allocation.id) === Number(installment.budget_allocation_id)
         );
 

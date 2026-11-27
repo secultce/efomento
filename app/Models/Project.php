@@ -94,6 +94,26 @@ class Project extends Model implements Auditable
             ->latestOfMany('created_at');
     }
 
+    /**
+     * Bloqueia (SELECT ... FOR UPDATE) as aberturas do projeto e recarrega a atual.
+     * Serializa a troca da natureza da despesa com o vínculo de dotação às parcelas:
+     * quem chega depois espera e enxerga o estado já gravado. Chamar dentro de
+     * DB::transaction — fora de transação o bloqueio é liberado na hora.
+     */
+    public function lockOpeningForUpdate(): ?Opening
+    {
+        Opening::query()
+            ->where('project_id', $this->id)
+            ->orderBy('id')
+            ->lockForUpdate()
+            ->get(['id']);
+
+        $opening = $this->opening()->first();
+        $this->setRelation('opening', $opening);
+
+        return $opening;
+    }
+
     public function getPhaseAttribute(): string
     {
         return $this->currentStage?->slug?->label() ?? 'Não Iniciado';

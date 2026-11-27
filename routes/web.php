@@ -74,6 +74,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
         ]);
     Route::post('/projetos/atribuir-fiscal', [ProjectController::class, 'assignProjectSupervisor'])
         ->name('projects.assign-supervisors');
+    Route::post('/projetos/atribuir-natureza-despesa', [ProjectController::class, 'assignExpenseNature'])
+        ->name('projects.assign-expense-nature');
     Route::post('/projetos/criar-documento', [ProjectController::class, 'createDocument'])
         ->name('projects.create-document');
     Route::get('/projetos/documentos/{document}/download', [DocumentController::class, 'download'])

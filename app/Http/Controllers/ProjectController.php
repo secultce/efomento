@@ -14,6 +14,7 @@ use App\Enums\ProjectStageSlug;
 use App\Enums\ProjectStageStatus;
 use App\Enums\ReportStatus;
 use App\Enums\Role;
+use App\Http\Requests\Project\AssignExpenseNatureRequest;
 use App\Http\Requests\Project\CreateProjectDocumentRequest;
 use App\Http\Resources\DocumentResource;
 use App\Http\Resources\ProjectResource;
@@ -24,6 +25,7 @@ use App\Models\ProjectStage;
 use App\Models\User;
 use App\Services\Documents\DocumentPlaceholderResolver;
 use App\Services\ProjectDocumentService;
+use App\Services\ProjectExpenseNatureService;
 use App\Services\ProjectSupervisorService;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -34,7 +36,7 @@ class ProjectController extends Controller
         private readonly DocumentPlaceholderResolver $placeholderResolver,
     ) {}
 
-    public function index(Request $request, Notice $notice)
+    public function index(Request $request, Notice $notice, ProjectExpenseNatureService $expenseNatureService)
     {
         $projectsQuery = $notice->projects()
             ->with([
@@ -123,10 +125,12 @@ class ProjectController extends Controller
             'monitoringReportsCount' => $notice->projects()->whereHas('monitoring')->count(),
 
             'hasBudgetAllocations' => $notice->budgetAllocations()->exists(),
+
+            'availableExpenseNatures' => $expenseNatureService->availableOptions($notice),
         ]);
     }
 
-    public function projectDetail(Request $request, Notice $notice, Project $project)
+    public function projectDetail(Request $request, Notice $notice, Project $project, ProjectExpenseNatureService $expenseNatureService)
     {
         $project->load([
             'notice',
@@ -151,7 +155,6 @@ class ProjectController extends Controller
             'agent.latestSnapshot',
             'monitoringSnapshot',
             'stages',
-            // Só no show: o `data` de cada fase é grande demais para a listagem.
             'registrationPhases' => fn ($q) => $q->orderBy('phase_order'),
         ]);
 
@@ -178,6 +181,7 @@ class ProjectController extends Controller
             'usersAvailableForFormalization' => $usersAvailableForFormalization,
             'agentStatus' => AgentStatus::options(),
             'accountType' => AccountType::options(),
+            'expenseNature' => $expenseNatureService->availableOptions($project->notice),
             'banks' => Bank::orderByRaw('code IS NULL')
                 ->orderBy('code')
                 ->orderBy('name')
@@ -191,6 +195,18 @@ class ProjectController extends Controller
             'canAdvance' => $this->userCanActOnStage($currentStage),
             'initialTab' => $request->get('tab', 'opening'),
         ]);
+    }
+
+    public function assignExpenseNature(
+        AssignExpenseNatureRequest $request,
+        ProjectExpenseNatureService $service
+    ) {
+        $service->assign(
+            $request->validated('selected_projects'),
+            $request->expenseNature(),
+        );
+
+        return back()->with('success', 'Natureza da despesa atribuída com sucesso!');
     }
 
     public function assignProjectSupervisor(Request $request, ProjectSupervisorService $service)

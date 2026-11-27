@@ -31,6 +31,7 @@ const props = defineProps({
     supervisorsAvailable: { type: Array, default: () => [] },
     monitoringReportsCount: { type: Number, default: 0 },
     hasBudgetAllocations: Boolean,
+    availableExpenseNatures: { type: Array, default: () => [] },
 });
 
 const { showSnackbar } = useSnackbar();
@@ -398,6 +399,7 @@ function handleAction({ action, item }) {
                         :selected-projects="selectedProjects"
                         :projects="projects"
                         :supervisors-available="supervisorsAvailable"
+                        :expense-natures="availableExpenseNatures"
                         :notice="notice"
                         @saved="handleSaved"
                     />

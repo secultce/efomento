@@ -5,6 +5,7 @@ namespace App\Models;
 use App\Enums\AccountType;
 use App\Enums\AgentStatus;
 use App\Enums\DocumentPhase;
+use App\Enums\ExpenseNature;
 use App\Enums\OpeningStatus;
 use App\Traits\HasCreatedBy;
 use App\Traits\HasFiles;
@@ -43,12 +44,14 @@ class Opening extends Model implements Auditable
         'submitted_at',
         'concluded_at',
         'title_project',
+        'expense_nature',
     ];
 
     protected $casts = [
         'agent_status' => AgentStatus::class,
         'account_type' => AccountType::class,
         'status' => OpeningStatus::class,
+        'expense_nature' => ExpenseNature::class,
         'opening_date' => 'date',
         'is_draft' => 'boolean',
         'certificate_date' => 'datetime',
