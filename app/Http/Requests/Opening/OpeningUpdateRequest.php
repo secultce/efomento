@@ -3,6 +3,7 @@
 namespace App\Http\Requests\Opening;
 
 use App\Enums\ExpenseNature;
+use App\Enums\Role;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
@@ -14,7 +15,25 @@ class OpeningUpdateRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return true;
+        return ! $this->changesExpenseNature()
+            || ($this->user()?->hasAnyRole(Role::fomentoRoles()) ?? false);
+    }
+
+    /**
+     * A natureza da despesa só pode ser alterada pelo Fomento (mesma regra da
+     * atribuição em massa); os demais campos seguem sem restrição extra.
+     */
+    private function changesExpenseNature(): bool
+    {
+        $opening = $this->input('opening');
+
+        if (! is_array($opening) || ! array_key_exists('expense_nature', $opening)) {
+            return false;
+        }
+
+        $current = $this->route('opening')?->expense_nature?->value;
+
+        return (string) ($opening['expense_nature'] ?? '') !== (string) ($current ?? '');
     }
 
     /**

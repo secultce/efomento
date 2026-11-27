@@ -7,7 +7,6 @@ use App\Enums\AgentStatus;
 use App\Enums\CgeAtendeStatus;
 use App\Enums\DeliberationType;
 use App\Enums\DocumentType;
-use App\Enums\ExpenseNature;
 use App\Enums\InstrumentType;
 use App\Enums\MonitoringReportRequestDeadline;
 use App\Enums\OpeningStatus;
@@ -131,7 +130,7 @@ class ProjectController extends Controller
         ]);
     }
 
-    public function projectDetail(Request $request, Notice $notice, Project $project)
+    public function projectDetail(Request $request, Notice $notice, Project $project, ProjectExpenseNatureService $expenseNatureService)
     {
         $project->load([
             'notice',
@@ -182,7 +181,7 @@ class ProjectController extends Controller
             'usersAvailableForFormalization' => $usersAvailableForFormalization,
             'agentStatus' => AgentStatus::options(),
             'accountType' => AccountType::options(),
-            'expenseNature' => ExpenseNature::options(),
+            'expenseNature' => $expenseNatureService->availableOptions($project->notice),
             'banks' => Bank::orderByRaw('code IS NULL')
                 ->orderBy('code')
                 ->orderBy('name')

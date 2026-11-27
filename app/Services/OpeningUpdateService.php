@@ -29,14 +29,14 @@ class OpeningUpdateService implements StageValidatorInterface
 
         unset($openingData['supervisors']);
 
-        if (! empty($openingData['expense_nature'])) {
-            $this->expenseNatureService->ensureCanChange(
-                $project,
-                ExpenseNature::from($openingData['expense_nature'])
-            );
-        }
-
         DB::transaction(function () use ($project, $opening, $openingData, $formalizationData, $agentData, $supervisors) {
+            if (array_key_exists('expense_nature', $openingData)) {
+                $this->ensureExpenseNatureCanChange(
+                    $project,
+                    ExpenseNature::tryFrom((string) $openingData['expense_nature'])
+                );
+            }
+
             $this->updateOpening($opening, $openingData);
 
             $this->updateFormalization($project, $formalizationData);
@@ -45,6 +45,24 @@ class OpeningUpdateService implements StageValidatorInterface
 
             $this->syncSupervisors($project, $supervisors);
         });
+    }
+
+    /**
+     * Mesmas regras da atribuição em massa: não troca natureza com parcela vinculada
+     * a outra natureza, e só aceita naturezas presentes na planilha de dotação do edital.
+     */
+    protected function ensureExpenseNatureCanChange(Project $project, ?ExpenseNature $nature): void
+    {
+        // Com a abertura bloqueada e as parcelas recarregadas, a verificação não pode
+        // ser invalidada por um vínculo de dotação gravado em paralelo.
+        $current = $project->lockOpeningForUpdate()?->expense_nature;
+        $project->unsetRelation('budgets');
+
+        $this->expenseNatureService->ensureCanChange($project, $nature);
+
+        if ($nature && $nature !== $current && $project->notice) {
+            $this->expenseNatureService->ensureNoticeHasNature($project->notice, $nature);
+        }
     }
 
     protected function updateOpening(Opening $opening, array $data): void
@@ -112,6 +130,15 @@ class OpeningUpdateService implements StageValidatorInterface
 
         if (! $opening->principalSupervisor()->exists()) {
             $missingFields->push('Fiscal titular');
+        }
+
+        if (blank($opening->expense_nature)
+            && $project->notice
+            && $this->expenseNatureService->availableOptions($project->notice) === []) {
+            throw ValidationException::withMessages([
+                'opening' => 'A natureza da despesa depende da planilha de dotação orçamentária, que ainda não foi '
+                    .'importada para este edital. Solicite ao setor orçamentário o upload da planilha antes de tramitar.',
+            ]);
         }
 
         if ($missingFields->isNotEmpty()) {

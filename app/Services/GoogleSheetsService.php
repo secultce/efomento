@@ -423,7 +423,9 @@ class GoogleSheetsService
             return $allocation;
         }
 
-        // Fallback: resolver dotação disponível
+        // Fallback: resolver dotação disponível (com a abertura bloqueada, ver Project::lockOpeningForUpdate)
+        $project->lockOpeningForUpdate();
+
         return $this->budgetAllocationResolver->resolveAvailable($project);
     }
 

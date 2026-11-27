@@ -81,7 +81,9 @@ const save = () => {
 
             <v-card-actions>
                 <v-spacer></v-spacer>
-                <v-btn variant="outlined" color="#004c27" class="rounded-lg" @click="closeDialog">Cancelar</v-btn>
+                <v-btn variant="outlined" color="#004c27" class="rounded-lg" :disabled="processing" @click="closeDialog"
+                    >Cancelar</v-btn
+                >
                 <v-btn
                     data-cy="btnSalvarNaturezaDespesa"
                     class="!shadow-none !font-bold !bg-[#ffcc05FF] !text-[#2d353fFF] rounded-lg"

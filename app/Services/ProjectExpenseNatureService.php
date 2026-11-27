@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Enums\ExpenseNature;
 use App\Exceptions\Domain\BusinessRuleException;
 use App\Models\Notice;
+use App\Models\Opening;
 use App\Models\Project;
 use Illuminate\Support\Facades\DB;
 
@@ -12,8 +13,9 @@ class ProjectExpenseNatureService
 {
     public function assign(array $projectIds, ExpenseNature $nature): void
     {
-        $projects = Project::with(['opening', 'notice', 'budgets.installments.budgetAllocation'])
+        $projects = Project::with('notice')
             ->whereIn('id', $projectIds)
+            ->orderBy('id')
             ->get();
 
         $projects->pluck('notice')
@@ -21,15 +23,27 @@ class ProjectExpenseNatureService
             ->unique('id')
             ->each(fn (Notice $notice) => $this->ensureNoticeHasNature($notice, $nature));
 
-        foreach ($projects as $project) {
-            if (! $project->opening) {
-                throw new BusinessRuleException("O projeto {$project->number} não possui abertura.");
+        DB::transaction(function () use ($projects, $nature) {
+            // Bloqueia todas as aberturas do lote de uma vez, em ordem de id (evita deadlock
+            // entre lotes); a verificação das parcelas roda depois do bloqueio, sobre dados
+            // atuais — ver Project::lockOpeningForUpdate.
+            Opening::query()
+                ->whereIn('project_id', $projects->modelKeys())
+                ->orderBy('id')
+                ->lockForUpdate()
+                ->get(['id']);
+
+            foreach ($projects as $project) {
+                $project->setRelation('opening', $project->opening()->first());
+                $project->unsetRelation('budgets');
+
+                if (! $project->opening) {
+                    throw new BusinessRuleException("O projeto {$project->number} não possui abertura.");
+                }
+
+                $this->ensureCanChange($project, $nature);
             }
 
-            $this->ensureCanChange($project, $nature);
-        }
-
-        DB::transaction(function () use ($projects, $nature) {
             foreach ($projects as $project) {
                 $project->opening->update(['expense_nature' => $nature]);
             }
@@ -59,7 +73,8 @@ class ProjectExpenseNatureService
      */
     public function ensureCanChange(Project $project, ?ExpenseNature $nature): void
     {
-        if ($nature === null || $project->opening?->expense_nature === $nature) {
+        // Limpar a natureza (null) também é uma alteração e passa pela mesma regra.
+        if ($project->opening?->expense_nature === $nature) {
             return;
         }
 
@@ -81,7 +96,7 @@ class ProjectExpenseNatureService
         }
     }
 
-    private function ensureNoticeHasNature(Notice $notice, ExpenseNature $nature): void
+    public function ensureNoticeHasNature(Notice $notice, ExpenseNature $nature): void
     {
         if (! $notice->budgetAllocations()->exists()) {
             throw new BusinessRuleException(

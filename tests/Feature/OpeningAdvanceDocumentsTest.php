@@ -4,7 +4,9 @@ namespace Tests\Feature;
 
 use App\Enums\DocumentPhase;
 use App\Enums\DocumentType;
+use App\Enums\ExpenseNature;
 use App\Models\Bank;
+use App\Models\BudgetAllocation;
 use App\Models\Document;
 use App\Models\Opening;
 use App\Models\OpeningSupervisor;
@@ -118,12 +120,29 @@ class OpeningAdvanceDocumentsTest extends TestCase
     {
         $project = $this->createValidOpening();
         $project->opening->update(['expense_nature' => null]);
+        BudgetAllocation::factory()->create([
+            'notice_id' => $project->notice_id,
+            'expense_nature' => ExpenseNature::AUXILIO_FINANCEIRO_PESSOA_FISICA,
+        ]);
 
         try {
             $this->service->ensureCanAdvance($project->fresh());
             $this->fail('Deveria exigir a natureza da despesa.');
         } catch (ValidationException $e) {
             $this->assertStringContainsString('Natureza da despesa', $e->errors()['opening'][0]);
+        }
+    }
+
+    public function test_advance_warns_that_the_allocation_spreadsheet_is_missing(): void
+    {
+        $project = $this->createValidOpening();
+        $project->opening->update(['expense_nature' => null]);
+
+        try {
+            $this->service->ensureCanAdvance($project->fresh());
+            $this->fail('Deveria avisar que a planilha de dotação não foi importada.');
+        } catch (ValidationException $e) {
+            $this->assertStringContainsString('ainda não foi importada', $e->errors()['opening'][0]);
         }
     }
 }

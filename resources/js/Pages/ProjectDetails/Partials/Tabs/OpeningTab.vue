@@ -225,7 +225,17 @@ const missingGeneratedDocuments = computed(() => {
 
 const hasGeneratedRequiredDocuments = computed(() => missingGeneratedDocuments.value.length === 0);
 
+const MISSING_ALLOCATION_SPREADSHEET_MESSAGE =
+    'A natureza da despesa depende da planilha de dotação orçamentária, que ainda não foi importada para este edital. Solicite ao setor orçamentário o upload da planilha antes de tramitar.';
+
+const hasExpenseNatureOptions = computed(() => props.expenseNature.length > 0);
+
 const tramit = () => {
+    if (!form.opening.expense_nature && !hasExpenseNatureOptions.value) {
+        showSnackbar(MISSING_ALLOCATION_SPREADSHEET_MESSAGE, 'warning');
+        return;
+    }
+
     if (!allRequiredFilled.value) {
         showValidationErrors.value = true;
         showSnackbar('Preencha e salve todos os campos obrigatórios em destaque antes de tramitar.', 'error');
@@ -538,6 +548,15 @@ const activeEditIndex = ref('all');
                                             label="Selecione a natureza da despesa"
                                             :error="form.errors['opening.expense_nature'] || errors.expenseNature"
                                         />
+                                        <p
+                                            v-if="!hasExpenseNatureOptions"
+                                            data-cy="expense-nature-missing-spreadsheet"
+                                            class="text-orange-600 whitespace-normal text-xs mt-1"
+                                        >
+                                            A planilha de dotação orçamentária ainda não foi importada para este edital.
+                                            As naturezas da despesa ficam disponíveis após o upload pelo setor
+                                            orçamentário.
+                                        </p>
                                     </form-field>
                                 </div>
                             </template>

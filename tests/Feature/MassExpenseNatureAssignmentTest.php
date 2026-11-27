@@ -4,12 +4,16 @@ namespace Tests\Feature;
 
 use App\Enums\ExpenseNature;
 use App\Enums\Role;
+use App\Exceptions\Domain\BusinessRuleException;
 use App\Models\Budget;
 use App\Models\BudgetAllocation;
 use App\Models\Installment;
 use App\Models\Notice;
+use App\Models\Opening;
 use App\Models\Project;
 use App\Models\User;
+use App\Services\BudgetService;
+use App\Services\OpeningUpdateService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Spatie\Permission\Models\Role as SpatieRole;
 use Tests\TestCase;
@@ -242,6 +246,136 @@ class MassExpenseNatureAssignmentTest extends TestCase
         $this->assertSame('999', $project->opening->fresh()->creditor_number);
     }
 
+    public function test_opening_tab_rejects_a_nature_missing_from_the_spreadsheet(): void
+    {
+        $notice = $this->noticeWithNatures([ExpenseNature::AUXILIO_FINANCEIRO_PESSOA_FISICA]);
+        $project = Project::factory()->create(['notice_id' => $notice->id]);
+
+        $this->actingAs($this->fomentationUser())
+            ->patch(route('projects.openings.update', [$project, $project->opening]), [
+                'opening' => ['expense_nature' => ExpenseNature::CONTRIBUICOES_COM_FINS_LUCRATIVOS->value],
+            ])
+            ->assertSessionHasErrors('message');
+
+        $this->assertNull($project->opening->fresh()->expense_nature);
+    }
+
+    public function test_opening_tab_rejects_a_nature_before_the_spreadsheet_is_imported(): void
+    {
+        $project = Project::factory()->create();
+
+        $this->actingAs($this->fomentationUser())
+            ->patch(route('projects.openings.update', [$project, $project->opening]), [
+                'opening' => ['expense_nature' => ExpenseNature::AUXILIO_FINANCEIRO_PESSOA_FISICA->value],
+            ])
+            ->assertSessionHasErrors('message');
+
+        $this->assertStringContainsString('ainda não foi importada', session('errors')->first('message'));
+        $this->assertNull($project->opening->fresh()->expense_nature);
+    }
+
+    public function test_opening_tab_cannot_clear_the_nature_of_a_project_with_a_classified_installment(): void
+    {
+        $notice = $this->noticeWithNatures([ExpenseNature::AUXILIO_FINANCEIRO_PESSOA_FISICA]);
+        $project = Project::factory()->create(['notice_id' => $notice->id]);
+        $project->opening->update(['expense_nature' => ExpenseNature::AUXILIO_FINANCEIRO_PESSOA_FISICA]);
+        $this->linkInstallment($project, $this->allocationOf($notice, ExpenseNature::AUXILIO_FINANCEIRO_PESSOA_FISICA));
+
+        $this->actingAs($this->fomentationUser())
+            ->patch(route('projects.openings.update', [$project, $project->opening]), [
+                'opening' => ['expense_nature' => null],
+            ])
+            ->assertSessionHasErrors('message');
+
+        $this->assertSame(ExpenseNature::AUXILIO_FINANCEIRO_PESSOA_FISICA, $project->opening->fresh()->expense_nature);
+    }
+
+    public function test_opening_tab_requires_a_fomentation_role_only_to_change_the_nature(): void
+    {
+        $notice = $this->noticeWithNatures([ExpenseNature::AUXILIO_FINANCEIRO_PESSOA_FISICA]);
+        $project = Project::factory()->create(['notice_id' => $notice->id]);
+        $user = User::factory()->create();
+
+        $this->actingAs($user)
+            ->patch(route('projects.openings.update', [$project, $project->opening]), [
+                'opening' => ['expense_nature' => ExpenseNature::AUXILIO_FINANCEIRO_PESSOA_FISICA->value],
+            ])
+            ->assertForbidden();
+
+        $this->actingAs($user)
+            ->patch(route('projects.openings.update', [$project, $project->opening]), [
+                'opening' => ['creditor_number' => '777', 'expense_nature' => null],
+            ])
+            ->assertSessionHasNoErrors();
+
+        $opening = $project->opening->fresh();
+        $this->assertNull($opening->expense_nature);
+        $this->assertSame('777', $opening->creditor_number);
+    }
+
+    public function test_detail_page_exposes_only_the_natures_present_in_the_imported_spreadsheet(): void
+    {
+        $notice = $this->noticeWithNatures([ExpenseNature::CONTRIBUICOES_COM_FINS_LUCRATIVOS]);
+        $project = Project::factory()->create(['notice_id' => $notice->id]);
+
+        $this->actingAs($this->fomentationUser())
+            ->get(route('notices.projects.show', [$notice, $project]))
+            ->assertOk()
+            ->assertInertia(fn ($page) => $page
+                ->has('expenseNature', 1)
+                ->where('expenseNature.0.value', ExpenseNature::CONTRIBUICOES_COM_FINS_LUCRATIVOS->value)
+            );
+    }
+
+    public function test_opening_update_rechecks_installments_under_the_lock_instead_of_trusting_loaded_relations(): void
+    {
+        $notice = $this->noticeWithNatures([
+            ExpenseNature::AUXILIO_FINANCEIRO_PESSOA_FISICA,
+            ExpenseNature::CONTRIBUICOES_COM_FINS_LUCRATIVOS,
+        ]);
+        $project = Project::factory()->create(['notice_id' => $notice->id]);
+        $project->opening->update(['expense_nature' => ExpenseNature::AUXILIO_FINANCEIRO_PESSOA_FISICA]);
+        $project->load('budgets.installments.budgetAllocation');
+        $this->assertNull($project->budgets);
+
+        // Vínculo gravado "em paralelo", depois de o projeto já estar carregado.
+        $this->linkInstallment($project, $this->allocationOf($notice, ExpenseNature::AUXILIO_FINANCEIRO_PESSOA_FISICA));
+
+        $this->expectException(BusinessRuleException::class);
+
+        try {
+            app(OpeningUpdateService::class)->handle($project, $project->opening, [
+                'opening' => ['expense_nature' => ExpenseNature::CONTRIBUICOES_COM_FINS_LUCRATIVOS->value],
+            ]);
+        } finally {
+            $this->assertSame(ExpenseNature::AUXILIO_FINANCEIRO_PESSOA_FISICA, $project->opening()->first()->expense_nature);
+        }
+    }
+
+    public function test_budget_linking_reads_the_current_nature_under_the_lock(): void
+    {
+        $notice = $this->noticeWithNatures([
+            ExpenseNature::AUXILIO_FINANCEIRO_PESSOA_FISICA,
+            ExpenseNature::CONTRIBUICOES_COM_FINS_LUCRATIVOS,
+        ], perNature: 1);
+        $project = Project::factory()->create(['notice_id' => $notice->id, 'current_installment_cycle' => 1]);
+        $project->opening->update(['expense_nature' => ExpenseNature::AUXILIO_FINANCEIRO_PESSOA_FISICA]);
+        $project->load('opening');
+
+        // Natureza trocada "em paralelo", depois de o projeto já estar carregado.
+        Opening::whereKey($project->opening->id)->update([
+            'expense_nature' => ExpenseNature::CONTRIBUICOES_COM_FINS_LUCRATIVOS->value,
+        ]);
+
+        $this->actingAs($this->fomentationUser());
+        $budget = app(BudgetService::class)->create($project, ['installment_amount' => 1000]);
+
+        $this->assertSame(
+            ExpenseNature::CONTRIBUICOES_COM_FINS_LUCRATIVOS,
+            $budget->installments()->first()->budgetAllocation->expense_nature
+        );
+    }
+
     public function test_index_exposes_only_the_natures_present_in_the_imported_spreadsheet(): void
     {
         $notice = $this->noticeWithNatures([
@@ -273,12 +407,12 @@ class MassExpenseNatureAssignmentTest extends TestCase
     /**
      * @param  array<int, ExpenseNature>  $natures
      */
-    private function noticeWithNatures(array $natures): Notice
+    private function noticeWithNatures(array $natures, int $perNature = 2): Notice
     {
         $notice = Notice::factory()->create();
 
         foreach ($natures as $nature) {
-            BudgetAllocation::factory()->count(2)->create([
+            BudgetAllocation::factory()->count($perNature)->create([
                 'notice_id' => $notice->id,
                 'expense_element' => $nature->code(),
                 'expense_nature' => $nature,
