@@ -113,4 +113,17 @@ class OpeningAdvanceDocumentsTest extends TestCase
 
         $this->assertTrue(true);
     }
+
+    public function test_cannot_advance_without_expense_nature(): void
+    {
+        $project = $this->createValidOpening();
+        $project->opening->update(['expense_nature' => null]);
+
+        try {
+            $this->service->ensureCanAdvance($project->fresh());
+            $this->fail('Deveria exigir a natureza da despesa.');
+        } catch (ValidationException $e) {
+            $this->assertStringContainsString('Natureza da despesa', $e->errors()['opening'][0]);
+        }
+    }
 }

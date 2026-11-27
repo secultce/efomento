@@ -96,6 +96,7 @@ class OpeningUpdateService implements StageValidatorInterface
             'account_type' => 'Tipo de conta',
             'branch' => 'Agência',
             'account' => 'Conta',
+            'expense_nature' => 'Natureza da despesa',
         ];
 
         $missingFields = collect($requiredOpeningFields)

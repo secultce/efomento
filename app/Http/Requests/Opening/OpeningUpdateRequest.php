@@ -2,8 +2,10 @@
 
 namespace App\Http\Requests\Opening;
 
+use App\Enums\ExpenseNature;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class OpeningUpdateRequest extends FormRequest
 {
@@ -68,6 +70,9 @@ class OpeningUpdateRequest extends FormRequest
             'opening.branch' => ['nullable', 'string', 'max:255'],
             'opening.account' => ['nullable', 'string', 'max:255'],
 
+            // Natureza da despesa
+            'opening.expense_nature' => ['nullable', Rule::enum(ExpenseNature::class)],
+
             // Fiscais
             'opening.supervisors' => ['nullable', 'array'],
             'opening.supervisors.*.id' => ['nullable', 'integer', 'exists:users,id'],
@@ -91,6 +96,8 @@ class OpeningUpdateRequest extends FormRequest
         return [
             'opening.opening_nup.size' => 'O Número do Processo deve conter exatamente 17 dígitos.',
             'opening.opening_date.date' => 'A Data de abertura do processo deve ser uma data válida.',
+
+            'opening.expense_nature.enum' => 'A natureza da despesa selecionada é inválida.',
 
             'opening.supervisors.*.id.exists' => 'O fiscal selecionado não foi encontrado no sistema.',
             'opening.supervisors.*.type.in' => 'O tipo de fiscal deve ser titular ou suplente.',
@@ -117,6 +124,7 @@ class OpeningUpdateRequest extends FormRequest
             'opening.account_type' => 'tipo de conta',
             'opening.branch' => 'agência',
             'opening.account' => 'conta',
+            'opening.expense_nature' => 'natureza da despesa',
             'opening.supervisors.*.id' => 'fiscal',
             'opening.supervisors.*.registration_number' => 'matrícula do fiscal',
             'formalization.report_status' => 'regularidade e inadimplência',

@@ -49,6 +49,10 @@ const props = defineProps({
         type: Array,
         default: () => [],
     },
+    expenseNature: {
+        type: Array,
+        default: () => [],
+    },
     banks: {
         type: Array,
         default: () => [],
@@ -86,6 +90,7 @@ const form = useForm({
         account_type: null,
         branch: null,
         account: null,
+        expense_nature: null,
         supervisors: [
             { id: null, registration_number: '', type: 'principal' },
             { id: null, registration_number: '', type: 'alternate' },
@@ -120,6 +125,7 @@ onMounted(() => {
         account_type: opening.account_type ?? null,
         branch: opening.branch ?? null,
         account: opening.account ?? null,
+        expense_nature: opening.expense_nature ?? null,
         supervisors: (() => {
             const principal = opening.supervisors?.find((s) => s.type === 'principal');
             const alternate = opening.supervisors?.find((s) => s.type === 'alternate');
@@ -283,6 +289,7 @@ const allRequiredFilled = computed(() => {
         opening.account_type &&
         hasText(opening.branch) &&
         hasText(opening.account) &&
+        opening.expense_nature &&
         hasPrincipalSupervisor.value
     );
 });
@@ -299,6 +306,7 @@ const errors = computed(() => {
         accountType: !form.opening.account_type ? standardMessage : null,
         branch: !hasText(form.opening.branch) ? standardMessage : null,
         account: !hasText(form.opening.account) ? standardMessage : null,
+        expenseNature: !form.opening.expense_nature ? standardMessage : null,
         principalSupervisor: !hasPrincipalSupervisor.value ? standardMessage : null,
     };
 });
@@ -509,6 +517,26 @@ const activeEditIndex = ref('all');
                                             v-model="form.opening.account"
                                             label="Insira aqui o número da conta"
                                             :error="errors.account"
+                                        />
+                                    </form-field>
+                                </div>
+                            </template>
+                            <template v-else-if="section.key === 'expense_nature'">
+                                <div class="grid grid-cols-2 gap-4">
+                                    <form-field
+                                        label="Natureza da despesa"
+                                        class="col-span-2"
+                                        required
+                                        :error="form.errors['opening.expense_nature'] || errors.expenseNature"
+                                    >
+                                        <select-field
+                                            v-model="form.opening.expense_nature"
+                                            data-cy="expense-nature-select"
+                                            item-title="label"
+                                            item-value="value"
+                                            :items="props.expenseNature"
+                                            label="Selecione a natureza da despesa"
+                                            :error="form.errors['opening.expense_nature'] || errors.expenseNature"
                                         />
                                     </form-field>
                                 </div>
