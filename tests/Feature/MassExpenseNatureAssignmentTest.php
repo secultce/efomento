@@ -100,6 +100,23 @@ class MassExpenseNatureAssignmentTest extends TestCase
         }
     }
 
+    public function test_it_rejects_the_batch_when_a_project_has_no_opening(): void
+    {
+        $notice = $this->noticeWithNatures([ExpenseNature::AUXILIO_FINANCEIRO_PESSOA_FISICA]);
+        $withOpening = Project::factory()->create(['notice_id' => $notice->id]);
+        $withoutOpening = Project::factory()->create(['notice_id' => $notice->id]);
+        $withoutOpening->opening->delete();
+
+        $this->actingAs($this->fomentationUser())
+            ->post(route('projects.assign-expense-nature'), [
+                'selected_projects' => [$withOpening->id, $withoutOpening->id],
+                'expense_nature' => ExpenseNature::AUXILIO_FINANCEIRO_PESSOA_FISICA->value,
+            ])
+            ->assertSessionHasErrors(['message' => "O projeto {$withoutOpening->number} não possui abertura."]);
+
+        $this->assertNull($withOpening->opening->fresh()->expense_nature);
+    }
+
     public function test_it_validates_the_payload(): void
     {
         $this->actingAs($this->fomentationUser())
