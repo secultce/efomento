@@ -11,6 +11,7 @@ import TramitButton from '@/Pages/ProjectDetails/Partials/Tabs/Actions/TramitBut
 import { getViewSections } from '@/Schemas/viewSections';
 import { useLegalAnalysis } from '@/Composables/useLegalAnalysis';
 import { useStageAdvance } from '@/Composables/useStageAdvance';
+import { usePermissions } from '@/Composables/usePermissions';
 
 const viewSections = getViewSections('legalAnalysis');
 
@@ -29,7 +30,15 @@ const activeViewIndex = ref('all');
 
 const { groups, statusOptions, loadingFiles, in_progress, allFilesValid, fetchFiles, onStatusUpdated, process } =
     useLegalAnalysis(toRef(props, 'project'));
-onMounted(fetchFiles);
+
+const { canManageLegalAnalysis } = usePermissions();
+
+// A aba é montada mesmo quando outra está ativa, e a listagem responde 403 para quem não é do setor.
+onMounted(() => {
+    if (canManageLegalAnalysis.value) {
+        fetchFiles();
+    }
+});
 
 const stage = computed(() => props.project.stages?.find((s) => s.slug === STAGE_SLUG));
 
@@ -106,7 +115,11 @@ const permissionMessage = computed(() => {
                 >
                     <div>
                         <p class="font-bold text-sm mb-3">Avalie os documentos</p>
-                        <v-progress-linear v-if="loadingFiles" indeterminate color="primary" class="mb-4" />
+                        <p v-if="!canManageLegalAnalysis" class="text-sm text-gray-400">
+                            Os documentos estão disponíveis apenas para o setor de Análise Jurídica.
+                        </p>
+
+                        <v-progress-linear v-else-if="loadingFiles" indeterminate color="primary" class="mb-4" />
 
                         <DocumentEvaluationList
                             v-else-if="groups.length > 0"
