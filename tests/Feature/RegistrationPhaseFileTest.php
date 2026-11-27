@@ -200,4 +200,20 @@ class RegistrationPhaseFileTest extends TestCase
         $this->get(route('projects.registration-phases.files.serve', [$project, $phase, $file]))
             ->assertRedirect(route('login'));
     }
+
+    public function test_file_with_non_mapas_source_returns_404(): void
+    {
+        Storage::fake('public');
+        $project = Project::factory()->create();
+        $phase = $this->phase($project, 2, [555]);
+        $file = $this->mapasFile('project_registration_phase', $phase->id, 555, [
+            'source' => 'upload',
+        ]);
+        Storage::disk('public')->put($file->path, '%PDF-1.4');
+
+        $this->actingAs(User::factory()->create())
+            ->get(route('projects.registration-phases.files.serve', [$project, $phase,
+                $file]))
+            ->assertNotFound();
+    }
 }
