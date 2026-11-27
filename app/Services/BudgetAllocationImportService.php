@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Enums\ExpenseNature;
 use App\Exceptions\Domain\BusinessRuleException;
 use App\Models\BudgetAllocation;
 use App\Models\Notice;
@@ -18,9 +19,13 @@ class BudgetAllocationImportService
 
     public function preview(UploadedFile $file, Notice $notice): array
     {
+        $rows = $this->readRows($file);
+
+        $this->resolveExpenseNatures($this->allocationRows($rows));
+
         return [
             'columns' => $this->columns(),
-            'rows' => $this->readRows($file)
+            'rows' => $rows
                 ->take(self::MAX_PREVIEW_ROWS)
                 ->values()
                 ->all(),
@@ -31,15 +36,8 @@ class BudgetAllocationImportService
     public function import(UploadedFile $file, Notice $notice): array
     {
         $rows = $this->readRows($file);
-        $validRows = $rows->filter(
-            fn (array $row) => $row['allocation_code'] || $row['allocation_number']
-        );
-
-        if ($validRows->isEmpty()) {
-            throw new BusinessRuleException(
-                'Nenhuma linha do arquivo possui código ou número de dotação.'
-            );
-        }
+        $validRows = $this->allocationRows($rows);
+        $expenseNatures = $this->resolveExpenseNatures($validRows);
 
         $summary = [
             'processed' => $rows->count(),
@@ -50,6 +48,7 @@ class BudgetAllocationImportService
 
         DB::transaction(function () use (
             $validRows,
+            $expenseNatures,
             $notice,
             &$summary
         ) {
@@ -69,10 +68,11 @@ class BudgetAllocationImportService
                 $currentAllocation->delete();
             }
 
-            foreach ($validRows as $row) {
+            foreach ($validRows as $line => $row) {
                 BudgetAllocation::create([
                     'notice_id' => $notice->id,
                     ...$row,
+                    'expense_nature' => $expenseNatures[$line],
                 ]);
 
                 $isUpdate
@@ -83,9 +83,76 @@ class BudgetAllocationImportService
 
         return [
             'columns' => $this->columns(),
-            'rows' => $rows->all(),
+            'rows' => $rows->values()->all(),
             'summary' => $summary,
         ];
+    }
+
+    /**
+     * Linhas que representam uma dotação (possuem código ou número), mantendo o
+     * índice original para reportar a linha da planilha em caso de erro.
+     */
+    private function allocationRows(Collection $rows): Collection
+    {
+        $validRows = $rows->filter(
+            fn (array $row) => $row['allocation_code'] || $row['allocation_number']
+        );
+
+        if ($validRows->isEmpty()) {
+            throw new BusinessRuleException(
+                'Nenhuma linha do arquivo possui código ou número de dotação.'
+            );
+        }
+
+        return $validRows;
+    }
+
+    /**
+     * Converte o "Elemento de Despesa" de cada linha em ExpenseNature. Se alguma
+     * linha tiver natureza vazia ou não cadastrada, nada é importado.
+     *
+     * @return array<int, ExpenseNature>
+     */
+    private function resolveExpenseNatures(Collection $rows): array
+    {
+        $natures = [];
+        $invalid = [];
+
+        foreach ($rows as $line => $row) {
+            $nature = ExpenseNature::fromExpenseElement($row['expense_element']);
+
+            if ($nature) {
+                $natures[$line] = $nature;
+
+                continue;
+            }
+
+            $invalid[$row['expense_element'] ?? ''][] = $line;
+        }
+
+        if ($invalid === []) {
+            return $natures;
+        }
+
+        $details = collect($invalid)
+            ->map(fn (array $lines, int|string $value) => sprintf(
+                '%s (linha%s %s)',
+                (string) $value === '' ? 'Elemento de Despesa vazio' : '"'.$value.'"',
+                count($lines) > 1 ? 's' : '',
+                implode(', ', $lines),
+            ))
+            ->join('; ');
+
+        $accepted = collect(ExpenseNature::cases())
+            ->map(fn (ExpenseNature $nature) => $nature->code())
+            ->join(', ');
+
+        throw new BusinessRuleException(
+            'A planilha possui naturezas de despesa não cadastradas no sistema: '
+            .$details
+            .'. Naturezas aceitas: '.$accepted
+            .'. Corrija a planilha e envie novamente; nenhuma dotação foi importada.'
+        );
     }
 
     private function readRows(UploadedFile $file): Collection
@@ -96,6 +163,7 @@ class BudgetAllocationImportService
             required: BudgetAllocationSpreadsheetMap::required(),
             headerRow: 0,
             dataStartsAt: 1,
+            keyByLine: true,
         );
 
         if ($data->isEmpty()) {

@@ -2,7 +2,9 @@
 
 namespace Tests\Feature;
 
+use App\Enums\ExpenseNature;
 use App\Enums\Role;
+use App\Exceptions\Domain\BusinessRuleException;
 use App\Models\Budget;
 use App\Models\BudgetAllocation;
 use App\Models\Installment;
@@ -44,6 +46,7 @@ class BudgetAllocationImportServiceTest extends TestCase
             'budget_subfunction' => '392 - Difusão cultural',
             'project_activity' => '11607 - Promoção do edital',
             'expense_element' => '339048',
+            'expense_nature' => ExpenseNature::AUXILIO_FINANCEIRO_PESSOA_FISICA->value,
             'funding_source' => '719',
             'mapp' => '635',
             'finalistic_project' => 'Projeto finalístico',
@@ -230,6 +233,88 @@ class BudgetAllocationImportServiceTest extends TestCase
             ->assertJsonPath('errors.file.0', 'O arquivo CSV deve ter no máximo 10 MB.');
     }
 
+    public function test_it_stores_the_expense_nature_of_each_row(): void
+    {
+        $this->actingAs(User::factory()->create());
+        $notice = Notice::factory()->create();
+
+        $this->importRows($notice, [
+            $this->csvRow(['Elemento de Despesa' => '339048 - OUTROS AUXÍLIOS FINANCEIROS A PESSOAS FÍSICAS', 'Código da Dotação' => '1']),
+            $this->csvRow(['Elemento de Despesa' => '336041 - CONTRIBUIÇÕES ', 'Código da Dotação' => '2']),
+            $this->csvRow(['Elemento de Despesa' => '335041 - CONTRIBUIÇÕES ', 'Código da Dotação' => '3']),
+        ]);
+
+        $natures = BudgetAllocation::query()->orderBy('allocation_code')->pluck('expense_nature')->all();
+
+        $this->assertSame([
+            ExpenseNature::AUXILIO_FINANCEIRO_PESSOA_FISICA,
+            ExpenseNature::CONTRIBUICOES_COM_FINS_LUCRATIVOS,
+            ExpenseNature::CONTRIBUICOES_SEM_FINS_LUCRATIVOS,
+        ], $natures);
+    }
+
+    public function test_it_imports_nothing_when_a_row_has_an_unknown_expense_nature(): void
+    {
+        $this->actingAs(User::factory()->create());
+        $notice = Notice::factory()->create();
+        $existing = BudgetAllocation::factory()->create(['notice_id' => $notice->id]);
+
+        try {
+            $this->importRows($notice, [
+                $this->csvRow(['Código da Dotação' => '1']),
+                $this->csvRow(['Elemento de Despesa' => '339039 - OUTROS SERVIÇOS', 'Código da Dotação' => '2']),
+                $this->csvRow(['Elemento de Despesa' => '', 'Código da Dotação' => '3']),
+            ]);
+            $this->fail('A importação deveria ter sido rejeitada.');
+        } catch (BusinessRuleException $exception) {
+            $this->assertStringContainsString('"339039 - OUTROS SERVIÇOS" (linha 3)', $exception->getMessage());
+            $this->assertStringContainsString('Elemento de Despesa vazio (linha 4)', $exception->getMessage());
+            $this->assertStringContainsString('nenhuma dotação foi importada', $exception->getMessage());
+        }
+
+        $this->assertDatabaseCount('budget_allocations', 1);
+        $this->assertNotSoftDeleted('budget_allocations', ['id' => $existing->id]);
+    }
+
+    public function test_the_error_points_to_the_spreadsheet_line_even_after_blank_rows(): void
+    {
+        $this->actingAs(User::factory()->create());
+        $notice = Notice::factory()->create();
+        $blankRow = array_fill_keys(array_keys($this->csvRow()), '');
+
+        $this->expectException(BusinessRuleException::class);
+        $this->expectExceptionMessage('"339039 - OUTROS SERVIÇOS" (linha 5)');
+
+        $this->importRows($notice, [
+            $this->csvRow(['Código da Dotação' => '1']),
+            $blankRow,
+            $blankRow,
+            $this->csvRow(['Elemento de Despesa' => '339039 - OUTROS SERVIÇOS', 'Código da Dotação' => '2']),
+        ]);
+    }
+
+    public function test_preview_endpoint_rejects_an_unknown_expense_nature(): void
+    {
+        $user = User::factory()->create();
+        SpatieRole::firstOrCreate([
+            'name' => Role::BUDGETARY->value,
+            'guard_name' => 'web',
+        ]);
+        $user->assignRole(Role::BUDGETARY->value);
+        $notice = Notice::factory()->create();
+
+        $this->actingAs($user)
+            ->post(route('budget-allocations.preview', $notice), [
+                'file' => $this->csvFile($this->csvRow(['Elemento de Despesa' => '449052 - EQUIPAMENTOS'])),
+            ], [
+                'Accept' => 'application/json',
+            ])
+            ->assertUnprocessable()
+            ->assertJsonPath('message', fn (string $message) => str_contains($message, '449052 - EQUIPAMENTOS'));
+
+        $this->assertDatabaseCount('budget_allocations', 0);
+    }
+
     private function createBudget(): array
     {
         $notice = Notice::factory()->create();
@@ -251,6 +336,14 @@ class BudgetAllocationImportServiceTest extends TestCase
     {
         return app(BudgetAllocationImportService::class)->import(
             file: $this->csvFile($row),
+            notice: $notice,
+        );
+    }
+
+    private function importRows(Notice $notice, array $rows): array
+    {
+        return app(BudgetAllocationImportService::class)->import(
+            file: $this->csvFileWithRows($rows),
             notice: $notice,
         );
     }

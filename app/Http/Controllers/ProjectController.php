@@ -7,6 +7,7 @@ use App\Enums\AgentStatus;
 use App\Enums\CgeAtendeStatus;
 use App\Enums\DeliberationType;
 use App\Enums\DocumentType;
+use App\Enums\ExpenseNature;
 use App\Enums\InstrumentType;
 use App\Enums\MonitoringReportRequestDeadline;
 use App\Enums\OpeningStatus;
@@ -151,7 +152,6 @@ class ProjectController extends Controller
             'agent.latestSnapshot',
             'monitoringSnapshot',
             'stages',
-            // Só no show: o `data` de cada fase é grande demais para a listagem.
             'registrationPhases' => fn ($q) => $q->orderBy('phase_order'),
         ]);
 
@@ -178,6 +178,7 @@ class ProjectController extends Controller
             'usersAvailableForFormalization' => $usersAvailableForFormalization,
             'agentStatus' => AgentStatus::options(),
             'accountType' => AccountType::options(),
+            'expenseNature' => ExpenseNature::options(),
             'banks' => Bank::orderByRaw('code IS NULL')
                 ->orderBy('code')
                 ->orderBy('name')

@@ -15,6 +15,7 @@ defineProps({
     deliberation: { type: Array, default: () => [] },
     cgeAtendeStatus: { type: Array, default: () => [] },
     accountType: { type: Array, default: () => [] },
+    expenseNature: { type: Array, default: () => [] },
     banks: { type: Array, default: () => [] },
     openingStatus: { type: Array, default: () => [] },
     requiredOpeningDocuments: { type: Array, default: () => [] },
@@ -52,6 +53,7 @@ defineProps({
                     :deliberation="deliberation"
                     :cge-atende-status="cgeAtendeStatus"
                     :account-type="accountType"
+                    :expense-nature="expenseNature"
                     :banks="banks"
                     :required-opening-documents="requiredOpeningDocuments"
                     :current-stage="currentStage"

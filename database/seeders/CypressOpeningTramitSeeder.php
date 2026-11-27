@@ -72,6 +72,7 @@ class CypressOpeningTramitSeeder extends Seeder
                     'creditor_number' => '123456',
                     'bank_id' => $bank->id,
                     'account_type' => 'CORRENTE',
+                    'expense_nature' => 'AUXILIO_FINANCEIRO_PESSOA_FISICA',
                     'branch' => '1234',
                     'account' => '12345-6',
                 ]

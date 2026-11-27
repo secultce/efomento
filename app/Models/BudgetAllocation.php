@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\ExpenseNature;
 use App\Traits\HasCreatedBy;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -25,6 +26,7 @@ class BudgetAllocation extends Model implements Auditable
         'budget_subfunction',
         'project_activity',
         'expense_element',
+        'expense_nature',
         'funding_source',
         'mapp',
         'finalistic_project',
@@ -33,6 +35,10 @@ class BudgetAllocation extends Model implements Auditable
         'allocation_code',
         'allocation_number',
         'created_by',
+    ];
+
+    protected $casts = [
+        'expense_nature' => ExpenseNature::class,
     ];
 
     public function notice(): BelongsTo

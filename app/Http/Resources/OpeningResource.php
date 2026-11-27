@@ -34,6 +34,9 @@ class OpeningResource extends JsonResource
             'branch' => $this->branch,
             'account' => $this->account,
 
+            'expense_nature' => $this->expense_nature?->value,
+            'expense_nature_label' => $this->expense_nature?->label(),
+
             'is_draft' => $this->is_draft,
             'status' => $this->status?->value,
 

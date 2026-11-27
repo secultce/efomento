@@ -2,6 +2,7 @@ export const openingFormSections = [
     { title: 'Dados de abertura', key: 'opening' },
     { title: 'Certidão e-parcerias', key: 'certificate' },
     { title: 'Dados bancários e outros', key: 'bank' },
+    { title: 'Natureza da despesa', key: 'expense_nature' },
     { title: 'Dados do fiscal', key: 'supervisors' },
     { title: 'Credor', key: 'creditor' },
     { title: 'TERMO', key: 'term' },

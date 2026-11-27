@@ -226,6 +226,7 @@ export const viewSections = [
             { label: 'Dotação orçamentária', compute: (project) => getBudgetAllocation(project)?.allocation_number },
             { label: 'Cidade do agente', compute: (project) => project?.agent?.latest_snapshot?.city },
             { label: 'Macrorregião', compute: (project) => project?.agent?.latest_snapshot?.macroregion },
+            { label: 'Natureza da despesa', key: 'opening.expense_nature_label' },
         ],
     },
     {

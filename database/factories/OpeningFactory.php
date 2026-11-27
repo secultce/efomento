@@ -4,6 +4,7 @@ namespace Database\Factories;
 
 use App\Enums\AccountType;
 use App\Enums\AgentStatus;
+use App\Enums\ExpenseNature;
 use App\Enums\OpeningStatus;
 use App\Models\Bank;
 use App\Models\Opening;
@@ -43,6 +44,7 @@ class OpeningFactory extends Factory
                 ->inRandomOrder()->value('id'),
 
             'account_type' => $this->faker->randomElement(AccountType::cases())->value,
+            'expense_nature' => $this->faker->randomElement(ExpenseNature::cases())->value,
 
             'branch' => $this->faker->numerify('####'),
             'account' => $this->faker->bankAccountNumber(),
